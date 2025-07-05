@@ -1,11 +1,15 @@
 - en: '5'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '5'
 - en: PHP and Python with NGINX
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PHP 和 Python 与 NGINX
 - en: The 2000s have been the decade of server-side technologies. Over the past 15
     years or so, an overwhelming majority of websites have migrated from simple static
     HTML content to highly and fully dynamic pages, taking the web to an entirely
@@ -18,89 +22,132 @@
     language. The second language in our selection is Python, due to the way it is
     installed and configured to work with NGINX. The mechanism we will discover effortlessly
     applies to other applications, such as Perl or **Ruby on** **Rails** (**RoR**).
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 2000 年代是服务器端技术的时代。在过去的 15 年里，绝大多数网站从简单的静态 HTML 内容转向了高度和完全动态的页面，使得网页与访问者的互动达到了全新的水平。软件解决方案迅速涌现，其中一些包括开源解决方案，且有些已经足够成熟，能够处理高流量网站。在本章中，我们将研究
+    NGINX 与这些应用程序的交互能力。我们选择了两种不同的技术。第一种显然是 PHP。截至 2015 年 6 月，*W3Techs*（一个专注于网络技术调查的网站）显示，PHP
+    驱动着超过 80% 使用服务器端语言设计的网站。我们选择的第二种语言是 Python，原因在于它的安装方式和与 NGINX 配合使用的配置方式。我们将发现的机制同样适用于其他应用程序，如
+    Perl 或 **Ruby on** **Rails**（**RoR**）。
 - en: 'This chapter covers the following topics:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章内容包括以下主题：
 - en: Introduction to **Fast Common Gateway Interface** (**FastCGI**) technologies
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 介绍 **快速公共网关接口**（**FastCGI**）技术
 - en: Setting up NGINX with PHP and **PHP FastCGI Process** **Manager** (**PHP-FPM**)
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置 NGINX 与 PHP 及 **PHP FastCGI 进程管理器**（**PHP-FPM**）
 - en: Setting up NGINX with Python and Django
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置 NGINX 与 Python 和 Django
 - en: Introduction to FastCGI technologies
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍 FastCGI 技术
 - en: Before we begin, you should know that (as the name suggests) **FastCGI** is
     actually a variation of **Common Gateway Interface** (**CGI**). Therefore, explaining
     CGI first is in order. The improvements introduced by FastCGI are detailed in
     the following sections.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始之前，您需要知道（如名称所示）**FastCGI** 实际上是 **公共网关接口**（**CGI**）的一种变体。因此，首先解释 CGI 是合适的。FastCGI
+    引入的改进将在接下来的章节中详细介绍。
 - en: Understanding the CGI mechanism
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 了解 CGI 机制
 - en: 'The original purpose of a web server was merely to respond to requests from
     clients by serving files located on a storage device. The client sends a request
     to download a file, and the server processes the request and sends the appropriate
     response: **200 OK** if the file can be served normally, 404 if the file was not
     found, and other variants, as illustrated in the following diagram:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 网页服务器的最初目的是仅通过提供存储设备上的文件来响应客户端请求。客户端发送请求以下载文件，服务器处理请求并发送相应的响应：**200 OK**（如果文件可以正常提供），404（如果文件未找到），以及其他不同的响应，如下图所示：
 - en: '![Figure 5.1: A diagram depicting standard HTTP requests](img/B21787_05_1.jpg)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![图 5.1：描述标准 HTTP 请求的示意图](img/B21787_05_1.jpg)'
 - en: 'Figure 5.1: A diagram depicting standard HTTP requests'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5.1：描述标准 HTTP 请求的示意图
 - en: 'This mechanism has been in use since the beginning of the World Wide Web, and
     it still is. However, as stated before, static websites are being progressively
     abandoned at the expense of dynamic ones that contain scripts processed by applications
     such as PHP and Python, among others. The web-serving mechanism thus evolved into
     the following:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种机制自万维网诞生以来一直在使用，并且至今仍在使用。然而，正如前面所说，静态网站逐渐被放弃，取而代之的是包含由如 PHP 和 Python 等应用程序处理的脚本的动态网站。因此，网页提供机制逐步演变成了以下形式：
 - en: '![Figure 5.2: A diagram depicting standard HTTP requests with Nginx and CGI
     processing](img/B21787_05_2.jpg)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![图 5.2：描述 Nginx 与 CGI 处理标准 HTTP 请求的示意图](img/B21787_05_2.jpg)'
 - en: 'Figure 5.2: A diagram depicting standard HTTP requests with Nginx and CGI processing'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5.2：描述 Nginx 与 CGI 处理标准 HTTP 请求的示意图
 - en: When a client attempts to visit a dynamic page, the web server receives the
     request and forwards it to a third-party application. The application processes
     the script independently and returns the produced response to the web server,
     which then forwards the response back to the client.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 当客户端尝试访问动态页面时，网页服务器会接收请求并将其转发给第三方应用程序。应用程序独立处理脚本并将处理结果返回给网页服务器，然后网页服务器将响应转发回客户端。
 - en: In order for the web server to communicate with that application, the CGI protocol
     was invented in the early 1990s.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使 Web 服务器能够与该应用程序进行通信，CGI 协议是在 1990 年代初期发明的。
 - en: CGI
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: CGI
 - en: 'The following is stated in *RFC 3875 (CGI protocol v1.1)*, designed by the
     **Internet** **Society** (**ISOC**):'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下内容在 *RFC 3875 (CGI 协议 v1.1)* 中有所提到，由**互联网** **协会**（**ISOC**）设计：
 - en: '*The CGI allows an HTTP server and a CGI script to share responsibility for
     responding to client requests. [...]. The server is responsible for managing connection,
     data transfer, transport, and network issues related to the client request, whereas
     the CGI script handles the application issues such as data access and* *document
     processing.*'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '*CGI 允许 HTTP 服务器和 CGI 脚本共同负责响应客户端请求。 [...] 服务器负责管理连接、数据传输、传输和与客户端请求相关的网络问题，而
+    CGI 脚本则处理应用程序方面的问题，例如数据访问和* *文档处理。*'
 - en: CGI is the protocol that describes the way information is exchanged between
     the web server (NGINX) and the gateway application (PHP, Python, and so on). In
     practice, when the web server receives a request that should be forwarded to the
@@ -111,72 +158,103 @@
     or `PUT` requests is transmitted through the standard input. The invoked application
     then writes the processed document contents to the standard output, which is recaptured
     by the web server.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: CGI 是描述 Web 服务器（如 NGINX）和网关应用程序（如 PHP、Python 等）之间信息交换方式的协议。在实际操作中，当 Web 服务器接收到一个应该转发到网关应用程序的请求时，它会执行与所需应用程序相对应的命令；例如，`/usr/bin/php`。有关客户端请求的详细信息（例如
+    `User-Agent` 头和其他请求信息）要么作为命令行参数传递，要么作为环境变量传递，而来自 `POST` 或 `PUT` 请求的实际数据则通过标准输入传输。随后，调用的应用程序将处理后的文档内容写入标准输出，Web
+    服务器会重新捕获这些输出。
 - en: 'While this technology seems simple and efficient enough at first sight, it
     comes with a few major drawbacks, which are discussed as follows:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这种技术乍看之下似乎简单高效，但它也有一些主要的缺点，以下将讨论这些缺点：
 - en: A unique process is spawned for each request. Memory and other context information
     are lost from one request to another.
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个请求都会生成一个独立的进程。内存和其他上下文信息会在不同请求之间丢失。
 - en: Starting up a process can be resource-consuming for the system. Massive numbers
     of simultaneous requests (each spawning a process) could quickly clutter a server.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 启动一个进程可能会消耗系统的资源。大量同时的请求（每个请求都会生成一个进程）可能会迅速使服务器变得杂乱无章。
 - en: Designing an architecture where the web server and the gateway application are
     located on different computers seems difficult, if not impossible.
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设计一个将 Web 服务器和网关应用程序放置在不同计算机上的架构看起来似乎很困难，甚至是不可能的。
 - en: FastCGI
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: FastCGI
 - en: 'The issues mentioned in the *CGI* section render the CGI protocol relatively
     inefficient for servers that are subject to heavy load. The will to find solutions
     led the open market in the mid-90s to develop an evolution of CGI: FastCGI. It
     has become a major standard over the past 15 years, and most web servers now offer
     the functionality, even proprietary server software such as Microsoft **Internet
     Information** **Services** (**IIS**).'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 *CGI* 部分提到的问题使得 CGI 协议对于承载高负载的服务器来说效率相对较低。寻找解决方案的愿望促使开放市场在 90 年代中期开发了 CGI
+    的进化版本：FastCGI。过去 15 年里，它已经成为主要标准，现在大多数 Web 服务器都提供此功能，甚至像微软 **Internet Information**
+    **Services**（**IIS**）这样的专有服务器软件也支持。
 - en: 'Although the purpose remains the same, FastCGI offers significant improvements
     over CGI with the establishment of the following principles:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管目的保持不变，但 FastCGI 在 CGI 的基础上通过以下原则的建立提供了显著的改进：
 - en: Instead of spawning a new process for each request, FastCGI employs persistent
     processes that come with the ability to handle multiple requests.
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FastCGI 并不为每个请求生成新的进程，而是采用了持久化进程，这些进程具有处理多个请求的能力。
 - en: The web server and the gateway application communicate with the use of sockets
     such as TCP or Unix local IPC sockets. Consequently, the web server and backend
     processes may be located on two different computers on a network.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Web 服务器和网关应用程序通过使用 TCP 或 Unix 本地 IPC 套接字等套接字进行通信。因此，Web 服务器和后台进程可能位于网络中两台不同的计算机上。
 - en: The web server forwards the client request to the gateway and receives a response
     within a single connection. Additional requests may also follow without needing
     to create additional connections. Note that on most web servers, including NGINX
     and Apache, the implementation of FastCGI does not (or at least not fully) support
     *multiplexing*.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Web 服务器将客户端请求转发到网关，并在一个连接内接收响应。后续的请求也可以跟随而不需要创建额外的连接。请注意，在大多数 Web 服务器中，包括 NGINX
+    和 Apache，FastCGI 的实现并不（或者至少不完全）支持 *多路复用*。
 - en: Since FastCGI is a socket-based protocol, it can be implemented on any platform
     with any programming language.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于 FastCGI 是基于套接字的协议，它可以在任何平台上使用任何编程语言实现。
 - en: Throughout this chapter, we will be setting up PHP and Python via FastCGI. Additionally,
     you will find the mechanism to be relatively similar in the case of other applications,
     such as Perl or RoR.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将通过 FastCGI 配置 PHP 和 Python。此外，你会发现，其他应用程序（如 Perl 或 RoR）的机制也相对类似。
 - en: Designing a FastCGI-powered architecture is actually not as complex as one might
     imagine. As long as you have the web server and the backend application running,
     the only difficulty that remains is to establish a connection between both parties.
@@ -185,103 +263,157 @@
     the FastCGI module, which is included in default NGINX builds (including those
     that are installed via software repositories). This section details the directives
     that are made available by the module.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 设计一个基于 FastCGI 的架构其实并不像想象的那样复杂。只要你有运行中的 web 服务器和后端应用程序，剩下的唯一难题就是建立两者之间的连接。从这个角度来看，第一步是配置
+    NGINX 与 FastCGI 应用程序的通信方式。FastCGI 与 NGINX 的兼容性通过 FastCGI 模块引入，该模块包含在默认的 NGINX
+    构建中（包括通过软件库安装的版本）。本节详细介绍了该模块提供的指令。
 - en: uWSGI and SCGI
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: uWSGI 和 SCGI
 - en: 'Before reading the rest of the chapter, you should know that NGINX offers two
     other CGI-derived module implementations:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在阅读本章的其余部分之前，你应该知道 NGINX 还提供了其他两种基于 CGI 的模块实现：
 - en: The `uWSGI` module allows NGINX to communicate with applications through the
     `uwsgi` protocol, itself derived from the `uwsgi` protocol is the unoriginally
     named uWSGI server. Its latest documentation can be found at [http://uwsgi-docs.readthedocs.io/en/latest/](http://uwsgi-docs.readthedocs.io/en/latest/).
     This module will prove useful to Python adepts, seeing as the uWSGI project was
     designed mainly for Python applications.
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`uWSGI` 模块允许 NGINX 通过 `uwsgi` 协议与应用程序通信，`uwsgi` 协议本身源自于一个名字并不原创的 uWSGI 服务器。其最新文档可在
+    [http://uwsgi-docs.readthedocs.io/en/latest/](http://uwsgi-docs.readthedocs.io/en/latest/)
+    上找到。这个模块对 Python 开发者特别有用，因为 uWSGI 项目主要是为 Python 应用程序设计的。'
 - en: '**SCGI**, which stands for **Simple Common Gateway Interface**, is a variant
     of the CGI protocol, much like FastCGI. Younger than FastCGI since its specification
     was first published in 2006, SCGI was designed to be easier to implement and as
     its name suggests: simple. It is not related to a particular programming language.
     SCGI interfaces and modules can be found in a variety of software projects such
     as Apache, IIS, Java, Cherokee, and a lot more.'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**SCGI**，即**简单公共网关接口**，是 CGI 协议的一个变体，类似于 FastCGI。由于其规范首次发布于 2006 年，SCGI 比 FastCGI
+    出现得晚。SCGI 的设计目标是更容易实现，正如其名称所示：简单。它与特定编程语言无关。SCGI 接口和模块可以在多种软件项目中找到，如 Apache、IIS、Java、Cherokee
+    等。'
 - en: 'There are no major differences in the way NGINX handles the FastCGI, uWSGI,
     and SCGI protocols: each of these has its respective module, containing similarly
     named directives. The following table lists a couple of directives from the FastCGI
     module, which are detailed in the following sections, and their uWSGI and SCGI
     equivalents:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 处理 FastCGI、uWSGI 和 SCGI 协议的方式没有重大差异：每个协议都有各自的模块，其中包含类似名称的指令。以下表格列出了来自
+    FastCGI 模块的几个指令（在后续部分将详细说明）及其 uWSGI 和 SCGI 等效指令：
 - en: '| **FastCGI module** | **uWSGI equivalent** | **SCGI equivalent** |'
+  id: totrans-40
   prefs: []
   type: TYPE_TB
+  zh: '| **FastCGI 模块** | **uWSGI 等效** | **SCGI 等效** |'
 - en: '| `fastcgi_pass` | `uwsgi_pass` | `scgi_pass` |'
+  id: totrans-41
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_pass` | `uwsgi_pass` | `scgi_pass` |'
 - en: '| `fastcgi_cache` | `uwsgi_cache` | `scgi_cache` |'
+  id: totrans-42
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache` | `uwsgi_cache` | `scgi_cache` |'
 - en: '| `fastcgi_temp_path` | `uwsgi_temp_path` | `scgi_temp_path` |'
+  id: totrans-43
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_temp_path` | `uwsgi_temp_path` | `scgi_temp_path` |'
 - en: 'Table 5.1: FastCGI, uWSGI, and SCGI equivalent directives'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 5.1：FastCGI、uWSGI 和 SCGI 等效指令
 - en: Directive names and syntaxes are identical. In addition, the NGINX development
     team has been maintaining all three modules in parallel. New directives or directive
     updates are always applied to all of them. As such, the following sections will
     document NGINX’s implementation of the FastCGI protocol (since it is the most
     widely used), but they also apply to uWSGI and SCGI.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令名称和语法是相同的。此外，NGINX 开发团队一直在并行维护这三个模块。新指令或指令更新总是同时应用于它们。因此，以下部分将记录 NGINX 对 FastCGI
+    协议的实现（因为它是最广泛使用的），但同样适用于 uWSGI 和 SCGI。
 - en: Main directives
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 主要指令
 - en: 'The FastCGI, uWSGI, and SCGI modules are included in the default NGINX build.
     You do not need to enable them manually at compile time. The directives listed
     in the following table allow you to configure the way NGINX *passes* requests
     to the FastCGI/uWSGI/SCGI application. Note that you will find `fastcgi_params`,
     `uwsgi_params`, and `scgi_params` files in the NGINX configuration folder; these
     define directive values that are valid for most situations:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: FastCGI、uWSGI 和 SCGI 模块已包含在默认的 NGINX 构建中。你无需在编译时手动启用它们。下表中列出的指令允许你配置 NGINX *传递*
+    请求到 FastCGI/uWSGI/SCGI 应用程序的方式。请注意，你会在 NGINX 配置文件夹中找到 `fastcgi_params`、`uwsgi_params`
+    和 `scgi_params` 文件；这些文件定义了在大多数情况下有效的指令值：
 - en: '| **Directive** | **Description** |'
+  id: totrans-48
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-49
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `fastcgi_pass`Context: `location`, `if` | This directive specifies that the
     request should be passed to the FastCGI server, by indicating its location:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `fastcgi_pass`上下文：`location`，`if` | 此指令指定请求应传递给 FastCGI 服务器，通过指示其位置：'
 - en: For TCP sockets, the syntax is `fastcgi_pass hostname:port;`
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 TCP 套接字，语法是 `fastcgi_pass hostname:port;`
 - en: For Unix domain sockets, the syntax is `fastcgi_pass unix:/path/to/fastcgi.socket;`
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 Unix 域套接字，语法是 `fastcgi_pass unix:/path/to/fastcgi.socket;`
 - en: 'You may also refer to upstream blocks (read the following sections for more
     information): `fastcgi_pass myblock;`'
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你还可以引用 upstream 块（请阅读以下部分以获取更多信息）：`fastcgi_pass myblock;`
 - en: Examples:`fastcgi_pass` `localhost:9000;``fastcgi_pass` `127.0.0.1:9000;``fastcgi_pass`
     `unix:/tmp/fastcgi.socket;``# Using an` `upstream block``upstream fastcgi {``server`
     `127.0.0.1:9000;``server` `127.0.0.1:9001;``}``location ~* \.``php$ {``fastcgi_pass`
     `fastcgi;``}` |
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：`fastcgi_pass` `localhost:9000;``fastcgi_pass` `127.0.0.1:9000;``fastcgi_pass`
+    `unix:/tmp/fastcgi.socket;``# 使用` `upstream 块``upstream fastcgi {``server` `127.0.0.1:9000;``server`
+    `127.0.0.1:9001;``}``location ~* \.``php$ {``fastcgi_pass` `fastcgi;``}` |
 - en: '| `fastcgi_param`Context: http, `server`, `location` | This directive allows
     you to configure the request passed to FastCGI. Two parameters are strictly required
     for all FastCGI requests: `SCRIPT_FILENAME` and `QUERY_STRING`.Examples:`fastcgi_param`
@@ -297,276 +429,423 @@
     specify the `if_not_empty` keyword, forcing NGINX to transmit the parameter only
     if the specified value is not empty.Syntax: `fastcgi_param PARAM` `value [if_not_empty];`
     |'
+  id: totrans-55
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_param`上下文：http，`server`，`location` | 此指令允许你配置传递给 FastCGI 的请求。所有
+    FastCGI 请求严格需要两个参数：`SCRIPT_FILENAME` 和 `QUERY_STRING`。示例：`fastcgi_param` `SCRIPT_FILENAME
+    /home/website.com/www$fastcgi_script_name;``fastcgi_param` `QUERY_STRING $query_string;`至于
+    `POST` 请求，还需要额外的参数：`REQUEST_METHOD`、`CONTENT_TYPE` 和 `CONTENT_LENGTH`。示例：`fastcgi_param`
+    `REQUEST_METHOD $request_method;``fastcgi_param` `CONTENT_TYPE $content_type;``fastcgi_param`
+    `CONTENT_LENGTH $content_length;`在 NGINX 配置文件夹中的 `fastcgi_params` 文件已包含所有必要的参数定义，除了
+    `SCRIPT_FILENAME`，你需要为每个 FastCGI 配置指定它。如果参数名以 `HTTP_` 开头，它将覆盖客户端请求中可能存在的 HTTP
+    头部。你可以选择性地指定 `if_not_empty` 关键字，强制 NGINX 仅在指定值不为空时传递该参数。语法：`fastcgi_param PARAM`
+    `value [if_not_empty];`'
 - en: '| `fastcgi_bind`Context: `http`, `server`, `location` | This directive binds
     the socket to a local IP address, allowing you to specify the network interface
     you want to use for FastCGI communications.Syntax: `fastcgi_bind IP_address[:port]
     [transparent] &#124;` `off;` |'
+  id: totrans-56
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_bind`上下文：`http`，`server`，`location` | 此指令将套接字绑定到本地 IP 地址，允许你指定用于
+    FastCGI 通信的网络接口。语法：`fastcgi_bind IP_address[:port] [transparent] |` `off;` |'
 - en: '| `fastcgi_pass_header`Context: `http`, `server`, `location` | This directive
     specifies additional headers that should be passed to the FastCGI server.Syntax:
     `fastcgi_pass_header headername;`Example:`fastcgi_pass_header Authorization;`
     |'
+  id: totrans-57
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_pass_header`上下文：`http`，`server`，`location` | 此指令指定应传递给 FastCGI 服务器的附加头部。语法：`fastcgi_pass_header
+    headername;` 示例：`fastcgi_pass_header Authorization;` |'
 - en: '| `fastcgi_hide_header`Context: `http`, `server`, `location` | This directive
     specifies headers that should be hidden from the FastCGI server (headers that
     NGINX does not forward).Syntax: `fastcgi_hide_header headername;`Example:`fastcgi_hide_header
     X-Forwarded-For;` |'
+  id: totrans-58
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_hide_header`上下文：`http`，`server`，`location` | 此指令指定应从 FastCGI 服务器隐藏的头部（NGINX
+    不会转发的头部）。语法：`fastcgi_hide_header headername;` 示例：`fastcgi_hide_header X-Forwarded-For;`
+    |'
 - en: '| `fastcgi_index`Context: `http`, `server`, `location` | The FastCGI server
     does not support automatic directory indexes. If the requested URI ends with `/`,
     NGINX appends the `fastcgi_index` value.Syntax: `fastcgi_index filename;`Example:`fastcgi_index
     index.php;` |'
+  id: totrans-59
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_index`上下文：`http`，`server`，`location` | FastCGI 服务器不支持自动目录索引。如果请求的
+    URI 以 `/` 结尾，NGINX 会附加 `fastcgi_index` 值。语法：`fastcgi_index filename;` 示例：`fastcgi_index
+    index.php;` |'
 - en: '| `fastcgi_ignore_client_abort`Context: `http`, `server`, `location` | This
     directive lets you define what happens if the client aborts their request to the
     web server. If the directive is turned on, NGINX ignores the abort request and
     finishes processing the request. If it’s turned off, NGINX does not ignore the
     abort request. It interrupts the request treatment and aborts related communication
     with the FastCGI server.Syntax: `on` or `off`Default: `off` |'
+  id: totrans-60
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_ignore_client_abort`上下文：`http`，`server`，`location` | 此指令允许你定义客户端中止请求时的处理方式。如果启用此指令，NGINX
+    会忽略中止请求并继续处理请求。如果禁用此指令，NGINX 不会忽略中止请求，会中断请求处理并终止与 FastCGI 服务器的相关通信。语法：`on` 或 `off`默认值：`off`
+    |'
 - en: '| `fastcgi_intercept_errors`Context: `http`, `server`, `location` | This directive
     defines whether or not NGINX should process errors returned by the gateway or
     directly return error pages to the client. Error processing is done via the `error_page`
     directive of NGINX.Syntax: `on` or `off`Default: `off` |'
+  id: totrans-61
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_intercept_errors`上下文：`http`，`server`，`location` | 此指令定义了 NGINX 是否应处理网关返回的错误，或直接将错误页面返回给客户端。错误处理通过
+    NGINX 的 `error_page` 指令完成。语法：`on` 或 `off`默认值：`off` |'
 - en: '| `fastcgi_read_timeout`Context: `http`, `server`, `location` | This directive
     defines the timeout for the response from the FastCGI application. If NGINX does
     not receive the response after this period, a `504 Gateway Timeout` HTTP error
     is returned.Syntax: Numeric value (in seconds)Default: `60` |'
+  id: totrans-62
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_read_timeout`上下文：`http`，`server`，`location` | 此指令定义了从 FastCGI 应用程序接收响应的超时时间。如果
+    NGINX 在此时间段内没有收到响应，将返回 `504 Gateway Timeout` HTTP 错误。语法：数字值（单位：秒）默认值：`60` |'
 - en: '| `fastcgi_connect_timeout`Context: `http`, `server`, `location` | This directive
     defines the backend server connection timeout. This is different than the read/send
     timeout. If NGINX is already connected to the backend server, the `fastcgi_connect_timeout`
     directive is not applicable.Syntax: Time value (in seconds)Default: `60` |'
+  id: totrans-63
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_connect_timeout`上下文：`http`，`server`，`location` | 此指令定义了后端服务器连接的超时时间。与读/发送超时不同。如果
+    NGINX 已经连接到后端服务器，则 `fastcgi_connect_timeout` 指令不适用。语法：时间值（单位：秒）默认值：`60` |'
 - en: '| `fastcgi_send_timeout`Context: `http`, `server`, `location` | This is the
     timeout for sending data to the backend server. The timeout isn’t applied to the
     entire response delay but rather between two write operations.Syntax: Time value
     (in seconds)Default value: `60` |'
+  id: totrans-64
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_send_timeout`上下文：`http`，`server`，`location` | 这是发送数据到后端服务器的超时时间。超时并不适用于整个响应延迟，而是适用于两次写操作之间的延迟。语法：时间值（单位：秒）默认值：`60`
+    |'
 - en: '| `fastcgi_split_path_info`Context: `location` | A directive particularly useful
     for URLs of the following form: `http://website.com/page.php/param1/param2/`The
     directive splits the path information according to the specified regular expression:`fastcgi_split_path_info
     ^(.+\.php)(.*)$;`This affects two variables:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `fastcgi_split_path_info`上下文：`location` | 此指令特别适用于以下形式的URL：`http://website.com/page.php/param1/param2/`该指令根据指定的正则表达式拆分路径信息：`fastcgi_split_path_info
+    ^(.+\.php)(.*)$;`这会影响两个变量：'
 - en: '`$fastcgi_script_name`: The filename of the actual script to be executed; for
     example; `page.php`'
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$fastcgi_script_name`：实际脚本的文件名；例如：`page.php`'
 - en: '`$fastcgi_path_info`: The part of the URL that is after the script name; for
     example, `/param1/param2/`'
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$fastcgi_path_info`：URL中脚本名称后的部分；例如：`/param1/param2/`'
 - en: 'These can be employed in further parameter definitions:`fastcgi_param` `SCRIPT_FILENAME
     /home/website.com/www$fastcgi_script_name;``fastcgi_param` `PATH_INFO $fastcgi_path_info;`Syntax:
     Regular expression |'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些可以在进一步的参数定义中使用：`fastcgi_param` `SCRIPT_FILENAME /home/website.com/www$fastcgi_script_name;``fastcgi_param`
+    `PATH_INFO $fastcgi_path_info;`语法：正则表达式 |
 - en: '| `fastcgi_store`Context: `http`, `server`, `location` | This directive enables
     a simple *cache store* where responses from the FastCGI application are stored
     as files on the storage device. When the same URI is requested again, the document
     is directly served from the cache store instead of forwarding the request to the
     FastCGI application.This directive enables or disables the cache store.Syntax:
     `on` or `off` |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_store`上下文：`http`、`server`、`location` | 此指令启用一个简单的*缓存存储*，将FastCGI应用程序的响应存储为存储设备上的文件。当再次请求相同的URI时，文档将直接从缓存存储中提供，而不是将请求转发到FastCGI应用程序。此指令启用或禁用缓存存储。语法：`on`
+    或 `off` |'
 - en: '| `fastcgi_store_access`Context: `http`, `server`, `location` | This directive
     defines access permissions applied to the files created in the context of the
     cache store.Syntax: `fastcgi_store_access [user:r&#124;w&#124;rw][group:r&#124;w&#124;rw][all:r&#124;w&#124;rw];`Default:
     `fastcgi_store_access user:rw;` |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_store_access`上下文：`http`、`server`、`location` | 此指令定义了应用于缓存存储上下文中文件的访问权限。语法：`fastcgi_store_access
+    [user:r&#124;w&#124;rw][group:r&#124;w&#124;rw][all:r&#124;w&#124;rw];`默认值：`fastcgi_store_access
+    user:rw;` |'
 - en: '| `fastcgi_temp_path`Context: `http`, `server`, `location` | This directive
     sets the path of temporary and cache store files.Syntax: File pathExample: `fastcgi_temp_path
     /tmp/nginx_fastcgi;` |'
+  id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_temp_path`上下文：`http`、`server`、`location` | 此指令设置临时文件和缓存存储文件的路径。语法：文件路径
+    示例：`fastcgi_temp_path /tmp/nginx_fastcgi;` |'
 - en: '| `fastcgi_max_temp_file_size`Context: `http`, `server`, `location` | Set this
     directive to `0` to disable the use of temporary files for FastCGI requests or
     to specify a maximum file size.Default value: 1 GBSyntax: Size valueExample: `fastcgi_max_temp_file_size
     5m;` |'
+  id: totrans-72
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_max_temp_file_size`上下文：`http`、`server`、`location` | 将此指令设置为 `0`
+    可以禁用FastCGI请求使用临时文件，或指定最大文件大小。默认值：1 GB 语法：大小值 示例：`fastcgi_max_temp_file_size 5m;`
+    |'
 - en: '| `fastcgi_temp_file_write_size`Context: `http`, `server`, `location` | This
     directive sets the write buffer size when saving temporary files to the storage
     device.Syntax: Size valueDefault value: `2 *` `proxy_buffer_size` |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_temp_file_write_size`上下文：`http`、`server`、`location` | 此指令设置在将临时文件保存到存储设备时的写入缓冲区大小。语法：大小值
+    默认值：`2 *` `proxy_buffer_size` |'
 - en: '| `fastcgi_send_lowat`Context: `http`, `server`, `location` | This option allows
     you to make use of the `SO_SNDLOWAT` flag for TCP sockets under FreeBSD only.
     This value defines the minimum number of bytes in the buffer for output operations.Syntax:
     Numeric value (size)Default value: `0` |'
+  id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_send_lowat`上下文：`http`、`server`、`location` | 该选项允许你仅在FreeBSD下使用TCP套接字的`SO_SNDLOWAT`标志。此值定义了输出操作缓冲区中的最小字节数。语法：数值（大小）默认值：`0`
+    |'
 - en: '| `fastcgi_pass_request_body``fastcgi_pass_request_headers`Context: `http`,
     `server`, `location` | These directives define whether or not, respectively, the
     request body and extra request headers should be passed on to the *backend* server.Syntax:
     `on` or `off`Default: `on` |'
+  id: totrans-75
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_pass_request_body``fastcgi_pass_request_headers`上下文：`http`、`server`、`location`
+    | 这些指令分别定义是否将请求体和额外的请求头传递给*后端*服务器。语法：`on` 或 `off` 默认值：`on` |'
 - en: '| `fastcgi_ignore_headers`Context: `http`, `server`, `location` | This directive
     prevents NGINX from processing one or more of the following headers from the backend
     server response:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `fastcgi_ignore_headers`上下文：`http`、`server`、`location` | 此指令防止NGINX处理来自后端服务器响应的以下一个或多个头信息：'
 - en: '`X-Accel-Redirect`'
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`X-Accel-Redirect`'
 - en: '`X-Accel-Expires`'
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`X-Accel-Expires`'
 - en: '`Expires`'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Expires`'
 - en: '`Cache-Control`'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Cache-Control`'
 - en: '`X-Accel-Limit-Rate`'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`X-Accel-Limit-Rate`'
 - en: '`X-Accel-Buffering`'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`X-Accel-Buffering`'
 - en: '`X-Accel-Charset`'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`X-Accel-Charset`'
 - en: 'Syntax: `fastcgi_ignore_headers` `header1 [header2...];` |'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法：`fastcgi_ignore_headers` `header1 [header2...];` |
 - en: '| `fastcgi_next_upstream`Context: `http`, `server`, `location` | When `fastcgi_pass`
     is connected to an upstream block, this directive defines cases where requests
     should be abandoned and resent to the next upstream server of the block. The directive
     accepts a combination of values among the following:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `fastcgi_next_upstream`上下文: `http`, `server`, `location` | 当`fastcgi_pass`连接到上游块时，该指令定义了应放弃请求并将其重新发送到该块下一个上游服务器的情况。该指令接受以下值的组合：'
 - en: '`error`: An error occurred while communicating or attempting to communicate
     with the server'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`error`：与服务器通信或尝试通信时发生错误'
 - en: '`timeout`: A timeout occurred during transfers or connection attempts'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`timeout`：传输或连接尝试期间发生超时'
 - en: '`invalid_header`: The backend server returned an empty or invalid response'
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`invalid_header`：后端服务器返回了空或无效的响应'
 - en: '`http_500`, `http_503`, `http_403`, `http_404`, `http_429`: If such HTTP errors
     occur, NGINX switches to the next upstream server'
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_500`，`http_503`，`http_403`，`http_404`，`http_429`：如果发生此类HTTP错误，NGINX将切换到下一个上游服务器'
 - en: '`non-idempotent`: Allows retrying non-idempotent requests (`LOCK`, `POST`,
     `PATCH`)'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`non-idempotent`：允许重试非幂等请求（`LOCK`，`POST`，`PATCH`）'
 - en: '`off`: Forbids using the next upstream server'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`：禁止使用下一个上游服务器'
 - en: Examples:`fastcgi_next_upstream error` `timeout http_504;``fastcgi_next_upstream`
     `timeout invalid_header;` |
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：`fastcgi_next_upstream error` `timeout http_504;``fastcgi_next_upstream`
+    `timeout invalid_header;` |
 - en: '| `fastcgi_next_upstream_timeout`Context: `http`, `server`, `location` | Defines
     the timeout to be used in conjunction with `fastcgi_next_upstream`. Setting this
     directive to `0` disables it.Syntax: Time value (in seconds) |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_next_upstream_timeout`上下文: `http`, `server`, `location` | 定义与`fastcgi_next_upstream`一起使用的超时设置。将该指令设置为`0`会禁用它。语法：时间值（秒）|'
 - en: '| `fastcgi_next_upstream_tries`Context: `http`, `server`, `location` | Defines
     the maximum number of upstream servers tried before returning an error message,
     to be used in conjunction with `fastcgi_next_upstream`.Syntax: Numeric value (default:
     `0`) |'
+  id: totrans-94
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_next_upstream_tries`上下文: `http`, `server`, `location` | 定义在返回错误信息之前尝试的最大上游服务器数量，应与`fastcgi_next_upstream`一起使用。语法：数字值（默认值:
+    `0`）|'
 - en: '| `fastcgi_catch_stderr`Context: `http`, `server`, `location` | This directive
     allows you to intercept some of the error messages sent to `stderr` (**standard
     error** stream) and store them in the NGINX error log.Syntax: `fastcgi_catch_stderr
     filter;`Example: `fastcgi_catch_stderr "PHP` `Fatal error:";` |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_catch_stderr`上下文: `http`, `server`, `location` | 此指令允许你拦截发送到`stderr`
+    (**标准错误**流) 的部分错误信息并将其存储在NGINX错误日志中。语法：`fastcgi_catch_stderr filter;` 示例：`fastcgi_catch_stderr
+    "PHP Fatal error:";` |'
 - en: '| `fastcgi_keep_conn`Context: `http`, `server`, `location` | When set to `on`,
     NGINX will conserve the connection to the FastCGI server, thus reducing overhead.Syntax:
     `on` or `off` (default: `off`)Note that there is no equivalent directive in the
     uWSGI and SCGI modules. |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_keep_conn`上下文: `http`, `server`, `location` | 当设置为`on`时，NGINX将保持与FastCGI服务器的连接，从而减少开销。语法：`on`
+    或 `off`（默认值：`off`）注意：uWSGI和SCGI模块中没有等效指令。 |'
 - en: '| `fastcgi_force_ranges`Context: `http`, `server`, `location` | When set to
     `on`, NGINX will enable byte-range support on responses from the FastCGI backend.Syntax:
     `on` or `off` (default: `off`) |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_force_ranges`上下文: `http`, `server`, `location` | 当设置为`on`时，NGINX将启用来自FastCGI后端的字节范围支持。语法：`on`
+    或 `off`（默认值：`off`）|'
 - en: '| `fastcgi_limit_rate`Context: `http`, `server`, `location` | Allows you to
     limit the rate at which NGINX downloads the response from the FastCGI backend.Syntax:
     Numeric value (bytes per second) |'
+  id: totrans-98
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_limit_rate`上下文: `http`, `server`, `location` | 允许你限制NGINX从FastCGI后端下载响应的速率。语法：数字值（每秒字节数）|'
 - en: 'Table 5.2: A list of the main FastCGI directives'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 5.2：主要FastCGI指令列表
 - en: We’ve had a glance at the main FastCGI directives. Let’s dig deeper into FastCGI
     cache and buffer directives.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经浏览了主要的FastCGI指令，接下来让我们深入了解FastCGI缓存和缓冲指令。
 - en: FastCGI caching and buffering
+  id: totrans-101
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: FastCGI缓存和缓冲
 - en: Once you have correctly configured NGINX to work with your FastCGI application,
     you may optionally make use of `fastcgi_cache` directives, which will help you
     improve the overall server performance by setting up a cache system. Additionally,
     FastCGI buffering allows you to buffer responses from the FastCGI backend instead
     of synchronously forwarding them to the client. You can get a full list of NGINX
     FastCGI cache modules on the official [https://nginx.org](https://nginx.org) website.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦您正确配置了 NGINX 与您的 FastCGI 应用程序一起工作，您可以选择使用 `fastcgi_cache` 指令，这将通过设置缓存系统来帮助您提高服务器的整体性能。此外，FastCGI
+    缓冲区允许您缓冲来自 FastCGI 后端的响应，而不是同步地将其转发给客户端。您可以在官方的 [https://nginx.org](https://nginx.org)
+    网站上找到 NGINX FastCGI 缓存模块的完整列表。
 - en: 'Here is a full NGINX FastCGI cache configuration example, making use of most
     of the cache-related directives described in the preceding table:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个完整的 NGINX FastCGI 缓存配置示例，利用了前面表格中描述的与缓存相关的大部分指令：
 - en: '[PRE0]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Since these directives are valid for pretty much any virtual host configuration,
     you may want to save these in a separate file (`fastcgi_cache`) that you include
     in the appropriate place:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这些指令适用于几乎所有虚拟主机配置，您可能希望将它们保存在一个单独的文件（`fastcgi_cache`），并在适当的位置引入：
 - en: '[PRE1]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: We’ve covered most of the directives in the FastCGI module that you might find
     useful. Now, we are going to apply this knowledge to a real-life use case involving
     NGINX with PHP.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经介绍了 FastCGI 模块中您可能会用到的大部分指令。现在，我们将把这些知识应用到一个涉及 NGINX 与 PHP 的实际用例中。
 - en: PHP with NGINX
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PHP 与 NGINX
 - en: 'We are now going to configure PHP to work together with NGINX via FastCGI.
     Why FastCGI in particular, as opposed to the other two alternatives, SCGI and
     uWSGI? The answer came with the release of PHP version `5.3.3`. As of this version,
@@ -577,327 +856,497 @@
     worry not: a section of this chapter is dedicated to building PHP with everything
     we need. Alternatively, the `php-fpm` or `php8-fpm` packages can be found in most
     repositories.'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将配置 PHP 与 NGINX 通过 FastCGI 一起工作。为什么要特别选择 FastCGI，而不是另外两种替代方案 SCGI 和 uWSGI
+    呢？答案在于 PHP 版本 `5.3.3` 的发布。自该版本起，所有发布都自带一个集成的 FastCGI 进程管理器，允许您轻松连接实现 FastCGI 协议的应用程序。唯一的要求是您的
+    PHP 构建必须配置 `--enable-fpm` 参数。如果您不确定当前的设置是否包含所需的组件，不必担心：本章中有一部分内容专门介绍了如何构建 PHP
+    并包含我们需要的所有内容。或者，您可以在大多数软件仓库中找到 `php-fpm` 或 `php8-fpm` 包。
 - en: Architecture
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 架构
 - en: Before starting the setup process, it’s important to understand the way PHP
     will interact with NGINX. We have established that FastCGI is a communication
     protocol running through sockets, which implies that there is a client and a server.
     The client is obviously NGINX. As for the server, well, the answer is actually
     more complicated than just “PHP.”
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 在开始设置过程之前，了解 PHP 如何与 NGINX 交互非常重要。我们已经确定，FastCGI 是一种通过套接字运行的通信协议，这意味着存在客户端和服务器。客户端显然是
+    NGINX。至于服务器，答案实际上比单纯的“PHP”更复杂。
 - en: 'By default, PHP supports the FastCGI protocol. The PHP binary processes scripts
     and is able to interact with NGINX via sockets. However, we are going to use an
     additional component to improve the overall process management—PHP-FPM:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，PHP 支持 FastCGI 协议。PHP 二进制文件处理脚本，并能够通过套接字与 NGINX 进行交互。然而，我们将使用一个额外的组件来改进整体的进程管理——PHP-FPM：
 - en: '![Figure 5.3: A diagram showing PHP-FPM running PHP in a sandbox](img/B21787_05_3.jpg)'
+  id: totrans-113
   prefs: []
   type: TYPE_IMG
+  zh: '![图 5.3：展示 PHP-FPM 在沙盒中运行 PHP 的示意图](img/B21787_05_3.jpg)'
 - en: 'Figure 5.3: A diagram showing PHP-FPM running PHP in a sandbox'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5.3：展示 PHP-FPM 在沙盒中运行 PHP 的示意图
 - en: PHP-FPM takes FastCGI support to an entirely new level. Its numerous features
     are detailed in the next section.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: PHP-FPM 将 FastCGI 支持提升到了一个全新的水平。它的众多功能将在下一节详细介绍。
 - en: PHP-FPM
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PHP-FPM
 - en: 'The process manager, as its name suggests, is a script that manages PHP processes.
     It awaits and receives instructions from NGINX and runs the requested PHP scripts
     under the environment that you configure. In practice, PHP-FPM introduces a number
     of possibilities, such as the following:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 进程管理器，顾名思义，是一个用于管理 PHP 进程的脚本。它等待并接收来自 NGINX 的指令，在您配置的环境中运行请求的 PHP 脚本。实际上，PHP-FPM
+    引入了许多可能性，例如以下内容：
 - en: Automatically *daemonizing* PHP (turning it into a background process)
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自动 *守护进程化* PHP（将其转为后台进程）
 - en: Executing scripts in a *chrooted* (or sandboxed) environment
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 *chroot*（或沙箱）环境中执行脚本
 - en: Improved logging, IP address restrictions, pool separation, and much more
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 改进的日志记录、IP 地址限制、池分离等更多功能
 - en: Setting up PHP and PHP-FPM
+  id: totrans-121
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置 PHP 和 PHP-FPM
 - en: In this section, we will detail the process of downloading and installing PHP.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节将详细介绍下载和安装 PHP 的过程。
 - en: Installing using a package manager
+  id: totrans-123
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用包管理器安装
 - en: At the time of writing these lines, the latest stable version of PHP is 8.3,
     but versions may differ depending on your distribution and the version of PHP
     included in the distribution.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 在写这些内容时，PHP 的最新稳定版本是 8.3，但具体版本可能会因你的发行版及其中包含的 PHP 版本而有所不同。
 - en: 'For Red Hat-based systems and other systems using `dnf` as the package manager,
     execute the following command:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于基于 Red Hat 的系统和其他使用 `dnf` 作为包管理器的系统，执行以下命令：
 - en: '[PRE2]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'For Ubuntu, Debian, and other systems that use `apt`, execute the following
     command:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 Ubuntu、Debian 和其他使用 `apt` 的系统，执行以下命令：
 - en: '[PRE3]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Post-installation configuration
+  id: totrans-129
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 安装后的配置
 - en: Begin by configuring your newly installed PHP; for example, by copying the `php.ini`
     file of your previous setup over the new one.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 从配置你新安装的 PHP 开始；例如，可以将你之前设置的 `php.ini` 文件复制到新的配置文件中。
 - en: Note
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Due to the way NGINX forwards script files and request information to PHP,
     a security breach might be caused by the use of the `cgi.fix_pathinfo=1` configuration
     option. It is highly recommended that you set this option to `0` in your `php.ini`
     file (it should be `0` by default on most distributions). For more information
     about this particular security issue, please consult the following article:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 NGINX 转发脚本文件和请求信息给 PHP 的方式，使用 `cgi.fix_pathinfo=1` 配置选项可能会导致安全漏洞。强烈建议你在 `php.ini`
+    文件中将此选项设置为 `0`（在大多数发行版中默认就是 `0`）。有关这个特定安全问题的更多信息，请查阅以下文章：
 - en: '[http://cnedelcu.blogspot.in/2010/05/nginx-php-via-fastcgi-important.html](http://cnedelcu.blogspot.in/2010/05/nginx-php-via-fastcgi-important.html).'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: '[http://cnedelcu.blogspot.in/2010/05/nginx-php-via-fastcgi-important.html](http://cnedelcu.blogspot.in/2010/05/nginx-php-via-fastcgi-important.html).'
 - en: 'The next step is to configure PHP-FPM. Open up the `php-fpm.conf` file. We
     cannot detail all aspects of the PHP-FPM configuration here (they are largely
     documented in the configuration file itself anyway), but there are important configuration
     directives that you shouldn’t miss:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是配置 PHP-FPM。打开 `php-fpm.conf` 文件。我们无法在这里详细介绍 PHP-FPM 配置的所有方面（大部分配置都在配置文件中有详细文档），但有一些重要的配置指令你不应错过：
 - en: Edit the user(s) and group(s) used by worker processes and, optionally, Unix
     sockets
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编辑工作进程使用的用户(s) 和组(s)，以及（可选的）Unix 套接字
 - en: Address(es) and port(s) on which PHP-FPM will be listening
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PHP-FPM 将监听的地址和端口
 - en: Number of simultaneous requests that will be served
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将处理的同时请求数量
 - en: IP address(es) allowed to connect to PHP-FPM
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许连接到 PHP-FPM 的 IP 地址
 - en: Running and controlling
+  id: totrans-139
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 运行和控制
 - en: 'Once you have made the appropriate changes to the PHP-FPM configuration file,
     you may start or restart it with the following command:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你对 PHP-FPM 配置文件进行了适当的修改，可以使用以下命令启动或重启它：
 - en: '[PRE4]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The preceding command will restart your `php-fpm` daemon; you can use `start`
     if your daemon hasn’t been running yet.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述命令将重启你的 `php-fpm` 守护进程；如果你的守护进程尚未运行，可以使用 `start`。
 - en: Note
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: You can see the current `php-fpm` load and requests live by typing `systemctl
     status php-fpm`. This command can be very helpful as it will let you know whether
     your server is saturated or working properly.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过输入 `systemctl status php-fpm` 来实时查看当前 `php-fpm` 的负载和请求情况。这个命令非常有用，可以让你知道服务器是否过载或工作正常。
 - en: NGINX configuration
+  id: totrans-145
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: NGINX 配置
 - en: 'If you have managed to configure and start PHP-FPM correctly, you are ready
     to tweak your NGINX configuration file to establish a connection between both
     parties. The following server block is a simple, valid template on which you can
     base your own website configuration:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你已经成功配置并启动了 PHP-FPM，那么你可以开始调整你的 NGINX 配置文件，以建立两者之间的连接。以下的服务器块是一个简单有效的模板，你可以基于它来配置你自己的网站：
 - en: '[PRE5]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'After saving the configuration file, reload NGINX:'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 保存配置文件后，重新加载 NGINX：
 - en: '[PRE6]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Create a simple script at the root of your website to make sure PHP is being
     correctly interpreted:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 在你的网站根目录创建一个简单的脚本，确保 PHP 被正确解析：
 - en: '[PRE7]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Fire up your favorite web browser and load `http://localhost/` (or your website
     URL). You should see something similar to the following screenshot, which is the
     PHP server information page:'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 打开你最喜欢的网页浏览器并加载`http://localhost/`（或者你的网站 URL）。你应该会看到类似下面的截图，这是 PHP 服务器信息页面：
 - en: '![Figure 5.4: A screenshot of the PHP server information page](img/B21787_05_4.jpg)'
+  id: totrans-153
   prefs: []
   type: TYPE_IMG
+  zh: '![图 5.4：PHP 服务器信息页面的截图](img/B21787_05_4.jpg)'
 - en: 'Figure 5.4: A screenshot of the PHP server information page'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5.4：PHP 服务器信息页面的截图
 - en: Note that you may run into the occasional `403 Forbidden` HTTP error if the
     file and directory access permissions are not properly configured. If that is
     the case, make sure that you specify the correct user and group in the `php-fpm.conf`
     file and that the directory and files are readable by PHP.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，如果文件和目录访问权限未正确配置，你可能会遇到偶尔的 `403 Forbidden` HTTP 错误。如果是这种情况，请确保在 `php-fpm.conf`
+    文件中指定了正确的用户和组，并确保目录和文件可被 PHP 读取。
 - en: We’ve learned how to set up NGINX with PHP using the PHP-FPM server. In the
     next section, we’ll learn how to do the same thing, this time with a Python server.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经学习了如何使用 PHP-FPM 服务器设置 NGINX。接下来的部分，我们将学习如何使用 Python 服务器做相同的事情。
 - en: Python and NGINX
+  id: totrans-157
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Python 和 NGINX
 - en: Python is a popular **object-oriented programming** (**OOP**) language available
     on many platforms, from Unix-based systems to Windows. It is also available for
     Java and the Microsoft .NET platform. If you are interested in configuring Python
     to work with NGINX, it’s likely that you already have a clear idea of what Python
     does. We are going to use Python as a server-side web programming language, with
     the help of the Django framework.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: Python 是一种流行的**面向对象编程**（**OOP**）语言，支持多平台，从类 Unix 系统到 Windows 系统。它也可以在 Java 和
+    Microsoft .NET 平台上使用。如果你有兴趣将 Python 配置为与 NGINX 一起使用，那么你可能已经清楚 Python 的用途了。我们将使用
+    Python 作为服务器端的 web 编程语言，并借助 Django 框架。
 - en: Django
+  id: totrans-159
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Django
 - en: 'Django is an open source web development framework for Python that aims at
     making web development simple and easy, as its slogan states:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: Django 是一个为 Python 设计的开源 web 开发框架，旨在使 web 开发变得简单易行，正如它的口号所说：
 - en: '*The web framework for perfectionists* *with deadlines.*'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '*完美主义者的 web 框架* *有截止日期。*'
 - en: More information is available on the project website at [https://www.djangoproject.com/](https://www.djangoproject.com/).
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 更多信息可以在项目官网 [https://www.djangoproject.com/](https://www.djangoproject.com/)
+    上找到。
 - en: Among other interesting features, such as a dynamic administrative interface,
     a caching framework, and unit tests, Django comes with a FastCGI manager. Although
     the usual way to deploy Django is through WSGI, we’re going to use Django’s FastCGI
     manager as it’s going to make things much simpler for us from the perspective
     of running Python scripts through NGINX.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了其他一些有趣的功能，如动态管理界面、缓存框架和单元测试外，Django 还配备了一个 FastCGI 管理器。尽管通常部署 Django 的方式是通过
+    WSGI，但我们将使用 Django 的 FastCGI 管理器，因为它能让我们通过 NGINX 运行 Python 脚本时更加简便。
 - en: Setting up Python and Django
+  id: totrans-164
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置 Python 和 Django
 - en: We will now install Python and Django on your Linux operating system, along
     with its prerequisites. The process is relatively smooth and mostly consists of
     running a couple of commands that rarely cause trouble.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将在你的 Linux 操作系统上安装 Python 和 Django，以及其前提条件。这个过程相对顺利，主要是执行几个很少出问题的命令。
 - en: Python
+  id: totrans-166
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Python
 - en: 'Python should be available on your package manager repositories. To install
     it, run the following commands. For Red Hat-based systems and other systems using
     `dnf` as the package manager, use this command:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: Python 应该可以在你的包管理器库中找到。要安装它，请运行以下命令。对于基于 Red Hat 的系统和其他使用 `dnf` 作为包管理器的系统，请使用以下命令：
 - en: '[PRE8]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'For Ubuntu, Debian, and other systems that use `apt`, use this command:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 Ubuntu、Debian 以及其他使用 `apt` 的系统，请使用以下命令：
 - en: '[PRE9]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: The package manager will resolve dependencies by itself.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 包管理器会自动解决依赖关系。
 - en: Django
+  id: totrans-172
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Django
 - en: 'In order to install Django, we will use a different approach (although you
     could skip this entirely and just install it from your usual repositories). We
     will be downloading the framework with `pip`, a tool that simplifies the installation
     of Python packages. Therefore, the first step is to install `pip`; for Red Hat-based
     systems and other systems using `dnf` as the package manager, execute the following
     command:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了安装 Django，我们将采用一种不同的方法（虽然你完全可以跳过这一步，直接从常规软件库中安装）。我们将使用 `pip` 来下载框架，`pip` 是一个简化
+    Python 包安装的工具。因此，第一步是安装 `pip`；对于基于 Red Hat 的系统和其他使用 `dnf` 作为包管理器的系统，执行以下命令：
 - en: '[PRE10]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'For Ubuntu, Debian, and other systems that use `apt`, use this command:'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于Ubuntu、Debian及其他使用`apt`的系统，请使用以下命令：
 - en: '[PRE11]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'The package manager will resolve dependencies by itself. Once `pip` is installed,
     run the following command to download and install Django 1.8.2, the latest stable
     version to date:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 包管理器会自动解决依赖问题。安装`pip`之后，运行以下命令下载并安装Django 1.8.2，这是目前为止最新的稳定版本：
 - en: '[PRE12]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Finally, there is one last component required to run the Python FastCGI manager:
     the `flup` library. This provides the actual FastCGI protocol implementation.
     For Red Hat-based systems and other systems using `dnf` as the package manager
     (**Extra Packages for Enterprise Linux** (**EPEL**) repositories must be enabled;
     otherwise, you will need to build from source), use the following command:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，为了运行Python FastCGI管理器，还需要一个组件：`flup`库。这个库提供了实际的FastCGI协议实现。对于基于Red Hat的系统以及其他使用`dnf`作为包管理器的系统（必须启用**企业Linux额外软件包**（**EPEL**）库；否则，你需要从源代码编译），请使用以下命令：
 - en: '[PRE13]'
+  id: totrans-180
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'For Ubuntu, Debian, and other systems that use `apt`, use this command:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于Ubuntu、Debian及其他使用`apt`的系统，请使用以下命令：
 - en: '[PRE14]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Starting the FastCGI process manager
+  id: totrans-183
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 启动FastCGI进程管理器
 - en: 'The process of beginning to build a website with the Django framework is as
     simple as running the following command:'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用Django框架开始构建网站的过程简单至极，只需运行以下命令：
 - en: '[PRE15]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Once that part is done, you will find a `manage.py` Python script that comes
     with the default project template. Open the newly created `mysite` directory containing
     `manage.py`, and run the following command:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成上述步骤后，你会在默认项目模板中找到一个`manage.py`的Python脚本。打开新创建的包含`manage.py`的`mysite`目录，并运行以下命令：
 - en: '[PRE16]'
+  id: totrans-187
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: If everything is correctly configured and the dependencies are properly installed,
     running this command should produce no output, which is often a good sign. The
     FastCGI process manager is now running in the background, waiting for connections.
@@ -905,34 +1354,51 @@
     by executing `ps aux | grep python`). If you don’t see any running process, try
     changing the previous command slightly by selecting a different port. All we need
     to do now is to set up the virtual host in the NGINX configuration file.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一切配置正确且依赖项已正确安装，运行此命令应该不会输出任何内容，这通常是一个好兆头。FastCGI进程管理器现在在后台运行，等待连接。你可以使用`ps`命令验证应用程序是否在运行（例如，通过执行`ps
+    aux | grep python`）。如果没有看到任何正在运行的进程，可以尝试通过选择不同的端口稍微修改之前的命令。如果一切正常，我们接下来只需在NGINX配置文件中设置虚拟主机。
 - en: NGINX configuration
+  id: totrans-189
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: NGINX配置
 - en: 'The NGINX configuration is similar to the PHP one:'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的配置与PHP的配置类似：
 - en: '[PRE17]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: We’ve now completed covering running NGINX with Python via FastCGI.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在已经完成了通过FastCGI运行NGINX与Python的部分。
 - en: Summary
+  id: totrans-193
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: Whether you use PHP, Python, or any other CGI application, you should now have
     a clear idea of how to get your scripts processed behind NGINX. There are all
     sorts of implementations on the web for mainstream programming languages and the
     FastCGI protocol. Due to its efficiency, it is starting to replace server-integrated
     solutions such as Apache’s `mod_php` and `mod_wsgi`, among others.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论你使用PHP、Python，还是其他任何CGI应用程序，现在应该已经清楚如何让你的脚本在NGINX后端处理。网络上有各种主流编程语言和FastCGI协议的实现。由于其高效性，它开始取代Apache的`mod_php`和`mod_wsgi`等服务器集成解决方案。
 - en: In the next chapter, we will learn how to use NGINX as a frontend for microservices,
     enabling us to improve the security and speed of web applications by running NGINX
     in front of them.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将学习如何使用NGINX作为微服务的前端，使我们能够通过将NGINX置于它们前端来提高Web应用程序的安全性和速度。

@@ -1,11 +1,15 @@
 - en: '6'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '6'
 - en: NGINX as a Reverse Proxy
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: NGINX作为反向代理
 - en: The web has traditionally consisted of, relatively speaking, simple websites.
     The past few years have seen that change, though. The modern web comprises as
     many complex SaaS applications as it does personal blogs, news sites, and so on.
@@ -14,187 +18,273 @@
     These days, we need to consider technologies such as web sockets, as well as the
     expanded complexity of web application architectures and the demands they put
     on the front line of our web stack.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 过去，Web相对来说是由简单的网站组成的。然而，近年来这种情况发生了变化。现代Web包括与个人博客、新闻网站一样多的复杂SaaS应用程序。随着Web的演变，用来驱动这些应用程序的技术列表也在不断发展。如今，单单是一个快速的静态文件服务器和FastCGI接口已经不够了。现在，我们需要考虑诸如WebSockets等技术，以及Web应用架构的复杂性和它们对Web堆栈前端的需求。
 - en: Thankfully, NGINX was originally built not only as a fast static file server
     but also as a reverse proxy. This means that NGINX was always intended to sit
     in front of other backend servers, farm out requests to different servers on the
     internal network, and serve up the response to the end user. In this chapter,
     we will take a look at the basics of how to do this with NGINX, and also at some
     of the more advanced things NGINX can do to make our life easier.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，NGINX最初不仅被构建为一个快速的静态文件服务器，还作为一个反向代理。这意味着，NGINX从一开始就被设计为位于其他后端服务器前面，将请求分发到内部网络中的不同服务器，并将响应传递给最终用户。本章将介绍如何使用NGINX实现这一点的基础知识，以及NGINX能够做的一些更高级的功能，帮助我们更轻松地管理。
 - en: 'As such, we will cover the following main topics in the chapter:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们将在本章中覆盖以下主要内容：
 - en: The reverse proxy mechanism
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 反向代理机制
 - en: The NGINX proxy module
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX代理模块
 - en: NGINX and microservices
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX与微服务
 - en: Exploring the reverse proxy mechanism
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索反向代理机制
 - en: Running NGINX as an application server is somewhat like the **FastCGI architecture**
     described in the previous chapter; we are going to be running NGINX as a frontend
     server, and for the most part, reverse proxy requests to our backend servers.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为应用服务器运行NGINX有点类似于上一章描述的**FastCGI架构**；我们将运行NGINX作为前端服务器，并大部分时间将请求反向代理到我们的后端服务器。
 - en: 'In other words, it will be in direct communication with the outside world whereas
     our backend servers, whether Node.js, Apache, and so on, will only exchange data
     with NGINX:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，它将与外部世界进行直接通信，而我们的后端服务器，无论是Node.js、Apache等，都只与NGINX交换数据：
 - en: '![Figure 6.1: An example of using Nginx as a proxy server](img/B21787_06_1.jpg)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![图6.1：使用Nginx作为代理服务器的示例](img/B21787_06_1.jpg)'
 - en: 'Figure 6.1: An example of using Nginx as a proxy server'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 图6.1：使用Nginx作为代理服务器的示例
 - en: There are now two web servers running and processing requests.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在有两个Web服务器在运行并处理请求。
 - en: NGINX, positioned as a frontend server (in other words, as a reverse proxy),
     receives all the requests coming from the outside world. It filters them, either
     serving static files directly to the client or forwarding dynamic content requests
     to our backend server.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX作为前端服务器（换句话说，作为反向代理）接收来自外部世界的所有请求。它会对请求进行过滤，要么直接将静态文件服务给客户端，要么将动态内容请求转发给我们的后端服务器。
 - en: Our backend server only communicates with NGINX. It may be hosted on the same
     computer as the frontend, in which case the listening ports must be edited to
     leave ports `80` and `443` available to NGINX. Alternatively, you can employ multiple
     backend servers on different machines and load balance between them.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的后端服务器仅与NGINX进行通信。它可能与前端托管在同一台计算机上，在这种情况下，监听端口必须进行编辑，以便将端口`80`和`443`留给NGINX。或者，您也可以在不同的机器上使用多个后端服务器，并在它们之间进行负载均衡。
 - en: To communicate and interact with each other, neither process will be using FastCGI.
     Instead, as the name suggests, NGINX acts as a simple proxy server; it receives
     HTTP requests from the client (acting as the HTTP server) and forwards them to
     the backend server (acting as the HTTP client). There is thus no new protocol
     or software involved. The mechanism is handled by the proxy module of NGINX, as
     detailed later in this chapter.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了相互通信与交互，两个进程都不会使用FastCGI。相反，正如名字所示，NGINX充当一个简单的代理服务器；它接收来自客户端的HTTP请求（充当HTTP服务器），并将其转发到后端服务器（充当HTTP客户端）。因此，没有涉及新的协议或软件。此机制由NGINX的代理模块处理，稍后将在本章中详细介绍。
 - en: Exploring the NGINX proxy module
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索NGINX代理模块
 - en: 'Similar to the previous chapter, the first step toward establishing the new
     architecture will be to discover the appropriate module. The default NGINX build
     comes with the proxy module, which allows the forwarding of HTTP requests from
     the client to a backend server. We will be configuring multiple aspects of the
     module:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于上一章，建立新架构的第一步是发现合适的模块。默认的 NGINX 构建包含了代理模块，允许将 HTTP 请求从客户端转发到后台服务器。我们将配置模块的多个方面：
 - en: Basic address and port information of the backend server
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 后台服务器的基本地址和端口信息
 - en: Caching, buffering, and temporary file options
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缓存、缓冲和临时文件选项
 - en: Limits, timeout, and error behavior
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 限制、超时和错误行为
 - en: Other miscellaneous options
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其他杂项选项
 - en: All these options are available via directives that we will learn to configure
     throughout this section.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些选项可以通过指令进行配置，我们将在本节中学习如何配置它们。
 - en: Main directives
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 主要指令
 - en: 'The first set of directives will allow you to establish a basic configuration
     such as the location of the backend server, information to be passed, and how
     it should be passed:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一组指令将允许你建立基本配置，例如后台服务器的位置、要传递的信息以及如何传递：
 - en: '| **Directive** | **Description** |'
+  id: totrans-26
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-27
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `proxy_pass`Context: `location`, `if` | This specifies that the request should
     be forwarded to the backend server by indicating its location:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_pass`上下文：`location`，`if` | 这指定请求应通过指示其位置转发到后台服务器：'
 - en: For regular HTTP forwarding, the syntax is `proxy_pass` http://hostname:port;.
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于常规的 HTTP 转发，语法是 `proxy_pass` http://hostname:port;。
 - en: For Unix domain sockets, the syntax is `proxy_pass` http://unix:/path/to/file.socket;.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于 Unix 域套接字，语法是 `proxy_pass` http://unix:/path/to/file.socket;。
 - en: You may also refer to upstream blocks `proxy_pass` http://myblock;.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你也可以参考上游块 `proxy_pass` http://myblock;。
 - en: Instead of http://, you can use `https://` for secure traffic. Additional URI
     parts as well as the use of variables are allowed.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与 `http://` 不同，你可以使用 `https://` 来进行安全流量传输。还允许使用附加的 URI 部分以及变量。
 - en: 'Examples:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: '`proxy_pass` http://localhost:8080;'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_pass` http://localhost:8080;'
 - en: '`proxy_pass` http://127.0.0.1:8080;'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_pass` http://127.0.0.1:8080;'
 - en: '`proxy_pass` http://unix:/tmp/nginx.sock;'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_pass` http://unix:/tmp/nginx.sock;'
 - en: '`proxy_pass` https://192.168.0.1;'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_pass` https://192.168.0.1;'
 - en: '`proxy_pass` http://localhost:8080/uri/;'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_pass` http://localhost:8080/uri/;'
 - en: '`proxy_pass` http://unix:/tmp/nginx.sock:/uri/;'
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_pass` http://unix:/tmp/nginx.sock:/uri/;'
 - en: '`proxy_pass` http://$server_name:8080;'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_pass` http://$server_name:8080;'
 - en: '|'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `proxy_pass`Context: `location`, `if` | Using an upstream block:`upstream`
     `backend {``server 127.0.0.1:8080;``server 127.0.0.1:8081;``}``location ~* .``php$``{``proxy_pass`
     http://backend;`}` |'
+  id: totrans-42
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass`上下文：`location`，`if` | 使用上游块：`upstream` `backend {``server 127.0.0.1:8080;``server
+    127.0.0.1:8081;``}``location ~* .``php$``{``proxy_pass` http://backend;`}` |'
 - en: '| `proxy_method`Context: http, `server`, `location` | This allows the overriding
     of the HTTP method of the request to be forwarded to the backend server. If you
     specify `POST`, for example, all requests forwarded to the backend server will
     be `POST` requests.Syntax: `proxy_method method;`Example: `proxy_method POST;`
     |'
+  id: totrans-43
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_method`上下文：http，`server`，`location` | 这允许覆盖要转发到后台服务器的请求的 HTTP 方法。例如，如果指定`POST`，则所有转发到后台服务器的请求都将是`POST`请求。语法：`proxy_method
+    method;` 示例：`proxy_method POST;` |'
 - en: '| `proxy_hide_header`Context: `http`, `server`, `location` | By default, as
     NGINX prepares the response received from the backend server to be forwarded back
     to the client, it ignores some of the headers, such as `Date`, `Server`, `X-Pad`,
@@ -202,20 +292,30 @@
     to be hidden from the client. You may insert this directive multiple times with
     one header name for each.Syntax: `proxy_hide_header header_name;`Example: `proxy_hide_header
     Cache-Control;` |'
+  id: totrans-44
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_hide_header`上下文：`http`，`server`，`location` | 默认情况下，当 NGINX 准备将从后台服务器收到的响应转发回客户端时，它会忽略一些头部信息，如
+    `Date`，`Server`，`X-Pad` 和 `X-Accel-*`。使用此指令，你可以指定要隐藏的额外头部信息。你可以多次插入此指令，每次插入一个头部名称。语法：`proxy_hide_header
+    header_name;` 示例：`proxy_hide_header Cache-Control;` |'
 - en: '| `proxy_pass_header`Context: `http`, `server`, `location` | Related to the
     previous directive, this directive forces some of the ignored headers to be passed
     on to the client.Syntax: `proxy_pass_header headername;`Example: `proxy_pass_header
     Date;` |'
+  id: totrans-45
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass_header`上下文：`http`，`server`，`location` | 与前一个指令相关，此指令强制将一些被忽略的头部传递给客户端。语法：`proxy_pass_header
+    headername;` 示例：`proxy_pass_header Date;` |'
 - en: '| `proxy_pass_request_body``proxy_pass_request_headers`Context: `http`, `server`,
     `location` | This defines whether or not, respectively, the request body and extra
     request headers should be passed on to the backend server.Syntax: `on` or `off`Default:
     `on` |'
+  id: totrans-46
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass_request_body``proxy_pass_request_headers`上下文：`http`，`server`，`location`
+    | 这定义了是否传递请求主体和额外请求头到后端服务器。语法：`on`或`off`默认：`on` |'
 - en: '| `proxy_redirect`Context: `http`, `server`, `location` | This allows you to
     rewrite the URL appearing in the Location HTTP header on redirections triggered
     by the backend server.Syntax: `off`, `default`, or the URL of your choice.`off`:
@@ -224,110 +324,164 @@
     Note that the `proxy_redirect` directive must be inserted after the `proxy_pass`
     directive as the configuration is parsed sequentially.URL: Replace a part of the
     URL with another.Additionally, you may use variables in the rewritten URL.Examples:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_redirect`上下文：`http`，`server`，`location` | 这允许你重写由后端服务器触发的重定向中出现在Location
+    HTTP头中的URL。语法：`off`，`default`，或者你选择的URL。`off`：重定向按原样转发。`default`：`proxy_pass`指令的值被用作主机名，并且当前文档路径被附加。注意，`proxy_redirect`指令必须在`proxy_pass`指令之后插入，因为配置是按顺序解析的。URL：用另一个URL替换URL的一部分。此外，你可以在重写的URL中使用变量。示例：'
 - en: '`proxy_redirect off;`'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_redirect off;`'
 - en: '`proxy_redirect default;`'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_redirect default;`'
 - en: '`proxy_redirect` `http://localhost:8080/ http://example.com/;`'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_redirect` `http://localhost:8080/ http://example.com/;`'
 - en: '`proxy_redirect` `http://localhost:8080/wiki/ /w/;`'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_redirect` `http://localhost:8080/wiki/ /w/;`'
 - en: '`proxy_redirect` `http://localhost:8080/ http://$host/;`'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_redirect` `http://localhost:8080/ http://$host/;`'
 - en: '|'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `proxy_next_upstream`Context: `http`, `server`, `location` | When `proxy_pass`
     is connected to an upstream block, this directive defines the cases where requests
     should be abandoned and resent to the next upstream server of the block. The directive
     accepts a combination of values among the following:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_next_upstream`上下文：`http`，`server`，`location` | 当`proxy_pass`连接到上游块时，此指令定义了在何种情况下应放弃请求并将其重发到块的下一个上游服务器。指令接受以下值的组合：'
 - en: '`error`: An error occurred while communicating or attempting to communicate
     with the server'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`error`：与服务器通信或尝试通信时发生错误'
 - en: '`timeout`: A timeout occurred during transfers or connection attempts'
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`timeout`：传输或连接尝试期间发生超时'
 - en: '`invalid_header`: The backend server returned an empty or invalid response'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`invalid_header`：后端服务器返回了空或无效的响应'
 - en: '`http_500`, `http_502`, `http_503`, `http_504`, `http_40`: In case such HTTP
     errors occur, NGINX switches to the next upstream'
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_500`，`http_502`，`http_503`，`http_504`，`http_40`：如果发生此类HTTP错误，NGINX将切换到下一个上游'
 - en: '`off`: Forbids you from using the next upstream server'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`：禁止使用下一个上游服务器'
 - en: 'Examples:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：
 - en: '`proxy_next_upstream error` `timeout http_504;`'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_next_upstream error` `timeout http_504;`'
 - en: '`proxy_next_upstream` `timeout invalid_header;`'
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_next_upstream` `timeout invalid_header;`'
 - en: '|'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `proxy_next_upstream_timeout`Context: `http`, `server`, `location` | This
     defines the timeout to be used in conjunction with `proxy_next_upstream`. Setting
     this directive to `0` disables it.Syntax: Time value (in seconds) |'
+  id: totrans-64
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_next_upstream_timeout`上下文：`http`，`server`，`location` | 这定义了与`proxy_next_upstream`一起使用的超时时间。将此指令设置为`0`将禁用它。语法：时间值（秒）
+    |'
 - en: '| `proxy_next_upstream_tries`Context: `http`, `server`, `location` | This defines
     the maximum number of upstream servers tried before returning an error message,
     to be used in conjunction with `proxy_next_upstream`.Syntax: Numeric value (default:
     `0`) |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_next_upstream_tries`上下文：`http`，`server`，`location` | 这定义了在返回错误消息之前尝试的最大上游服务器数量，与`proxy_next_upstream`结合使用。语法：数值（默认：`0`）
+    |'
 - en: 'Table 6.1: The main directives for the proxy module'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 表6.1：代理模块的主要指令
 - en: Caching, buffering, and temporary files
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 缓存、缓冲和临时文件
 - en: 'Ideally, as much as possible, you should reduce the number of requests being
     forwarded to the backend server. The following directives will help you build
     a caching system, as well as control buffering options and the way NGINX handles
     temporary files:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，尽可能减少转发到后端服务器的请求数量。以下指令将帮助您构建缓存系统，并控制缓冲选项以及NGINX处理临时文件的方式：
 - en: '| **Directive** | **Description** |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `proxy_buffer_size`Context: `http`, `server`, `location` | This sets the
     size of the buffer for reading the beginning of the response from the backend
     server, which usually contains simple header data.The default value corresponds
     to the size of `1` buffer, as defined by the previous directive (`proxy_buffers`).Syntax:
     Numeric value (size)Example: `proxy_buffer_size 4k;` |'
+  id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffer_size`上下文：`http`，`server`，`location` | 此指令设置用于读取后端服务器响应开头的缓冲区大小，通常包含简单的头部数据。默认值对应于前一个指令(`proxy_buffers`)定义的`1`个缓冲区大小。语法：数值（大小）
+    示例：`proxy_buffer_size 4k;` |'
 - en: '| `proxy_buffering, proxy_request_buffering`Context: `http`, `server`, `location`
     | This defines whether or not the response from the backend server should be buffered
     (or client requests, in the case of `proxy_request_buffering`). If set to `on`,
@@ -335,25 +489,38 @@
     the buffers. If the buffers are full, the response data will be stored as a temporary
     file. If the directive is set to `off`, the response is directly forwarded to
     the client.Syntax: `on` or `off`Default: `on` |'
+  id: totrans-72
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffering, proxy_request_buffering`上下文：`http`，`server`，`location`
+    | 该指令定义是否应缓冲来自后端服务器的响应数据（或者在`proxy_request_buffering`的情况下，缓冲客户端请求）。如果设置为`on`，NGINX将使用缓冲区提供的内存空间存储响应数据。如果缓冲区已满，响应数据将作为临时文件存储。如果该指令设置为`off`，则响应会直接转发到客户端。语法：`on`
+    或 `off` 默认值：`on` |'
 - en: '| `proxy_buffers`Context: `http`, `server`, `location` | This sets the amount
     and size of buffers that will be used for reading the response data from the backend
     server.Syntax: `proxy_buffers` `amount size;`Default: 8 buffers, `4k` or `8k`
     each, depending on the platformExample: `fastcgi_buffers` `8 4k;` |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffers`上下文：`http`，`server`，`location` | 该指令设置用于从后端服务器读取响应数据的缓冲区数量和大小。语法：`proxy_buffers`
+    `数量 大小;` 默认值：8个缓冲区，每个缓冲区`4k`或`8k`，具体取决于平台示例：`fastcgi_buffers` `8 4k;` |'
 - en: '| `proxy_busy_buffers_size`Context: `http`, `server`, `location` | When the
     backend-received data accumulated in buffers exceeds the specified value, buffers
     are flushed and data is sent to the client.Syntax: Numeric value (size)Default:
     `2 *` `proxy_buffer_size` |'
+  id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_busy_buffers_size`上下文：`http`，`server`，`location` | 当后端接收的数据积累在缓冲区中并超过指定值时，缓冲区会被刷新，数据会发送到客户端。语法：数值（大小）
+    默认值：`2 *` `proxy_buffer_size` |'
 - en: '| `proxy_cache`Context: `http`, `server`, `location` | This defines a cache
     zone. The identifier given to the zone is to be reused in further directives.Syntax:
     `proxy_cache zonename;`Example: `proxy_cache cache1;` |'
+  id: totrans-75
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache`上下文：`http`，`server`，`location` | 此指令定义一个缓存区域。给该区域指定的标识符将在后续的指令中重用。语法：`proxy_cache
+    区域名称;` 示例：`proxy_cache cache1;` |'
 - en: '| `proxy_cache_key`Context: `http`, `server`, `location` | This directive defines
     the cache key; in other words, it differentiates one cache entry from another.
     If the cache key is set to `$uri`, as a result, all requests with `$uri` will
@@ -361,407 +528,604 @@
     You also need to include the query string arguments in the cache key so that `/index.php`
     and `/index.php?page=contact` do not point to the same cache entry.Syntax: `proxy_cache_key
     key;`Example: `proxy_cache_key "$``scheme$host$request_uri $cookie_user";` |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_key`上下文：`http`，`server`，`location` | 此指令定义缓存键；换句话说，它区分了不同的缓存条目。如果缓存键设置为`$uri`，则所有带有`$uri`的请求将作为一个单独的缓存条目。但对于大多数动态网站来说，这还不够。您还需要将查询字符串参数包含在缓存键中，这样`/index.php`和`/index.php?page=contact`就不会指向同一个缓存条目。语法：`proxy_cache_key
+    键;` 示例：`proxy_cache_key "$scheme$host$request_uri $cookie_user";` |'
 - en: '| `proxy_cache_path`Context: `http` | This indicates the directory for storing
     cached files, as well as other parameters.Syntax: `proxy_cache_path path [use_temp_path=on&#124;off]
     [levels=numbers keys_zone=name:size` `inactive=time max_size=size];`The additional
     parameters are as follows:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_cache_path`上下文：`http` | 此指令指定存储缓存文件的目录以及其他参数。语法：`proxy_cache_path
+    路径 [use_temp_path=on&#124;off] [levels=数字 keys_zone=名称:大小] [inactive=时间 max_size=大小];`
+    额外参数如下：'
 - en: '`use_temp_path`: Set this flag to `on` if you want to use the path defined
     via the `proxy_temp_path` directive'
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`use_temp_path`：如果您想使用通过`proxy_temp_path`指令定义的路径，请将此标志设置为`on`。'
 - en: '`levels`: This indicates the depth level of subdirectories (usually *1:2* is
     enough)'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`levels`：此指令表示子目录的深度级别（通常*1:2*就足够了）。'
 - en: '`keys_zone`: This lets you make use of the zone you previously declared with
     the `proxy_cache` directive and indicates the size to occupy in memory'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`keys_zone`：此指令允许您使用之前通过`proxy_cache`指令声明的区域，并指示要占用的内存大小。'
 - en: '`inactive`: If a cached response is not used within the specified timeframe,
     it is removed from the cache'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`inactive`：如果缓存的响应在指定时间内未被使用，则将其从缓存中移除。'
 - en: '`max_size`: This defines the maximum size of the entire cache'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max_size`：该指令定义了整个缓存的最大大小。'
 - en: 'Example: `proxy_cache_path /tmp/nginx_cache levels=1:2 zone=zone1:10m` `inactive=10m
     max_size=200M;` |'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：`proxy_cache_path /tmp/nginx_cache levels=1:2 zone=zone1:10m` `inactive=10m
+    max_size=200M;` |
 - en: '| `proxy_cache_methods`Context: `http`, `server`, `location` | This defines
     the HTTP methods eligible for caching. `GET` and `HEAD` are included by default
     and cannot be disabled.Syntax: `proxy_cache_methods METHOD;`Example: `proxy_cache_methods
     OPTIONS;` |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_methods`上下文：`http`，`server`，`location` | 该指令定义了符合缓存条件的HTTP方法。默认情况下，`GET`和`HEAD`方法包含在内，并且不能禁用。语法：`proxy_cache_methods
+    METHOD;` 示例：`proxy_cache_methods OPTIONS;` |'
 - en: '| `proxy_cache_min_uses`Context: `http`, `server`, `location` | This defines
     the minimum number of hits before a request is eligible for caching. By default,
     the response of a request is cached after one hit (next requests with the same
     cache key will receive the cached response).Syntax: Numeric valueExample: `proxy_cache_min_uses
     1;` |'
+  id: totrans-85
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_min_uses`上下文：`http`，`server`，`location` | 该指令定义了请求符合缓存条件的最小访问次数。默认情况下，请求的响应在第一次访问后会被缓存（后续具有相同缓存键的请求将返回缓存响应）。语法：数字值
+    示例：`proxy_cache_min_uses 1;` |'
 - en: '| `proxy_cache_valid`Context: `http`, `server`, `location` | This directive
     allows you to customize the caching time for different kinds of response codes.
     You may cache responses associated with `404` error codes for `1` minute, and
     on the opposite cache, `200 OK` responses for `10` minutes or more. This directive
     can be inserted more than once:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_cache_valid`上下文：`http`，`server`，`location` | 该指令允许您为不同类型的响应代码自定义缓存时间。您可以将与`404`错误代码相关的响应缓存`1`分钟，反之将`200
+    OK`响应缓存`10`分钟或更长时间。此指令可以多次插入：'
 - en: '`proxy_cache_valid` `404 1m;`'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_cache_valid` `404 1m;`'
 - en: '`proxy_cache_valid 500` `502` `504 5m;`'
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_cache_valid 500` `502` `504 5m;`'
 - en: '`proxy_cache_valid` `200 10;`'
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_cache_valid` `200 10;`'
 - en: 'Syntax: `proxy_cache_valid code1 [``code2...] time;` |'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法：`proxy_cache_valid code1 [code2...] time;` |
 - en: '| `proxy_cache_use_stale`Context: `http`, `server`, `location` | This defines
     whether or not NGINX should serve stale cached data in certain circumstances (in
     regard to the gateway). If you use `proxy_cache_use_stale timeout`, and if the
     gateway times out, then NGINX will serve cached data.Syntax: `proxy_cache_use_stale
     [updating] [error] [timeout] [``invalid_header] [http_500];`Example: `proxy_cache_use_stale`
     `error timeout;` |'
+  id: totrans-91
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_use_stale`上下文：`http`，`server`，`location` | 该指令定义了在某些情况下（关于网关）NGINX是否应该提供过时的缓存数据。如果使用了`proxy_cache_use_stale
+    timeout`，且网关超时，则NGINX将提供缓存的数据。语法：`proxy_cache_use_stale [updating] [error] [timeout]
+    [`invalid_header] [http_500];` 示例：`proxy_cache_use_stale` `error timeout;` |'
 - en: '| `proxy_max_temp_file_size`Context: `http`, `server`, `location` | Set this
     directive to `0` to disable the use of temporary files for requests eligible for
     proxy forwarding or specify a maximum file size.Syntax: Size valueDefault value:
     1 GBExample: `proxy_max_temp_file_size 5m;` |'
+  id: totrans-92
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_max_temp_file_size`上下文：`http`，`server`，`location` | 设置此指令为`0`以禁用代理转发请求使用临时文件，或者指定最大文件大小。语法：大小值
+    默认值：1 GB 示例：`proxy_max_temp_file_size 5m;` |'
 - en: '| `proxy_temp_file_write_size`Context: `http`, `server`, `location` | This
     sets the write buffer size when saving temporary files to the storage device.Syntax:
     Size valueDefault value: `2 *` `proxy_buffer_size` |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_temp_file_write_size`上下文：`http`，`server`，`location` | 该指令设置了将临时文件写入存储设备时的缓冲区大小。语法：大小值
+    默认值：`2 *` `proxy_buffer_size` |'
 - en: '| `proxy_temp_path`Context: `http`, `server`, `location` | This sets the path
     of temporary and cache store files.Syntax: `proxy_temp_path path [``level1 [level2...]]`Examples:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_temp_path`上下文：`http`，`server`，`location` | 该指令设置临时和缓存文件的存储路径。语法：`proxy_temp_path
+    path [level1 [level2...]]` 示例：'
 - en: '`proxy_temp_path /tmp/nginx_proxy;`'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_temp_path /tmp/nginx_proxy;`'
 - en: '`proxy_temp_path /tmp/cache` `1 2;`'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_temp_path /tmp/cache` `1 2;`'
 - en: '|'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: 'Table 6.2: The caching, buffering, and temporary file directives for the proxy
     module'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 6.2：代理模块的缓存、缓冲和临时文件指令
 - en: Limits, timeouts, and errors
+  id: totrans-99
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 限制、超时和错误
 - en: 'The following directives will help you define timeout behavior, as well as
     various limitations regarding communications with the backend server:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下指令将帮助您定义超时行为以及与后端服务器通信时的各种限制：
 - en: '| **Directive** | **Description** |'
+  id: totrans-101
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| `proxy_connect_timeout`Context: `http`, `server`, `location` | This defines
     the backend server connection timeout. This is different from the read/send timeout.
     If NGINX is already connected to the backend server, the `proxy_connect_timeout`
     is not applicable.Syntax: `Time value` (in seconds)Example: `proxy_connect_timeout
     15;` |'
+  id: totrans-102
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_connect_timeout`上下文: `http`, `server`, `location` | 该指令定义了后端服务器的连接超时。与读取/发送超时不同。如果NGINX已经与后端服务器连接，则`proxy_connect_timeout`不适用。语法:
+    `时间值`（单位：秒）示例: `proxy_connect_timeout 15;` |'
 - en: '| `proxy_read_timeout`Context: `http`, `server`, `location` | This is the timeout
     for reading data from the backend server. This timeout isn’t applied to the entire
     response delay but between two read operations instead.Syntax: `Time value` (in
     seconds)Default value: `60`Example: `proxy_read_timeout 60;` |'
+  id: totrans-103
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_read_timeout`上下文: `http`, `server`, `location` | 这是从后端服务器读取数据的超时。此超时不会应用于整个响应延迟，而是应用于两个读取操作之间。语法:
+    `时间值`（单位：秒） 默认值: `60` 示例: `proxy_read_timeout 60;` |'
 - en: '| `proxy_send_timeout`Context: `http`, `server`, `location` | This timeout
     is for sending data to the backend server. The timeout isn’t applied to the entire
     response delay but between two write operations instead.Syntax: `Time value` (in
     seconds)Default value: `60`Example: `proxy_send_timeout 60;` |'
+  id: totrans-104
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_send_timeout`上下文: `http`, `server`, `location` | 此超时用于向后端服务器发送数据。超时不会应用于整个响应延迟，而是应用于两个写操作之间。语法:
+    `时间值`（单位：秒） 默认值: `60` 示例: `proxy_send_timeout 60;` |'
 - en: '| `proxy_ignore_client_abort`Context: `http`, `server`, `location` | If set
     to `on`, NGINX will continue processing the proxy request, even if the client
     aborts its request. In the other case (`off`), when the client aborts its request,
     NGINX also aborts its request to the backend server.Default value: `off` |'
+  id: totrans-105
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_ignore_client_abort`上下文: `http`, `server`, `location` | 如果设置为`on`，即使客户端中止请求，NGINX也将继续处理代理请求。在另一种情况下（`off`），当客户端中止请求时，NGINX也会中止对后端服务器的请求。默认值:
+    `off` |'
 - en: '| `proxy_intercept_errors`Context: `http`, `server`, `location` | By default,
     NGINX returns all error pages (HTTP status code `400` and higher) sent by the
     backend server directly to the client. If you set this directive to `on`, the
     error code is parsed and can be matched against the values specified in the `error_page`
     directive.Default value: `off` |'
+  id: totrans-106
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_intercept_errors`上下文: `http`, `server`, `location` | 默认情况下，NGINX将所有后端服务器发送的错误页面（HTTP状态码`400`及以上）直接返回给客户端。如果将此指令设置为`on`，错误代码将被解析，并可与`error_page`指令中指定的值进行匹配。默认值:
+    `off` |'
 - en: '| `proxy_send_lowat`Context: `http`, `server`, `location` | This option allows
     you to make use of the `SO_SNDLOWAT` flag for TCP sockets under BSD-based operating
     systems only. This value defines the minimum number of bytes in the buffer for
     output operations.Syntax: Numeric value (size)Default value: `0` |'
+  id: totrans-107
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_send_lowat`上下文: `http`, `server`, `location` | 此选项允许你在仅支持BSD操作系统的TCP套接字上使用`SO_SNDLOWAT`标志。此值定义了输出操作的缓冲区中的最小字节数。语法:
+    数值（大小） 默认值: `0` |'
 - en: '| `proxy_limit_rate`Context: `http`, `server`, `location` | This allows you
     to limit the rate at which NGINX downloads the response from the backend proxy.Syntax:
     Numeric value (bytes per second) |'
+  id: totrans-108
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_limit_rate`上下文: `http`, `server`, `location` | 此指令允许你限制NGINX从后端代理下载响应的速率。语法:
+    数值（字节/秒） |'
 - en: 'Table 6.3: The directives relevant to limits, timeouts, and errors'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 表6.3：与限制、超时和错误相关的指令
 - en: Other directives
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 其他指令
 - en: 'Finally, the last set of directives available in the proxy module is uncategorized
     and is as follows:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，代理模块中最后一组指令是未分类的，内容如下：
 - en: '| **Directive** | **Description** |'
+  id: totrans-112
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-113
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `proxy_headers_hash_max_size`Context: `http`, `server`, `location` | This
     sets the maximum size for the proxy header’s hash tables.Syntax: Numeric valueDefault
     value: `512` |'
+  id: totrans-114
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_headers_hash_max_size`上下文: `http`, `server`, `location` | 该指令设置代理头哈希表的最大大小。语法:
+    数值 默认值: `512` |'
 - en: '| `proxy_headers_hash_bucket_size`Context: `http`, `server`, `location` | This
     sets the bucket size for the proxy header’s hash tables.Syntax: Numeric valueDefault
     value: `64` |'
+  id: totrans-115
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_headers_hash_bucket_size`上下文: `http`, `server`, `location` | 该指令设置代理头哈希表的桶大小。语法:
+    数值 默认值: `64` |'
 - en: '| `proxy_force_ranges`Context: `http`, `server`, `location` | When set to `on`,
     NGINX will enable byte-range support on responses from the backend proxy.Syntax:
     `on` or `off`Default value: `off` |'
+  id: totrans-116
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_force_ranges`上下文: `http`, `server`, `location` | 当设置为`on`时，NGINX将启用字节范围支持，允许从后端代理返回的响应支持字节范围。语法:
+    `on` 或 `off` 默认值: `off` |'
 - en: '| `proxy_ignore_headers`Context: `http`, `server`, `location` | This prevents
     NGINX from processing one of the following four headers from the backend server
     response: `X-Accel-Redirect`, `X-Accel-Expires`, `Expires`, and `Cache-Control`.Syntax:
     `proxy_ignore_headers` `header1 [header2...];` |'
+  id: totrans-117
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_ignore_headers`上下文：`http`、`server`、`location` | 该指令阻止 NGINX 处理后端服务器响应中的以下四个头部之一：`X-Accel-Redirect`、`X-Accel-Expires`、`Expires`
+    和 `Cache-Control`。语法：`proxy_ignore_headers` `header1 [header2...];` |'
 - en: '| `proxy_set_body`Context: `http`, `server`, `location` | This allows you to
     set a static request body for debugging purposes. Variables may be used in the
     directive value.Syntax: String value (any value)Example: `proxy_set_body test;`
     |'
+  id: totrans-118
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_set_body`上下文：`http`、`server`、`location` | 此指令允许你为调试目的设置静态请求体。可以在指令值中使用变量。语法：字符串值（任何值）示例：`proxy_set_body
+    test;` |'
 - en: '| `proxy_set_header`Context: `http`, `server`, `location` | This directive
     allows you to redefine header values to be transferred to the backend server.
     It can be declared multiple times.Syntax: `proxy_set_header` `Header Value;`Example:
     `proxy_set_header` `Host $host;` |'
+  id: totrans-119
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_set_header`上下文：`http`、`server`、`location` | 此指令允许你重新定义传递给后端服务器的头部值。可以多次声明。语法：`proxy_set_header`
+    `Header Value;` 示例：`proxy_set_header` `Host $host;` |'
 - en: '| `proxy_store`Context: `http`, `server`, `location` | This specifies whether
     or not the backend server response should be stored as a file. Stored response
     files can be reused for serving other requests.Possible values are `on`, `off`,
     or a path relative to the document root (or alias). You may also set this to `on`
     and define the `proxy_temp_path` directive.Examples:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_store`上下文：`http`、`server`、`location` | 此指令指定是否将后端服务器的响应存储为文件。存储的响应文件可以在为其他请求提供服务时重用。可能的值为`on`、`off`，或相对于文档根目录（或别名）的路径。你也可以将此指令设置为`on`并定义`proxy_temp_path`指令。示例：'
 - en: '`proxy_store on;`'
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_store on;`'
 - en: '`proxy_temp_path /temp/store;`'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_temp_path /temp/store;`'
 - en: '|'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `proxy_store_access`Context: `http`, `server`, `location` | This directive
     defines file access permissions for the stored response files.Syntax: `proxy_store_access
     [user:[r&#124;w&#124;rw]][group:[r&#124;w&#124;rw]][all:[r&#124;w&#124;rw]];`Example:
     `proxy_store_access user:rw` `group:rw all:r;` |'
+  id: totrans-124
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_store_access`上下文：`http`、`server`、`location` | 此指令定义存储的响应文件的文件访问权限。语法：`proxy_store_access
+    [user:[r&#124;w&#124;rw]][group:[r&#124;w&#124;rw]][all:[r&#124;w&#124;rw]];`
+    示例：`proxy_store_access user:rw` `group:rw all:r;` |'
 - en: '| `proxy_http_version`Context: `http`, `server`, `location` | This sets the
     HTTP version to be used for communicating with the proxy backend. HTTP `1.0` is
     the default value, but if you are going to enable keepalive connections, you might
     want to set this directive to `1.1`.Syntax: `proxy_http_version 1.0 &#124;` `1.1;`
     |'
+  id: totrans-125
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_http_version`上下文：`http`、`server`、`location` | 此指令设置与代理后端通信时使用的 HTTP
+    版本。HTTP `1.0` 是默认值，但如果你想启用长连接，可能希望将此指令设置为 `1.1`。语法：`proxy_http_version 1.0 &#124;`
+    `1.1;` |'
 - en: '| `proxy_cookie_domain``proxy_cookie_path`Context: `http`, `server`, `location`
     | This applies an on-the-fly modification to the domain or path attributes of
     a cookie (case-insensitive).Syntaxes:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_cookie_domain``proxy_cookie_path`上下文：`http`、`server`、`location` |
+    这会对 cookie 的域名或路径属性进行动态修改（不区分大小写）。语法：'
 - en: '`proxy_cookie_domain off &#124;` `domain replacement;`'
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_cookie_domain off &#124;` `domain replacement;`'
 - en: '`proxy_cookie_path off &#124; domain` `replacement ;`'
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_cookie_path off &#124; domain` `replacement ;`'
 - en: '|'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: 'Table 6.4: Uncategorized directives for the proxy module'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 6.4：代理模块的未分类指令
 - en: Variables
+  id: totrans-131
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 变量
 - en: 'The proxy module offers several variables that can be inserted in various locations,
     for example, in the `proxy_set_header` directive or the logging-related directives
     such as `log_format`. The available variables are the following:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 代理模块提供了多个变量，可以插入到各种位置，例如在 `proxy_set_header` 指令中，或日志相关的指令（如 `log_format`）中。可用的变量如下：
 - en: '`$proxy_host`: This contains the hostname of the backend server used for the
     current request.'
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$proxy_host`：此变量包含用于当前请求的后端服务器的主机名。'
 - en: '`$proxy_port`: This contains the port of the backend server used for the current
     request.'
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$proxy_port`：此变量包含用于当前请求的后端服务器端口。'
 - en: '`$proxy_add_x_forwarded_for`: This variable contains the value of the `X-Forwarded-For`
     request header followed by the remote address of the client. Both values are separated
     by a comma. If the `X-Forwarded-For` request header is unavailable, the variable
     only contains the client’s remote address.'
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$proxy_add_x_forwarded_for`：此变量包含 `X-Forwarded-For` 请求头的值，后面跟着客户端的远程地址。两者之间用逗号分隔。如果
+    `X-Forwarded-For` 请求头不可用，则此变量只包含客户端的远程地址。'
 - en: '`$proxy_internal_body_length`: Length of the request body (set with the `proxy_set_body`
     directive or `0`).'
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$proxy_internal_body_length`：请求体的长度（通过`proxy_set_body`指令设置，或者设置为`0`）。'
 - en: Although the directives and variables mentioned are for informational purposes
     at this stage, we will actively apply them in upcoming chapters, exploring their
     practical uses in scenarios such as load balancing and beyond.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管目前提到的指令和变量仅供参考，但我们将在接下来的章节中积极应用它们，探索它们在负载均衡等场景中的实际用途。
 - en: Looking at NGINX and microservices
+  id: totrans-138
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 查看NGINX与微服务的关系
 - en: Now that we’ve explored the proxy module in depth, it’s time to have a look
     at what a modern web application architecture might look like. There are entire
     books dedicated to this topic but we only really need to know how NGINX can enable
     various setups, and the NGINX part doesn’t differ too much between different setups.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经深入探讨了代理模块，是时候看看现代Web应用程序架构可能是什么样的了。这个主题有专门的书籍介绍，但我们只需要了解NGINX如何支持各种设置，并且NGINX部分在不同设置之间并没有太大差异。
 - en: 'For any given task that we need our application to do, we have two options:
     we can either proxy to a backend server such as Node.js and have that handle the
     work, or we can implement it directly in NGINX. Which option you go with depends
     on a lot of factors, but the two main factors to consider are speed and complexity.'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于任何我们需要应用程序完成的任务，我们有两个选择：可以选择将请求代理到像Node.js这样的后端服务器，让它处理工作，或者直接在NGINX中实现。你选择哪种方案取决于许多因素，但主要考虑的两个因素是速度和复杂性。
 - en: Proxying to a complex backend server has an overhead cost but usually allows
     you to code reusability and use package managers such as Packagist and NPM. Conversely,
     implementing a feature in NGINX puts us closer to the user so we have less overhead,
     but the development itself also becomes more difficult.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 代理到一个复杂的后端服务器会有额外的开销，但通常可以实现代码复用，并且可以使用像Packagist和NPM这样的包管理器。相反，在NGINX中实现一个功能则使我们更接近用户，从而减少了开销，但开发本身也变得更加困难。
 - en: Most setups will choose to proxy to a backend for simplicity. An example of
     a feature implemented in NGINX would be Cloudflare and its proxy/CDN service.
     Since they deal with a huge scale of requests and response time is critical to
     them, they have implemented their security filtering (web application firewall)
     directly in NGINX using a module to add Lua support in the NGINX config file.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数设置会选择将请求代理到后端，以简化操作。在NGINX实现的一个功能示例中，可以看到Cloudflare及其代理/CDN服务。由于他们处理着大量请求且响应时间对他们至关重要，所以他们直接在NGINX中实现了自己的安全过滤（Web应用防火墙），通过一个模块来为NGINX配置文件添加Lua支持。
 - en: Cloudflare has hundreds of developers, including people who have worked on the
     core part of NGINX code before, so don’t expect to quite reach their level, but
     there are also simpler scenarios where NGINX can implement part of the application
     logic.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: Cloudflare拥有数百名开发人员，其中包括曾参与NGINX核心代码开发的人，因此不要指望能够完全达到他们的水平，但也有一些较简单的场景，NGINX可以实现部分应用程序逻辑。
 - en: 'A simple example of application logic in NGINX is to move our cache from inside
     our backend server to NGINX itself. In the following example, we’re checking Memcached
     for a cached version of a page, and only if we don’t find it do we proxy to our
     application backend:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 在NGINX中实现应用程序逻辑的一个简单示例是将我们的缓存从后端服务器迁移到NGINX本身。在以下示例中，我们首先检查Memcached中是否有页面的缓存版本，只有当我们没有找到缓存时，才会代理到应用程序后端：
 - en: '[PRE0]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: When we go into more advanced logic, the NGINX configuration gets a bit complicated.
     We will look at several proxy configuration scenarios in more detail in the next
     chapter.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们进入更复杂的逻辑时，NGINX的配置会变得有些复杂。在下一章中，我们将更详细地探讨几种代理配置场景。
 - en: Summary
+  id: totrans-147
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we had a look at how reverse proxying works and how NGINX fits
     into the modern picture of microservices and complex web applications, both in
     the sense of enabling the microservice architecture and also in the sense of building
     application logic directly into NGINX.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们了解了反向代理的工作原理以及NGINX如何适应现代微服务和复杂Web应用程序的架构，既包括使微服务架构得以实现，也包括将应用程序逻辑直接构建到NGINX中的方式。
 - en: This chapter should have given you an idea of the possibilities that NGINX provides
     as an application server, and hopefully clarified the complexity/speed trade-off
     of implementing logic in NGINX.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章应该让你了解了NGINX作为应用服务器所提供的可能性，并且希望阐明了在NGINX中实现逻辑时所涉及的复杂性与速度之间的权衡。
 - en: 'Now that we’ve got an overview of the possibilities offered by NGINX, we’re
     going to put what we’ve learned to good use. In the next chapter, we’ll cover
     a specific case: NGINX with Docker, using the NGINX proxy.'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经了解了NGINX所提供的各种可能性，接下来我们将把所学的知识付诸实践。在下一章中，我们将讨论一个具体的案例：使用NGINX代理与Docker的结合。
 - en: 'Part 3: NGINX in Action'
+  id: totrans-151
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第3部分：NGINX实战
 - en: In this final part of the book, you’ll explore how NGINX can be integrated into
     larger IT infrastructures, with advanced deployment strategies, cloud environments,
     and automated management. This section focuses on the real-life use cases of NGINX
     within complex systems, including load balancing, cloud deployments, and maintaining
     high availability and security.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本书的最后部分，您将探讨如何将NGINX集成到更大的IT基础架构中，包括先进的部署策略、云环境以及自动化管理。本部分聚焦于NGINX在复杂系统中的实际应用案例，包括负载均衡、云部署以及如何保持高可用性和安全性。
 - en: 'This part includes the following chapters:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 本部分包含以下章节：
 - en: '[*Chapter 7*](B21787_07.xhtml#_idTextAnchor653)*, Introduction to Load Balancing
     and Optimization*'
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*第7章*](B21787_07.xhtml#_idTextAnchor653)*，负载均衡与优化简介*'
 - en: '[*Chapter 8*](B21787_08.xhtml#_idTextAnchor688)*, NGINX within a Cloud Infrastructure*'
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*第8章*](B21787_08.xhtml#_idTextAnchor688)*，NGINX在云基础架构中的应用*'
 - en: '[*Chapter 9*](B21787_09.xhtml#_idTextAnchor701)*, Fully Deploy, Manage, and
     Auto-Update NGINX with Ansible*'
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*第9章*](B21787_09.xhtml#_idTextAnchor701)*，使用Ansible完全部署、管理和自动更新NGINX*'
 - en: '[*Chapter 10*](B21787_10.xhtml#_idTextAnchor708)*, Case Studies*'
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*第10章*](B21787_10.xhtml#_idTextAnchor708)*，案例研究*'
 - en: '[*Chapter 11*](B21787_11.xhtml#_idTextAnchor749)*, Troubleshooting*'
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*第11章*](B21787_11.xhtml#_idTextAnchor749)*，故障排除*'

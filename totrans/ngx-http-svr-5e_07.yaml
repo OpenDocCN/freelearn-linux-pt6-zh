@@ -1,130 +1,182 @@
 - en: '7'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '7'
 - en: Introduction to Load Balancing and Optimization
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 负载均衡和优化简介
 - en: As much as NGINX will help your servers hold the load, there are always limits
     to what a single machine can process; an aging hard drive or limited bandwidth
     will eventually induce a bottleneck, resulting in longer request-serving times,
     which, in turn, leads to the disappointment of your visitors.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管NGINX将帮助您的服务器承载负载，但单台机器能够处理的限制总是存在；老化的硬盘或有限的带宽最终会造成瓶颈，导致请求处理时间延长，从而令访问者感到失望。
 - en: As your websites grow more popular and your single machine begins to suffer,
     you will be tempted to simply get a bigger and more expensive server. But this
     would not be a cost-efficient approach in the long run, and remember that the
     more strain a server is exposed to, the more likely it is to suffer from hardware
     failure.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着您的网站变得更加流行，单一服务器开始承受压力，您会有诱惑仅仅购买更大更昂贵的服务器。但从长远来看，这并不是一种成本效益的方法；请记住，服务器承受的压力越大，硬件故障的可能性就越大。
 - en: 'In this chapter, we will investigate two concepts, the first of which is load
     balancing: the art of distributing a load across several servers and managing
     this distribution efficiently. The second part will explore the subject of thread
     pools: a new mechanism relieving servers under heavy loads (more specifically,
     loads induced by blocking operations) by serving requests in a slightly different
     manner.'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将探讨两个概念，第一个是负载均衡：即在多台服务器间分配负载并有效管理这种分配的艺术。第二部分将探索线程池的主题：一种通过稍微不同的方式为服务器服务来减轻由阻塞操作引起的重负载的新机制。
 - en: 'This chapter covers the following topics:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章涵盖以下主题：
 - en: Introducing load balancing
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 引入负载均衡
 - en: Using NGINX as a TCP load balancer
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX作为TCP负载均衡器
 - en: Exploring thread pools and I/O mechanisms
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 探索线程池和I/O机制
 - en: Introducing load balancing
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引入负载均衡
 - en: All of the most visited websites in the world are built over carefully planned
     server architectures; fast page loads and download speeds are a requirement for
     long-term traffic growth. The concept of **load balancing** has the potential
     to solve problems pertaining to scalability, availability, and performance. After
     a quick description of the concept, we will elaborate on how NGINX offers to implement
     such an architecture.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 全球访问量最高的网站都建立在精心规划的服务器架构之上；快速的页面加载和下载速度是长期流量增长的要求。负载均衡的概念有潜力解决与可扩展性、可用性和性能相关的问题。在快速描述这一概念后，我们将详细介绍NGINX如何提供实施这样一种架构的方式。
 - en: Understanding the concept of load balancing
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 理解负载均衡的概念
 - en: To put it simply, the concept of load balancing consists of distributing the
     workload (CPU load, hard disk load, or other forms) across several servers, in
     a manner that is completely transparent to your visitors.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，负载均衡的概念包括将工作负载（CPU负载、硬盘负载或其他形式）完全透明地分配到多台服务器上，以使您的访问者毫不感知。
 - en: 'In the case of a single-server architecture, client requests are received and
     processed by one machine. A machine has a limited capacity of operation; for example,
     a web server that is able to respond to 1,000 HTTP requests per second. If the
     server receives more than 1,000 requests per second, the 1,001st client request
     received in that second will not be served in a timely manner. From then on, page-serving
     speeds would begin to increase, resulting in a degraded experience for its visitors:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在单一服务器架构的情况下，客户端请求由一台机器接收并处理。一台机器的操作能力是有限的；例如，一个能够每秒响应1,000个HTTP请求的Web服务器。如果服务器在一秒内收到超过1,000个请求，那么第1,001个客户端请求就无法及时得到服务。从那时起，页面服务速度会开始增加，导致访问体验下降：
 - en: '![Figure 7.1: An example of how request tops are managed](img/B21787_07_1.jpg)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![图 7.1：请求顶点管理示例](img/B21787_07_1.jpg)'
 - en: 'Figure 7.1: An example of how request tops are managed'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 7.1：请求顶点管理示例
 - en: Distributing a load across several servers increases the overall request-serving
     capacity; with two servers at your disposal, you could theoretically allow 2,000
     HTTP requests to be served per second. With three servers, you could serve 3,000
     requests, and so on.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 将负载分布到多台服务器上可以增加整体请求处理能力；如果您拥有两台服务器，理论上可以允许每秒服务2,000个HTTP请求。有了三台服务器，您可以服务3,000个请求，以此类推。
 - en: 'There are several techniques available for achieving load balancing, with `example.com`)
     into an IP address (`1.2.3.4`). To achieve DNS load balancing, simply associate
     multiple IP addresses to your domain. Upon visiting your website, the operating
     systems of your visitors will select one of these IP addresses following a **simple
     round-robin** algorithm, thus ensuring that on a global scale, all of your servers
     receive more or less the same amount of traffic:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 有几种技术可以实现负载均衡，例如将`example.com`解析为一个IP地址（`1.2.3.4`）。为了实现DNS负载均衡，只需将多个IP地址关联到您的域名。访客访问您的网站时，操作系统会根据**简单的轮询**算法从这些IP地址中选择一个，从而确保您的所有服务器在全球范围内接收到大致相同数量的流量：
 - en: '![Figure 7.2: Another example of how request tops are managed](img/B21787_07_2.jpg)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![图7.2：请求如何被管理的另一个示例](img/B21787_07_2.jpg)'
 - en: 'Figure 7.2: Another example of how request tops are managed'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 图7.2：请求如何被管理的另一个示例
 - en: 'Albeit simple to implement, this load-balancing method cannot always be applied
     to high-traffic websites because it has several major issues:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这种负载均衡方法易于实现，但它并不总是适用于高流量网站，因为它存在几个主要问题：
 - en: What if the IP address selected by a visitor’s operating system points to a
     server that is temporarily unavailable?
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果访客的操作系统选择的IP地址指向一个临时不可用的服务器怎么办？
 - en: What if your architecture is made of several types of servers, some of which
     are capable of handling more requests than others?
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您的架构由几种不同类型的服务器组成，其中一些能够处理比其他服务器更多的请求，怎么办？
 - en: What if a visitor connects to a particular server and logs in to their user
     account, only to get switched to another server 10 minutes later, losing their
     session data?
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果访客连接到某个服务器并登录了他们的用户账户，结果10分钟后被切换到另一台服务器，丢失了会话数据怎么办？
 - en: The last of these issues is also known as the **session affinity** problem and
     is further detailed in the next section.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些问题中的最后一个也被称为**会话亲和性**问题，下面的章节将进一步详细介绍。
 - en: Session affinity
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 会话亲和性
 - en: 'Session affinity is an expression that designates the persistent assignment
     of a client to a particular server in a load-balanced infrastructure. We use the
     word *session* to describe a set of requests performed by a client to a server.
@@ -134,149 +186,211 @@
     page views are part of a session, which is most of the time stateful: the server
     conserves data relative to the operations performed during the visit. In our example,
     that server would remember the contents of the shopping cart and the login credentials.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 会话亲和性是一个术语，指的是在负载均衡架构中将客户端持久分配到特定服务器的过程。我们使用*会话*一词来描述客户端对服务器发出的请求集合。当访客浏览一个网站时，他们通常会访问多个页面：他们登录自己的账户，添加商品到购物车，进行结账等等。直到他们关闭浏览器（或标签页），所有后续的页面浏览都属于一个会话，这通常是有状态的：服务器会保存与访问过程中执行的操作相关的数据。在我们的示例中，服务器会记住购物车的内容和登录凭证。
 - en: 'If, at some point during the session, the visitor were to switch servers and
     connect to **Server B**, they would lose any session information contained on
     **Server A**. The visitor would then lose the contents of their shopping cart,
     as well as their login credentials (they would get logged out):'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在会话期间，访客切换了服务器并连接到**服务器B**，那么他们将失去保存在**服务器A**上的会话信息。访客将丢失购物车内容以及登录凭证（他们将被登出）：
 - en: '![Figure 7.3: When switching the backend server, we might lose the existing
     session](img/B21787_07_3.jpg)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![图7.3：当切换后端服务器时，我们可能会丢失现有的会话](img/B21787_07_3.jpg)'
 - en: 'Figure 7.3: When switching the backend server, we might lose the existing session'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 图7.3：当切换后端服务器时，我们可能会丢失现有的会话
 - en: 'For that reason, it is of utmost importance to maintain session affinity: in
     other words, to ensure that a visitor remains assigned to a particular server
     at all times. The DNS load-balancing method does not ensure session affinity,
     but fortunately, NGINX will help you achieve it.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，保持会话亲和性至关重要：换句话说，要确保访客始终分配到特定的服务器上。DNS负载均衡方法不能确保会话亲和性，但幸运的是，NGINX可以帮助您实现这一点。
 - en: The upstream module
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 上游模块
 - en: The implementation of load balancing in NGINX is particularly clever as it allows
     you to distribute a load at several levels of your infrastructure. It isn’t limited
     to proxying HTTP requests across backend servers; it also offers to distribute
     requests across FastCGI backends (FastCGI, uWSGI, SCGI, and more), or even distribute
     queries to Memcached servers. Any directive that ends with `_pass`, such as `proxy_pass`,
     `fastcgi_pass`, or `memcached_pass`, accepts a reference to a group of servers.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的负载均衡实现特别巧妙，因为它允许你在基础架构的多个层级分配负载。它不仅仅限于在后端服务器之间代理HTTP请求；它还可以分配请求到FastCGI后端（FastCGI、uWSGI、SCGI等），甚至可以将查询分配给Memcached服务器。任何以`_pass`结尾的指令，如`proxy_pass`、`fastcgi_pass`或`memcached_pass`，都可以接受一个服务器组的引用。
 - en: 'The first step is to declare this group of servers with the help of the *upstream*
     block, which must be placed within the http block. Within the `upstream` block,
     declare one or more servers with the `server` directive:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是通过`*upstream*`块声明这一组服务器，`upstream`块必须放置在http块内。在`upstream`块中，使用`server`指令声明一个或多个服务器：
 - en: '[PRE0]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Alternatively, you can also use `include` inside your upstream block to load
     servers from an external file:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，你也可以在`upstream`块中使用`include`来加载来自外部文件的服务器：
 - en: '[PRE1]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Now that your server group is declared, you can reference it in your virtual
     host configuration. For example, you can distribute incoming HTTP requests across
     the server group simply by proxying them:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你已经声明了服务器组，可以在虚拟主机配置中引用它。例如，你可以通过代理请求来简单地将传入的HTTP请求分配到该服务器组：
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '![Figure 7.4: An example of Nginx acting as a relay for internal servers](img/B21787_07_4.jpg)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![图7.4：Nginx作为内部服务器中继的示例](img/B21787_07_4.jpg)'
 - en: 'Figure 7.4: An example of Nginx acting as a relay for internal servers'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 图7.4：Nginx作为内部服务器中继的示例
 - en: In this most basic state of configuration, requests are distributed across the
     three servers of the `MyUpstream` group according to a simple round-robin algorithm,
     without maintaining session affinity.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种最基本的配置状态下，请求会根据简单的轮询算法分配到`MyUpstream`组中的三个服务器，而不会保持会话亲和性。
 - en: Request distribution mechanisms
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 请求分配机制
 - en: 'NGINX offers several ways to solve the problems we mentioned earlier. The first
     and simplest of them is the `weight` flag, which can be enabled in the definition
     of your server group:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX提供了多种方式来解决我们之前提到的问题。最简单的方式之一是`weight`标志，它可以在服务器组的定义中启用：
 - en: '[PRE3]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'By default, servers have a weight of `1`, unless you specify otherwise. Such
     a configuration enables you to give more importance to particular servers; the
     higher their weight, the more requests they will receive from NGINX. In this example,
     for every six HTTP requests received, NGINX will systematically distribute the
     following:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，服务器的权重为`1`，除非你另行指定。这样的配置使你能够赋予特定服务器更高的优先级；服务器的权重越高，NGINX将接收更多的请求。在此示例中，每接收六个HTTP请求，NGINX将按以下方式分配：
 - en: Three requests to the `10.0.0.201` server (`weight=3`)
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 向`10.0.0.201`服务器发送三个请求（`weight=3`）
 - en: Two requests to the `10.0.0.202` server (`weight=2`)
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 向`10.0.0.202`服务器发送两个请求（`weight=2`）
 - en: One request to the `10.0.0.203` server (`weight=1`)
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 向`10.0.0.203`服务器发送一个请求（`weight=1`）
 - en: 'For every 12 requests, NGINX will distribute the following:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 每接收12个请求，NGINX将按以下方式分配：
 - en: Six requests to the `10.0.0.201` server (`weight=3`)
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 向`10.0.0.201`服务器发送六个请求（`weight=3`）
 - en: Four requests to the `10.0.0.202` server (`weight=2`)
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 向`10.0.0.202`服务器发送四个请求（`weight=2`）
 - en: Two requests to the `10.0.0.203` server (`weight=1`)
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 向`10.0.0.203`服务器发送两个请求（`weight=1`）
 - en: 'NGINX also includes a mechanism that will verify the state of servers in a
     group. If a server doesn’t respond in time, the request will be re-sent to the
     next server in the group. There are several flags that can be assigned to servers
     in an upstream block that will allow you to better control this mechanism:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX还包括一种机制，用于验证服务器组中服务器的状态。如果某个服务器未能及时响应，请求将被重新发送到组中的下一个服务器。可以为`upstream`块中的服务器分配多个标志，以便更好地控制该机制：
 - en: '`fail_timeout=N`, where `N` is the number of seconds before a request is considered
     to have failed.'
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`fail_timeout=N`，其中`N`是请求被认为失败前的秒数。'
 - en: '`max_fails=N`, where `N` is the number of attempts that should be performed
     on a server before NGINX gives up and switches to the next server. By default,
     NGINX only tries once. If all servers become unresponsive, NGINX will wait for
     `fail_timeout` to expire before resetting all server fail counts and trying again.'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`max_conns=N`, where `N` is the number of maximum concurrent connections that
     can be sent to that server. By default, NGINX will not limit concurrent connections.'
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`backup` marks the server as a backup server, instructing NGINX to use it only
     in the case of failure of another server (it is not used otherwise).'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`down` marks the server as permanently unavailable, instructing NGINX not to
     use it anymore.'
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -287,32 +401,41 @@
     based on that hash, keep the client assigned to a particular server. As long as
     the client IP address remains the same, NGINX will always forward requests to
     the same server in the upstream group:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Some administrators may deem this method too unreliable, considering the fact
     that a majority of internet service providers across the globe still provide dynamic
     IP addresses, renewed on a 24-hour basis. So why not use your own distribution
     key? Instead of the client IP address, you could separate requests based on the
     criteria of your choice, thanks to the `hash` directive. Since the directive allows
     variables, you could decide to separate requests based on a cookie value:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE5]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Based on the data contained in the `username` cookie, your visitors will be
     assigned to the first or the second server in the upstream group.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
 - en: We have just seen how to use NGINX as an HTTP load balancer. In the next section,
     we’ll look at how to get the NGINX load balancer working, but this time using
     TCP instead of HTTP.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
 - en: Using NGINX as a TCP/UDP load balancer
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -325,9 +448,11 @@
     authors decided that TCP/UDP load balancing should be part of the open source
     version. As of NGINX 1.9.0, the stream module is included in the source code readily
     available at [https://nginx.org/](https://nginx.org/).'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
 - en: The stream module
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -335,74 +460,104 @@
     load balancing. However, since the module that brings forth the new set of directives
     is not included in the default build, you will need to run the `configure` command
     with the following flag before building the program:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: TCP/UDP负载均衡在NGINX中的工作原理与HTTP负载均衡非常相似。然而，由于引入新一组指令的模块不包含在默认构建中，您需要在构建程序之前使用以下标志运行`configure`命令：
 - en: '[PRE6]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The stream module offers a new block called `http` block). In this block, you
     must declare two sets of directives:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 流模块提供了一个称为`http`块的新块。在此块中，您必须声明两组指令：
 - en: '`server` declares a TCP/UDP server listening on a particular port, and optionally,
     a network interface, with or without SSL'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`server` 声明一个监听特定端口的TCP/UDP服务器，可以选择指定网络接口，可选SSL。'
 - en: '`upstream` defines a server group in a similar manner as seen previously'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`upstream` 定义了一个类似于之前所见的服务器组'
 - en: In your server blocks, the requests will be sent to the server group with the
     `proxy_pass` directive.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在您的服务器块中，请求将通过`proxy_pass`指令发送到服务器组。
 - en: An example of MySQL load balancing
+  id: totrans-74
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: MySQL负载均衡的示例
 - en: 'If you already understand how HTTP load balancing works in NGINX, the following
     example will look spectacularly simple to you. We will configure NGINX to receive
     MySQL connections and balance them across two backend servers:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您已经了解了NGINX中的HTTP负载均衡工作原理，下面的示例将看起来非常简单。我们将配置NGINX接收MySQL连接，并在两个后端服务器之间进行负载均衡：
 - en: '[PRE7]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: That’s all there is to it. All directives and options offered by the upstream
     module are still there, but keep in mind that you won’t be able to use HTTP-based
     variables (such as cookies) to achieve session affinity. The stream module comes
     with a lot more options and flags, but they are not detailed here, as this falls
     outside the scope of an HTTP server; additional documentation can be found at
     [https://nginx.org/](https://nginx.org/).
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样。上游模块提供的所有指令和选项仍然存在，但请注意，您将无法使用基于HTTP的变量（例如cookie）来实现会话亲和性。流模块提供了更多选项和标志，但这些内容未在此详述，因为这超出了HTTP服务器的范围；更多文档可以在[https://nginx.org/](https://nginx.org/)找到。
 - en: We now have an overview of how to run a load balancer using NGINX for both HTTP
     and TCP/UDP requests. In the next section, we’ll look at threads and I/O to better
     understand and improve your server’s resource management under heavy loads.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们了解了如何使用NGINX运行HTTP和TCP/UDP请求的负载均衡器的概述。在下一节中，我们将深入研究线程和I/O，以更好地理解和改进在重负载下的服务器资源管理。
 - en: Exploring thread pools and I/O mechanisms
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索线程池和I/O机制
 - en: Before making important financial decisions, such as investing in an additional
     server or two, you should look to optimize your current setup to make the most
     of your existing infrastructure.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在做出重要的财务决策之前，比如投资于额外的一两台服务器，您应该优化当前的设置，充分利用现有的基础设施。
 - en: Relieving worker processes
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 缓解工作进程
 - en: 'In the case of websites that require heavy I/O operations, such as file uploads
     or downloads, the asynchronous architecture of NGINX can present a certain disadvantage:
     while the master process is able to absorb incoming connections asynchronously,
     worker processes can be blocked for relatively long periods of time by certain
     tasks (the most common of which is reading data from hard disk drives or network
     drives).'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于需要大量I/O操作的网站，如文件上传或下载，NGINX的异步架构可能存在一定的劣势：虽然主进程能够异步地吸收传入的连接，但工作进程可能会被某些任务（最常见的是从硬盘驱动器或网络驱动器读取数据）阻塞相对较长的时间。
 - en: 'Consider a simplified configuration with two worker processes; each HTTP request
     received by NGINX gets assigned to either process. Within a process, operations
     are performed sequentially: receiving and parsing the request, reading the requested
@@ -411,19 +566,27 @@
     drive with a latency of about 100 ms, both of your worker processes would be spending
     most of their time waiting for the files. As a result, your server would only
     be able to serve 18 to 20 requests per second:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个简化的配置，有两个工作进程；NGINX收到的每个HTTP请求都分配给其中一个进程。在进程内部，操作是顺序执行的：接收和解析请求，从其存储位置读取请求的文件，最后准备并发送响应给客户端。如果由于某种原因你需要服务于网络驱动器上存储的文件，延迟约为100毫秒，那么你的两个工作进程将大部分时间都在等待文件。因此，你的服务器每秒只能处理18到20个请求：
 - en: '![Figure 7.5: An explanation of how worker processes and latency work](img/B21787_07_5.jpg)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![图7.5：工作进程与延迟的工作原理说明](img/B21787_07_5.jpg)'
 - en: 'Figure 7.5: An explanation of how worker processes and latency work'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 图7.5：工作进程与延迟的工作原理说明
 - en: This isn’t just a problem that occurs for network drives. Even regular hard
     disk drives can take a certain time to fetch a file if it isn’t in the cache;
     a 10 ms latency isn’t insignificant when you multiply it by 1,000!
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题不仅仅出现在网络驱动器上。即使是常规的硬盘驱动器，如果文件不在缓存中，也可能需要一定的时间来获取文件；当你将10毫秒的延迟乘以1000时，它并不是一个可以忽视的数值！
 - en: The solution that has been made available as of NGINX 1.7.11 is called **thread
     pools**. The basic principle behind this solution is that instead of reading files
     synchronously within the worker process, NGINX delegates the operation to a thread.
@@ -431,57 +594,81 @@
     request in the queue. Whenever the thread finishes performing the operation, the
     worker process finalizes and sends the response to the client. It is a pretty
     simple concept to understand, and thankfully, it’s just as simple to configure.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 在NGINX 1.7.11版本中，提供的解决方案被称为**线程池**。该解决方案的基本原理是，NGINX不再在工作进程中同步读取文件，而是将操作委托给一个线程。这样立即解放了工作进程，使其能够处理队列中的下一个请求。当线程完成操作时，工作进程会最终完成并将响应发送给客户端。这个概念相当简单，幸运的是，配置起来也同样简单。
 - en: AIO, Sendfile, and DirectIO
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: AIO、Sendfile与DirectIO
 - en: In order to enable support for thread pools, NGINX must be built with the `--with-threads`
     parameter; this functionality doesn’t come by default. The first step of the configuration
     is to define a thread pool with the `thread_pool` directive at the root of your
     configuration file.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了启用线程池支持，必须使用`--with-threads`参数构建NGINX；这个功能默认是不可用的。配置的第一步是在配置文件的根目录定义一个线程池，使用`thread_pool`指令。
 - en: 'Syntax: `thread_pool name` `threads=N [max_queue=Q];`'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法：`thread_pool name` `threads=N [max_queue=Q];`
 - en: In this syntax, `name` is the name you wish to give to the thread pool, `N`
     is the number of threads that should be spawned, and `Q` is the maximum number
     of operations allowed in the queue. By default, a thread pool exists with the
     name `default`, coming with 32 threads and a maximum queue of 65,536 operations.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个语法中，`name`是你希望给线程池命名的名称，`N`是应该创建的线程数，`Q`是队列中允许的最大操作数。默认情况下，线程池的名称为`default`，配有32个线程和最多65,536个操作的队列。
 - en: 'In `location` blocks that require it, simply insert the `aio` directive and
     specify the thread pool name:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 在需要的`location`块中，简单地插入`aio`指令并指定线程池名称：
 - en: '[PRE8]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Alternatively, insert `aio threads` without a pool name if you want to use
     the default thread pool. It is also possible to use both `sendfile` and `aio`
     in the same location:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，如果你想使用默认的线程池，可以直接插入`aio threads`而不指定池名称。也可以在同一个`location`中同时使用`sendfile`和`aio`：
 - en: '[PRE9]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: If the file requested by the client is over `8k` (the value specified with the
     `directio` directive), `aio` will be used. Otherwise, the file will be sent via
     `sendfile`. For a deeper dive into the specifics of `sendfile` and `directio`,
     we encourage you to consult the official NGINX documentation.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果客户端请求的文件大于`8k`（该值由`directio`指令指定），则会使用`aio`。否则，文件将通过`sendfile`发送。要深入了解`sendfile`和`directio`的具体细节，建议查阅官方NGINX文档。
 - en: We now have a better understanding of how to manage NGINX server resources,
     thanks in particular to thread pools. Now it’s time to summarize what we’ve learned
     in this chapter.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们对如何管理NGINX服务器资源有了更好的理解，特别是得益于线程池的引入。现在是时候总结一下我们在本章所学的内容了。
 - en: Summary
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: Before adapting your infrastructure to increasingly high traffic, you should
     always look for solutions offered by your current set of tools. If traffic causes
     your server to become unresponsive because of blocking operations, such as slow
@@ -490,10 +677,14 @@
     chapter, implementing a load-balanced architecture is made particularly easy by
     NGINX; you can even use it to distribute the load of other server applications
     such as MySQL, email, and more.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将基础设施调整到应对越来越高的流量之前，你应该始终先寻求当前工具集提供的解决方案。如果流量导致服务器因阻塞操作（如慢速磁盘读取）而无法响应，你应该尝试使用线程池。如果这还不够，那么负载均衡就是下一个最佳选择。幸运的是，正如我们在本章中发现的，NGINX使得实现负载均衡架构变得异常简单；你甚至可以用它来分配其他服务器应用程序的负载，比如MySQL、邮件等。
 - en: Now that we have seen a basic yet comprehensive approach to the most advanced
     mechanisms offered by NGINX, let’s move on to deploying NGINX in a cloud infrastructure
     (docker) with the knowledge gained throughout this book.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经了解了NGINX提供的最先进机制的基本且全面的方式，接下来让我们基于本书中获得的知识，开始在云基础设施（docker）中部署NGINX。
