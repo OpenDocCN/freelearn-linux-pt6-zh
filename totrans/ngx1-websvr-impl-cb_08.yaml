@@ -1,133 +1,198 @@
 - en: Chapter 8. Improving Performance and SEO Using Nginx
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第8章：使用Nginx提高性能和SEO
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将涵盖：
 - en: Setting up TCP options correctly for optimizing performance
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正确设置TCP选项以优化性能
 - en: Reducing the keep-alives to free up Nginx workers
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 减少keep-alive连接以释放Nginx工作进程
 - en: Using Memcached as the cache backend
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Memcached作为缓存后端
 - en: Configuring the right event model and file limits
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置正确的事件模型和文件限制
 - en: Setting max-age expiry headers for client-side caching
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为客户端缓存设置max-age过期头
 - en: Blocking scrapers, bots, and spiders to save bandwidth
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 阻止爬虫、机器人和蜘蛛以节省带宽
 - en: Redirection of www to non-www domain for SEO
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将www重定向到非www域名以优化SEO
 - en: Removing all white space from response
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从响应中去除所有空白字符
 - en: Setting up server status for monitoring
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置服务器状态以便监控
 - en: Setting up Munin for 24x7 Nginx monitoring
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置Munin进行24x7 Nginx监控
 - en: Enabling gzip pre-compression
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 启用gzip预压缩
 - en: Preventing hotlinking using Nginx
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Nginx防止热链接
 - en: Using embedded Perl to minify JavaScript files
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用嵌入式Perl来压缩JavaScript文件
 - en: Using embedded Perl to minify CSS files
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用嵌入式Perl来压缩CSS文件
 - en: Using embedded Perl to serve sitemaps (SEO)
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用嵌入式Perl来提供站点地图（SEO）
 - en: Setting up Boost module on Drupal with Nginx
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在Drupal上使用Nginx设置Boost模块
 - en: Setting up streaming for Flash files
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置Flash文件的流媒体
 - en: Utilizing the 1x1 gif serving module to do offline processing
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 利用1x1 gif服务模块进行离线处理
 - en: Introduction
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: This chapter is all about how you can make your site load faster and possibly
     get more traffic on your site. We will cover the basics of optimizing your Nginx
     setup and some SEO tricks. These techniques will not only be useful for your SEO,
     but also for the overall health of your site and applications.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的内容将讲述如何让你的网站加载更快，并可能为你带来更多流量。我们将涵盖优化Nginx配置的基础知识和一些SEO技巧。这些技巧不仅对SEO有帮助，也对你网站和应用的整体健康有益。
 - en: Setting up TCP options correctly for optimizing performance
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 正确设置TCP选项以优化性能
 - en: Nginx allows some easy ways to tweak TCP options which will be based upon your
     server operating system that will allow faster loading of your sites. We will
     have a look at the possible options and their impact.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx提供了一些简单的方式来调整TCP选项，具体取决于你的服务器操作系统，这将允许你的网站更快加载。我们将查看可能的选项及其影响。
 - en: How to do it...
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'The following configuration will optimize your setup for Linux:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置将优化你的Linux设置：
 - en: '[PRE0]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: How it works...
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'We use the following directives, and in the following table we can see what
     they are actually utilized for:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用以下指令，在下表中可以看到它们的实际用途：
 - en: '| Directive | Usage |'
+  id: totrans-29
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 用法 |'
 - en: '| --- | --- |'
+  id: totrans-30
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `tcp_nodelay` | This directive allows or forbids the use of the socket option
     `TCP_NODELAY`.By definition, `TCP_NODELAY` is for a specific purpose; to disable
     the Nagle buffering algorithm. It should only be set for applications that send
     frequent small bursts of information without getting an immediate response; where
     timely delivery of data is required (the canonical example is mouse movements).
     |'
+  id: totrans-31
   prefs: []
   type: TYPE_TB
+  zh: '| `tcp_nodelay` | 此指令允许或禁止使用套接字选项`TCP_NODELAY`。根据定义，`TCP_NODELAY`有一个特定的目的；禁用Nagle缓冲算法。它应仅为那些发送频繁小的突发信息且没有立即响应的应用程序设置；当数据的及时交付是必需的时（经典示例为鼠标移动）。
+    |'
 - en: '| `tcp_nopush` | This directive permits or forbids the use of the socket options
     `TCP_NOPUSH` on FreeBSD or `TCP_CORK` on Linux. This option is only available
     when using sendfile.Setting this option causes Nginx to attempt to send it''s
@@ -143,160 +208,241 @@
     socket option, which enables T/TCP transactions. This does much the same as the
     above, but is known to be slow and somewhat buggy on many versions of FreeBSD.
     |'
+  id: totrans-32
   prefs: []
   type: TYPE_TB
+  zh: '| `tcp_nopush` | 这个指令允许或禁止在 FreeBSD 上使用 `TCP_NOPUSH` 套接字选项，或在 Linux 上使用 `TCP_CORK`。这个选项只有在使用
+    sendfile 时可用。启用此选项后，Nginx 会尝试在 Linux 和 FreeBSD 4.x 上以一个数据包发送 HTTP 响应头。在 Linux
+    上，Nginx 可以使用 `TCP_CORK` 套接字选项。来自 tcp(7) 手册：`TCP_CORK` 如果设置，不发送部分帧。所有排队的部分帧会在该选项被清除时发送。这对于在调用
+    sendfile(2) 之前预先发送头部或进行吞吐量优化非常有用。按当前实现，`TCP_CORK` 会将输出数据暂时封锁最多 200 毫秒。如果超过此时间限制，排队的数据会自动传输。此选项只能与
+    `TCP_NODELAY` 一起使用，自 Linux 2.5.71 起可用。此选项不应在打算移植的代码中使用。在 FreeBSD 上，Nginx 可以使用
+    `TCP_NOPUSH` 套接字选项，这启用 T/TCP 事务。这与上面的功能相似，但在许多版本的 FreeBSD 上已知速度较慢且存在一些问题。 |'
 - en: Reducing the keep-alives to free up Nginx workers
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 减少 keep-alive 以释放 Nginx 工作进程
 - en: Are you starting to feel that a lot of your Nginx seems to be tied up without
     actually having a lot of traffic on you site? This simple tweak will let you efficiently
     utilize your Nginx setup when you feel that your users are spending a lot of time
     on a particular page before moving to the next page on your site.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 你是否开始感觉到很多 Nginx 进程被占用，但你的网站实际上并没有很高的流量？这个简单的调整可以让你在用户在某个页面停留较长时间后，优化你的 Nginx
+    设置，尤其是在用户切换到下一个页面之前。
 - en: How to do it...
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'This is, again, a fairly simple change in the configuration file as shown in
     the following code:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 这又是一个相对简单的配置文件修改，代码如下所示：
 - en: '[PRE1]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: How it works...
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何运作...
 - en: This simple directive actually sets the value of the time the connection with
     the client is kept alive after a request. For example, in the preceding setting
     the connection will wait for three seconds after serving a client request waiting
     for the next request from them (and in the process ignoring other clients).
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的指令实际上设置了请求后与客户端保持连接的时间。例如，在前述设置中，连接将在服务完客户端请求后等待三秒钟，等待来自客户端的下一个请求（并在此过程中忽略其他客户端）。
 - en: The idea is finding the right amount of time after which if you close the connection,
     Nginx does not end up ignoring many requests unnecessarily. This will improve
     the efficiency of how connections are managed by Nginx.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个想法是找到一个合适的时间点，在此之后如果你关闭连接，Nginx 就不会不必要地忽略很多请求。这样可以提高 Nginx 连接管理的效率。
 - en: Using Memcached as the cache backend
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Memcached 作为缓存后端
 - en: Over the last couple of years, Memcached has been one of the most utilized caching
     layers used by nearly every large portal. It is interesting to notice how every
     platform has evolved to support this as a default caching mechanism. Nginx is
     not far behind and can utilize all the power of Memcached as a caching backend.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在过去的几年里，Memcached 成为了几乎每个大型门户网站最常使用的缓存层。值得注意的是，几乎每个平台都已经进化为支持 Memcached 作为默认的缓存机制。Nginx
+    也不落后，它可以利用 Memcached 的所有强大功能作为缓存后端。
 - en: How to do it...
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'The Memcached module is by default compiled into Nginx. In this we will assume
     that a local Memcached instance is running on the 11211 port. The following configuration
     will allow you to run a simple caching setup:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: Memcached 模块默认已编译进 Nginx。在此我们假设本地 Memcached 实例正在 11211 端口运行。以下配置将允许你运行一个简单的缓存设置：
 - en: '[PRE2]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: How it works...
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何运作...
 - en: This is a fairly simple setup, where the complete site is cached in Memcached.
     The idea is that when Nginx is queried for a given URL, it is checked if Nginx
     has the corresponding page in memory or not. If it has, then it is served directly
     from there. Otherwise, we call the dynamic backend of the site.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当简单的设置，其中整个站点都缓存到Memcached中。其思路是，当Nginx接收到某个URL的查询时，会检查Nginx是否已将相应的页面加载到内存中。如果有，它将直接从内存中提供服务；否则，我们会调用站点的动态后端。
 - en: Note
+  id: totrans-48
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 备注
 - en: The catch, however, is that you will need to save the outputs of the pages in
     memory for Nginx to be able to query it from Memcached. The following diagram
     is an example of how this works in practice with a framework such as Django (Python).
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，需要注意的是，你需要将页面的输出保存到内存中，以便Nginx能够从Memcached中查询它。以下图表展示了在像Django（Python）这样的框架中，如何实际操作这一过程。
 - en: '![How it works...](img/4965OS_08_01.jpg)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965OS_08_01.jpg)'
 - en: Configuring the right event model and file limits
+  id: totrans-51
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置正确的事件模型和文件限制
 - en: Nginx is an event-driven web server and it always tries to use the underlying
     event model in the parent operating system to efficiently function. We will see
     the various choices on offer depending on the operating systems we operate in.
     In addition to that we will also have a look at how to modify the limits on file
     descriptor in the configuration.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx是一个事件驱动的Web服务器，它总是尽力利用父操作系统中的底层事件模型来高效地运行。我们将看到根据所使用的操作系统提供的各种选择。此外，我们还将查看如何在配置中修改文件描述符的限制。
 - en: How to do it...
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'This simple set of changes within the configuration is all that is needed to
     make changes in the event model and file limits. You will, however, need to also
     modify `sysctl.conf` on Linux and its equivalent on other operating systems to
     enhance the underlying file limits in place or the following setting will be ignored:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的配置更改就足以调整事件模型和文件限制。然而，你还需要修改Linux中的`sysctl.conf`以及其他操作系统中的相应配置，以增强底层的文件限制，否则以下设置将被忽略：
 - en: '[PRE3]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: How it works...
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In this current setup, we have set a fairly high limit on the number of open
     file descriptors that a worker process can have. We have also gone ahead and explicitly
     selected the select event model which comes built in by default in Nginx. You
     can also choose the poll event model or an alternative based upon the operating
     system you are on. The following table outlines the various options one has in
     selecting the event models.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在当前的设置中，我们已为工作进程设置了较高的文件描述符限制。我们还明确选择了Nginx默认内置的select事件模型。你还可以根据所使用的操作系统选择poll事件模型或其他替代方案。以下表格列出了选择事件模型时可用的各种选项。
 - en: '| Select method | Operating system | Notes |'
+  id: totrans-58
   prefs: []
   type: TYPE_TB
+  zh: '| Select方法 | 操作系统 | 备注 |'
 - en: '| --- | --- | --- |'
+  id: totrans-59
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| `select` | All | Standard method compiled in by default |'
+  id: totrans-60
   prefs: []
   type: TYPE_TB
+  zh: '| `select` | 全部 | 默认编译的标准方法 |'
 - en: '| `poll` | All | Standard method compiled in by default |'
+  id: totrans-61
   prefs: []
   type: TYPE_TB
+  zh: '| `poll` | 全部 | 默认编译的标准方法 |'
 - en: '| `kqueue` | FreeBSD 4.1+, OpenBSD 2.9+, NetBSD 2.0 and MacOS X | With dual-processor
     machines running MacOS X using kqueue can lead to kernel panic |'
+  id: totrans-62
   prefs: []
   type: TYPE_TB
+  zh: '| `kqueue` | FreeBSD 4.1+，OpenBSD 2.9+，NetBSD 2.0 和 MacOS X | 使用双处理器的MacOS
+    X机器时，使用kqueue可能导致内核崩溃 |'
 - en: '| `epoll` | Linux 2.6+ | In some distributions, like SuSE 8.2, there are patches
     for supporting epoll by kernel version 2.4 |'
+  id: totrans-63
   prefs: []
   type: TYPE_TB
+  zh: '| `epoll` | Linux 2.6+ | 在某些发行版中，如SuSE 8.2，通过2.4版本内核有补丁支持epoll |'
 - en: '| `rtsig` | Linux 2.2.19+ | By default no more than 1024 POSIX realtime (queued)
     signals can be outstanding in the entire system |'
+  id: totrans-64
   prefs: []
   type: TYPE_TB
+  zh: '| `rtsig` | Linux 2.2.19+ | 默认情况下，系统中最多只能有1024个POSIX实时（排队）信号 |'
 - en: '| `/dev/poll` | Solaris 7 11/99+, HP/UX 11.22+ (eventport), IRIX 6.5.15+ and
     Tru64 UNIX 5.1A+ |   |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| `/dev/poll` | Solaris 7 11/99+，HP/UX 11.22+（eventport），IRIX 6.5.15+ 和 Tru64
+    UNIX 5.1A+ |   |'
 - en: '| `eventport` | Solaris 10 | To avoid kernel panic, it is necessary to install
     this security patch |'
+  id: totrans-66
   prefs: []
   type: TYPE_TB
+  zh: '| `eventport` | Solaris 10 | 为避免内核崩溃，需要安装此安全补丁 |'
 - en: Setting max-age expiry headers for client-side caching
+  id: totrans-67
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为客户端缓存设置max-age过期头部
 - en: In a reverse proxy setup, one of the most crucial tasks of a frontend web server
     like Nginx is to serve the static files. This is one of the most effective optimizations
     in the arsenal of a web administrator. In this, we set the client side cache expiry
@@ -304,101 +450,143 @@
     that if the site is frequently used by the user, the static files like the images,
     CSS, and JavaScript files are not downloaded once again. This leads to a significantly
     better interaction with the site.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 在反向代理设置中，像Nginx这样的前端Web服务器的最重要任务之一是服务静态文件。这是Web管理员工具箱中最有效的优化之一。在此，我们将静态文件的客户端缓存过期时间设置为一个非常高的值，远在未来。这确保了如果用户频繁访问该站点，静态文件（如图片、CSS和JavaScript文件）不会再次被下载。这带来了更好的网站交互体验。
 - en: 'If you tend to use development plugins such as Firebug (which you can check
     out at [http://getfirebug.com)](http://getfirebug.com)), they show you the headers
     of the files downloaded when you load a page, as shown in the following screenshot.
     This shows an example of the CSS files downloaded on the Yahoo! site:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你经常使用开发插件，如Firebug（你可以在[http://getfirebug.com](http://getfirebug.com)查看），它们会显示加载页面时下载文件的头部，如下图所示。这展示了在Yahoo!网站上下载的CSS文件示例：
 - en: '![Setting max-age expiry headers for client-side caching](img/4965_08_02.jpg)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![为客户端缓存设置max-age过期头部](img/4965_08_02.jpg)'
 - en: How to do it...
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现……
 - en: 'This is a simple configuration change that needs to be made to the location
     directive that serves the static files:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个简单的配置更改，需要在服务静态文件的定位指令中进行：
 - en: '[PRE4]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: How it works...
+  id: totrans-74
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: This is a fairly simple directive where if the file is a static file like a
     CSS, JS, or any image file, we simply send the file back with the `Expires` header
     set far in the future. This will ensure that the file stays in the cache of the
     client browser and is not reloaded unnecessarily when the user comes back to the
     same page in the future.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当简单的指令，如果文件是静态文件，比如CSS、JS或任何图片文件，我们只需要将文件返回，并设置`Expires`头部为未来的某个时间。这将确保文件保持在客户端浏览器的缓存中，并且当用户将来再次访问相同页面时，不会不必要地重新加载该文件。
 - en: Static files like these do not change on most sites, while the HTML which defines
     the structure of the content may be very much dynamic. This also prevents significant
     unnecessary bandwidth usage for the site owners.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 像这些静态文件在大多数站点上不会改变，而定义内容结构的HTML则可能非常动态。这也防止了网站所有者的不必要带宽使用。
 - en: Note
+  id: totrans-77
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: You must keep in mind that a lot of time you will need to modify static files,
     so in those cases you will need to append a random/different query string variable
     to force the client to download the fresh version of the static file.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 你必须记住，很多时候你需要修改静态文件，所以在这些情况下，你需要添加一个随机/不同的查询字符串变量，以强制客户端下载静态文件的最新版本。
 - en: Blocking scrapers, bots, and spiders to save bandwidth
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 阻止爬虫、机器人和蜘蛛来节省带宽
 - en: If you have ever gone through your access log you will see a whole load of rather
     weird looking User-Agents visiting your site. Except for the larger search engines
     such as Google, Microsoft Bing, and Yahoo! every other bot is pretty much unnecessary
     in the larger scheme of the global SEO scenario today. In this recipe we will
     end up blocking out a whole lot of other content leechers and in the process save
     you valuable bandwidth.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你曾经查看过访问日志，你会看到一大堆看起来相当奇怪的用户代理访问你的网站。除了Google、Microsoft Bing和Yahoo!等大型搜索引擎，其他的机器人在今天的全球SEO大局中几乎是没有必要的。在这个方案中，我们将阻止大量其他的内容窃取者，从而节省你宝贵的带宽。
 - en: This will also block a whole load of commenting bots that end up pushing ugly
     and unnecessary comments to screw up your site.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这还会阻止一大堆评论机器人，它们会发送丑陋且不必要的评论来破坏你的网站。
 - en: How to do it...
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现……
 - en: You will need to add the following in the location directive to keep away a
     fairly large list of scrapers, bots, and spiders. We will start with a smaller
     set of user agents to block, and can add others once we are sure of how it works.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要在位置指令中添加以下内容，以防止爬虫、机器人和蜘蛛的访问。我们将从一个较小的用户代理列表开始进行阻止，并且可以在确认其效果后再添加其他内容。
 - en: '[PRE5]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: How it works...
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: This set of rules effectively look at the HTTP user agent and compare it to
     a list "of know rouge" user agent list and reject the request by redirecting them
     to the `robots.txt` file. This also ensures that you are never wasting computation
     time and bandwidth on bots which can be utilized in providing a better quality
     of service for your users.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一系列规则有效地查看 HTTP 用户代理，并将其与一个“已知恶意”用户代理列表进行比较，通过将请求重定向到 `robots.txt` 文件来拒绝它们。这也确保你不会浪费计算时间和带宽在机器人身上，而这些时间和带宽可以用于为用户提供更高质量的服务。
 - en: By stopping spam comments on your site, you are also effectively ensuring that
     your SEO does not get affected by pornographic or explicit content injected by
     them.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过阻止网站上的垃圾评论，你也有效地确保你的 SEO 不会受到它们注入的色情或不当内容的影响。
 - en: Redirection of www to non-www domain for SEO
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: SEO 的 www 到非 www 域名重定向
 - en: Most people do not realize that [www.example1.com](http://www.example1.com)
     is not the same as `example1.com` for the search engines. Technically, they are
     completely separate entities. All search engines have algorithms to detect copied
@@ -406,256 +594,381 @@
     is imperative that people actually use either [www.example1.com](http://www.example1.com)
     or [example1.com](http://example1.com) as the operative domain name for their
     site.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数人没有意识到 [www.example1.com](http://www.example1.com) 对于搜索引擎来说与 `example1.com`
+    不同。从技术上讲，它们是完全独立的实体。所有搜索引擎都有算法来检测抄袭内容，并将剽窃内容的人排除在外。在这种情况下，至关重要的是，人们必须实际使用 [www.example1.com](http://www.example1.com)
+    或 [example1.com](http://example1.com) 作为他们站点的操作域名。
 - en: The verdict on what is better depends on the use case; the puritans argue that
     www version represents the correct sub-domain for all the Internet users. It can
     be argued that in an age where we use acronyms for nearly every word, the extra
     characters are unnecessary and may even affect your site's popularity. In this
     recipe, we will stick with non-www as the primary domain and force all www pages
     to redirect to the non-www pages.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于哪种方式更好的判断取决于具体的使用案例；纯粹主义者认为 www 版本代表了所有互联网用户正确的子域名。也可以争辩说，在这个几乎每个单词都使用缩写的时代，额外的字符是多余的，甚至可能影响你站点的受欢迎程度。在这个方案中，我们将坚持使用非
+    www 作为主域名，并强制所有 www 页面重定向到非 www 页面。
 - en: How to do it...
+  id: totrans-91
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: We will insert the following configuration in the http directive to redirect
     all `http://example1.com` requests to `http://www.example1.com:`
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将插入以下配置到 http 指令中，将所有 `http://example1.com` 请求重定向到 `http://www.example1.com`：
 - en: '[PRE6]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: How it works...
+  id: totrans-94
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is a simple rewrite rule for all www based requests, where they are redirected
     to the non-www URL. This makes sure that there is only one version of a page visible
     on the Internet for the search engines to crawl.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个简单的重写规则，适用于所有基于 www 的请求，它们会被重定向到非 www URL。这确保了搜索引擎只会抓取页面的一个版本。
 - en: Removing all white space from response
+  id: totrans-96
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 去除响应中的所有空白字符
 - en: This may sound a bit absurd, but white spaces form a major chunk of the files
     being transferred on a site. It can be said that if you are using GZIP compression
     then it is not an issue, but if you are looking at getting the most out of your
     setup then every little thing matters. This recipe will help you strip out all
     the unnecessary white space without wasting precious development time doing the
     same.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 这听起来可能有点荒谬，但空白字符在网站传输的文件中占据了很大一部分。可以说，如果你使用了 GZIP 压缩，那么这就不是问题，但如果你希望从你的配置中获得最大收益，那么每个细节都至关重要。这个方案将帮助你去除所有不必要的空白字符，避免浪费宝贵的开发时间去做同样的事。
 - en: How to do it...
+  id: totrans-98
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: This simple directive will allow you to strip the HTML served of white spaces.
     You will first need to install the `mod_strip` module.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的指令将允许你去除 HTML 中的空白字符。你首先需要安装 `mod_strip` 模块。
 - en: 'You will first need to download the module and untar it:'
+  id: totrans-100
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你首先需要下载该模块并解压：
 - en: '[PRE7]'
+  id: totrans-101
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'We then compile into Nginx the module, using the following configure statement:'
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们使用以下配置语句将模块编译到 Nginx 中：
 - en: '[PRE8]'
+  id: totrans-103
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'We then put the following directive in the location part of the site that we
     want to strip spaces for:'
+  id: totrans-104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们然后将以下指令放入我们希望去除空格的站点位置部分：
 - en: '[PRE9]'
+  id: totrans-105
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: How it works...
+  id: totrans-106
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is an extremely fast module and it efficiently removes all whitespaces
     (spaces, tabs, and newlines) from the HTML served by Nginx. This in combination
     with the GZIP compression provides quite a drastic improvement in page loading
     times.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个非常快速的模块，它有效地从 Nginx 提供的 HTML 中去除所有空白字符（空格、制表符和换行符）。与 GZIP 压缩结合使用，能显著提高页面加载速度。
 - en: Setting up server status for monitoring
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置服务器状态以进行监控
 - en: Sometimes in an active production environment, it is not possible to process
     logs to see web server statistics on the fly. In such situations, Nginx provides
     you with a simple server status page. This page will give you enough information
     to understand the current load on the server.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时候，在一个活跃的生产环境中，不能实时处理日志以查看 Web 服务器统计信息。在这种情况下，Nginx 为你提供了一个简单的服务器状态页面。该页面将提供足够的信息，让你了解服务器当前的负载。
 - en: How to do it...
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: This module does not come compiled in by default, so we will initially compile
     in the module and then configure the server status stub.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个模块默认没有编译，所以我们首先会编译该模块，然后配置服务器状态存根。
 - en: 'You will need to recompile Nginx and add the following flag to the configure
     option:'
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要重新编译 Nginx 并向配置选项添加以下标志：
 - en: '[PRE10]'
+  id: totrans-113
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Then we will go ahead and use the configuration to add a new status end-point:'
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，我们将继续使用配置来添加新的状态端点：
 - en: '[PRE11]'
+  id: totrans-115
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: How it works...
+  id: totrans-116
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This simple configuration will create a page [http://www.example1.com/nginx_status](http://www.example1.com/nginx_status),
     which will give you statistics on how much load is there on your web server. The
     following is an example of what you may get to see on the page.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的配置将创建一个页面 [http://www.example1.com/nginx_status](http://www.example1.com/nginx_status)，该页面将提供有关你的网站服务器负载的统计信息。以下是你可能在页面上看到的示例：
 - en: 'We can also set up access control for this page by looking at the *Setting
     up HTTP auth for access control* recipe in [Chapter 5](ch05.html "Chapter 5. Let''s
     be Secure: Security Modules"), *Let''s Be Secure: Security Modules* which will
     let you set up HTTP authentication.'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以通过查看 [第 5 章](ch05.html "第 5 章。让我们确保安全：安全模块")中的*设置 HTTP 身份验证进行访问控制*食谱来设置此页面的访问控制，这将允许你设置
+    HTTP 身份验证。
 - en: '[PRE12]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The following table explains the meaning of the server status output.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下表格解释了服务器状态输出的含义。
 - en: '| Statistic | Meaning |'
+  id: totrans-121
   prefs: []
   type: TYPE_TB
+  zh: '| 统计 | 含义 |'
 - en: '| --- | --- |'
+  id: totrans-122
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| Active connections | Number of open connections to the backend |'
+  id: totrans-123
   prefs: []
   type: TYPE_TB
+  zh: '| 活跃连接数 | 与后台的打开连接数 |'
 - en: '| Server accepts handled requests | Nginx accepted 16630948 connections, went
     ahead and handled 16630948 connections and served 31070465 requests |'
+  id: totrans-124
   prefs: []
   type: TYPE_TB
+  zh: '| 服务器接受的处理请求数 | Nginx 接受了 16630948 个连接，并处理了 16630948 个连接，服务了 31070465 个请求 |'
 - en: '| Reading | The number of requests Nginx is reading |'
+  id: totrans-125
   prefs: []
   type: TYPE_TB
+  zh: '| 读取 | Nginx 正在读取的请求数 |'
 - en: '| Writing | The requests that are being processed or being written back to
     the clients |'
+  id: totrans-126
   prefs: []
   type: TYPE_TB
+  zh: '| 写入 | 正在处理或正在写回到客户端的请求 |'
 - en: '| Waiting | Connections that are kept alive with the clients (KeepAlives) |'
+  id: totrans-127
   prefs: []
   type: TYPE_TB
+  zh: '| 等待 | 与客户端保持活跃连接的连接数（KeepAlives） |'
 - en: Setting up Munin for 24x7 Nginx monitoring
+  id: totrans-128
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置 Munin 以进行 24x7 Nginx 监控
 - en: 'In a production level environment where you may have multiple servers running,
     it becomes necessary to have top level monitoring tools such as Munin. The tools
     let you collate information and figure out load levels on the fly thus keeping
     you in the loop 24 hours, seven days a week. This recipe aims at being useful
     for the new Nginx user as well as highly experienced system administrators. The
     following screenshot is a sample of the kind of visualizations Munin generates:'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 在可能有多个服务器运行的生产环境中，使用顶级监控工具，如 Munin 是非常必要的。这些工具能够帮助你汇总信息，并动态计算负载水平，从而让你全天候、每周七天都能保持对系统的监控。本食谱旨在为新手
+    Nginx 用户和经验丰富的系统管理员提供帮助。以下截图是 Munin 所生成的可视化示例：
 - en: '![Setting up Munin for 24x7 Nginx monitoring](img/4965_08_03.jpg)'
+  id: totrans-130
   prefs: []
   type: TYPE_IMG
+  zh: '![设置 Munin 以进行 24x7 Nginx 监控](img/4965_08_03.jpg)'
 - en: How to do it...
+  id: totrans-131
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: There are two parts to this recipe; the first is in setting up Nginx with the
     server stub module.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 本食谱有两个部分；第一部分是设置带有服务器存根模块的 Nginx。
 - en: 'You will need to recompile Nginx and add the following flag to the configure
     option:'
+  id: totrans-133
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要重新编译 Nginx 并向配置选项添加以下标志：
 - en: '[PRE13]'
+  id: totrans-134
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'Then we will go ahead and use the configuration to add a new status end-point:'
+  id: totrans-135
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，我们将继续使用配置来添加新的状态端点：
 - en: '[PRE14]'
+  id: totrans-136
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Now we will go ahead and install the Munin plugins. Do note that we are assuming
     that you have already set up Munin on your system.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将继续安装 Munin 插件。请注意，我们假设你已经在系统上设置了 Munin。
 - en: 'You will first download the plugins:'
+  id: totrans-138
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你首先需要下载插件：
 - en: '[PRE15]'
+  id: totrans-139
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Now we will link the plugins to the correct directories:'
+  id: totrans-140
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们将插件链接到正确的目录：
 - en: '[PRE16]'
+  id: totrans-141
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Add the Nginx server stub URL to the Munin configuration (/etc/munin/plugin-conf.d/munin-node).
+  id: totrans-142
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 Nginx 服务器存根 URL 添加到 Munin 配置中 (/etc/munin/plugin-conf.d/munin-node)。
 - en: '[PRE17]'
+  id: totrans-143
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'Restart the munin-node:'
+  id: totrans-144
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重启 munin-node：
 - en: '[PRE18]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'Now you should be able to view something like the following screenshot on your
     Munin installation:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，您应该能够在您的Munin安装中看到如下所示的截图：
 - en: '![How to do it...](img/4965_08_04.jpg)'
+  id: totrans-147
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_08_04.jpg)'
 - en: How it works...
+  id: totrans-148
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This two part setup first installs the server status stub module for Nginx which
     is used by Munin to keep track of the server loads. In the second part, we install
     the various Munin plugins that are needed to effectively monitor Nginx. Munin
@@ -663,254 +976,367 @@
     to generate the graphs. These simple visualizations can help the system administrator
     optimize the system further and potentially plan future hardware needs based on
     projections.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个两部分的设置首先为Nginx安装服务器状态模块，该模块被Munin用于跟踪服务器负载。第二部分，我们安装了各种Munin插件，帮助有效地监控Nginx。Munin会不断轮询服务器状态并解析数据，收集相关信息来生成图表。这些简单的可视化效果可以帮助系统管理员进一步优化系统，并可能根据预测规划未来的硬件需求。
 - en: Enabling GZIP pre-compression
+  id: totrans-150
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 启用GZIP预压缩
 - en: We have had a look at how GZIP compression can lower the site's loading time
     drastically. We can further extend that thinking by pre-compressing the static
     sites that we want to serve and effectively reduce the computation power we waste
     to compress the file each and every time. This recipe will automagically help
     you serve a pre-compressed gzipped version of your static file.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看过了GZIP压缩如何大幅降低网站的加载时间。我们可以通过预先压缩我们希望提供的静态文件，进一步减少每次压缩文件时浪费的计算资源。本方法将自动帮助您提供预压缩的gzip版本静态文件。
 - en: How to do it...
+  id: totrans-152
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: You will need to carry out the following steps to enable gzip pre-compression
     module and use it effectively.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 您需要执行以下步骤来启用gzip预压缩模块并有效使用它。
 - en: 'You will need to recompile Nginx and add the following flag to the configure
     option:'
+  id: totrans-154
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 您需要重新编译Nginx，并在配置选项中添加以下标志：
 - en: '[PRE19]'
+  id: totrans-155
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Now, you will need to compress the various static files (using the gzip command
     line utility, if on UNIX) that you have so that Nginx can serve those pre-compressed
     ones whenever possible. Make sure that the compressed files are placed in the
     same directory as the original files.
+  id: totrans-156
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，您需要压缩各种静态文件（如果在UNIX系统上，使用gzip命令行工具），这样Nginx就可以在可能的情况下提供这些预压缩的文件。确保压缩文件放在与原始文件相同的目录中。
 - en: 'Make the following changes to the Nginx configuration file:'
+  id: totrans-157
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对Nginx配置文件进行以下更改：
 - en: '[PRE20]'
+  id: totrans-158
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: How it works...
+  id: totrans-159
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: When this module is turned on, Nginx will always look for a pre-compressed file
     whenever a file is being served from the disk. The idea is to simply avoid spending
     more CPU time compressing the content every time.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 当该模块启用时，Nginx每次从磁盘提供文件时，都会查找预压缩文件。其思想是避免每次花费更多的CPU时间来压缩内容。
 - en: Preventing hotlinking using Nginx
+  id: totrans-161
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Nginx防止热链接
 - en: A lot of multimedia driven sites have the problem of people linking and embedding
     their content without their explicit permission. This not only leads to copyright
     issues at times, but also ends up in lost bandwidth for the site minus the traffic.
     This is clearly not a good scenario for any site. This recipe helps you prevent
     this situation on your site.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多多媒体驱动的网站面临着未经明确许可的情况下，别人链接和嵌入其内容的问题。这不仅有时会导致版权问题，还会导致带宽丧失而流量却未增加。这显然不是任何网站希望出现的情况。这个方法可以帮助您防止这种情况发生。
 - en: How to do it...
+  id: totrans-163
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'This simple rule will stop other sites from linking to your content:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的规则将阻止其他网站链接到您的内容：
 - en: '[PRE21]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: How it works...
+  id: totrans-166
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'The idea behind this is to set a list of correct referrer values which are
     permissible. The rest are rejected. In case there is no match with this list the
     variable, `$invalid_referer` is set to 1\. The lists of parameters in the `valid_referers`
     mean the following:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 其背后的思想是设置一个正确的可接受的引用值列表，其余的将被拒绝。如果没有与此列表匹配的项，则变量`$invalid_referer`被设置为1。`valid_referers`中的参数列表含义如下：
 - en: '| parameter | Meaning |'
+  id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '| 参数 | 含义 |'
 - en: '| --- | --- |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| None | This value implies that it is a match when the "refers" line is not
     a part of the request header. |'
+  id: totrans-170
   prefs: []
   type: TYPE_TB
+  zh: '| 无 | 此值意味着当"refer"行不是请求头的一部分时，它是一个匹配项。 |'
 - en: '| blocked | This means masked refer headers by firewall. For example "Referer
     : XXXXXX". |'
+  id: totrans-171
   prefs: []
   type: TYPE_TB
+  zh: '| 阻止 | 这意味着防火墙通过遮蔽引用头部。例如："Referer : XXXXXX"。 |'
 - en: Do note that this method is not an absolute fix for hot-linking as it is fairly
     easy to spoof the header.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这种方法并不是防止热链接的绝对解决方案，因为伪造请求头比较容易。
 - en: Using embedded Perl to minify JavaScript files
+  id: totrans-173
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用嵌入式Perl来最小化JavaScript文件
 - en: This recipe will have a look at how to get embedded Perl working in Nginx and
     use it to minify JavaScript files. The basic concept of minifying JavaScript files
     is to reduce the size of the file by removing unnecessary whitespaces and shortening
     variable names. Of course, any compression of the JavaScript file should not be
     affecting the actual functionality of the site.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文将介绍如何在 Nginx 中使嵌入式 Perl 工作，并利用它来压缩 JavaScript 文件。压缩 JavaScript 文件的基本概念是通过去除不必要的空格和缩短变量名来减小文件的大小。当然，任何对
+    JavaScript 文件的压缩都不应影响网站的实际功能。
 - en: How to do it...
+  id: totrans-175
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作……
 - en: We will start by installing the embedded Perl module and then go ahead and configure
     the setup to minify the JavaScript files.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从安装嵌入式 Perl 模块开始，然后继续配置设置以压缩 JavaScript 文件。
 - en: 'You will need to recompile Nginx and add the following flag to the configure
     option:'
+  id: totrans-177
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要重新编译 Nginx，并在配置选项中添加以下标志：
 - en: '[PRE22]'
+  id: totrans-178
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'You will need to add the following into your Nginx configuration to get started
     with using embedded Perl. This assumes that you have installed the JavaScript
     minifier library from CPAN:'
+  id: totrans-179
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要在 Nginx 配置中添加以下内容，以开始使用嵌入式 Perl。这假设你已经从 CPAN 安装了 JavaScript 压缩库：
 - en: '[PRE23]'
+  id: totrans-180
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: You will then need to create the Minify handler which will reside in the `Minify.pm`
     file. This is the actual function that will minify the JavaScript code and cache,
     and serve the generated file.
+  id: totrans-181
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，你需要创建一个 Minify 处理器，该处理器将驻留在 `Minify.pm` 文件中。这是实际压缩 JavaScript 代码、缓存并提供生成的文件的功能。
 - en: '[PRE24]'
+  id: totrans-182
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Now you can simply go ahead and restart Nginx. You will begin to notice minified
     JavaScript files appearing in your `/tmp` directory.
+  id: totrans-183
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，你可以直接重新启动 Nginx。你将开始注意到 `/tmp` 目录中出现了压缩过的 JavaScript 文件。
 - en: How it works...
+  id: totrans-184
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: This is a fairly interesting and simple setup, where we basically use embedded
     Perl as a way of minifying the JavaScript files and caching them. The Perl script
     is intelligent in the way that it ensures that the minifying happens only once
     initially, and then after every request the file is served from the hard drive.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当有趣且简单的设置，基本上我们使用嵌入式 Perl 来压缩 JavaScript 文件并缓存它们。Perl 脚本非常智能，它确保压缩操作仅在最初进行一次，然后在每次请求后从硬盘提供该文件。
 - en: 'A comparison of the various Yahoo UI JavaScript files when minified can be
     seen in the following screenshot:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下截图展示了不同的 Yahoo UI JavaScript 文件在压缩后的对比：
 - en: '![How it works...](img/4965_08_05.jpg)'
+  id: totrans-187
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的…](img/4965_08_05.jpg)'
 - en: There's more...
+  id: totrans-188
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多……
 - en: This same approach can be used to do a whole lot of other utility activities
     inside the web server. We will have a look at how to minify CSS in the next recipe
     using a very similar approach.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样的方法也可以用于在 web 服务器内部进行许多其他实用活动。我们将在下一个食谱中看看如何使用非常相似的方法来压缩 CSS 文件。
 - en: Using embedded Perl to minify CSS files
+  id: totrans-190
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用嵌入式 Perl 压缩 CSS 文件
 - en: We will have a look at how we can minify CSS files using embedded Perl within
     Nginx. This simple recipe will ensure that you do not waste time thinking about
     such optimizations when deploying a production site. Minifying CSS can result
     in significantly smaller asset files which need to be downloaded by the end user.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将看看如何在 Nginx 中使用嵌入式 Perl 来压缩 CSS 文件。这种简单的方法可以确保你在部署生产站点时不会浪费时间思考类似的优化。压缩 CSS
+    文件可以显著减小需要用户下载的资源文件大小。
 - en: How to do it...
+  id: totrans-192
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作……
 - en: We will start by installing the embedded Perl module and then going ahead to
     configure the setup to minify the JavaScript files.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从安装嵌入式 Perl 模块开始，然后继续配置设置以压缩 JavaScript 文件。
 - en: 'You will need to recompile Nginx and add the following flag to the configure
     option:'
+  id: totrans-194
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要重新编译 Nginx，并在配置选项中添加以下标志：
 - en: '[PRE25]'
+  id: totrans-195
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'You will need to add the following into your Nginx configuration to get started
     with using embedded Perl. This assumes that you have installed the CSS minifier
     library from CPAN:'
+  id: totrans-196
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要在 Nginx 配置中添加以下内容，以开始使用嵌入式 Perl。这假设你已经从 CPAN 安装了 CSS 压缩库：
 - en: '[PRE26]'
+  id: totrans-197
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'You will then need to create the Minify handler, which will reside in the `Minify.pm`
     file. This is the actual function that will minify the code and cache, and serve
     the generated CSS file:'
+  id: totrans-198
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，你需要创建一个 Minify 处理器，它将驻留在 `Minify.pm` 文件中。这是实际压缩代码、缓存并提供生成的 CSS 文件的功能：
 - en: '[PRE27]'
+  id: totrans-199
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Now you can simply go ahead and restart Nginx. You will start to notice minified
     CSS files appearing in your `/tmp` directory.
+  id: totrans-200
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，你可以直接重新启动 Nginx。你将开始注意到 `/tmp` 目录中出现了压缩过的 CSS 文件。
 - en: How it works...
+  id: totrans-201
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: In this recipe, we first ensure that you install the embedded Perl module. Then
     we configure Nginx to run a piece of Perl code when a CSS file is queried for.
     The Perl script effectively minifies the CSS file on the first call made, and
     it serves the minified file from the caching location for subsequent calls.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个教程中，我们首先确保您安装了嵌入式 Perl 模块。然后，我们配置 Nginx 在查询 CSS 文件时运行一段 Perl 代码。Perl 脚本在第一次调用时会有效地压缩
+    CSS 文件，并且在后续调用中，从缓存位置提供压缩后的文件。
 - en: Using embedded Perl to serve sitemaps (SEO)
+  id: totrans-203
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用嵌入式 Perl 提供网站地图（SEO）
 - en: Since the advent of search engines, SEO has played a crucial role in the Internet
     economy. Businesses want to attract more visitors to their sites, thus creating
     more awareness and opportunities to sell their products/services. One of the most
@@ -919,66 +1345,95 @@
     all the potential links on the site. It also assigns weights to how often a particular
     page changes, ensuring that a search engine can come back and look at the page
     at regular intervals.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 自从搜索引擎问世以来，SEO 在互联网经济中发挥了至关重要的作用。企业希望吸引更多的访客访问他们的网站，从而提高品牌知名度并创造更多销售产品/服务的机会。搜索引擎索引网站信息时，最基本的概念之一就是网站地图。网站地图其实就是网站上所有潜在链接的目录。它还为特定页面的更改频率分配权重，确保搜索引擎能够定期访问该页面。
 - en: We will look at how to take your sitemaps and serve them correctly using Nginx.
     You can then use these sitemaps on the various webmaster tools provided by Google,
     Bing, and other search engines.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将看看如何使用 Nginx 正确提供您的网站地图。然后，您可以在 Google、Bing 和其他搜索引擎提供的各种站长工具中使用这些网站地图。
 - en: '![Using embedded Perl to serve sitemaps (SEO)](img/4965OS_08_06.jpg)'
+  id: totrans-206
   prefs: []
   type: TYPE_IMG
+  zh: '![使用嵌入式 Perl 提供网站地图（SEO）](img/4965OS_08_06.jpg)'
 - en: How to do it...
+  id: totrans-207
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做...
 - en: In this recipe we will first set up a sitemap generator and then integrate it
     with our Nginx setup to generate and serve sitemaps correctly.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个教程中，我们将首先设置一个网站地图生成器，然后将其与我们的 Nginx 设置集成，以正确生成和提供网站地图。
 - en: 'In this we will assume that you are able to set up the python sitemap generator:
     ([http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html](http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html)).'
+  id: totrans-209
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在此，我们假设您能够设置 Python 网站地图生成器：([http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html](http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html))。
 - en: 'You can now go ahead and put the following configuration into your Nginx setup
     to enable the sitemap generation:'
+  id: totrans-210
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，您可以继续将以下配置添加到您的 Nginx 设置中，以启用网站地图生成：
 - en: '[PRE28]'
+  id: totrans-211
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'Now we need to place the Perl handler, which will allow you to serve the generated
     sitemaps:'
+  id: totrans-212
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们需要放置 Perl 处理程序，这将允许您提供生成的网站地图：
 - en: '[PRE29]'
+  id: totrans-213
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Now all you need is to restart Nginx and visit [http://www.example1.com/sitemap.xml](http://www.example1.com/sitemap.xml).
+  id: totrans-214
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，您只需重新启动 Nginx 并访问 [http://www.example1.com/sitemap.xml](http://www.example1.com/sitemap.xml)。
 - en: How it works...
+  id: totrans-215
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is a fairly interesting setup that basically sets up the Google sitemap
     generator and then utilizes it when the sitemap is queried for by the search engines.
     The Perl code is fairly simple as it is only called when the sitemap is not found.
     It basically makes a call to the python code, which will generate the sitemap
     and go ahead and serve the files.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当有趣的设置，它基本上设置了 Google 网站地图生成器，然后在搜索引擎查询网站地图时使用它。Perl 代码相当简单，只有在找不到网站地图时才会被调用。它实际上调用了
+    Python 代码，这会生成网站地图并继续提供文件。
 - en: Setting up Boost module on Drupal with Nginx
+  id: totrans-217
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 Drupal 上设置 Boost 模块与 Nginx 配合使用
 - en: Drupal is one of the leading open source CMS applications out there. It has
     proved to be extremely capable in handling a variation of content driven portals
     out on the Internet today and will continue to be a dominant player in this market.
@@ -987,139 +1442,204 @@
     optimize their Drupal setup. In this recipe, we will look at how we can take a
     Drupal setup which has Boost, and use Nginx's strength of serving static files
     for a fairly significant optimization.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: Drupal 是目前领先的开源 CMS 应用之一。它在处理今天互联网上各种内容驱动的门户网站方面表现得极为出色，并将继续在这个市场中占据主导地位。与任何高性能平台一样，一个名为
+    Boost 的特定模块成为了系统管理员在希望扩展和优化其 Drupal 设置时的重要工具。在这个教程中，我们将研究如何利用包含 Boost 的 Drupal
+    设置，并使用 Nginx 强大的静态文件服务功能进行显著优化。
 - en: '![Setting up Boost module on Drupal with Nginx](img/4965OS_08_07.jpg)'
+  id: totrans-219
   prefs: []
   type: TYPE_IMG
+  zh: '![在Drupal中设置Boost模块与Nginx](img/4965OS_08_07.jpg)'
 - en: How to do it...
+  id: totrans-220
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: It is assumed that you have already installed and configured Boost for Drupal.
     It is a fairly simple and well-documented setup which can be found online ([http://drupal.org/project/boost](http://drupal.org/project/boost)).
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设您已经安装并配置了Boost用于Drupal。这是一个相当简单且文档齐全的设置，在线可以找到相关资料 ([http://drupal.org/project/boost](http://drupal.org/project/boost))。
 - en: 'Now that you have already installed Boost and Nginx is running as your frontend
     web server and using PHP-FCGI, you will need to place the following configuration
     in your Nginx sites-enabled directory:'
+  id: totrans-222
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在您已经安装了Boost，并且Nginx作为前端Web服务器正在运行，使用PHP-FCGI，您需要将以下配置放入Nginx的sites-enabled目录中：
 - en: '[PRE30]'
+  id: totrans-223
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: All you need to do now is restart Nginx.
+  id: totrans-224
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在您需要做的就是重启Nginx。
 - en: How it works...
+  id: totrans-225
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This particular configuration can be looked at in the following steps. First,
     when the request comes in, the Boost physical cache it is checked. If it is found
     in the cache, it is served back to the client. If not, it basically rewrites the
     clean URL into the Drupal `index.php` argument form and makes the PHP call.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 此特定配置可以通过以下步骤进行查看。首先，当请求到达时，会检查Boost的物理缓存。如果在缓存中找到，它会返回给客户端。如果没有找到，它将URL重写为Drupal的`index.php`参数形式，并发起PHP调用。
 - en: This is a highly optimized setup, as it ensures that you serve the static files
     using Nginx whenever possible. As generating similar pages consistently is clearly
     a waste of precious server resources, this will let you focus on optimizing more
     frontend aspects of your web application.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个高度优化的设置，因为它确保在可能的情况下使用Nginx提供静态文件。由于持续生成类似的页面显然是浪费宝贵的服务器资源，因此这将使您能够将精力集中在优化Web应用程序的更多前端部分。
 - en: Setting up streaming for Flash files
+  id: totrans-228
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置Flash文件的流媒体传输
 - en: Video has become quite the dominant format on the net. It is also fair to say
     that Flash has been the driving force behind this over the last couple of years.
     YouTube ([http://youtube.com](http://youtube.com)) is a good example of FLV streaming
     video sites. In this recipe, we will look at how simple it is to set up Flash
     video streaming.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 视频已经成为互联网上的主流格式。可以公平地说，Flash在过去几年里推动了这一趋势。YouTube ([http://youtube.com](http://youtube.com))
+    就是FLV流媒体视频网站的一个典型例子。在本教程中，我们将看看设置Flash视频流播放有多简单。
 - en: '![Setting up streaming for Flash files](img/4965_08_08.jpg)'
+  id: totrans-230
   prefs: []
   type: TYPE_IMG
+  zh: '![设置Flash文件流媒体传输](img/4965_08_08.jpg)'
 - en: How to do it...
+  id: totrans-231
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: In this simple recipe, you will initially need to re-compile Nginx with the
     FLV module and then configure the directories that will serve the FLV files.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个简单的教程中，您首先需要重新编译Nginx并加入FLV模块，然后配置将提供FLV文件的目录。
 - en: 'You will need to recompile Nginx and add the following flag to the configure
     option:'
+  id: totrans-233
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 您需要重新编译Nginx，并将以下标志添加到配置选项中：
 - en: '[PRE31]'
+  id: totrans-234
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'You will then need to add the following configuration to the directory location
     where you are streaming it from:'
+  id: totrans-235
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后您需要将以下配置添加到您从中流式传输视频的目录位置：
 - en: '[PRE32]'
+  id: totrans-236
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: You will then need to restart Nginx.
+  id: totrans-237
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后您需要重启Nginx。
 - en: How it works...
+  id: totrans-238
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is a fairly simple setup where you will not need to do a lot to get FLV
     streaming working in no time. This module allows you to seek within FLV files
     using time-based offsets. This means that the user is able to start the video
     from somewhere in the middle and perform other similar video timeline operations.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当简单的设置，您不需要做太多工作就能在短时间内实现FLV流式传输。该模块允许您使用基于时间的偏移量在FLV文件中进行查找。这意味着用户能够从视频的中间位置开始播放视频并执行其他类似的视频时间轴操作。
 - en: Utilizing the 1x1 GIF serving module to do offline processing
+  id: totrans-240
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 利用1x1 GIF服务模块进行离线处理
 - en: Sometimes we encounter situations where the backend processing takes a bit more
     time than necessary and the client has to unnecessarily wait for a response. This
     recipe looks into a way of making a non-block call to a URL, potentially allowing
     you to send a response back to the user's browser that much faster, and yet ensuring
     that the background processing occurs.
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时我们会遇到后端处理花费的时间超过必要的情况，客户端不得不不必要地等待响应。本教程探讨了一种方法，可以对URL进行非阻塞调用，可能让您更快地将响应发送回用户的浏览器，同时确保后台处理仍然进行。
 - en: It is also used for delivering an empty GIF which can be used for spacing in
     table-based HTML design.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 它还用于提供一个空的GIF，可以用于基于表格的HTML设计中的间距。
 - en: How to do it...
+  id: totrans-243
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'All you need to implement a simple example is to use the following configuration:'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 您只需要使用以下配置来实现一个简单的示例：
 - en: '[PRE33]'
+  id: totrans-245
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: How it works...
+  id: totrans-246
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is a simple example where a 1x1 GIF is returned immediately when someone
     visits the site [http://www.example1.com](http://www.example1.com). That, in turn,
     actually fires up a POST call on [http://www.example1.com/post](http://www.example1.com/post),
     which is an internal only call. This web server call will perform whatever background
     activity is required, while the client would have already received his 200OK response.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个简单的例子，当有人访问网站时，[http://www.example1.com](http://www.example1.com)会立即返回一个1x1的GIF图像。反过来，这实际上会触发一个POST请求，访问[http://www.example1.com/post](http://www.example1.com/post)，这是一个仅限内部使用的调用。该网页服务器调用将执行所需的任何后台活动，而客户端则已经收到了200OK响应。
 - en: '![How it works...](img/4965OS_08_09.jpg)'
+  id: totrans-248
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965OS_08_09.jpg)'

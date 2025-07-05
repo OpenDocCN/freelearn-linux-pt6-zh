@@ -1,510 +1,759 @@
 - en: Chapter 9. Using Other Third-party Modules
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第9章 使用其他第三方模块
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章内容包括：
 - en: Setting up an IMAP/POP3 proxy server
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置 IMAP/POP3 代理服务器
 - en: Setting up authentication for mail services
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置邮件服务的认证
 - en: Setting up SSL for mail authentication
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置 SSL 用于邮件认证
 - en: Using Nginx as a WEBDAV reverse proxy
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Nginx 作为 WEBDAV 反向代理
 - en: Dynamic image resizing using Nginx
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Nginx 动态调整图像大小
 - en: Replacing and searching text in Nginx response
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Nginx 响应中替换和搜索文本
 - en: Assembling ZIP files on the fly
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 动态组装 ZIP 文件
 - en: Using Nginx as a HTTP publish-subscribe server
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Nginx 作为 HTTP 发布-订阅服务器
 - en: Transforming XML responses using XSLT templates
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 XSLT 模板转换 XML 响应
 - en: Setting up Etags for static content
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为静态内容设置 Etags
 - en: Easy logging of page load times
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 简易记录页面加载时间
 - en: Streaming of MP4/H.264 files
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MP4/H.264 文件流式传输
 - en: Setting up SCGI sites
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置 SCGI 站点
 - en: Setting up expiring links
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置过期链接
 - en: Introduction
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: This chapter will have a look at some inbuilt, third-party modules which allow
     us to extend and use Nginx with other protocols, such as IMAP, POP3, WebDAV, and
     much more. Due to the flexible and well-defined module API, many module developers
     have used Nginx for interesting web-based tasks, such as XSLT transformations,
     image resizing, and HTTP publish-subscribe server.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将介绍一些内置的第三方模块，它们使我们能够将 Nginx 与其他协议一起使用，如 IMAP、POP3、WebDAV 等等。由于灵活且定义明确的模块
+    API，许多模块开发者已将 Nginx 用于一些有趣的基于 Web 的任务，例如 XSLT 转换、图像大小调整和 HTTP 发布-订阅服务器。
 - en: Setting up an IMAP/POP3 proxy server
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置 IMAP/POP3 代理服务器
 - en: One of the most understated uses of Nginx is that of acting as a mail proxy
     server. It understands the IMAP, SMTP, and the POP3 protocols. In this recipe
     we will set up Nginx as a proxy for your test IMAP/POP3 server. However, you will
     need to have an authentication script that will basically return a response redirecting
     the incoming client to its correct IMAP or POP3 server.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 最被低估的用途之一是作为邮件代理服务器。它理解 IMAP、SMTP 和 POP3 协议。在这个示例中，我们将设置 Nginx 作为你的测试
+    IMAP/POP3 服务器的代理。不过，你将需要一个认证脚本，该脚本基本上会返回一个重定向响应，将来访客户端引导到正确的 IMAP 或 POP3 服务器。
 - en: '![Setting up an IMAP/POP3 proxy server](img/4965OS_09_01.jpg)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![设置 IMAP/POP3 代理服务器](img/4965OS_09_01.jpg)'
 - en: How to do it...
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'You need to put the following configuration in your setup:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要在你的设置中放入以下配置：
 - en: '[PRE0]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: How it works...
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This setup takes any incoming request and sends back a response outlining the
     POP3 or IMAP server it must connect with. We can see the necessary capabilities
     that the connecting client must have in order to work with the POP3 or IMAP server.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 该设置接受任何传入请求，并返回一个响应，列出必须连接的 POP3 或 IMAP 服务器。我们可以看到连接客户端必须具备的必要能力，以便与 POP3 或
+    IMAP 服务器正常工作。
 - en: 'The auth endpoint will return something as follows:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 认证端点将返回如下内容：
 - en: '[PRE1]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This basically tells the client that they need to connect with 192.168.1.10
     on port 110 to continue further interaction with the backend POP3 server.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这基本上告诉客户端，它们需要通过端口 110 连接到 192.168.1.10，才能继续与后端 POP3 服务器的交互。
 - en: Setting up authentication for mail services
+  id: totrans-29
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置邮件服务的认证
 - en: Mail being a personal form of communication inevitably requires authentication
     of some form or another. We will use embedded Perl to do the authentication in
     this example. This is driven in the backend with a table that contains the user
     and corresponding mail server list.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于邮件是个人化的通讯方式，必然需要某种形式的认证。在这个例子中，我们将使用嵌入式 Perl 来进行认证。这是在后端通过一个包含用户和对应邮件服务器列表的表来驱动的。
 - en: How to do it...
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'All you need to enable IMAP and POP3 support is to paste the following configuration
     in your Nginx setup:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 启用 IMAP 和 POP3 支持所需的仅仅是将以下配置粘贴到 Nginx 配置中：
 - en: '[PRE2]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Now you will also need to create a file called `mailauth.pm` in the configuration
     directory and paste the following code:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，你还需要在配置目录中创建一个名为 `mailauth.pm` 的文件，并粘贴以下代码：
 - en: '[PRE3]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: How it works...
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The preceding configuration basically works in the following way; the authorization
     information is passed in the header to the proxy.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置基本上是通过以下方式工作的；授权信息通过头部传递给代理服务器。
 - en: '[PRE4]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Then the Perl code will actually verify the information in the header, and based
     on the protocol it will choose the mail server it needs to redirect to. The end-point
     then sends back the following on the success of the request; this will be the
     backend that the service will connect to.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，Perl 代码将验证头部中的信息，并根据协议选择需要重定向到的邮件服务器。端点随后在请求成功时返回如下信息；这将是服务连接到的后端。
 - en: '[PRE5]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Setting up SSL for mail authentication
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为邮件认证设置 SSL
 - en: This recipe will look at how one can set up SSL for the mail proxy you have
     working with Nginx. This will add a significant layer of security to the initial
     authentication exchange, which would happen in plain text and would be exposed
     to the man in the middle and replay attacks easily.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个方案将展示如何为你在 Nginx 中工作的邮件代理设置 SSL。这将为初始认证交换添加一层显著的安全保护，因为这个过程通常是明文进行的，容易遭受中间人攻击和重放攻击。
 - en: '![Setting up SSL for mail authentication](img/4965OS_09_02.jpg)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![为邮件认证设置 SSL](img/4965OS_09_02.jpg)'
 - en: How to do it...
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'You will need to put the following configuration in your setup and ensure the
     certificates are in the correct places:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要在设置中加入以下配置，并确保证书放置在正确的位置：
 - en: '[PRE6]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: How it works...
+  id: totrans-47
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This recipe simply sets up a set of certificates that will be used for every
     proxy request that comes through Nginx. It uses TLS and SSL, which ensure reliable
     security based on the browser you have in action.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个方案简单地设置了一组证书，这些证书将用于每一个通过 Nginx 的代理请求。它使用 TLS 和 SSL，确保基于所使用的浏览器提供可靠的安全性。
 - en: The other directives help you set the cache sizes and timeout sizes, the defaults
     are fairly optimal in most use cases and would require tweaking in the event of
     a significant rise in secure certificate-driven traffic.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他指令帮助你设置缓存大小和超时设置，默认配置在大多数使用场景下是相当优化的，只有在安全证书驱动的流量大幅增加时，才需要进行调整。
 - en: Using Nginx as a WEBDAV reverse proxy
+  id: totrans-50
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Nginx 作为 WEBDAV 反向代理
 - en: Web-based Distributed Authoring and Versioning (WebDAV) is a set of methods
     based on the Hypertext Transfer Protocol (HTTP) that facilitates collaboration
     between users in editing and managing documents and files stored on World Wide
     Web servers. WEBDAV adds more keywords on top of HTTP which support many more
     keywords, such as PUT, DELETE, MKCOL, COPY, and MOVE.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于 Web 的分布式创作和版本控制（WebDAV）是一组基于超文本传输协议（HTTP）的方法，旨在促进用户之间的协作，共同编辑和管理存储在万维网服务器上的文档和文件。WebDAV
+    在 HTTP 基础上增加了更多的关键字，支持如 PUT、DELETE、MKCOL、COPY 和 MOVE 等方法。
 - en: The WebDAV protocol makes the Web a readable and writable medium. It provides
     a framework for users to create, change, and move documents on a server (typically
     a web server or "web share").
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: WebDAV 协议使 Web 成为一个可读写的媒介。它为用户提供了一个框架，允许用户在服务器（通常是 Web 服务器或“Web 共享”）上创建、更改和移动文档。
 - en: This recipe will help us proxy WEBDAV correctly over Nginx. It finds application
     in SVN over HTTP and many other situations.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个方案将帮助我们正确地在 Nginx 上代理 WEBDAV。它在 SVN 通过 HTTP 和许多其他场景中都有应用。
 - en: '![Using Nginx as a WEBDAV reverse proxy](img/4965OS_09_03.jpg)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 Nginx 作为 WEBDAV 反向代理](img/4965OS_09_03.jpg)'
 - en: How to do it...
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: We will first set up the module and then add the configuration necessary for
     WEBDAV to work properly behind Nginx.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先设置模块，然后添加必要的配置，使 WEBDAV 在 Nginx 后正常工作。
 - en: 'We will start with installing the module:'
+  id: totrans-57
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将从安装模块开始：
 - en: '[PRE7]'
+  id: totrans-58
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: We will then add configuration in the location directives where we want the
     WEBDAV supports.
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，我们将在需要支持 WEBDAV 的位置指令中添加配置。
 - en: '[PRE8]'
+  id: totrans-60
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Now we will restart the server to see the changes.
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，我们将重启服务器以查看更改。
 - en: '[PRE9]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: How it works...
+  id: totrans-63
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In this configuration, we set up the various WEBDAV methods that Nginx will
     support. We then enable the ability to create intermediary directories when a
     new file is PUT (and the directories above it do not exist). We then use some
     basic group level permission on which user or group can make the calls and modify
     the files.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个配置中，我们设置了 Nginx 支持的各种 WEBDAV 方法。然后，我们启用了在 PUT 新文件时创建中间目录的功能（如果上层目录不存在）。接着，我们使用一些基本的组级权限来限制哪些用户或组可以进行操作和修改文件。
 - en: We also put a limit rule that does not allow computers outside the subnet to
     make anything other than a GET method call. That ensures that someone cannot modify
     the files maliciously from outside.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还设置了一个限制规则，禁止子网外的计算机进行除 GET 方法以外的任何操作。这确保了外部无法恶意修改文件。
 - en: Dynamic image resizing using Nginx
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Nginx 动态调整图像大小
 - en: Today the Web is about multimedia, and images that form an important part of
     it. Image resizing, as a result, has become one of the more common web-based tasks.
     Writing image manipulation code can be tedious and at times, inefficient. To solve
     this issue, we will have a look at how can one resize images on the fly using
     Nginx.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 如今，Web 是一个多媒体平台，图像是其中的重要组成部分。因此，图像大小调整已经成为一种常见的基于 Web 的任务。编写图像处理代码可能会非常繁琐，有时效率低下。为了解决这个问题，我们将看看如何使用
+    Nginx 实现动态调整图像大小。
 - en: '![Dynamic image resizing using Nginx](img/4965_09_04.jpg)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 Nginx 动态调整图像大小](img/4965_09_04.jpg)'
 - en: How to do it...
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: So you will need to follow these steps to install the module and then configure
     Nginx to resize images.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以你需要按照这些步骤来安装模块，并配置 Nginx 以调整图像大小。
 - en: 'You will first need to compile Nginx with this module:'
+  id: totrans-71
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你首先需要编译带有此模块的 Nginx：
 - en: '[PRE10]'
+  id: totrans-72
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'You will then need to add the following configuration in your site configuration:'
+  id: totrans-73
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后你需要在你的网站配置中添加以下配置：
 - en: '[PRE11]'
+  id: totrans-74
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: You will then need to restart Nginx to complete the installation and configuration.
+  id: totrans-75
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后你需要重启 Nginx 来完成安装和配置。
 - en: '[PRE12]'
+  id: totrans-76
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: How it works...
+  id: totrans-77
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'The idea is fairly simple; it acts as an image filter, resizing any image that
     is uploaded to this endpoint. The directive `image_filter` takes the `resize`
     and size (100 X 100) parameter to do the necessary filtering:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个思路相当简单；它充当图像过滤器，调整上传到该端点的任何图像的大小。指令 `image_filter` 使用 `resize` 和尺寸（100 X 100）参数进行必要的过滤：
 - en: '![How it works...](img/4965_09_05.jpg)'
+  id: totrans-79
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965_09_05.jpg)'
 - en: There's more...
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: You can set other parameters for the `image_filter` directive and can get it
     do other forms of image manipulation. The following table lists the possibilities.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以为 `image_filter` 指令设置其他参数，并使其执行其他形式的图像处理。以下表格列出了可能的选项。
 - en: '| Parameter value | Description |'
+  id: totrans-82
   prefs: []
   type: TYPE_TB
+  zh: '| 参数值 | 描述 |'
 - en: '| --- | --- |'
+  id: totrans-83
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `test` | This checks if the image type is an image format, otherwise it returns
     an HTTP 415 error code |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '| `test` | 这检查图像类型是否为图像格式，否则返回 HTTP 415 错误代码 |'
 - en: '| `size` | It gives information about the image in the JSON format, for example:
     `{ "img" : { "width": 100, "height": 100, "type": "gif" } }` If it is not an image
     it returns {} |'
+  id: totrans-85
   prefs: []
   type: TYPE_TB
+  zh: '| `size` | 它以 JSON 格式提供关于图像的信息，例如：`{ "img" : { "width": 100, "height": 100,
+    "type": "gif" } }` 如果不是图像，它将返回{} |'
 - en: '| `resize` | This proportionally scales the images to the given height and
     width |'
+  id: totrans-86
   prefs: []
   type: TYPE_TB
+  zh: '| `resize` | 这按给定的高度和宽度按比例缩放图像 |'
 - en: '| `Crop` | This does not scale, but crops the image to the given height and
     width |'
+  id: totrans-87
   prefs: []
   type: TYPE_TB
+  zh: '| `Crop` | 这不进行缩放，而是将图像裁剪到给定的高度和宽度 |'
 - en: Replacing and searching text in Nginx response
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 Nginx 响应中替换和搜索文本
 - en: It is sometimes possible that you would need to block or remove certain keywords
     from the entire site at the shortest notice possible. With much larger sites,
     and static page sites, this can be a very tedious and time-consuming process.
     Nginx provides you with a quick way of replacing and searching texts in the response
     it sends out. In this example, we will clear swear words out of the outputted
     response.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时你可能需要在最短的时间内阻止或移除网站上的某些关键词。对于更大的站点和静态页面站点，这可能是一个非常繁琐且耗时的过程。Nginx 为你提供了一种快速替换和搜索响应中文本的方法。在这个例子中，我们将清除输出响应中的脏话。
 - en: '![Replacing and searching text in Nginx response](img/4965OS_09_06.jpg)'
+  id: totrans-90
   prefs: []
   type: TYPE_IMG
+  zh: '![在 Nginx 响应中替换和搜索文本](img/4965OS_09_06.jpg)'
 - en: How to do it...
+  id: totrans-91
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: You will first need to install the module, and then we will put in some configuration
     that will remove all kinds of swear words.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 你首先需要安装模块，然后我们将添加一些配置来移除各种脏话。
 - en: You will first compile Nginx with the substitution module.
+  id: totrans-93
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你首先需要编译带有替换模块的 Nginx。
 - en: '[PRE13]'
+  id: totrans-94
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'Now we will enter the required configuration to enable the substitution:'
+  id: totrans-95
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们将输入启用替换所需的配置：
 - en: '[PRE14]'
+  id: totrans-96
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: We can now safely restart Nginx to complete the installation and see the module
     in action.
+  id: totrans-97
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们可以安全地重启 Nginx 来完成安装，并看到模块的效果。
 - en: '[PRE15]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: How it works...
+  id: totrans-99
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This piece of configuration basically takes all occurrences of `bad_word` in
     the response and substitutes it with`'**This is censored**'`. The directive `sub_filter_once`
     basically ensures that the replacement happens for the first occurrence only;
     we have switched it off as we want to replace all occurrences.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段配置基本上会把响应中所有出现的 `bad_word` 替换为 `'**This is censored**'`。指令 `sub_filter_once`
+    基本上确保只替换第一次出现的情况；我们关闭了它，因为我们希望替换所有出现的情况。
 - en: '![How it works...](img/4965OS_09_07.jpg)'
+  id: totrans-101
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965OS_09_07.jpg)'
 - en: Assembling ZIP files on the fly
+  id: totrans-102
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 动态生成 ZIP 文件
 - en: An often needed feature on most sites nowadays is the ability to download a
     compressed version of a file. We will, in this recipe, introduce a module that
     will take a set of files in the local files system and serve them as a single
     ZIP file. This is a very efficient module which can easily archive hundreds of
     megabytes of files.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在大多数网站经常需要的一个功能是能够下载压缩版本的文件。在这个教程中，我们将介绍一个模块，它可以将本地文件系统中的一组文件打包成一个 ZIP 文件并提供下载。这是一个非常高效的模块，可以轻松地将数百兆字节的文件归档。
 - en: '![Assembling ZIP files on the fly](img/4965_09_08.jpg)'
+  id: totrans-104
   prefs: []
   type: TYPE_IMG
+  zh: '![动态组装 ZIP 文件](img/4965_09_08.jpg)'
 - en: How to do it...
+  id: totrans-105
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: In this recipe, we will first install the module, and then we will see how it
     works.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本篇教程中，我们将首先安装模块，然后我们将看到它是如何工作的。
 - en: You will need to first download the code for the module and then configure Nginx.
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要首先下载模块的代码，然后配置 Nginx。
 - en: '[PRE16]'
+  id: totrans-108
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: You should restart Nginx; the command will differ based on your platform.
+  id: totrans-109
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你应该重启 Nginx；该命令会根据你的平台有所不同。
 - en: '[PRE17]'
+  id: totrans-110
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'You can then try testing the module by making the following HTTP request. This
     request should contain "X-Archive-Files: zip" in its header:'
+  id: totrans-111
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '然后你可以通过发出以下 HTTP 请求来尝试测试该模块。该请求的头部应包含“X-Archive-Files: zip”：'
 - en: '[PRE18]'
+  id: totrans-112
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: This should trigger the download of a ZIP archive.
+  id: totrans-113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这应该会触发 ZIP 压缩包的下载。
 - en: How it works...
+  id: totrans-114
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'The working of this module is interesting, in that we are making a special
     HTTP request with the "X-Archive-Files: zip" header which triggers this module.
     What we send is a list of the files that need to be in the archive in the following
     format:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '该模块的工作原理很有趣，因为我们发出一个特殊的 HTTP 请求，并带有“X-Archive-Files: zip”头部，这会触发此模块。我们发送的是一个文件列表，需要以以下格式存在于归档中：'
 - en: '`<CRC-32 value> <Filesize in bytes> <file location> <filename in archive>`'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<CRC-32 值> <文件大小（字节）> <文件位置> <归档中的文件名>`'
 - en: If there is any error in the list of files, then the download is aborted. It
     is also important to notice in the example that sometimes the CRC-32 value of
     a file may not be at hand, so you can send "-"in the place of that parameter.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果文件列表中有任何错误，则下载会被中止。还需要注意的是，在这个例子中，有时文件的 CRC-32 值可能没有现成的，所以你可以在该参数位置发送“-”。
 - en: If there is any error in the list of files, then the download is aborted. It
     is also important to notice in the example that sometimes the CRC-32 value of
     a file may not be at hand, so you can send "-"in the place of that parameter.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果文件列表中有任何错误，则下载会被中止。还需要注意的是，在这个例子中，有时文件的 CRC-32 值可能没有现成的，所以你可以在该参数位置发送“-”。
 - en: Using Nginx as a HTTP publish-subscribe server
+  id: totrans-119
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Nginx 作为 HTTP 发布-订阅服务器
 - en: Most of us are using one social network or another, and in recent years it is
     very clear that the social Internet is all about real-time. Driving this forward
     is asynchronous JavaScript HTTP calls which come in two forms, the short poll
     and the long poll.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们中的大多数人都在使用某个社交网络，近年来非常明显，社交互联网就是实时的。推动这一进展的是异步 JavaScript HTTP 调用，主要有两种形式：短轮询和长轮询。
 - en: To explain this let's take the simple example of a real-time updating status
     page. There are two possible ways of updating this page, one is that the JavaScript
     periodically fires a request, say every second, and gets an update from the server.
@@ -515,462 +764,694 @@
     resources for the web server as it waits to send a response to the client. However,
     due to Nginx's event-driven architecture, it is very cheap for Nginx to keep many
     connections open concurrently.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明这一点，我们以一个实时更新的状态页面为例。有两种可能的更新方式，一种是 JavaScript 定期发送请求，比如每秒一次，从服务器获取更新。这有其优缺点，因为它显然不是实时的。另一种方式是事件驱动的，即
+    JavaScript 与服务器建立连接，并等待服务器响应（在某些情况下可能需要较长时间）。这种方式的问题在于，它可能会消耗服务器资源，因为它在等待发送响应给客户端。然而，由于
+    Nginx 的事件驱动架构，Nginx 保持多个连接并发打开是非常轻量的。
 - en: In this recipe, we will have a look at an Nginx module that helps you easily
     implement the HTTP publish-subscribe model using Nginx.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本篇教程中，我们将了解一个 Nginx 模块，它可以帮助你通过 Nginx 容易地实现 HTTP 发布-订阅模型。
 - en: '![Using Nginx as a HTTP publish-subscribe server](img/4965OS_09_09.jpg)'
+  id: totrans-123
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 Nginx 作为 HTTP 发布-订阅服务器](img/4965OS_09_09.jpg)'
 - en: How to do it...
+  id: totrans-124
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: In this recipe we will first install the module and then set up the configuration.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本篇教程中，我们将首先安装模块，然后设置配置。
 - en: 'We will first download the module and then compile it into Nginx:'
+  id: totrans-126
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先下载模块并将其编译到 Nginx 中：
 - en: '[PRE19]'
+  id: totrans-127
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'Now the following configuration needs to be inserted in the server directive:'
+  id: totrans-128
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，以下配置需要插入到服务器指令中：
 - en: '[PRE20]'
+  id: totrans-129
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: We will then restart Nginx.
+  id: totrans-130
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们将重启 Nginx。
 - en: '[PRE21]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: How it works...
+  id: totrans-132
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This configuration creates a publishing end-point that will take an ID parameter
     to publish in. It will store the last 10 messages in a buffer for the new recipients
     who join the channel.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 此配置创建了一个发布端点，该端点将接受一个ID参数用于发布。它将为新加入频道的接收者存储最后10条消息。
 - en: It also creates an activity endpoint, which is actually the long-polling endpoint,
     which the JavaScript will call and wait for. In its current configuration, it
     will allow any client who joins the channel to long-poll this end-point. This
     will make your application dependant on Nginx for the long-poll ability, thus
     freeing up resources on your application server. Nginx has a lot less overhead
     for maintaining open connections, which is a necessity in long-poll based activities.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 它还创建了一个活动端点，实际上是一个长轮询端点，JavaScript将调用该端点并等待。在当前配置中，它允许任何加入频道的客户端长时间轮询该端点。这将使您的应用程序依赖于Nginx来实现长轮询功能，从而释放应用服务器上的资源。Nginx在维持开放连接方面的开销远低于应用服务器，这是基于长轮询活动的必要条件。
 - en: '![How it works...](img/4965_09_10.jpg)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![工作原理...](img/4965_09_10.jpg)'
 - en: Note
+  id: totrans-136
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: The preceding site has the TV chatter feed which is driven by the Nginx's publish-subscribe
     module and scales easily for thousands of users.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述站点包含由Nginx的发布-订阅模块驱动的电视聊天信息流，且可轻松扩展以支持数千个用户。
 - en: There's more...
+  id: totrans-138
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: You can also use this same channel broadcasting mechanism for one-to-one communication
     as well. So you can set values to the `push_subscriber_concurrency` directive
     depending on which you can achieve other communication modes.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以使用相同的频道广播机制进行一对一通信。因此，您可以根据需要设置`push_subscriber_concurrency`指令，从而实现其他通信模式。
 - en: '| Modes | Description |'
+  id: totrans-140
   prefs: []
   type: TYPE_TB
+  zh: '| 模式 | 描述 |'
 - en: '| --- | --- |'
+  id: totrans-141
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| last | Only the most recent listener request is kept, 409 for others |'
+  id: totrans-142
   prefs: []
   type: TYPE_TB
+  zh: '| 最后 | 仅保留最新的监听请求，其他请求返回409 |'
 - en: '| first | Only the oldest listener request is kept, 409 for others |'
+  id: totrans-143
   prefs: []
   type: TYPE_TB
+  zh: '| 第一个 | 仅保留最旧的监听请求，其他请求返回409 |'
 - en: '| broadcast | Any number of listener requests may be long-polling |'
+  id: totrans-144
   prefs: []
   type: TYPE_TB
+  zh: '| 广播 | 任意数量的监听请求可以长时间轮询 |'
 - en: Transforming XML responses using XSLT templates
+  id: totrans-145
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用XSLT模板转换XML响应
 - en: Before the advent of JavaScript as the primary client side language, JSON or
     JavaScript object notation had not really caught on. XML has been the dominant
     format of exchange for quite some time and most systems continue to support one
     XML format or another. It is also interesting to note how the newer document formats
     (new office and open office formats) are also primarily XML standards in a well-packaged
     archive.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 在JavaScript成为主要客户端语言之前，JSON或JavaScript对象表示法并未广泛流行。XML一直是主流的交换格式，并且大多数系统仍然支持某种XML格式。值得注意的是，新的文档格式（新的Office和Open
+    Office格式）也主要是XML标准，并且打包成一个完整的归档。
 - en: Note
+  id: totrans-147
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Nginx gives us the ability to transform the XML responses that it generates
     into another XML format by the application of a XSLT. This can be very useful
     in situations where one requires API outputs to fit an external client's requirements
     without a change to the end-point.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx使我们能够通过应用XSLT将其生成的XML响应转换为另一种XML格式。这在需要将API输出适配外部客户端要求而不改变端点的情况下非常有用。
 - en: '![Transforming XML responses using XSLT templates](img/4965OS_09_11.jpg)'
+  id: totrans-149
   prefs: []
   type: TYPE_IMG
+  zh: '![使用XSLT模板转换XML响应](img/4965OS_09_11.jpg)'
 - en: How to do it...
+  id: totrans-150
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: We will first install the module and then configure your site setup.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先安装该模块，然后配置您的站点设置。
 - en: 'You will need to install the XSL module:'
+  id: totrans-152
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 您需要安装XSL模块：
 - en: '[PRE22]'
+  id: totrans-153
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Insert the following configuration into your server directive:'
+  id: totrans-154
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将以下配置插入到您的服务器指令中：
 - en: '[PRE23]'
+  id: totrans-155
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: Restart Nginx.
+  id: totrans-156
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重启Nginx。
 - en: '[PRE24]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: How it works...
+  id: totrans-158
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 工作原理...
 - en: This configuration allows you to apply one XSLT transform on all the XML responses
     that the `/xml_api` endpoint generates. This also allows you to set parameters
     in the XSLT based on your Nginx variables (or GET parameters).
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 此配置允许您对所有`/xml_api`端点生成的XML响应应用一个XSLT转换。您还可以根据Nginx变量（或GET参数）在XSLT中设置参数。
 - en: Setting up Etags for static content
+  id: totrans-160
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为静态内容设置Etags
 - en: Etags are a part of the HTTP protocol and is utilized for cache validation.
     This allows more efficiency on the part of the web browser and saves bandwidth
     as well. You can think of Etags as Unique IDs which represent the current state
     of a URL.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: Etags是HTTP协议的一部分，用于缓存验证。这提高了Web浏览器的效率，并节省了带宽。您可以将Etags视为表示URL当前状态的唯一ID。
 - en: Nginx does not generate Etags for the static content that it serves, and as
     a result you are not able to make full use of the advantages of Etags. In this
     recipe, we will install a module that will get your static content running with
     Etags in a jiffy.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 不会为它提供的静态内容生成 Etags，因此你无法充分利用 Etags 的优势。在这个教程中，我们将安装一个模块，使你的静态内容能够快速支持
+    Etags。
 - en: '![Setting up Etags for static content](img/4965_09_12.jpg)'
+  id: totrans-163
   prefs: []
   type: TYPE_IMG
+  zh: '![设置静态内容的 Etags](img/4965_09_12.jpg)'
 - en: How to do it...
+  id: totrans-164
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'We will first install the module:'
+  id: totrans-165
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装这个模块：
 - en: '[PRE25]'
+  id: totrans-166
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'Now we can place the following directives in the locations where we want the
     static files to contain the Etags directive:'
+  id: totrans-167
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，我们可以将以下指令放置在需要包含 Etags 指令的静态文件位置：
 - en: '[PRE26]'
+  id: totrans-168
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: You need to restart Nginx to see the affect.
+  id: totrans-169
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要重新启动 Nginx 才能看到效果。
 - en: '[PRE27]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: How it works...
+  id: totrans-171
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This directive basically adds the ability for Nginx to have a look at the static
     files being served and add an ETag to the HTTP header. When the files change,
     the Etag header changes accordingly, this ensures cache invalidation on the client's
     browser and downloading of the new updated static file.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个指令基本上是为 Nginx 添加了一项功能，使其可以查看正在提供的静态文件，并将 ETag 添加到 HTTP 头中。当文件发生变化时，ETag 头也会相应变化，这确保了客户端浏览器中的缓存失效，并下载更新后的静态文件。
 - en: Easy logging of page load times
+  id: totrans-173
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 页面加载时间的轻松日志记录
 - en: If you are in the business of running portals or websites, the speed of your
     site is one of the most important parts of your interaction with the end user.
     You would want to find out the slower parts of your website and possibly optimize
     your codebase to respond to those requests faster.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你从事门户网站或网站的运营，那么你的网站速度就是你与终端用户互动中最重要的部分之一。你需要找出网站中较慢的部分，并可能对代码库进行优化，以更快地响应这些请求。
 - en: This recipe has a look at a module that helps you log the page load times and
     then you can parse those logs to find out the part of the sites that take the
     most amount of time to load up.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个教程介绍了一个模块，帮助你记录页面加载时间，然后你可以解析这些日志，找出网站中加载时间最长的部分。
 - en: How to do it...
+  id: totrans-176
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: This recipe involves the setting up of the module and then a re-configuration
     of the logging format to output the page load time variable. We also run a parser
     to get a list of the slower pages on the site.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个教程涉及安装该模块，然后重新配置日志格式以输出页面加载时间变量。我们还会运行一个解析器来获取网站上加载较慢的页面列表。
 - en: 'We will need to install this module first:'
+  id: totrans-178
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要首先安装这个模块：
 - en: '[PRE28]'
+  id: totrans-179
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'We will configure Nginx to log the page loading times as well:'
+  id: totrans-180
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们还将配置 Nginx 来记录页面加载时间：
 - en: '[PRE29]'
+  id: totrans-181
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: Now we need to restart Nginx.
+  id: totrans-182
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们需要重新启动 Nginx。
 - en: '[PRE30]'
+  id: totrans-183
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'Run the site for some time, and then you can run the log parser to see some
     analysis:'
+  id: totrans-184
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 运行网站一段时间后，你可以运行日志解析器来查看一些分析结果：
 - en: '[PRE31]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: How it works...
+  id: totrans-186
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In the preceding steps we have installed the plugin which adds a Nginx variable
     that keeps track of the amount of time the backend takes to respond. This variable
     can now be easily logged, giving you performance insights without writing extra
     code. After logging, you can use a simple script for this extra column to find
     out the slower pages.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的步骤中，我们已经安装了一个插件，该插件添加了一个 Nginx 变量，用于追踪后端响应所需的时间。现在可以轻松地记录这个变量，从而无需编写额外的代码即可获得性能洞察。记录日志后，你可以使用一个简单的脚本来查找响应较慢的页面。
 - en: The directive `log_request_speed_filter_timeout` basically sets a cut-off of
     three seconds, above which all pages will be logged. This prevents unnecessary
     time logging of pages.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令 `log_request_speed_filter_timeout` 基本上设置了一个三秒钟的截止时间，超过这个时间的所有页面都会被记录。这可以防止对页面进行不必要的时间日志记录。
 - en: Streaming of MP4/H.264 files
+  id: totrans-189
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: MP4/H.264 文件的流式传输
 - en: Video streaming has become a social phenomenon with the rise of sites such as
     YouTube ([http://youtube.com](http://youtube.com)), Metacafe ([http://metacafe.com](http://metacafe.com)),
     and Dailymotion ([http://dailymotion.com](http://dailymotion.com)). Most of these
     sites either stream FLV files or MP4 files. We have covered how you can efficiently
     stream FLV files and now we will cover MP4.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 视频流媒体已经成为一种社会现象，随着 YouTube ([http://youtube.com](http://youtube.com))、Metacafe
+    ([http://metacafe.com](http://metacafe.com)) 和 Dailymotion ([http://dailymotion.com](http://dailymotion.com))
+    等网站的崛起。这些网站大多数都流式传输 FLV 文件或 MP4 文件。我们已经讲解了如何高效地流式传输 FLV 文件，现在我们将讨论如何流式传输 MP4 文件。
 - en: Nginx supports an MP4 streaming module that allows you to easily stream and
     seek MP4 files.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 支持一个 MP4 流式传输模块，使你可以轻松地流式传输和定位 MP4 文件。
 - en: '![Streaming of MP4/H.264 files](img/4965_09_13.jpg)'
+  id: totrans-192
   prefs: []
   type: TYPE_IMG
+  zh: '![MP4/H.264 文件流式传输](img/4965_09_13.jpg)'
 - en: How to do it...
+  id: totrans-193
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: In this recipe, we will first install the module and then configure a particular
     location to serve the MP4 video files.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个步骤中，我们将首先安装模块，然后配置一个特定位置来服务 MP4 视频文件。
 - en: 'We will first install the module:'
+  id: totrans-195
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装模块：
 - en: '[PRE32]'
+  id: totrans-196
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'Now we will add the following configuration to the location directive where
     your video files reside:'
+  id: totrans-197
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们将把以下配置添加到您存放视频文件的位置指令中：
 - en: '[PRE33]'
+  id: totrans-198
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: We will need to restart Nginx to apply the settings.
+  id: totrans-199
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要重新启动 Nginx 来应用设置。
 - en: '[PRE34]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: How it works...
+  id: totrans-201
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: All you require to support MP4 files streaming is to add the directive above.
     This module ensures that you can seek to random parts of the file as well.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 支持 MP4 文件流式传输所需的仅是添加上述指令。此模块确保您可以随机定位文件的各个部分。
 - en: Setting up SCGI sites
+  id: totrans-203
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置 SCGI 网站
 - en: Nginx supports SCGI out of the box, and as a result it is rather straightforward
     to set up. This is supposed to be an alternative to CGI, much like FastCGI. In
     this recipe, we will assume that you already have an SCGI backend and we will
     go ahead and set up Nginx as the frontend proxy server.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 开箱即支持 SCGI，因此设置起来相当简单。这本应是 CGI 的替代方案，就像 FastCGI 一样。在本教程中，我们假设您已经有了 SCGI
+    后端，我们将继续将 Nginx 设置为前端代理服务器。
 - en: FastCGI has a fairly complicated protocol, as compared to SCGI which makes it
     prone to efficiency issues. Due to the simplicity of the protocol definition which
     is 100 lines long ([http://python.ca/nas/scgi/protocol.txt](http://python.ca/nas/scgi/protocol.txt)),
     SCGI is considered and often found to be a faster and more efficient CGI replacement
     as compared to FastCGI.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 SCGI 相比，FastCGI 协议相对复杂，这使得它容易出现效率问题。由于 SCGI 协议定义简单，只有 100 行（[http://python.ca/nas/scgi/protocol.txt](http://python.ca/nas/scgi/protocol.txt)），因此
+    SCGI 被认为并且常常被发现是一个比 FastCGI 更快速、更高效的 CGI 替代方案。
 - en: '![Setting up SCGI sites](img/4965OS_09_14.jpg)'
+  id: totrans-206
   prefs: []
   type: TYPE_IMG
+  zh: '![设置 SCGI 网站](img/4965OS_09_14.jpg)'
 - en: How to do it...
+  id: totrans-207
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To get this running, all you need to do is to use the following configuration
     in your setup and then restart Nginx:'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使其运行，您需要做的就是在您的配置中使用以下设置，然后重新启动 Nginx：
 - en: '[PRE35]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: How it works...
+  id: totrans-210
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This assumes that you have an SCGI backend running on localhost on port 9000\.
     This configuration sets up an SCGI cache of 10MBs which caches all 200OK files
     for a minute. This is very similar to how the FastCGI cache works.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设您的 SCGI 后端正在本地主机的 9000 端口上运行。此配置设置了一个 10MB 的 SCGI 缓存，缓存所有 200OK 文件一分钟。这与 FastCGI
+    缓存的工作方式非常相似。
 - en: Setting up expiring links
+  id: totrans-212
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置过期链接
 - en: A lot of the time, security comes as a factor of time limits and obfuscation.
     We will explore a module here which will let you generate links that are valid
     until a certain Date/Time.
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 很多时候，安全性与时间限制和混淆性有关。我们将在这里探索一个模块，它可以让您生成有效期至某个日期/时间的链接。
 - en: How to do it...
+  id: totrans-214
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: We will set up the module and then setup the secure download location.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将设置模块，然后设置安全下载位置。
 - en: 'We will first install the module:'
+  id: totrans-216
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装模块：
 - en: '[PRE36]'
+  id: totrans-217
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: 'We will need to add the following configuration under the server directive:'
+  id: totrans-218
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要在 server 指令下添加以下配置：
 - en: '[PRE37]'
+  id: totrans-219
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: We will need to restart Nginx for the configurations to apply.
+  id: totrans-220
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要重新启动 Nginx 来应用配置。
 - en: '[PRE38]'
+  id: totrans-221
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: How it works...
+  id: totrans-222
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'In this configuration, we have enabled the module and set the md5 secret as
     `IAmSalt$remote_addr`. The path mode is file which means that the hash created
     contains the file name. The URL generated has the following structure:'
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个配置中，我们启用了模块，并将 md5 密钥设置为 `IAmSalt$remote_addr`。路径模式为文件，这意味着创建的哈希值包含文件名。生成的
+    URL 结构如下：
 - en: '`<real_path>/<md5_hash>/<expiration_timestamp>`'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<real_path>/<md5_hash>/<expiration_timestamp>`'
 - en: 'The md5 hash gets generated out of the following string:'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: md5 哈希值是从以下字符串生成的：
 - en: '`<real_path>/<secret>/<expiration_timestamp>`'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<real_path>/<secret>/<expiration_timestamp>`'
 - en: '`real_path` can be either the path of the file which you want to access or
     the folder which contains the file'
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`real_path` 可以是您想要访问的文件的路径，或者是包含该文件的文件夹'
 - en: '`secret` is the hash defined'
+  id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`secret` 是已定义的哈希值'
 - en: '`expiration_timestamp` is a unix_timestamp (seconds since beginning of 1970)
     in hexadecimal format'
+  id: totrans-229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`expiration_timestamp` 是一个 Unix 时间戳（自 1970 年以来的秒数），以十六进制格式表示'
 - en: 'So an example URL would be like the one below:'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以一个示例 URL 可能如下所示：
 - en: '`http://www.example1.com/timefolder/protected.html/f901b5272c17b456fabf49c3e9bcc120/49F71056`'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: '`http://www.example1.com/timefolder/protected.html/f901b5272c17b456fabf49c3e9bcc120/49F71056`'

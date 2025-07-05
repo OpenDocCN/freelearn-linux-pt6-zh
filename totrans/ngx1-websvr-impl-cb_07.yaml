@@ -1,164 +1,239 @@
 - en: Chapter 7. Nginx as a Reverse Proxy
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第7章 Nginx作为反向代理
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章内容将涵盖：
 - en: Using Nginx as a simple reverse proxy
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Nginx作为一个简单的反向代理
 - en: Setting up a rails site using Nginx as a reverse proxy
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Nginx作为反向代理设置Rails站点
 - en: Setting up correct reverse proxy timeouts
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置正确的反向代理超时
 - en: Setting up caching on the reverse proxy
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在反向代理上设置缓存
 - en: Using multiple backends for the reverse proxy
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为反向代理使用多个后端
 - en: Serving CGI files using thttpd and Nginx
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用thttpd和Nginx提供CGI文件
 - en: Setting up load balancing with reverse proxy
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置负载均衡与反向代理
 - en: Splitting requests based on various conditions using split-clients
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于各种条件使用split-clients拆分请求
 - en: Introduction
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Nginx has found most applications acting as a reverse proxy for many sites.
     A reverse proxy is a type of proxy server that retrieves resources for a client
     from one or more servers. These resources are returned to the client as though
     they originated from the proxy server itself.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx已经成为大多数应用作为反向代理使用的解决方案，尤其是对于许多网站。反向代理是一种代理服务器，它为客户端从一个或多个服务器检索资源。这些资源被返回给客户端，就像它们来自于代理服务器本身一样。
 - en: Due to its event driven architecture and C codebase, it consumes significantly
     lower CPU power and memory than many other better known solutions out there. This
     chapter will deal with the usage of Nginx as a reverse proxy in various common
     scenarios. We will have a look at how we can set up a rail application, set up
     load balancing, and also look at a caching setup using Nginx, which will potentially
     enhance the performance of your existing site without any codebase changes.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于其事件驱动架构和C语言代码库，它比许多其他更知名的解决方案消耗显著更低的CPU和内存。本章将讲解如何在各种常见场景中使用Nginx作为反向代理。我们将探讨如何设置Rails应用，配置负载均衡，并且还将了解如何使用Nginx进行缓存设置，这将有可能在不改变代码库的情况下提升现有站点的性能。
 - en: Using Nginx as a simple reverse proxy
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Nginx作为一个简单的反向代理
 - en: Nginx in its simplest form can be used as a reverse proxy for any site; it acts
     as an intermediary layer for security, load distribution, caching, and compression
     purposes. In effect, it can potentially enhance the overall quality of the site
     for the end user without any change of application source code by distributing
     the load from incoming requests to multiple backend servers, and also caching
     static, as well as dynamic content.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx在最简单的形式下可以作为任何站点的反向代理；它作为一个中介层，用于安全、负载分配、缓存和压缩等目的。实际上，它可以通过将来自请求的负载分配到多个后端服务器，并缓存静态内容和动态内容，从而在不改变应用源代码的情况下，潜在地提升站点对最终用户的整体质量。
 - en: '![Using Nginx as a simple reverse proxy](img/4965OS_07_01.jpg)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![使用Nginx作为一个简单的反向代理](img/4965OS_07_01.jpg)'
 - en: How to do it...
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'You will need to first define `proxy.conf`, which will be later included in
     the main configuration of the reverse proxy that we are setting up:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要首先定义`proxy.conf`，它将在我们设置的反向代理的主配置中被包含：
 - en: '[PRE0]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'To use Nginx as a reverse proxy for a site running on a local port of the server,
     the following configuration will suffice:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用Nginx作为运行在服务器本地端口上的站点的反向代理，以下配置即可满足需求：
 - en: '[PRE1]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: How it works...
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: In this recipe, Nginx simply acts as a proxy for the defined backend server
     which is running on the 8080 port of the server, which can be any HTTP web application.
     Later in this chapter, other advanced recipes will have a look at how one can
     define more backend servers, and how we can set them up to respond to requests.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，Nginx简单地作为代理，指向运行在服务器8080端口上的后端服务器，该服务器可以是任何HTTP Web应用程序。稍后的章节中，我们将探讨其他高级教程，介绍如何定义更多后端服务器，以及如何设置它们来响应请求。
 - en: Setting up a rails site using Nginx as a reverse proxy
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Nginx作为反向代理设置Rails站点
 - en: In this recipe, we will set up a working rails site and set up Nginx working
     on top of the application. This will assume that the reader has some knowledge
     of rails and thin. There are other ways of running Nginx and rails, as well, like
     using Passenger Phusion.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我们将设置一个工作中的Rails站点，并让Nginx在应用程序之上工作。假设读者已经具备一定的Rails和thin知识。还有其他运行Nginx和Rails的方法，例如使用Passenger
+    Phusion。
 - en: '![Setting up a rails site using Nginx as a reverse proxy](img/4965_07_02.jpg)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![使用Nginx作为反向代理设置Rails站点](img/4965_07_02.jpg)'
 - en: How to do it...
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: This will require you to set up thin first, then to configure thin for your
     application, and then to configure Nginx.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将要求你首先设置thin，然后为你的应用配置thin，最后配置Nginx。
 - en: 'If you already have gems installed then the following command will install
     thin, otherwise you will need to install it from source:'
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果你已经安装了gem，那么以下命令将安装thin，否则你需要从源代码安装：
 - en: '[PRE2]'
+  id: totrans-29
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Now you need to generate the thin configuration. This will create a configuration
     in the `/etc/thin` directory:'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在你需要生成thin配置。这将会在`/etc/thin`目录下创建一个配置文件：
 - en: '[PRE3]'
+  id: totrans-31
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Now you can start the thin service. Depending on your operating system the start
     up command will vary.
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在你可以启动thin服务。根据你的操作系统，启动命令会有所不同。
 - en: 'Assuming that you have Nginx installed, you will need to add the following
     to the configuration file:'
+  id: totrans-33
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 假设你已经安装了Nginx，你需要将以下内容添加到配置文件中：
 - en: '[PRE4]'
+  id: totrans-34
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: How it works...
+  id: totrans-35
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is a fairly simple rails stack, where we basically configure and run five
     upstream thin threads which interact with Nginx through socket connections.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相对简单的Rails堆栈，我们基本上配置并运行五个上游的thin线程，它们通过套接字连接与Nginx交互。
 - en: There are a few rewrites that ensure that Nginx serves the static files, and
     all dynamic requests are processed by the rails backend. It can also be seen how
     we set proxy headers correctly to ensure that the client IP is forwarded correctly
@@ -166,150 +241,225 @@
     to access the client IP to show geo-located information, and logging this IP can
     be useful in identifying if geography is a problem when the site is not working
     properly for specific clients.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有几个重写规则，确保Nginx提供静态文件，并且所有动态请求都由Rails后端处理。还可以看到我们如何正确设置代理头，以确保客户端IP能够正确传递给Rails应用程序。对于许多应用程序来说，能够访问客户端IP以展示地理位置相关信息非常重要，记录这个IP有助于识别当网站在某些特定客户端上无法正常工作时是否存在地理位置问题。
 - en: Setting up correct reverse proxy timeouts
+  id: totrans-38
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置正确的反向代理超时时间
 - en: In this section we will set up correct reverse proxy timeouts which will affect
     your user's interaction when your backend application is unable to respond to
     the client's request.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一部分中，我们将设置正确的反向代理超时时间，这将影响当你的后端应用程序无法响应客户端请求时，用户的交互体验。
 - en: In such a case, it is advisable to set up some sensible timeout pages so that
     the user can understand that further refreshing may only aggravate the issues
     on the web application.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，建议设置一些合理的超时页面，让用户了解进一步刷新可能只会加重Web应用程序的问题。
 - en: How to do it...
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'You will first need to set up `proxy.conf` which will later be included in
     the configuration:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，你需要设置`proxy.conf`，该配置稍后将被包含在配置中：
 - en: '[PRE5]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Reverse proxy timeouts are some fairly simple flags that we need to set up
     in the Nginx configuration like in the following example:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 反向代理超时是一些相当简单的标志，我们需要在Nginx配置中设置，就像以下示例一样：
 - en: '[PRE6]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: How it works...
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'In the preceding configuration we have set the following variables, it is fairly
     clear what these variables achieve in the context of the configurations:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前的配置中，我们设置了以下变量，结合配置内容可以很清楚地看出这些变量的作用：
 - en: '| Directive | Use |'
+  id: totrans-48
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 用途 |'
 - en: '| --- | --- |'
+  id: totrans-49
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `proxy_read_timeout` | This directive sets the read timeout for the response
     of the proxied server. It determines how long Nginx will wait to get the response
     to a request. The timeout is established not for the entire response, but only
     between two operations of reading. |'
+  id: totrans-50
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_read_timeout` | 此指令设置代理服务器响应的读取超时时间。它决定了Nginx等待请求响应的时间。超时不适用于整个响应，而仅限于两个读取操作之间。
+    |'
 - en: '| `proxy_connect_timeout` | This directive assigns timeout with the transfer
     of request to the upstream server. Timeout is established not on the entire transfer
     of request, but only between two write operations. If after this time the upstream
     server does not take new data, then Nginx shuts down the connection. |'
+  id: totrans-51
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_connect_timeout` | 此指令设置与上游服务器传输请求时的超时时间。超时不是针对整个请求传输，而仅适用于两个写操作之间。如果在这段时间内上游服务器没有接收新数据，那么Nginx将关闭连接。
+    |'
 - en: Setting up caching on the reverse proxy
+  id: totrans-52
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在反向代理上设置缓存
 - en: In a setup where Nginx acts as the layer between the client and the backend
     web application, it is clear that caching can be one of the benefits that can
     be achieved. In this recipe, we will have a look at setting up caching for any
     site to which Nginx is acting as a reverse proxy. Due to extremely small footprint
     and modular architecture, Nginx has become quite the Swiss knife of the modern
     web stack.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Nginx 作为客户端和后台 Web 应用之间的层时，显然缓存是可以带来的一个好处。在本篇中，我们将了解如何为任何由 Nginx 执行反向代理的站点设置缓存。由于极小的占用空间和模块化架构，Nginx
+    已成为现代 Web 堆栈的瑞士军刀。
 - en: '![Setting up caching on the reverse proxy](img/4965OS_07_03.jpg)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![在反向代理上设置缓存](img/4965OS_07_03.jpg)'
 - en: How to do it...
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'This example configuration shows how we can use caching when utilizing Nginx
     as a reverse proxy web server:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个示例配置展示了如何在使用 Nginx 作为反向代理 Web 服务器时启用缓存：
 - en: '[PRE7]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: How it works...
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This configuration implements a simple cache with 1000MB maximum size, and keeps
     all HTTP response 200 pages in the cache for 60 minutes and HTTP response 404
     pages in cache for 1 minute.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个配置实现了一个简单的缓存，最大大小为 1000MB，并且将所有 HTTP 响应 200 页缓存 60 分钟，HTTP 响应 404 页缓存 1 分钟。
 - en: There is an initial directive that creates the cache file on initialization,
     in further directives we basically configure the location that is going to be
     cached.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个初始指令会在初始化时创建缓存文件，之后的指令基本上配置将要被缓存的位置。
 - en: Tip
+  id: totrans-61
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: It is possible to actually set up more than one cache path for multiple locations.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，可以为多个位置设置多个缓存路径。
 - en: There's more...
+  id: totrans-63
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'This was a relatively small show of what can be achieved with the caching aspect
     of the proxy module. Here are some more directives that can be really useful in
     optimizing and making your stack faster and more efficient:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 这只是代理模块缓存功能可以实现的一部分展示。以下是一些在优化并提升堆栈效率时非常有用的指令：
 - en: '| Directive | Use |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 用法 |'
 - en: '| --- | --- |'
+  id: totrans-66
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `proxy_cache_bypass` | The directive specifies the conditions under which
     the answer will not be taken from the cache. If one string variable is not empty
     and not equal to "0", the answer is not taken from the cache. |'
+  id: totrans-67
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_bypass` | 此指令指定在什么条件下不会从缓存中获取响应。如果某个字符串变量不为空且不等于“0”，则响应不会从缓存中获取。
+    |'
 - en: '| `proxy_cache_min_uses` | This directive determines the number of accesses
     before a page is cached. |'
+  id: totrans-68
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_min_uses` | 此指令决定了页面被缓存前的访问次数。 |'
 - en: '| `proxy_cache_use_stale` | This directive tells Nginx when to serve a stale
     item from the proxy cache. For example, when an Application error HTTP Code 500
     occurs. |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_use_stale` | 此指令告诉 Nginx 何时从代理缓存中提供过期项。例如，当发生应用程序错误 HTTP 代码
+    500 时。 |'
 - en: '| `proxy_cache_methods` | This directive lets you choose what directives to
     cache [GET, PUT, and so on]. |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_methods` | 此指令允许你选择缓存哪些指令 [GET、PUT 等]。 |'
 - en: Using multiple backends for the reverse proxy
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用多个后台处理反向代理
 - en: As traffic increases, the need to scale the site up becomes a necessity. With
     a transparent reverse proxy like Nginx in front, most users never even see the
     scaling affecting their interactions with the site. Usually, for smaller sites
@@ -317,26 +467,39 @@
     popularity increases, the first solution is to increase the number of backend
     processes and let Nginx multiplex the client requests. This recipe takes a look
     at how to add new backend processes to Nginx.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着流量的增加，扩展站点的需求变得越来越迫切。使用像 Nginx 这样的透明反向代理在前端，绝大多数用户甚至不会感知到扩展对他们与网站交互的影响。通常，对于较小的网站，一个后台进程足以处理流量。随着网站流量的增加，第一个解决方案是增加后台进程的数量，让
+    Nginx 处理客户端请求的多路复用。本篇将介绍如何为 Nginx 添加新的后台进程。
 - en: '![Using multiple backends for the reverse proxy](img/4965OS_07_04.jpg)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![使用多个后台处理反向代理](img/4965OS_07_04.jpg)'
 - en: How to do it...
+  id: totrans-74
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'The configuration below adds three upstream servers to which client requests
     will be sent for processing:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置添加了三个上游服务器，客户端请求将被发送到这些服务器进行处理：
 - en: '[PRE8]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: How it works...
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In this configuration we set up an upstream, which is nothing but a set of servers
     with some proxy parameters. For the server `http://backend1.example1.com`, we
     have set a weight of five, which means that the majority of the requests will
@@ -346,147 +509,220 @@
     of 30 seconds will result in the server being considered inoperative. The last
     one is a plain vanilla setup, where one error in a ten second window will make
     the server inoperative!
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个配置中，我们设置了一个上游，这只是一些带有代理参数的服务器集合。对于服务器`http://backend1.example1.com`，我们设置了一个权重为
+    5，这意味着大多数请求将被指向该服务器。这在有些强大的服务器和一些较弱的服务器的情况下非常有用。对于下一个服务器`http://backend2.example1.com`，我们设置了这样的参数：在
+    30 秒内三次失败请求将导致该服务器被认为不可用。最后一个是一个普通的基础设置，其中在十秒的窗口内一次错误将使服务器不可用！
 - en: This displays the thought put in behind the design of Nginx. It seamlessly handles
     servers which are problematic and puts them in the set of inoperative servers.
     All requests to the server are sent in a round robin fashion. We will discuss
     modules in future recipes that ensure that the requests are sent using other queue
     mechanisms based on server load and other upstream server performance metrics.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 这展示了 Nginx 设计背后的深思熟虑。它无缝地处理那些存在问题的服务器，并将它们放入不可用服务器的集合中。所有请求都会以轮询方式发送到服务器。我们将在未来的教程中讨论一些模块，它们可以基于服务器负载和其他上游服务器性能指标，使用其他队列机制来发送请求。
 - en: Serving CGI files using thttpd and Nginx
+  id: totrans-80
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 thttpd 和 Nginx 提供 CGI 文件
 - en: At some point in time in Internet history, most applications were CGI based.
     Nginx does not serve CGI scripts, so the workaround is to use a really efficient
     and simple HTTP server called thttpd and to get Nginx to act as a proxy to it.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在互联网历史的某个时刻，大多数应用都是基于 CGI 的。Nginx 本身不提供 CGI 脚本服务，因此解决方法是使用一个非常高效且简单的 HTTP 服务器——thttpd，并让
+    Nginx 作为代理来处理它。
 - en: How to do it...
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作……
 - en: 'The best way to go about it is to set up thttpd from source code, apply the
     IP forwarding patch, and then to use the configuration below:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 最好的做法是从源代码安装 thttpd，应用 IP 转发补丁，然后使用以下配置：
 - en: Download thttpd and apply the patch.
+  id: totrans-84
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下载 thttpd 并应用补丁。
 - en: '[PRE9]'
+  id: totrans-85
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Save the code below in a file called `thttpd.patch:`
+  id: totrans-86
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将下面的代码保存为一个名为`thttpd.patch`的文件：
 - en: '[PRE10]'
+  id: totrans-87
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Apply the patch and install thttpd:'
+  id: totrans-88
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 应用补丁并安装 thttpd：
 - en: '[PRE11]'
+  id: totrans-89
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Use the following configuration for `/etc/thttpd.conf:`
+  id: totrans-90
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用以下配置来编辑`/etc/thttpd.conf`：
 - en: '[PRE12]'
+  id: totrans-91
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Set up Nginx as a proxy for the port 8000.
+  id: totrans-92
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 Nginx 设置为端口 8000 的代理。
 - en: '[PRE13]'
+  id: totrans-93
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: How it works...
+  id: totrans-94
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: The setup above allows you to enjoy the best of CGI and Nginx. You initially
     set up thttpd, which will run on port 8000 of the server, which will effectively
     be the core CGI web server and you can run Nginx as the proxy for the user requests.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的设置让你享受 CGI 和 Nginx 的最佳结合。你首先设置了 thttpd，它将在服务器的 8000 端口运行，实际上它将成为核心的 CGI Web
+    服务器，你可以将 Nginx 作为用户请求的代理。
 - en: All you need to do is place the perl scripts in the `/var/www` directory and
     you will be running CGI using Nginx and thttpd.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要做的就是将 Perl 脚本放在 `/var/www` 目录下，你就可以通过 Nginx 和 thttpd 运行 CGI。
 - en: Tip
+  id: totrans-97
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: You can also use the same technique as above to run CGI scripts using other
     CGI-capable servers like Apache and lightHTTPD as well. You will be required to
     change the operating ports of those servers to 8000 and the same configuration
     like above will work.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以使用与上述相同的技术，使用其他支持 CGI 的服务器（如 Apache 和 lightHTTPD）运行 CGI 脚本。你只需将这些服务器的操作端口更改为
+    8000，按照上述配置即可运行。
 - en: Setting up load balancing with reverse proxy
+  id: totrans-99
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用反向代理设置负载均衡
 - en: In most reverse proxy systems one wants to have some notion of load balancing
     in the system. In one of the preceding recipes, we have seen how to set up and
     run multiple upstream servers in a round robin mechanism of sending over the requests.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大多数反向代理系统中，人们希望系统能够进行负载均衡。在之前的一个教程中，我们已经看到如何设置和运行多个上游服务器，并以轮询机制发送请求。
 - en: In this recipe, we will install a load balancing module which will allow us
     to set up a fair load balancing with the upstream servers.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个教程中，我们将安装一个负载均衡模块，它将允许我们对上游服务器进行公平的负载均衡设置。
 - en: '![Setting up load balancing with reverse proxy](img/4965OS_07_05.jpg)'
+  id: totrans-102
   prefs: []
   type: TYPE_IMG
+  zh: '![使用反向代理设置负载均衡](img/4965OS_07_05.jpg)'
 - en: How to do it...
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作……
 - en: For this particular recipe we will install a third-party module called "upstream
     fair module".
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个特定的教程，我们将安装一个名为“上游公平模块”的第三方模块。
 - en: 'You will need to go an download the module:'
+  id: totrans-105
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要去下载这个模块：
 - en: '[PRE14]'
+  id: totrans-106
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Compile Nginx with the new module:'
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 编译带有新模块的 Nginx：
 - en: '[PRE15]'
+  id: totrans-108
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: You will need to add the following configuration to your `nginx.conf:`
+  id: totrans-109
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要在 `nginx.conf` 中添加以下配置：
 - en: '[PRE16]'
+  id: totrans-110
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: How it works...
+  id: totrans-111
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is a fairly straightforward setup once you understand the basics of setting
     up multiple upstream servers. In this particular "fair" mode, which is `no_rr`,
     the server will send the request to the first backend whenever it is idle. The
@@ -494,109 +730,167 @@
     information of how many requests a current backend is already processing. This
     is a much better model than the default round robin that is implemented in the
     default upstream directive.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你理解了如何设置多个上游服务器的基础知识，设置起来就相当直接。在这个特别的“公平”模式下，`no_rr`，服务器会在空闲时将请求发送到第一个后端。这个模块的目标是避免将请求发送到已经繁忙的后端，因为它会跟踪当前后端已经处理的请求数。这个模型比默认的轮询模式要好得多，因为默认的轮询模式会均匀地分配请求，而忽略了后端服务器的负载情况。
 - en: There's more...
+  id: totrans-113
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'You can choose to run this load balancer module in a few other modes, as described
     below, based on your needs! This is a very simple way of ensuring that none of
     the backend experiences load unevenly as compared to the rest:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以根据需求选择以几种模式运行这个负载均衡模块！这是确保所有后端负载均衡的一种非常简单的方法，避免某个后端比其他后端负载重：
 - en: '| Mode | Meaning |'
+  id: totrans-115
   prefs: []
   type: TYPE_TB
+  zh: '| 模式 | 含义 |'
 - en: '| --- | --- |'
+  id: totrans-116
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| default (that is fair;) | The default mode is a simple WLC-RR (weighted least-connection
     round-robin) algorithm with a caveat that the weighted part isn''t actually too
     fair under low load. |'
+  id: totrans-117
   prefs: []
   type: TYPE_TB
+  zh: '| 默认（即公平模式） | 默认模式是一个简单的 WLC-RR（加权最小连接轮询）算法，唯一的限制是加权部分在低负载下并不太公平。 |'
 - en: '| `no_rr` | This means that whenever the first backend is idle, it''s going
     to get the next request. If it''s busy, the request will go to the second backend
     unless it''s busy too, and so on. |'
+  id: totrans-118
   prefs: []
   type: TYPE_TB
+  zh: '| `no_rr` | 这意味着每当第一个后端空闲时，它将接收下一个请求。如果它忙碌，请求将转到第二个后端，除非它也忙碌，以此类推。 |'
 - en: '| `weight_mode=idle no_rr` | This mode redefines the meaning of "idle". It
     now means "less than weight concurrent requests". So you can easily benchmark
     your backends and determine that **X** concurrent requests are the maximum for
     you. |'
+  id: totrans-119
   prefs: []
   type: TYPE_TB
+  zh: '| `weight_mode=idle no_rr` | 这个模式重新定义了“空闲”的含义。现在它意味着“少于权重的并发请求”。这样你可以轻松地对后端进行基准测试，并确定
+    **X** 并发请求是你的最大负载。 |'
 - en: '| `weight_mode=peak` | This means that Nginx will never send more than weight
     requests to any single backend. If all backends are full, you will start receiving
     502 errors. |'
+  id: totrans-120
   prefs: []
   type: TYPE_TB
+  zh: '| `weight_mode=peak` | 这意味着 Nginx 永远不会将超过权重的请求发送到单个后端。如果所有后端都满负荷，您将开始收到 502
+    错误。 |'
 - en: 'Here is an example of a peak weight mode setup:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一个峰值权重模式设置的示例：
 - en: '[PRE17]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Splitting requests based on various conditions using split-clients
+  id: totrans-123
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 split-clients 根据不同条件拆分请求
 - en: This recipe will take a look at how we can potentially separate client requests
     based on various conditions that can arise.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 本教程将探讨如何根据可能出现的不同条件来分离客户端请求。
 - en: We will also understand how we can potentially set up a simple page for A-B
     testing using this module.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将了解如何使用这个模块设置一个简单的 A-B 测试页面。
 - en: '![Splitting requests based on various conditions using split-clients](img/4965OS_07_06.jpg)'
+  id: totrans-126
   prefs: []
   type: TYPE_IMG
+  zh: '![根据不同条件拆分请求使用 split-clients](img/4965OS_07_06.jpg)'
 - en: How to do it...
+  id: totrans-127
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: This module is fairly simple to use and comes inbuilt with Nginx. All you need
     to do is to insert the following configuration in your `nginx.conf:`
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个模块使用起来相当简单，并且已内置在 Nginx 中。你需要做的就是在 `nginx.conf` 中插入以下配置：
 - en: '[PRE18]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: How it works...
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This particular configuration sets up a system which is based upon the remote
     client address, assigns the values `.one, .two`, or "" to a variable `$variant`.
     Based upon the variable value, a different page is picked up from the file location.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个配置设置了一个系统，它基于远程客户端地址，并将 `.one`、`.two` 或 `""` 的值分配给变量 `$variant`。根据变量值，系统会从文件位置选择不同的页面。
 - en: 'The following table shows the various probabilities and actions from the above
     configuration:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下表格显示了从上面的配置中得到的各种概率和操作：
 - en: '| Variable value | Probability | Page served |'
+  id: totrans-133
   prefs: []
   type: TYPE_TB
+  zh: '| 变量值 | 概率 | 服务页面 |'
 - en: '| --- | --- | --- |'
+  id: totrans-134
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| `.one` | 50% | `/var/www/example1.com/index.one.html` |'
+  id: totrans-135
   prefs: []
   type: TYPE_TB
+  zh: '| `.one` | 50% | `/var/www/example1.com/index.one.html` |'
 - en: '| `.two` | 50% | `/var/www/example1.com/index.two.html` |'
+  id: totrans-136
   prefs: []
   type: TYPE_TB
+  zh: '| `.two` | 50% | `/var/www/example1.com/index.two.html` |'
 - en: '| `""` | 0% | `/var/www/example1.com/index.html` |'
+  id: totrans-137
   prefs: []
   type: TYPE_TB
+  zh: '| `""` | 0% | `/var/www/example1.com/index.html` |'
 - en: '![How it works...](img/4965OS_07_07.jpg)'
+  id: totrans-138
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965OS_07_07.jpg)'
 - en: The preceding pie chart clearly displays the split across the two pages. Utilizing
     this approach, we are able to test out interactions with the page changes that
     you have made. This forms the basis of usability testing.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面的饼图清晰地展示了两页之间的分割。采用这种方法，我们能够测试您所做的页面更改与页面交互的效果。这构成了可用性测试的基础。
