@@ -1,11 +1,15 @@
 - en: '2'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '2'
 - en: Basic NGINX Configuration
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基本 NGINX 配置
 - en: In this chapter, we will begin to establish an appropriate configuration for
     your web server. For this purpose, we need to first discover the syntax that is
     used in the NGINX configuration files. Then, we need to understand the various
@@ -15,252 +19,381 @@
     is valid. We will only approach basic configuration directives here. This chapter
     and the next ones will detail more advanced topics, such as HTTP module configuration
     and usage, creating virtual hosts, and setting up SSL.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将开始为你的 Web 服务器建立适当的配置。为此，我们需要首先了解 NGINX 配置文件中使用的语法。然后，我们需要理解各种指令，这些指令将帮助你为不同的流量模式和硬件设置准备和优化
+    Web 服务器。最后，我们将创建一些测试页面，以确保一切配置正确且有效。这里我们只会讨论基本配置指令。本章以及接下来的章节将详细介绍更高级的主题，例如 HTTP
+    模块的配置和使用、创建虚拟主机和设置 SSL。
 - en: 'This chapter covers the following topics:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章内容包括以下主题：
 - en: The presentation of the configuration syntax
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置语法的展示
 - en: Basic module directives
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基本模块指令
 - en: Testing and maintaining your web server
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 测试和维护您的 Web 服务器
 - en: Delving into the configuration file syntax
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 深入了解配置文件语法
 - en: A configuration file is generally a text file that is edited by the administrator
     and parsed by a program. By specifying a set of values, you define the behavior
     of the program. In Linux-based operating systems, the majority of applications
     rely on vast, complex configuration files that often turn out to be a nightmare
     to manage. Apache, Postfix, and Bind – all of these names bring up bad memories
     in the mind of a Linux system administrator.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置文件通常是一个由管理员编辑并由程序解析的文本文件。通过指定一组值，你可以定义程序的行为。在基于 Linux 的操作系统中，大多数应用程序依赖于庞大而复杂的配置文件，这些文件往往令人头痛不已。Apache、Postfix
+    和 Bind——这些名字在 Linux 系统管理员的脑海中总会带来一些不愉快的回忆。
 - en: 'The fact is that all of these applications use their own configuration files
     with different syntaxes and styles. PHP works with a Windows-style `.ini` file,
     Sendmail uses the M4 macro-processor to compile configuration files, Zabbix pulls
     its configuration from a MySQL database, and so on. There is, unfortunately, no
     well-established standard, and the same applies to NGINX – you will be required
     to study a new syntax with its own particularities and its own vocabulary:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，所有这些应用程序都使用各自的配置文件，语法和风格各不相同。PHP 使用 Windows 风格的 `.ini` 文件，Sendmail 使用 M4
+    宏处理器编译配置文件，Zabbix 从 MySQL 数据库中提取配置，等等。不幸的是，至今没有统一的标准，NGINX 也不例外——你需要学习一种具有自己特性和词汇的新语法：
 - en: '![Figure 2.1: A famous website among tech enthusiasts that makes fun of the
     situation regarding standards](img/B21787_02_1.jpg)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![图 2.1：一个在技术爱好者中很有名的讽刺标准情况的网站](img/B21787_02_1.jpg)'
 - en: 'Figure 2.1: A famous website among tech enthusiasts that makes fun of the situation
     regarding standards'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2.1：一个在技术爱好者中很有名的讽刺标准情况的网站
 - en: Note
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意事项
 - en: Why isn’t there a universal standard for configuration file syntax? A possible
     explanation is provided by *Randall Munroe* at [https://xkcd.com/](https://xkcd.com/)
     (reproduced with authorization).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么没有统一的配置文件语法标准？一个可能的解释来自 *Randall Munroe*，他在 [https://xkcd.com/](https://xkcd.com/)
+    上给出了答案（已获授权转载）。
 - en: Conversely (and this is one of its advantages), configuring NGINX turns out
     to be rather simple, at least in comparison to Apache or other mainstream web
     servers. There are only a few mechanisms that need to be mastered – *directives*,
     *blocks*, and the *overall logical structure* (which will be covered in [*Chapter
     3*](B21787_03.xhtml#_idTextAnchor179)). Most of the actual configuration process
     will consist of writing values for directives.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反（这也是它的一个优点），配置 NGINX 其实相当简单，至少与 Apache 或其他主流 Web 服务器相比是如此。只有几个需要掌握的机制——*指令*、*块*
+    和 *整体逻辑结构*（将在 [*第 3 章*](B21787_03.xhtml#_idTextAnchor179) 中讲解）。大部分实际的配置过程将涉及为指令编写值。
 - en: Configuration directives
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 配置指令
 - en: The NGINX configuration file can be described as a list of directives organized
     in a logical structure. The entire behavior of the application is defined by the
     values that you give to those directives.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 配置文件可以描述为一系列按照逻辑结构组织的指令。应用程序的整个行为由你为这些指令赋予的值来定义。
 - en: By default, NGINX makes use of one main configuration file. The path of this
     file was defined in the steps described in [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014),
     in the *Build configuration issues* section. If you did not edit the configuration
     file path and prefix options, they should be located at `/usr/local/nginx/conf/nginx.conf`.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，NGINX 使用一个主配置文件。该文件的路径在[ *第一章*](B21787_01.xhtml#_idTextAnchor014)的 *构建配置问题*
+    部分中已定义。如果你没有编辑配置文件路径和前缀选项，它们应该位于 `/usr/local/nginx/conf/nginx.conf`。
 - en: 'However, if you installed NGINX with a package manager, your configuration
     file will likely be located at `/etc/nginx/nginx.conf`, and the contents of the
     file may be quite different from the version that comes in the original NGINX
     source code package. Now, let’s take a quick peek at the first few lines of this
     initial setup:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果你通过包管理器安装了 NGINX，你的配置文件很可能位于 `/etc/nginx/nginx.conf`，而且该文件的内容可能与原始 NGINX
+    源代码包中的版本差异较大。现在，让我们快速浏览一下这个初始设置的前几行：
 - en: '![Figure 2.2: nano is used to edit the nginx.conf file](img/B21787_02_2.jpg)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![图 2.2：使用 nano 编辑 nginx.conf 文件](img/B21787_02_2.jpg)'
 - en: 'Figure 2.2: nano is used to edit the nginx.conf file'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2.2：使用 nano 编辑 nginx.conf 文件
 - en: Note
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: A default configuration file is bundled with the `Nginx` source code package.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认的配置文件与 `Nginx` 源代码包一起捆绑提供。
 - en: 'Let’s take a closer look at the first two lines:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们仔细看看前两行：
 - en: '[PRE0]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: As you can probably make out from the `#` character, the first line is a comment.
     In other words, it is a piece of text that is not interpreted and has no value
     whatsoever. Its sole purpose is to be read by whoever opens the file, or to temporarily
     disable parts of an existing configuration section. You can use the `#` character
     at the beginning of a line or after a directive.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你从 `#` 字符中可能看出，第一行是一个注释。换句话说，它是一段不会被解释并且没有任何实际意义的文本。它的唯一目的是供打开文件的人阅读，或暂时禁用现有配置部分。你可以在一行的开头或指令后使用
+    `#` 字符。
 - en: The second line is an actual statement – a directive. The first bit (`worker_processes`)
     represents a setting key, to which you append one or more values. In this case,
     the value is `1`, indicating that NGINX should function with a single worker process
     (more information about this particular directive is given in further sections).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二行是一个实际的声明——指令。第一部分（`worker_processes`）表示设置的键，后面附加一个或多个值。在这个例子中，值为 `1`，表示 NGINX
+    应该使用单个工作进程运行（关于这个指令的更多信息将在后续章节中提供）。
 - en: Note
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: Directives always end with a semicolon (`;`).
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令总是以分号（`；`）结尾。
 - en: Each directive has a unique meaning and defines a particular feature of an application.
     It may also have a particular syntax. For example, the `worker_process` directive
     only accepts one numeric value, whereas the `user` directive lets you specify
     up to two character strings, one for the user account (that the NGINX worker processes
     should run as) and a second for the `user` group.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个指令都有其独特的含义，定义了应用程序的某个特定特性。它还可能有特定的语法。例如，`worker_process` 指令只接受一个数字值，而 `user`
+    指令允许你指定最多两个字符字符串，一个用于用户账户（NGINX 工作进程应该以此身份运行），另一个用于 `user` 组。
 - en: NGINX works in a modular way, and as such, each module comes with a specific
     set of directives. The most fundamental directives are part of the NGINX core
     module and will be detailed in this chapter. As for other directives brought in
     by other modules, they will be explored in the later chapters.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 以模块化的方式工作，因此每个模块都有一组特定的指令。最基本的指令是 NGINX 核心模块的一部分，本章将详细介绍这些指令。至于其他模块带入的指令，将在后续章节中探讨。
 - en: Organization and inclusions
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 组织与包含
 - en: 'In *Figure 2**.2*, you may have noticed a particular directive – `include`:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 *图 2.2* 中，你可能注意到了一条特别的指令——`include`：
 - en: '[PRE1]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'As the name suggests, this directive will perform an inclusion of the specified
     file. In other words, the contents of the file will be inserted at this exact
     location. Here is a practical example that will help you understand:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如名称所示，这条指令将执行包含指定文件的操作。换句话说，文件的内容将在此位置插入。以下是一个实际的示例，帮助你理解：
 - en: '`nginx.conf`:'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`nginx.conf`：'
 - en: '[PRE2]'
+  id: totrans-36
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '`other_settings.conf`:'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`other_settings.conf`：'
 - en: '[PRE3]'
+  id: totrans-38
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Inclusions are processed recursively. In this case, you have the possibility
     to use the `include` directive again in the `other_settings.conf` file, in order
     to include yet another file.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 包含操作是递归处理的。在这种情况下，你可以在 `other_settings.conf` 文件中再次使用 `include` 指令，来包含另一个文件。
 - en: 'In the initial configuration setup, there are two files in use – `nginx.conf`
     and `mime.types`. However, in the case of a more advanced configuration, there
     may be five or more files, as described in the following table:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在初始配置设置中，使用了两个文件——`nginx.conf`和`mime.types`。然而，在更高级的配置中，可能会有五个或更多文件，如下表所示： |
 - en: '| **Standard name** | **Description** |'
+  id: totrans-41
   prefs: []
   type: TYPE_TB
+  zh: '| **标准名称** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-42
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `nginx.conf` | The base configuration of the application. |'
+  id: totrans-43
   prefs: []
   type: TYPE_TB
+  zh: '| `nginx.conf` | 应用程序的基础配置。 |'
 - en: '| `mime.types` | A list of file extensions and their associated MIME types.
     |'
+  id: totrans-44
   prefs: []
   type: TYPE_TB
+  zh: '| `mime.types` | 一个文件扩展名及其关联的MIME类型的列表。 |'
 - en: '| `fastcgi.conf` | A FastCGI-related configuration. |'
+  id: totrans-45
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi.conf` | 与FastCGI相关的配置。 |'
 - en: '| `proxy.conf` | A proxy-related configuration. |'
+  id: totrans-46
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy.conf` | 与代理相关的配置。 |'
 - en: '| `sites.conf` | The configuration of the websites served by NGINX, also known
     as **virtual hosts**. It’s recommended to create separate files for each domain.
     |'
+  id: totrans-47
   prefs: []
   type: TYPE_TB
+  zh: '| `sites.conf` | 由NGINX服务的网站的配置，也称为**虚拟主机**。建议为每个域名创建单独的文件。 |'
 - en: 'Table 2.1: A table detailing the configuration files included by default'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 表2.1：详细列出默认包含的配置文件的表格 |
 - en: These filenames were defined conventionally; nothing actually prevents you from
     regrouping your FastCGI and proxy settings into a common file named `proxy_and_fastcgi_config.conf`.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些文件名是按照约定定义的；实际上没有任何东西阻止你将FastCGI和代理设置重新组合到一个名为`proxy_and_fastcgi_config.conf`的通用文件中。
+    |
 - en: 'The `include` directive supports filename globbing – in other words, filenames
     referenced with the `*` wildcard, where `*` can match zero, one, or more consecutive
     characters:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '`include`指令支持文件名模式匹配——换句话说，文件名可以使用`*`通配符，其中`*`可以匹配零个、一个或多个连续字符： |'
 - en: '[PRE4]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: This will include all files with a name that ends with `.conf` in the `sites`
     folder. This mechanism allows you to create a separate file for each of your websites
     and include them all at once.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将包括`sites`文件夹中所有以`.conf`结尾的文件。这种机制允许你为每个网站创建一个单独的文件，并一次性包含它们。 |
 - en: 'Be careful when including a file. If the specified file does not exist, the
     configuration checks will fail and NGINX will not start:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在包含文件时请小心。如果指定的文件不存在，配置检查将失败，NGINX将无法启动： |
 - en: '[PRE5]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'The previous statement is not true for inclusions with wildcards. Moreover,
     if you insert `include dummy*.conf` into your configuration and test it (whether
     there is any file matching this pattern on your system or not), here is what should
     happen:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 前述声明不适用于包含带有通配符的文件。更进一步，如果你将`include dummy*.conf`插入到配置中并进行测试（无论系统中是否有与此模式匹配的文件），应该发生的情况如下：
+    |
 - en: '[PRE6]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Directive blocks
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 指令块 |
 - en: 'Directives are brought in by modules; if you activate a new module, a specific
     set of directives becomes available. Modules can also enable **directive blocks**,
     which allow for a logical construction of the configuration:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令是由模块引入的；如果启用新模块，则会提供一组特定的指令。模块还可以启用**指令块**，允许逻辑构建配置： |
 - en: '[PRE7]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The `events` block that you can find in the default configuration file is brought
     in by the `events` module. The directives that the module enables can only be
     used within that block. In the preceding example, `worker_connections` will only
@@ -268,326 +401,479 @@
     be placed at the root of the configuration file because they have a global effect
     on the server. The root of the configuration file is also known as the **main
     block**.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认配置文件中可以找到的`events`块是由`events`模块引入的。该模块启用的指令只能在该块内使用。在前面的例子中，`worker_connections`只有在`events`块中才有意义。相反，一些指令必须放置在配置文件的根部，因为它们对服务器有全球性影响。配置文件的根部也被称为**主块**。
+    |
 - en: 'For the most part, blocks can be nested into each other, following a specific
     logic. The following sequence demonstrates the structure of a simple website setup,
     making use of nested blocks:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数情况下，块可以相互嵌套，遵循特定的逻辑。以下序列展示了一个简单网站设置的结构，使用了嵌套块： |
 - en: '[PRE8]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: The topmost directive block is the `http` block, in which you may declare a
     variety of configuration directives, as well as one or more `server` blocks. A
     `server` block allows you to configure a virtual host – in other words, a website
     that is to be hosted on your machine. The `server` block, in this example, contains
     some configuration that applies to all HTTP requests with a `Host` header exactly
     matching `example.com`.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 最上层的指令块是`http`块，在其中你可以声明各种配置指令，以及一个或多个`server`块。`server`块允许你配置虚拟主机——换句话说，就是你打算托管在你机器上的网站。这个示例中的`server`块包含一些配置，它适用于所有`Host`头完全匹配`example.com`的HTTP请求。
 - en: Within this `server` block, you may insert one or more `location` blocks. These
     allow you to enable settings only when the requested URI matches the specified
     path. More information is provided in the *The Location block* section of [*Chapter
     3*](B21787_03.xhtml#_idTextAnchor179).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个`server`块中，你可以插入一个或多个`location`块。这些块允许你仅在请求的URI与指定的路径匹配时启用设置。更多信息请参见[*第3章*](B21787_03.xhtml#_idTextAnchor179)中的*The
+    Location block*部分。
 - en: 'Last but not least, configuration is inherited within children blocks. The
     `access_log` directive (defined at the `server`-block level in this example) specifies
     that all HTTP requests for this server should be logged into a text file. This
     is still true within the `location` child block, although you have the possibility
     of disabling it by reusing the `access_log` directive:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后但同样重要的是，配置在子块中是会继承的。`access_log`指令（在这个示例中的`server`块级别定义）指定该服务器的所有HTTP请求应记录到文本文件中。这在`location`子块中仍然适用，尽管你可以通过重新使用`access_log`指令来禁用它：
 - en: '[PRE9]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: In this case, logging will be enabled everywhere on the website, except for
     the `/admin/` location path. The value set for the `access_log` directive at the
     `server`-block level is overridden by the one at the `location`-block level.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，日志记录将在网站的各个地方启用，除了`/admin/`位置路径。`server`块级别设置的`access_log`指令值被`location`块级别的值所覆盖。
 - en: Advanced language rules
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 高级语言规则
 - en: There are a number of important observations regarding the NGINX configuration
     file syntax. These will help you understand certain language rules that may seem
     confusing if you have never worked with NGINX before.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于NGINX配置文件语法有一些重要的观察点。这些将帮助你理解某些语言规则，如果你以前没有使用过NGINX，这些规则可能会让你感到困惑。
 - en: Directives accept specific syntaxes
+  id: totrans-70
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 指令接受特定的语法
 - en: 'You may indeed stumble upon complex syntaxes that can be confusing at first
     sight:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 你确实可能会遇到一些复杂的语法，初看起来可能会让人感到困惑：
 - en: '[PRE10]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Syntaxes are directive-specific. While the `root` directive only accepts a simple
     character string, defining the folder containing files that should be served for
     a website, the `location` block or the `rewrite` directive supports complex expressions
     in order to match particular patterns. Some other directives, such as `listen`,
     accept up to *17* different parameters. Syntaxes will be explained along with
     directives in their respective chapters.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法是指令特定的。虽然`root`指令只接受一个简单的字符字符串，用于定义包含网站文件的文件夹，但`location`块或`rewrite`指令支持复杂的表达式，用于匹配特定的模式。其他一些指令，比如`listen`，可以接受多达*17*个不同的参数。语法将在各自的章节中与指令一起解释。
 - en: Later on, we will detail a module (the *rewrite* module) that allows for a much
     more advanced logical structure through the `if`, `set`, `break`, and `return`
     blocks and directives, as well as the use of variables. With all of these new
     elements, configuration files will begin to look like programming scripts. Anyhow,
     the more modules we discover, the richer the syntax becomes.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 稍后，我们将详细介绍一个模块（*rewrite*模块），它通过`if`、`set`、`break`和`return`块和指令，以及使用变量，允许更复杂的逻辑结构。随着这些新元素的加入，配置文件将开始看起来像编程脚本。不管怎样，随着我们发现更多的模块，语法会变得更加丰富。
 - en: Diminutives in directive values
+  id: totrans-75
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 指令值中的缩写
 - en: 'Finally, you cany use the following diminutives to specify a file size in the
     context of a directive value:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，你可以使用以下缩写来指定指令值中的文件大小：
 - en: '**k or** **K**: **Kilobytes**'
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**k 或** **K**：**千字节**'
 - en: '**m or** **M**: **Megabytes**'
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**m 或** **M**：**兆字节**'
 - en: '**g or** **G**: **Gigabytes**'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**g 或** **G**：**吉字节**'
 - en: 'As a result, the following three syntaxes are correct and equal:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，以下三种语法是正确且等效的：
 - en: '[PRE11]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: NGINX does not allow you to insert the same directive more than once within
     the same block (although there are a few exceptions, such as `allow` or `deny`);
     should you do so, the configuration will be considered invalid, and NGINX will
     refuse to start up or reload.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 不允许在同一个块中多次插入相同的指令（尽管有一些例外，如 `allow` 或 `deny`）；如果你这样做，配置将被视为无效，NGINX 会拒绝启动或重新加载。
 - en: 'Additionally, when specifying a time value, you can use the following shortcuts:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，在指定时间值时，你可以使用以下快捷方式：
 - en: '**ms**: **Milliseconds**'
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**ms**：**毫秒**'
 - en: '**s**: **Seconds**'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**s**：**秒**'
 - en: '**m**: **Minutes**'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**m**：**分钟**'
 - en: '**h**: **Hours**'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**h**：**小时**'
 - en: '**d**: **Days**'
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**d**：**天**'
 - en: '**w**: **Weeks**'
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**w**：**周**'
 - en: '**M**: **Months** (30 days)'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**M**：**月**（30天）'
 - en: '**y**: **Years** (365 days)'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**y**：**年**（365天）'
 - en: 'This becomes especially useful in the case of directives that accept a period
     of time as a value:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方式在接受时间段作为值的指令中尤其有用：
 - en: '[PRE12]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'The default time unit is seconds; the last two preceding lines thus result
     in identical behavior. It is also possible to combine two values with different
     units:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认的时间单位是秒；因此，前两行的行为是相同的。你也可以将两个不同单位的值组合起来：
 - en: '[PRE13]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The latter variant is enclosed in quotes, since values are separated by spaces.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 后一种变体被引号括起来，因为值是通过空格分隔的。
 - en: Variables
+  id: totrans-97
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 变量
 - en: 'Modules also provide variables that can be used in the definition of directive
     values. For example, the NGINX HTTP core module defines the `$nginx_version` variable.
     Variables in NGINX always start with `$` – the dollar sign. When setting the `log_format`
     directive, you can include all kinds of variables in the format string:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 模块还提供了可以在指令值定义中使用的变量。例如，NGINX HTTP 核心模块定义了 `$nginx_version` 变量。NGINX 中的变量总是以
+    `$` 符号开头。当设置 `log_format` 指令时，你可以在格式字符串中包含各种变量：
 - en: '[PRE14]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Some directives do not allow you to use variables:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 有些指令不允许使用变量：
 - en: '[PRE15]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: The preceding directive is valid, syntax-wise. However, it simply generates
     a file named `error-$nginx_version.log`, without parsing the variable.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面的指令在语法上是有效的。但它仅生成一个名为 `error-$nginx_version.log` 的文件，而不会解析变量。
 - en: String values
+  id: totrans-103
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 字符串值
 - en: 'Character strings that you use as directive values can be written in three
     forms. First, you can enter a value without quotes:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 你作为指令值使用的字符串可以以三种形式编写。首先，你可以输入没有引号的值：
 - en: '[PRE16]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'However, if you want to use a particular character, such as a blank space (),
     a semicolon (`;`), or a pair of curly braces (`{` `}`), you will need to either
     prefix said character with a backslash (`\`) or enclose the entire value in single
     or double quotes:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，如果你想使用某个特定字符，如空格（` `）、分号（`;`）或一对大括号（`{` `}`），你需要在该字符前加上反斜杠（`\`），或将整个值用单引号或双引号括起来：
 - en: '[PRE17]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: NGINX makes no difference whether you use single or double quotes. Note that
     variables inserted in strings within quotes will be expanded normally unless you
     prefix the `$` character with a backslash (`\`).
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 无论是使用单引号还是双引号都没有区别。请注意，插入引号中的字符串中的变量会正常展开，除非你在`$`符号前加上反斜杠（`\`）。
 - en: We now have a better understanding of how the configuration works, as we’ve
     learned about the syntax and the diminutives. We are now ready to cover the NGINX
     modules in depth, allowing us to fine-tune NGINX to take full advantage of the
     hardware and network to better cover our needs.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在对配置的工作原理有了更好的理解，因为我们已经学习了语法和简写。现在我们准备深入了解 NGINX 模块，帮助我们根据硬件和网络的特点对 NGINX
+    进行精细调整，更好地满足我们的需求。
 - en: Looking at the base module directives
+  id: totrans-110
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 查看基础模块指令
 - en: In this section, we will take a closer look at the base modules. We are particularly
     interested in answering two questions – *what are base modules?* and *what directives
     are* *made available?*
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将更详细地了解基础模块。我们特别关注回答两个问题——*什么是基础模块？* 和 *提供了哪些指令？*
 - en: What are base modules?
+  id: totrans-112
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 什么是基础模块？
 - en: 'The base modules offer directives that allow you to define the parameters of
     the basic functionality of NGINX. They cannot be disabled at compile time, and
     as a result, the directives and blocks they offer are always available. Three
     base modules are distinguished:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 基础模块提供了允许你定义 NGINX 基本功能参数的指令。这些模块在编译时无法禁用，因此它们提供的指令和块始终可用。基础模块有三种：
 - en: '**Core module**: This has essential features and directives, such as process
     management and security'
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**核心模块**：这包含了基本的功能和指令，如进程管理和安全性。'
 - en: '**Events module**: This lets you configure the inner mechanisms of the networking
     capabilities'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**事件模块**：此模块让你配置网络功能的内部机制'
 - en: '**Configuration module**: This enables the inclusion mechanism'
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**配置模块**：启用包含机制'
 - en: These modules offer a large range of directives; we will detail them individually,
     with their syntaxes and default values.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些模块提供了广泛的指令；我们将逐一详细说明它们的语法和默认值。
 - en: NGINX process architecture
+  id: totrans-118
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: NGINX 进程架构
 - en: Before we start detailing the basic configuration directives, it is necessary
     to understand the overall process architecture – that is, how the NGINX daemon
     works behind the scenes. Although the application comes as a simple binary file
     (and a somewhat lightweight background process), the way it functions at runtime
     can be relatively complex.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们详细说明基本配置指令之前，首先需要理解整体的进程架构 —— 即 NGINX 后台的工作原理。尽管该应用程序作为一个简单的二进制文件（以及一个相对轻量级的后台进程）运行，但它在运行时的工作方式可能相对复杂。
 - en: At the very moment of starting NGINX, one unique process exists in memory –
     `master process`. It is launched with the current user and group permissions,
     usually `root/root` if the service is launched at boot time by an `init` script.
     The master process itself does not process any client requests; instead, it spawns
     processes that do – *worker processes*, which are affected by a customizable user
     and group.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在启动 NGINX 的那一刻，内存中会存在一个唯一的进程 —— `主进程`。它以当前用户和组的权限启动，通常为 `root/root`，如果服务是通过
+    `init` 脚本在启动时启动的。主进程本身不会处理任何客户端请求；相反，它会生成处理请求的进程 —— *工作进程*，这些进程可以由可自定义的用户和组来控制。
 - en: 'From the configuration file, you are able to define the number of worker processes,
     the maximum connections per worker process, the user and group the worker processes
     run under, and so on. The following screenshot shows an example of a running instance
     of NGINX, with eight worker processes running under the `www-data` user account:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过配置文件，你可以定义工作进程的数量、每个工作进程的最大连接数、工作进程运行的用户和组等。以下截图展示了一个正在运行的 NGINX 实例，八个工作进程在
+    `www-data` 用户账户下运行：
 - en: "![Figure 2.3: ps faux is used to list the processes and grep is u\uFEFFs\uFEFF\
     ed to show only nginx](img/B21787_02_3.jpg)"
+  id: totrans-122
   prefs: []
   type: TYPE_IMG
+  zh: '![图 2.3：使用 ps faux 列出进程，使用 grep 仅显示 nginx](img/B21787_02_3.jpg)'
 - en: 'Figure 2.3: ps faux is used to list the processes and grep is used to show
     only nginx'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2.3：使用 ps faux 列出进程，使用 grep 仅显示 nginx
 - en: Core module directives
+  id: totrans-124
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 核心模块指令
 - en: The following is the list of directives made available by the core module. Most
     of these directives must be placed at the root of the configuration file and can
     only be used once. However, some of them are valid in multiple contexts.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是核心模块提供的指令列表。大多数指令必须放置在配置文件的根部，并且只能使用一次。然而，其中一些在多个上下文中有效。
 - en: 'If that is the case, the following is the list of valid contexts under the
     directive name:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果是这种情况，以下是指令名称下有效的上下文列表：
 - en: '| **Name** **and context** | **Syntax** **and description** |'
+  id: totrans-127
   prefs: []
   type: TYPE_TB
+  zh: '| **名称** **和上下文** | **语法** **和描述** |'
 - en: '| --- | --- |'
+  id: totrans-128
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `daemon` | `on` or `off`.`daemon on;`.`on`.Enables or disables daemon mode.
     If you disable it, the program will not be started in the background; it will
     stay in the foreground when launched from the shell. This may come in handy for
     debugging, in situations where you need to know what causes NGINX to crash, and
     when. |'
+  id: totrans-129
   prefs: []
   type: TYPE_TB
+  zh: '| `daemon` | `on` 或 `off`。`daemon on;`。`on`。启用或禁用守护进程模式。如果禁用，程序将不会在后台启动；从 shell
+    启动时，它将保持在前台。这在调试时可能非常有用，尤其是在需要知道 NGINX 崩溃的原因和时间时。 |'
 - en: '| `debug_points` | `stop` or `abort`.`debug_points stop;`.**Default** **value**:
     None.Activates debug points in NGINX. Use `stop` to interrupt the application
     when a debug point comes about in order to attach a debugger. Use `abort` to abort
     the debug point and create a core dump file.To disable this feature, simply do
     not use the directive. |'
+  id: totrans-130
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_points` | `stop` 或 `abort`。`debug_points stop;`。**默认** **值**：无。启用
+    NGINX 中的调试点。使用 `stop` 可在调试点出现时中断应用程序，以便附加调试器。使用 `abort` 可中止调试点并创建核心转储文件。要禁用此功能，只需不使用该指令。
+    |'
 - en: '| `Env` | `env MY_VARIABLE;` `env MY_VARIABLE=my_value;`.Allows you to define
     or redefine environment variables |'
+  id: totrans-131
   prefs: []
   type: TYPE_TB
+  zh: '| `Env` | `env MY_VARIABLE;` `env MY_VARIABLE=my_value;`。允许你定义或重新定义环境变量 |'
 - en: '| `error_log``main`, `http`, `server`, and `location` | `error_log /``file/path
     level;`.`logs/error.log error`.`debug`, `info`, `notice`, `warn`, `error`, `crit`,
     `alert`, and `emerg` (from most to least detailed – `debug` provides frequent
@@ -599,22 +885,26 @@
     of the following alternatives – `stderr` will send log entries to the standard
     error file, and `Syslog` will send them to the system log. These alternatives
     are further detailed in C*hapter 11*. |'
+  id: totrans-132
   prefs: []
   type: TYPE_TB
 - en: '| `lock_file` | `lock_file logs/nginx.lock;`.**Default value**: Defined at
     compile time.Use a lock file for mutual exclusion. This is disabled by default,
     unless you enabled it at compile time. On most operating systems, the locks are
     implemented using atomic operations, so this directive is ignored anyway. |'
+  id: totrans-133
   prefs: []
   type: TYPE_TB
 - en: '| `load_module``main` | `load_module` `modules/ngx_http_geoip_module.so;`.**Default**
     **value**: None.Load a dynamically compiled module at runtime |'
+  id: totrans-134
   prefs: []
   type: TYPE_TB
 - en: '| `log_not_found``main`, `http`, `server`, and `location` | `on` or `off`.`log_not_found
     on;`.`on`.Enables or disables logging of `404` not found HTTP errors. If your
     logs get filled with `404` errors due to missing `favicon.ico` or `robots.txt`
     files, you might want to turn this off. |'
+  id: totrans-135
   prefs: []
   type: TYPE_TB
 - en: '| `master_process` | `on` or `off`.`master_process on;`.`on`.If enabled, NGINX
@@ -622,11 +912,13 @@
     processes. If disabled, NGINX works with a unique process. This directive should
     be used for testing purposes only, as it disables the master process; clients
     thus cannot connect to your server. |'
+  id: totrans-136
   prefs: []
   type: TYPE_TB
 - en: '| `pcre_jit` | `on` or `off`.`pcre_jit on;`.Enables or disables `--enable-jit`
     configuration argument. When configuring your NGINX build, you must also add the
     `--``with-pcre-jit` argument. |'
+  id: totrans-137
   prefs: []
   type: TYPE_TB
 - en: '| `Pid` | `pid logs/nginx.pid;`.**Default value**: Defined at compile time.The
@@ -634,12 +926,14 @@
     at compile time. Make sure to enable this directive and set its value properly,
     since the `pid` file can be used by the NGINX `init` script, depending on your
     operating system. |'
+  id: totrans-138
   prefs: []
   type: TYPE_TB
 - en: '| `ssl_engine` | `ssl_engine enginename;`.**Default** **value**: None.Where
     `enginename` is the name of an available hardware SSL accelerator on your system.
     To check for available hardware SSL accelerators, run this command from the shell:`openssl`
     `engine -t` |'
+  id: totrans-139
   prefs: []
   type: TYPE_TB
 - en: '| `thread_pool` | **Syntax**:`thread_pool name` `threads=number [max_queue=number];`.`thread_pool
@@ -647,14 +941,21 @@
     be used with the `aio` directive, in order to serve larger files asynchronously.
     Further details are provided in [*Chapter 9*](B21787_09.xhtml#_idTextAnchor701).
     |'
+  id: totrans-140
   prefs: []
   type: TYPE_TB
+  zh: '| `thread_pool` | **语法**：`thread_pool name` `threads=number [max_queue=number];`。`thread_pool
+    default` `threads=32 max_queue=65536;`。定义一个线程池引用，可以与 `aio` 指令一起使用，以便异步地处理更大的文件。更多详细信息请参见
+    [*第9章*](B21787_09.xhtml#_idTextAnchor701)。|'
 - en: '| `timer_resolution` | `timer_resolution 100ms;`.**Default** **value**: None.Controls
     the interval between system calls to `gettimeofday()` to synchronize the internal
     clock. If this value is not specified, the clock is refreshed after each kernel
     event notification. |'
+  id: totrans-141
   prefs: []
   type: TYPE_TB
+  zh: '| `timer_resolution` | `timer_resolution 100ms;`。**默认值**：无。控制系统调用 `gettimeofday()`
+    的间隔，以同步内部时钟。如果未指定此值，则时钟将在每个内核事件通知后刷新。|'
 - en: '| `user` | **Syntax**:`user` `username groupname;``user username;.`**Default
     value**: Defined at compile time. If still undefined, the user and group of the
     NGINX master process are used.Allows you to define the user account and, optionally,
@@ -662,8 +963,12 @@
     you should make sure to specify a user and group with limited privileges. For
     example, create a new user and group dedicated to NGINX, and remember to apply
     proper permissions on the files that will be served. |'
+  id: totrans-142
   prefs: []
   type: TYPE_TB
+  zh: '| `user` | **语法**：`user` `username groupname;` `user username;`。**默认值**：在编译时定义。如果仍未定义，则使用
+    NGINX 主进程的用户和组。允许您定义用于启动 NGINX 工作进程的用户帐户，并可选地指定用户组。出于安全原因，您应确保指定一个具有有限权限的用户和组。例如，可以为
+    NGINX 创建一个新的用户和组，并记得为要提供服务的文件应用适当的权限。|'
 - en: '| `worker_cpu_affinity` | **Syntax**:`worker_cpu_affinity 1000 0100 0010 0001;
     worker_cpu_affinity 10 10` `01 01;``worker_cpu_affinity auto;`.**Default** **value**:
     None.This directive works in conjunction with `worker_processes`. It lets you
@@ -679,14 +984,24 @@
     of not being specified, which means the OS will manage it.Note that affinity is
     only recommended for multi-core CPUs, not for processors with hyperthreading or
     similar technologies. |'
+  id: totrans-143
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_cpu_affinity` | **语法**：`worker_cpu_affinity 1000 0100 0010 0001;
+    worker_cpu_affinity 10 10` `01 01;` `worker_cpu_affinity auto;`。**默认值**：无。此指令与
+    `worker_processes` 一起使用，允许您将工作进程绑定到特定的 CPU 核心。每个工作进程有一组数字块，数字块的数量与 CPU 核心数相同。如果配置
+    NGINX 使用三个工作进程，则会有三块数字。例如，在双核 CPU 上，每个块有两个数字：`worker_cpu_affinity 01` `01 10;`
+    第一个块（`01`）表示第一个工作进程绑定到第二个核心。第二个块（`01`）表示第二个工作进程绑定到第二个核心。第三个块（`10`）表示第三个工作进程绑定到第一个核心。`auto`
+    值允许 NGINX 自动管理进程绑定。这与默认的未指定绑定有所不同，未指定时由操作系统来管理。请注意，亲和性仅推荐用于多核 CPU，不适用于支持超线程或类似技术的处理器。|'
 - en: '| `worker_priority` | `worker_priority 0;`.`0`.Defines the priority of the
     worker processes, from `-20` (highest) to `19` (lowest). The default value is
     `0`. Note that kernel processes run at priority level `-5`, so it’s not recommended
     that you set the priority to `-5` or less. |'
+  id: totrans-144
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_priority` | `worker_priority 0;`。`0`。定义工作进程的优先级，从 `-20`（最高）到 `19`（最低）。默认值是
+    `0`。请注意，内核进程运行在优先级 `-5`，因此不建议将优先级设置为 `-5` 或更低。|'
 - en: '| `worker_processes` | `worker_processes 4;`.`1`.Defines the number of worker
     processes. NGINX offers to separate the treatment of requests into multiple processes.
     The default value is `1`, but it’s recommended to increase this value if your
@@ -695,14 +1010,17 @@
     you may use the `auto` value, which will let NGINX select an appropriate value
     for this directive. By default, it is the amount of CPU cores detected on the
     system. |'
+  id: totrans-145
   prefs: []
   type: TYPE_TB
 - en: '| `worker_rlimit_core` | `worker_rlimit_core 100m;`.**Default** **value**:
     None.Defines the size of core files per worker process |'
+  id: totrans-146
   prefs: []
   type: TYPE_TB
 - en: '| `worker_rlimit_nofile` | `worker_rlimit_nofile 10000;`.**Default** **value**:
     None.Defines the number of files a worker process can use simultaneously. |'
+  id: totrans-147
   prefs: []
   type: TYPE_TB
 - en: '| `working_directory` | `working_directory /usr/local/nginx/;`.**Default value**:
@@ -710,57 +1028,71 @@
     it is only used to define the location of core files. The worker process user
     account (the `user` directive) must have write permissions on this folder in order
     to be able to write core files. |'
+  id: totrans-148
   prefs: []
   type: TYPE_TB
 - en: '| `worker_aio_requests` | `worker_aio_requests 10000;`.If you are using `aio`
     with the `epoll` connection processing method, this directive sets the maximum
     number of outstanding asynchronous I/O operations for a single worker process.
     |'
+  id: totrans-149
   prefs: []
   type: TYPE_TB
 - en: '| `worker_shutdown_timeout` | `worker_shutdown_timeout 5s;`.Configures the
     time limit for the graceful shutdown of worker processes. If exceeded, NGINX will
     try to forcefully close workers to complete the shutdown. |'
+  id: totrans-150
   prefs: []
   type: TYPE_TB
 - en: 'Table 2.2: A table detailing the core module directives'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
 - en: The events module
+  id: totrans-152
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: The `events` module comes with directives that allow you to configure network
     mechanisms. Some of the parameters have an important impact on an application’s
     performance.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
 - en: 'All of the directives listed in the following table must be placed in the events
     block, which is located at the root of the configuration file:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE18]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'These directives cannot be placed elsewhere (if you do so, the configuration
     test will fail):'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
 - en: '| **Directive name** | **Syntax** **and description** |'
+  id: totrans-157
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- |'
+  id: totrans-158
   prefs: []
   type: TYPE_TB
 - en: '| `accept_mutex` | `on` or `off`.`accept_mutex` `on;` .`off`; prior to version
     1.11.3, `on`.Enables or disables the use of an accept mutex (mutual exclusion)
     to open listening sockets. |'
+  id: totrans-159
   prefs: []
   type: TYPE_TB
 - en: '| `accept_mutex_delay` | `accept_mutex_delay 500ms;`.**Default value**: 500
     milliseconds.Defines the amount of time a worker process should wait before trying
     to acquire the resource again. This value is not used if the `accept_mutex` directive
     is set to `off`. |'
+  id: totrans-160
   prefs: []
   type: TYPE_TB
 - en: '| `debug_connection` | **Syntax (IP address or** **CIDR block)**:`debug_connection`
@@ -769,10 +1101,12 @@
     information is stored in the file specified with the `error_log` directive, enabled
     with the debug level.NGINX must be compiled with the `--debug` switch in order
     to enable this feature. |'
+  id: totrans-161
   prefs: []
   type: TYPE_TB
 - en: '| `multi_accept` | `multi_accept` `off;` .`off`.Defines whether or not NGINX
     should accept all incoming connections at once from the listening queue. |'
+  id: totrans-162
   prefs: []
   type: TYPE_TB
 - en: '| `use` | `/dev/poll`, `epoll`, `eventport`, `kqueue`, `rtsig`, or `select`.`use
@@ -790,17 +1124,21 @@
     signals.`/dev/poll`: An efficient method for Solaris 7 11/99+, HP/UX 11.22+, IRIX
     6.5.15+, and Tru64 UNIX 5.1A+ OSes.`eventport`: An efficient method for Solaris
     10, although a security patch is required. |'
+  id: totrans-163
   prefs: []
   type: TYPE_TB
 - en: '| `worker_connections` | `worker_connections 1024;`.**Default** **value**:
     None.Defines the number of connections that a worker process may treat simultaneously.
     |'
+  id: totrans-164
   prefs: []
   type: TYPE_TB
 - en: 'Table 2.3: A table detailing the events module directives'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
 - en: Configuration module
+  id: totrans-166
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -808,28 +1146,36 @@
     with the `include` directive, as previously described in the *Organization and
     inclusions* section. The directive can be inserted anywhere in the configuration
     file and accepts a single parameter – a file path:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE19]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Note
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
 - en: If you do not specify an absolute path, the file path is relative to the configuration
     directory. By default, `include sites/example.conf` will include the
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
 - en: '`/``usr/local/nginx/conf/sites/example.conf` file.'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: Necessary adjustments
+  id: totrans-172
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Several core directives deserve to be adjusted carefully upon preparing the
     initial setup of NGINX on your server. We will review several of these directives
     and the possible values you can set:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
 - en: '`user root;`: This directive specifies that the worker processes will be started
@@ -837,6 +1183,7 @@
     your filesystem. You need to create a new user account on your system and make
     use of it here. The recommended value (granted that a `www-data` user account
     and group exist on the system) is `user` `www-data www-data;`.'
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -847,6 +1194,7 @@
     process per CPU core. Alternatively, just set this to `auto` to leave it up to
     NGINX to determine the optimal value. The recommended value is `worker_processes
     auto;`.'
+  id: totrans-175
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -857,6 +1205,7 @@
     from `-20` (the highest priority) to `19` (the lowest priority). There is no recommended
     value here, as it completely depends on your situation. However, you should not
     set it to under `-5`, as it is the default priority for kernel processes.'
+  id: totrans-176
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -869,6 +1218,7 @@
     but keep in mind that this could deprive you of potentially important information
     about other pages that visitors failed to reach. Note that this directive is part
     of the HTTP core module. Refer to the next chapter for more information.'
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -880,15 +1230,18 @@
     power your server relies on, the more connections you can accept concurrently.
     If your server is a huge monster meant to host high-traffic sites, you will want
     to increase this value.'
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: We’ve taken a look at the configuration. Next, we are going to put this into
     practice by trying our configuration and launching a test server to see how NGINX
     behaves.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
 - en: Testing your server
+  id: totrans-180
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -896,9 +1249,11 @@
     core functioning of NGINX. We will perform a simple test to ensure that all is
     working as expected and that you are ready to further configure and deploy your
     websites.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
 - en: Creating a test server
+  id: totrans-182
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -907,42 +1262,54 @@
     the default package in the `html` folder (`/usr/local/nginx/html/index.html`),
     and the original `nginx.conf` is configured to serve this page. Here is the section
     that we are interested in for now:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE20]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'As you can perhaps already tell, this segment configures NGINX to serve a website:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
 - en: It opens a listening socket on port `80`
+  id: totrans-186
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Accessible at the `http://localhost/` address
+  id: totrans-187
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: With the `index.html` index page
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'For more details about these directives, refer to the *HTTP module configuration*
     section in [*Chapter 3*](B21787_03.xhtml#_idTextAnchor179). Anyhow, fire up your
     favorite web browser and visit `http://localhost/`:'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
 - en: '![Figure 2.4: The default page for the NGINX server](img/B21787_02_4.jpg)'
+  id: totrans-190
   prefs: []
   type: TYPE_IMG
 - en: 'Figure 2.4: The default page for the NGINX server'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
 - en: You should be greeted with a welcome message; if you aren’t, then check the
     configuration again and make sure you reloaded NGINX in order to apply the changes.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
 - en: Upgrading NGINX gracefully
+  id: totrans-193
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -953,46 +1320,55 @@
     over the old one, and restart NGINX. While this is not considered to be a problem
     for most websites, there may be some cases where uptime is critical and connection
     losses should be avoided at all costs.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
 - en: 'Fortunately, NGINX embeds a mechanism that allows you to switch binaries with
     uninterrupted uptime; zero percent request loss is guaranteed if you follow these
     steps carefully:'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
 - en: Replace the old NGINX binary (by default, `/usr/local/nginx/sbin/nginx`) with
     the new one.
+  id: totrans-196
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Find `pid` of the NGINX master process – for example, with `ps x` | `grep nginx`
     | `grep master` or by looking at the value found in the `.``pid` file.
+  id: totrans-197
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Send a `USR2` (`12`) signal to the master process, `kill -USR2 1234`, replacing
     `1234` with the `pid` found in *step 2*. This will initiate the upgrade by renaming
     the old `.pid` file and running the new binary.
+  id: totrans-198
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Send a `WINCH` (`28`) signal to the old master process, `kill -WINCH 1234`,
     replacing `1234` with the `pid` found in *step 2*. This will engage a graceful
     shutdown of the old worker processes.
+  id: totrans-199
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Make sure that all of the old worker processes are terminated, and then send
     a `QUIT` signal to the old master process, `kill -QUIT 1234`, replacing `1234`
     with the `pid` found in *step 2*.
+  id: totrans-200
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Congratulations! You have successfully upgraded NGINX and have not lost a single
     connection.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-202
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -1001,15 +1377,18 @@
     overall server performance. We then went through a series of adjustments in order
     to fit your own profile, followed by a procedure to upgrade your running NGINX
     server without losing connections.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
 - en: However, this is just the beginning. Practically everything that we will do
     from now on is to prepare configuration sections. The next chapter will detail
     more advanced directives by further exploring the module system and the exciting
     possibilities that are offered to you by it.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
 - en: 'Part 2: Dive into NGINX'
+  id: totrans-205
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -1018,25 +1397,31 @@
     intricacies of basic modules such as the HTTP module and the rewriting module,
     as well as integration with PHP and Python. You’ll also learn how to adapt NGINX
     to your specific needs.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
 - en: 'This part includes the following chapters:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
 - en: '[*Chapter 3*](B21787_03.xhtml#_idTextAnchor179)*,* *Exploring the HTTP Configuration*'
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[*Chapter 4*](B21787_04.xhtml#_idTextAnchor412)*, Exploring Module Configuration
     in NGINX*'
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[*Chapter 5*](B21787_05.xhtml#_idTextAnchor557)*, PHP and Python with NGINX*'
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[*Chapter 6*](B21787_06.xhtml#_idTextAnchor621)*, NGINX as a Reverse Proxy*'
+  id: totrans-211
   prefs:
   - PREF_UL
   type: TYPE_NORMAL

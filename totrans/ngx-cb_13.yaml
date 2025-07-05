@@ -761,6 +761,7 @@
   id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们的示例配置允许实时进行更改，但如果我们重新启动NGINX Plus，这些更改不会持久化。为了确保这些更改在重启之间得以保持，我们可以添加一个`state`文件来管理当前的配置。这是通过更新`upstream`块指令来实现的。以下是我们更新后的配置：
 - en: '[PRE30]'
   id: totrans-122
   prefs: []
@@ -775,20 +776,24 @@
   id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们添加了`state`指令，当上游配置发生变化时该指令会被更新，同时在NGINX重启时会重新读取该指令。该上游中的所有其他服务器指令也必须被移除，因为你不能将静态服务器配置与动态、有状态配置结合使用。状态文件本身是纯文本（并使用标准的NGINX服务器指令格式），但强烈不建议直接操作该文件。
 - en: See also
   id: totrans-124
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The NGINX Plus `http_upstream_conf` module documentation is available at: [https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html](https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html)'
   id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX Plus的`http_upstream_conf`模块文档可在此查阅：[https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html](https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html)
 - en: Session persistence
   id: totrans-126
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 会话保持
 - en: If you have a scenario where you have a load balancer with multiple backend
     servers (as we covered back in [Chapter 8](4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml),
     *Load Balancing*), there can be some tricky scenarios where session tracking would
@@ -798,6 +803,7 @@
   id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一个负载均衡器和多个后端服务器的场景（如我们在[第8章](4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml)中讲解的*负载均衡*），可能会有一些复杂的情况，使得会话跟踪变得难以实现。虽然使用基于哈希的算法可以确保来自相同IP的请求被路由到相同的后端服务器，但这并不总能确保请求的平衡分配。
 - en: One of the key features for NGINX Plus is session persistence, where requests
     from the same client need to be sent to the same server for the life of that session.
     Also known as "sticky" sessions, this can be especially important when it comes
@@ -806,26 +812,31 @@
   id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX Plus的一个关键特性是会话保持，其中来自同一客户端的请求需要在该会话的生命周期内发送到同一服务器。也称为“粘性”会话，这在支付系统中尤其重要，因为后端服务器之间的信息共享可能会受到限制。
 - en: Getting ready
   id: totrans-129
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: We'll reuse our simple, round-robin load balancing scenario and incorporate
     the various session persistence options available in NGINX Plus.
   id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将重用我们简单的轮询负载均衡场景，并结合NGINX Plus中可用的各种会话保持选项。
 - en: How to do it...
   id: totrans-131
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'There are three different methods to ensuring sticky sessions, each with their
     various pros and cons. Here''s a quick summary:'
   id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 有三种不同的方法来确保会话粘性，每种方法都有其优缺点。这里是一个简要总结：
 - en: '`cookie`: This method uses a cookie on the first request to store the tracking
     information in order to ensure subsequent requests are routed to the same backend
     server. As it means modifying the headers, it may not be compatible with all systems.'
@@ -833,6 +844,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`cookie`：这种方法在第一次请求时使用一个cookie来存储跟踪信息，以确保后续请求被路由到相同的后端服务器。由于这意味着修改头部信息，可能与所有系统不兼容。'
 - en: '`learn`: This is a stateful method, which relies on existing data within existing
     response headers to determine a unique identifier in which to track the requests.
     For example, most web frameworks have their own session ID, which can be leveraged
@@ -841,6 +853,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`learn`：这是一种有状态的方法，它依赖于现有响应头中的数据来确定一个唯一的标识符，以跟踪请求。例如，大多数Web框架都有自己的会话ID，可以利用它进行跟踪。这意味着无需修改数据。'
 - en: '`route`: Lastly, we can route the request based on variables to explicitly
     choose the upstream server to use. While similar to the cookie method (route also
     uses a cookie to help track), the explicit choice of server can be beneficial

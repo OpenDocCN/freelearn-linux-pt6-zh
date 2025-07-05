@@ -1,7 +1,9 @@
 - en: Preface
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 前言
 - en: NGINX, known for its lightweight design, is a powerhouse HTTP server designed
     for handling high-traffic websites, with network scalability as its primary objective.
     In our increasingly connected world, optimizing your web apps has become more
@@ -10,43 +12,58 @@
     lightweight HTTP server, from a quick and basic configuration to a more detailed
     configuration tailored to your needs. This new edition focuses on the latest version
     1.25.2, which introduces new features such as HTTP/3 and QUIC.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX因其轻量级设计而闻名，是一款为处理高流量网站而设计的强大HTTP服务器，其主要目标是网络可扩展性。在我们日益互联的世界中，优化Web应用变得比以往任何时候都更为重要。无论你是初学者还是经验丰富的管理员，本书将引导你完成从快速基础配置到根据需求量身定制的更详细配置的整个过程。此新版聚焦于最新版本1.25.2，新增了HTTP/3和QUIC等功能。
 - en: Packed with a multitude of real-world examples, this book will help you to secure
     your infrastructure with automatic TLS certificates, expertly place NGINX in front
     of your existing applications, and do much more. You’ll also cover orchestration,
     Docker, bandwidth management, OpenResty, and NGINX Plus commercial features to
     enhance and optimize your infrastructure or design a brand-new architecture.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书包含大量实际案例，将帮助你通过自动化TLS证书来保护你的基础设施，巧妙地将NGINX放置在现有应用前端，做更多的工作。你还将涉及编排、Docker、带宽管理、OpenResty以及NGINX
+    Plus的商业功能，以增强和优化你的基础设施或设计全新的架构。
 - en: By the end of this book, you’ll be able to adapt and use a wide variety of NGINX
     implementations to solve any problems you have.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书结束时，你将能够适应并使用各种NGINX实现方式来解决你遇到的任何问题。
 - en: Who this book is for
+  id: totrans-4
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书适合谁阅读
 - en: This edition of our NGINX book is meticulously designed for beginner DevOps
     engineers, system administrators, and web developers who want to improve their
     understanding of web server management, especially in the areas of performance
     optimization and cloud infrastructure. Whether you’re just beginning your journey
     into web technologies or looking to consolidate your base, this book offers practical
     insights and hands-on experience with NGINX, the heart of modern web applications.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 本版NGINX书籍精心设计，面向那些希望提高Web服务器管理理解的初学者DevOps工程师、系统管理员和网页开发者，特别是在性能优化和云基础设施方面。无论你是刚开始接触Web技术，还是希望巩固基础，本书都提供了有关NGINX的实用见解和动手实践经验，NGINX是现代Web应用的核心。
 - en: The primary personas who will find this content invaluable are beginner DevOps
     engineers, system administrators, and curious web developers. DevOps newcomers
     will learn NGINX’s essentials, from setup to cloud optimization, while system
     administrators will gain strategies for effective deployment and troubleshooting,
     and developers will discover how to enhance their projects with improved performance,
     security, and scalability.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书的主要读者群体是初学者DevOps工程师、系统管理员和有好奇心的网页开发者。DevOps新手将学习NGINX的基础知识，从设置到云优化，而系统管理员将获得有效部署和故障排除的策略，开发者则会发现如何通过提升性能、安全性和可扩展性来增强他们的项目。
 - en: What this book covers
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书内容概览
 - en: '[*Chapter 1*](B21787_01.xhtml#_idTextAnchor014), *Downloading and Installing
     NGINX*, is an introduction to acquiring and configuring NGINX on your system.
     It covers the essentials, from the initial download to ensuring NGINX persists
@@ -54,14 +71,19 @@
     your system, configuring NGINX, managing dynamically loaded modules, and integrating
     NGINX as a reliable system service. The chapter closes with an overview of NGINX
     Plus.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第1章*](B21787_01.xhtml#_idTextAnchor014)，*下载和安装NGINX*，是关于如何在你的系统上获取和配置NGINX的介绍。它涵盖了从初始下载到确保NGINX在重启后依然存在的所有基础知识，重点包括准备系统、配置NGINX、管理动态加载的模块，并将NGINX集成为可靠的系统服务。本章最后介绍了NGINX
+    Plus。'
 - en: '[*Chapter 2*](B21787_02.xhtml#_idTextAnchor121), *Basic NGINX Configuration*,
     explores the essentials of NGINX configuration, from file syntax and structure
     to testing changes. Highlights include configuration syntax, base directives,
     and server testing strategies.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第2章*](B21787_02.xhtml#_idTextAnchor121)，*基本NGINX配置*，探讨了NGINX配置的基础知识，从文件语法和结构到测试变更。亮点包括配置语法、基本指令和服务器测试策略。'
 - en: '[*Chapter 3*](B21787_03.xhtml#_idTextAnchor179), *Exploring the HTTP Configuration*,
     focuses on the intricacies of the NGINX HTTP module, providing a comprehensive
     guide to directives and an in-depth exploration of the Location block. From the
@@ -69,30 +91,44 @@
     and variables, to mastery of the Location block, this chapter provides readers
     with the know-how to efficiently configure virtual hosts and understand the principles
     underlying NGINX’s configuration structure.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第 3 章*](B21787_03.xhtml#_idTextAnchor179)，*探索 HTTP 配置*，专注于 NGINX HTTP 模块的复杂性，提供指令的全面指南和对
+    Location 块的深入探讨。从 HTTP 核心模块的基础知识，通过对指令和变量的深入讨论，到 Location 块的掌握，本章为读者提供了高效配置虚拟主机以及理解
+    NGINX 配置结构原理的知识。'
 - en: '[*Chapter 4*](B21787_04.xhtml#_idTextAnchor412), *Exploring Module Configuration
     in NGINX*, delivers an in-depth guide to NGINX’s Rewrite module and a comprehensive
     overview of the open source edition’s first-party modules. This chapter focuses
     on mastering “pretty URLs” with the Rewrite module, and exploring NGINX’s vast
     selection of add-on modules.'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第 4 章*](B21787_04.xhtml#_idTextAnchor412)，*探索 NGINX 中的模块配置*，提供了 NGINX Rewrite
+    模块的深入指南，以及对开源版本的第一方模块的全面概述。本章侧重于通过 Rewrite 模块掌握“美化 URL”，并探索 NGINX 大量的附加模块。'
 - en: '[*Chapter 5*](B21787_05.xhtml#_idTextAnchor557), *PHP and Python with NGINX*,
     emphasizes configuring NGINX to work with dynamic PHP and Python scripts via FastCGI.
     Starting with a deep dive into the principles of FastCGI, it then walks through
     the process of configuring NGINX for efficient communication with PHP and Python
     applications, offering insights into using the FastCGI module for optimal server-side
     script integration.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第 5 章*](B21787_05.xhtml#_idTextAnchor557)，*PHP 和 Python 与 NGINX*，强调通过 FastCGI
+    配置 NGINX 以与动态 PHP 和 Python 脚本配合工作。从深入探讨 FastCGI 原理开始，然后详细介绍配置 NGINX 以实现与 PHP 和
+    Python 应用的高效通信，并提供使用 FastCGI 模块进行最佳服务器端脚本集成的见解。'
 - en: '[*Chapter 6*](B21787_06.xhtml#_idTextAnchor621), *NGINX as a Reverse Proxy*,
     discusses NGINX’s reverse proxy capabilities and dives into the details of the
     NGINX proxy module. Readers will learn how to navigate the proxy module, appreciate
     NGINX’s strengths in managing modern web applications, and set up a reverse proxy
     configuration efficiently.'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第 6 章*](B21787_06.xhtml#_idTextAnchor621)，*NGINX 作为反向代理*，讨论了 NGINX 的反向代理能力，并深入探讨了
+    NGINX 代理模块的细节。读者将学习如何使用代理模块，欣赏 NGINX 在管理现代 Web 应用程序方面的优势，并高效设置反向代理配置。'
 - en: '[*Chapter 7*](B21787_07.xhtml#_idTextAnchor653), *Introduction to Load Balancing
     and Optimization*, focuses on deploying NGINX to manage high-traffic websites
     on multiple servers. This chapter looks at NGINX’s advanced load-balancing capabilities
@@ -100,29 +136,42 @@
     offers a comprehensive guide to setting up a balanced server architecture and
     improving I/O performance, crucial for the scalability and efficiency of large-scale
     web applications.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第 7 章*](B21787_07.xhtml#_idTextAnchor653)，*负载均衡和优化简介*，专注于部署 NGINX 以管理多服务器上的高流量网站。本章介绍了
+    NGINX 的高级负载均衡能力和最新的 I/O 优化功能，包括线程池的使用。提供了建立平衡服务器架构和改善 I/O 性能的全面指南，这对于大规模 Web 应用程序的可扩展性和效率至关重要。'
 - en: '[*Chapter 8*](B21787_08.xhtml#_idTextAnchor688), *NGINX within a Cloud Infrastructure*,
     highlights the integration of NGINX and Docker in cloud setups, from Docker fundamentals
     to deploying NGINX with Docker Compose. Learn to optimize containerized applications
     and caching with NGINX as a central gateway.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第 8 章*](B21787_08.xhtml#_idTextAnchor688)，*NGINX 在云基础设施中*，重点介绍了在云环境中使用 NGINX
+    和 Docker 的集成，从 Docker 基础知识到使用 Docker Compose 部署 NGINX。学习如何优化容器化应用程序以及如何将 NGINX
+    作为中心网关进行缓存。'
 - en: '[*Chapter 9*](B21787_09.xhtml#_idTextAnchor701), *Fully Deploy, Manage, and
     Auto-Update NGINX with Ansible*, explores efficient NGINX deployment across multiple
     servers using Ansible. Covering mass deployment strategies, the basics of configuration
     management, and crafting Ansible roles for NGINX, this chapter will help with
     large-scale server management. It concludes with automating NGINX updates for
     effortless maintenance to deliver a robust and secure NGINX fleet.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第 9 章*](B21787_09.xhtml#_idTextAnchor701)，*使用 Ansible 完全部署、管理和自动更新 NGINX*，探讨了使用
+    Ansible 在多服务器上高效部署 NGINX。涵盖了大规模部署策略、配置管理基础知识以及为 NGINX 编写 Ansible 角色的技巧，本章将帮助管理大规模服务器。最后介绍了自动化
+    NGINX 更新，以轻松维护并提供稳健安全的 NGINX 舰队。'
 - en: '[*Chapter 10*](B21787_10.xhtml#_idTextAnchor708), *Case Studies*, dives into
     the deployment of secure websites and applications with detailed case studies.
     Master SSL with acme.sh, adopt HTTP/2, configure WordPress and integrate NextCloud
     with Docker. Gain skills in deploying secure sites, configuring NGINX for various
     scenarios and using NGINX to enhance Docker environments.'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第10章*](B21787_10.xhtml#_idTextAnchor708)，*案例研究*，深入探讨了如何通过详细的案例研究部署安全的网站和应用程序。掌握使用acme.sh实现SSL，采用HTTP/2，配置WordPress并与Docker集成NextCloud。掌握部署安全站点、为各种场景配置NGINX以及使用NGINX增强Docker环境的技能。'
 - en: '[*Chapter 11*](B21787_11.xhtml#_idTextAnchor749), *Troubleshooting*, navigates
     through NGINX debugging with essential tips and tools for identifying issues.
     Covering general troubleshooting advice, log parsing, and common challenges such
@@ -130,191 +179,288 @@
     to resolving configuration mistakes and understanding block priorities. Learn
     to adjust configurations for effective debugging and recognize frequent NGINX
     configuration errors.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*第11章*](B21787_11.xhtml#_idTextAnchor749)，*故障排除*，通过必备的技巧和工具帮助你进行NGINX调试，识别问题。涵盖了一般的故障排除建议、日志解析以及常见问题，如安装错误和403
+    Forbidden页面，本章为解决配置错误和理解阻塞优先级提供了清晰的路径。学习如何调整配置进行有效调试，并识别常见的NGINX配置错误。'
 - en: To get the most out of this book
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为了最大化地从本书中受益
 - en: '| **Operating** **system requirements** | **Software/hardware covered in**
     **the book** |'
+  id: totrans-20
   prefs: []
   type: TYPE_TB
+  zh: '| **操作系统要求** | **本书涉及的软件/硬件** |'
 - en: '| --- | --- |'
+  id: totrans-21
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| Linux (preferably Debian, Ubuntu, Fedora, or RHEL) | NGINX |'
+  id: totrans-22
   prefs: []
   type: TYPE_TB
+  zh: '| Linux（最好是Debian、Ubuntu、Fedora或RHEL） | NGINX |'
 - en: '|  | Ansible |'
+  id: totrans-23
   prefs: []
   type: TYPE_TB
+  zh: '|  | Ansible |'
 - en: '|  | Docker |'
+  id: totrans-24
   prefs: []
   type: TYPE_TB
+  zh: '|  | Docker |'
 - en: If you are using the digital version of this book, we advise you to type the
     code yourself or access the code from the book’s GitHub repository (a link is
     available in the next section). Doing so will help you avoid any potential errors
     related to the copying and pasting of code.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你使用的是本书的数字版，我们建议你自己输入代码，或者访问本书的GitHub仓库（下一个章节会提供链接）。这样可以避免复制粘贴代码时可能出现的错误。
 - en: Download the example code files
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 下载示例代码文件
 - en: You can download the example code files for this book from GitHub at [https://github.com/PacktPublishing/NGINX-HTTP-Server_Fifth-edition](https://github.com/PacktPublishing/NGINX-HTTP-Server_Fifth-edition).
     If there’s an update to the code, it will be updated in the GitHub repository.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以从GitHub下载本书的示例代码文件，地址是[https://github.com/PacktPublishing/NGINX-HTTP-Server_Fifth-edition](https://github.com/PacktPublishing/NGINX-HTTP-Server_Fifth-edition)。如果代码有更新，它将会在GitHub仓库中更新。
 - en: We also have other code bundles from our rich catalog of books and videos available
     at [https://github.com/PacktPublishing/](https://github.com/PacktPublishing/).
     Check them out!
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还提供了来自丰富目录的其他代码包，您可以在[https://github.com/PacktPublishing/](https://github.com/PacktPublishing/)找到。快去看看吧！
 - en: Conventions used
+  id: totrans-29
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用的约定
 - en: There are a number of text conventions used throughout this book.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书中使用了若干文本约定。
 - en: '`Code in text`: Indicates code words in text, database table names, folder
     names, filenames, file extensions, pathnames, dummy URLs, user input, and Twitter
     handles. Here is an example: “Mount the downloaded `WebStorm-10*.dmg` disk image
     file as another disk in your system.”'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '`文本中的代码`：表示文本中的代码字、数据库表名、文件夹名、文件名、文件扩展名、路径名、虚拟URL、用户输入和Twitter用户名。示例：“将下载的`WebStorm-10*.dmg`磁盘映像文件作为另一个磁盘挂载到系统中。”'
 - en: 'A block of code is set as follows:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 一段代码设置如下：
 - en: '[PRE0]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Any command-line input or output is written as follows:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何命令行输入或输出如下所示：
 - en: '[PRE1]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '**Bold**: Indicates a new term, an important word, or words that you see onscreen.
     For instance, words in menus or dialog boxes appear in **bold**. Here is an example:
     “Select **System info** from the **Administration** panel.”'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '**粗体**：表示新术语、重要单词或屏幕上看到的单词。例如，菜单或对话框中的单词通常是**粗体**的。示例：“从**系统信息**选项中选择**管理**面板。”'
 - en: Tips or important notes
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示或重要事项
 - en: Appear like this.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 以这种方式出现。
 - en: Get in touch
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 联系我们
 - en: Feedback from our readers is always welcome.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们欢迎读者的反馈。
 - en: '**General feedback**: If you have questions about any aspect of this book,
     email us at [customercare@packtpub.com](mailto:customercare@packtpub.com) and
     mention the book title in the subject of your message.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '**常规反馈**：如果你对本书的任何方面有疑问，请通过电子邮件联系我们，邮件地址是[customercare@packtpub.com](mailto:customercare@packtpub.com)，并在邮件主题中提及书名。'
 - en: '**Errata**: Although we have taken every care to ensure the accuracy of our
     content, mistakes do happen. If you have found a mistake in this book, we would
     be grateful if you would report this to us. Please visit [www.packtpub.com/support/errata](https://www.packtpub.com/support/errata)
     and fill in the form.'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '**勘误**：尽管我们已尽力确保内容的准确性，但难免会有错误。如果您在本书中发现错误，我们将不胜感激您向我们报告。请访问[www.packtpub.com/support/errata](https://www.packtpub.com/support/errata)并填写表格。'
 - en: '**Piracy**: If you come across any illegal copies of our works in any form
     on the internet, we would be grateful if you would provide us with the location
     address or website name. Please contact us at [copyright@packt.com](mailto:copyright@packt.com)
     with a link to the material.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '**盗版**：如果您在互联网上发现我们作品的任何非法复制品，请告知我们其所在位置或网站名称。请通过[copyright@packt.com](mailto:copyright@packt.com)与我们联系，并提供相关链接。'
 - en: '**If you are interested in becoming an author**: If there is a topic that you
     have expertise in and you are interested in either writing or contributing to
     a book, please visit [authors.packtpub.com](http://authors.packtpub.com).'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '**如果您有意成为作者**：如果您在某个领域具有专业知识，并且有兴趣写作或为一本书提供贡献，请访问[authors.packtpub.com](http://authors.packtpub.com)。'
 - en: Share Your Thoughts
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 分享您的想法
 - en: Once you’ve read *NGINX HTTP Server*, we’d love to hear your thoughts! Please
     [click here to go straight to the Amazon review page](https://packt.link/r/1835469876)
     for this book and share your feedback.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 阅读完*NGINX HTTP Server*后，我们希望听到您的想法！请[点击这里直接进入亚马逊评论页面](https://packt.link/r/1835469876)并分享您的反馈。
 - en: Your review is important to us and the tech community and will help us make
     sure we’re delivering excellent quality content.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 您的评论对我们以及技术社区都非常重要，能够帮助我们确保提供优质内容。
 - en: Download a free PDF copy of this book
+  id: totrans-48
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 下载本书的免费PDF副本
 - en: Thanks for purchasing this book!
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢您购买本书！
 - en: Do you like to read on the go but are unable to carry your print books everywhere?
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 您喜欢随时阅读，但又无法随身携带纸质书籍吗？
 - en: Is your eBook purchase not compatible with the device of your choice?
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 您的电子书购买与您选择的设备不兼容吗？
 - en: Don’t worry, now with every Packt book you get a DRM-free PDF version of that
     book at no cost.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 不用担心，现在每本Packt书籍都可以免费获得该书的无DRM PDF版本。
 - en: Read anywhere, any place, on any device. Search, copy, and paste code from your
     favorite technical books directly into your application.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 随时随地，在任何设备上阅读。从您最喜欢的技术书籍中直接搜索、复制并粘贴代码到您的应用程序中。
 - en: The perks don’t stop there, you can get exclusive access to discounts, newsletters,
     and great free content in your inbox daily
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 特权不仅仅是这些，您还可以独享折扣、新闻简报以及每日发送到您邮箱的精彩免费内容。
 - en: 'Follow these simple steps to get the benefits:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 按照以下简单步骤获取福利：
 - en: Scan the QR code or visit the link below
+  id: totrans-56
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 扫描二维码或访问以下链接
 - en: '![Download a free PDF copy of this book  QR Code ](img/B21787_QR_Free_PDF.jpg)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![下载本书的免费PDF副本二维码](img/B21787_QR_Free_PDF.jpg)'
 - en: '[https://packt.link/free-ebook/9781835469873](https://packt.link/free-ebook/9781835469873)'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://packt.link/free-ebook/9781835469873](https://packt.link/free-ebook/9781835469873)'
 - en: Submit your proof of purchase
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 提交您的购买证明
 - en: That’s it! We’ll send your free PDF and other benefits to your email directly
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 就这些！我们将直接将您的免费PDF和其他福利发送到您的电子邮件。
 - en: Part 1:Begin with NGINX
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第1部分：从NGINX开始
 - en: In this part, you will be introduced to the foundations of NGINX. This section
     provides the basis for understanding NGINX and its capabilities by exploring the
     installation and the baseline configuration of the web server. You will get practical
     information on the efficient configuration for NGINX, which will prepare you for
     the advanced configuration and optimization techniques covered in the next parts.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本部分中，您将了解NGINX的基础知识。本节通过探索Web服务器的安装和基本配置，为您提供理解NGINX及其功能的基础。您将获得有关NGINX高效配置的实用信息，为接下来的高级配置和优化技巧打下基础。
 - en: 'This part includes the following chapters:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 本部分包括以下章节：
 - en: '[*Chapter 1*](B21787_01.xhtml#_idTextAnchor014), *Downloading and Installing
     NGINX*'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*第1章*](B21787_01.xhtml#_idTextAnchor014)，*下载与安装NGINX*'
 - en: '[*Chapter 2*](B21787_02.xhtml#_idTextAnchor121), *Basic NGINX Configuration*'
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*第2章*](B21787_02.xhtml#_idTextAnchor121)，*基本NGINX配置*'
