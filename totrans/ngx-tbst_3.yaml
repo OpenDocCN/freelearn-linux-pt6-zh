@@ -1,13 +1,17 @@
 - en: Chapter 3. Troubleshooting Functionality
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第三章：故障排除功能
 - en: You get a call in the middle of the night. "Our website isn't working," your
     boss yells. In seconds, you are wide awake and trying to remember "what exactly
     did we change yesterday?"—this is a very natural reaction for every system administrator
     on this planet.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 你在半夜接到电话。“我们的网站不能用了，”老板喊道。几秒钟内，你全神贯注，试图记起“我们昨天到底做了什么更改？”——这是每个系统管理员在这个星球上的自然反应。
 - en: 'Have you ever been in such a situation? This is a stress test for each young
     sysadmin, and we hope you have had this earlier in your career rather than later
     because it is a teaching experience. Fortunately, websites usually malfunction
@@ -16,67 +20,95 @@
     audience. For example, this is a traffic graph for a big website in Russia, which
     is a country very centered around its two capitals, and those cities are both
     in UTC+03 time zone as of 2016:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 你曾经遇到过这样的情况吗？这是每个年轻系统管理员的压力测试，我们希望你在职业生涯早期就经历过，而不是后期，因为这是一次宝贵的教学经验。幸运的是，网站通常在大多数内容加载完毕时发生故障，这通常发生在上午晚些时候或傍晚——如果你很幸运，居住的时区与目标受众的时区大致相同。例如，这是俄罗斯一个大型网站的流量图，俄罗斯是一个非常以两大首都为中心的国家，这些城市在2016年时都位于UTC+03时区：
 - en: '![Troubleshooting Functionality](img/B04329_03_01.jpg)'
+  id: totrans-3
   prefs: []
   type: TYPE_IMG
+  zh: '![故障排除功能](img/B04329_03_01.jpg)'
 - en: As you can see, the real traffic comes in the morning, has a peak in the evening,
     and falls sharply as people go to bed.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所看到的，真实的流量在早晨到来，傍晚达到高峰，随着人们上床睡觉，流量急剧下降。
 - en: 'This chapter will cover the following topics:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将涵盖以下主题：
 - en: A process to use when working on such an incident, far from perfect but very
     workable
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在处理此类事件时使用的流程，远非完美，但非常可行
 - en: A description of some of the most shameful failures
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一些最令人羞愧的失败的描述
 - en: A brief section on how to restart Nginx
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 简短介绍如何重启Nginx
 - en: More information about some ways you may save the day with Nginx
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关于如何通过Nginx拯救局面的更多信息
 - en: Processing a complain
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 处理投诉
 - en: Let us call any expressed case of unexpected behavior a complain. The term is
     vague enough not to imply that it is always a problem or an error, which was introduced
     during development and needs to be fixed. Working on a complain starts with investigation.
     The only thing that you know from the beginning is that something on your website
     does not work for someone. The incidents raised as a result of automatic monitoring
     systems are a separate case.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将任何表达出的异常行为称为投诉。这个术语足够模糊，不意味着它总是一个问题或错误，而是一个在开发过程中引入并需要修复的事情。处理投诉从调查开始。你唯一从一开始就知道的是，网站上的某些功能对某些人不起作用。由自动监控系统引发的事件是一个单独的案例。
 - en: 'Surprisingly, people in general are rarely capable of answering the question
     of "What exactly does not work for you?" Some of them get confused or even angry.
     While you must always ask this, do not get high hopes. Let us analyze some of
     the possible answers from the most popular to less so:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 令人惊讶的是，通常人们很难回答“究竟什么地方对你不起作用？”这个问题。有些人会感到困惑，甚至生气。虽然你必须始终问这个问题，但不要抱有太高的期望。让我们分析一下从最常见到较少见的可能答案：
 - en: '*"Nothing!"*'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*“什么都没有！”*'
 - en: '*"I load the page, I click there and there, order a book, get to my shopping
     cart, initiate payment, get confirmation and on the last step there a security
     warning about some sort of certificate which expired yesterday"*'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*“我加载页面，我点击这里和那里，订了一本书，进入购物车，开始付款，得到确认，最后一步出现一个关于证书的安全警告，证书昨天过期了。”*'
 - en: Most of the time, the burden of determining how exactly the problem manifests
     itself is on you. You need to get your priorities right and act quickly.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数时候，确定问题具体表现如何的责任在于你。你需要合理安排优先事项，并迅速采取行动。
 - en: This chapter presents you with a series of steps to perform when all you have
     is a report of your website not working. The list is not flat; there are branches
     here and there, which you must follow. At the same time, we recommend reading
@@ -85,28 +117,38 @@
     beginning and then choose the appropriate next step while skipping the irrelevant.
     For many of the readers, a description of this format as similar to a very simple
     finite-state machine may be helpful.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章为你提供了一系列步骤，当你只有网站无法工作的报告时可以执行。这个列表并非是平坦的；其中有分支，你需要遵循。在此，我们建议你阅读所有步骤，因为这将帮助你更好地掌握整个过程。你也可以在发生事件时使用这些步骤。在这种情况下，你将从一开始就进入，然后选择合适的下一步，同时跳过不相关的部分。对于很多读者来说，这种格式类似于一个非常简单的有限状态机描述可能会有所帮助。
 - en: 'You will move from one state to another by interpreting additional signals
     and hope to arrive to the finish. This is a three-level scheme of a simple troubleshooting
     process that we prefer. Each of the boxes will be explained later:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将通过解读额外的信号从一个状态转移到另一个状态，并希望最终达到目的。这是我们推荐的一个简单故障排除过程的三级方案。每个框将在后文中解释：
 - en: '![Processing a complain](img/B04329_03_02.jpg)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![处理投诉](img/B04329_03_02.jpg)'
 - en: Rolling back
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回滚
 - en: We need to provide a very important sidenote here. A step zero, if you want,
     is always trying to bring the system into a working state by removing recent changes.
     Websites are software that is infinitely more dynamic than anything we had before.
     If you deploy weekly, you are actually slower than many of your competitors. So
     when something happens, the probability of a recent set of changes being the culprit
     is very high.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在这里需要提供一个非常重要的附加说明。你可以把它当作一个零步骤，总之，始终试图通过去除最近的更改来将系统恢复到工作状态。网站是比我们以前所接触过的任何事物都更加动态的软件。如果你每周部署一次，那么你实际上比许多竞争对手还要慢。因此，当问题发生时，最近的一次变更集是罪魁祸首的可能性非常高。
 - en: It is very important to always hold dearly to the main goal of all your actions
     during such an event; you are searching for a workaround that will allow the business
     to go on. You need to bring the operations back as soon as possible and only after
@@ -115,8 +157,10 @@
     especially with developer background, is *premature debugging*, which I define
     as spending resources (even if it is just your mental resources and not company
     money) on the fix without first implementing a quick and dirty workaround.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这样的事件中，始终紧紧把握你所有行动的主要目标是非常重要的；你需要找到一个解决方法，使业务能够继续进行。你需要尽快恢复操作，只有在恢复后，你才应该开始寻找根本原因并制定一个一劳永逸的解决策略。年轻系统管理员的一个大错误，特别是那些有开发背景的人，就是*过早调试*，我定义为在没有先实现一个快速有效的临时解决方案的情况下，就把资源（即使是你个人的精力，而不是公司资金）投入到修复上。
 - en: One of the easiest ways to work around a new problem is to roll back your software
     to a previous, working version. Organizations that have a good discipline of change
     control may even choose to roll back on any failure whether it is caused internally
@@ -124,12 +168,16 @@
     and you, as being responsible for the stability of the service, may require your
     development team to implement comprehensive rolling back capabilities. There are
     several things that you may do yourself on the Nginx level though.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决新问题最简单的方式之一是将软件回滚到之前的工作版本。那些有良好变更控制规范的组织，甚至可能选择在任何故障发生时回滚，无论故障是由内部还是外部原因引起的。最难的部分通常是在应用服务器方面，作为负责服务稳定性的人员，你可能需要你的开发团队实现全面的回滚功能。不过，你可以在Nginx层面做几件事。
 - en: Keeping Nginx configuration under source control
+  id: totrans-23
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将Nginx配置文件纳入源代码管理
 - en: Nginx configuration files are all plain text written in a simple line and block-oriented
     language. This combination is as perfect for diffing and merging as any "real
     source code document." So please, do invest into setting up a source code repository
@@ -141,8 +189,11 @@
     out of the scope of this book, but inquisitive readers should definitely get interested
     in modern automation tools, such as *Chef*, *RX* or *Ansible*, once they have
     more than five servers in their zone of responsibility.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 配置文件都是用简单的行和块导向语言编写的纯文本。这种组合对于差异化和合并来说和任何“真实源代码文档”一样完美。所以，请务必投资建立一个适合您的
+    Nginx 配置的源代码仓库。选择老牌的*Subversion*或现代工作马*Git*，甚至是油腔滑调但功能依旧的*CVS*都无关紧要。这些工具相较于没有任何源代码控制系统的系统，能多次挽救您的理智。只有建立了中央仓库，下一步就是全自动部署。这一步略超出本书范围，但好奇的读者一定会对现代自动化工具感兴趣，比如*Chef*、*RX*或*Ansible*，一旦管理的服务器数量超过五台。
 - en: Having access to all the previous versions of your config files alone is a wonderful
     thing that will greatly ease the rolling back process. Any sane source control
     system allows you to tag specific revisions, to check out based on timestamp or
@@ -152,19 +203,27 @@
     allow you to jump to the past in case of trouble. It will also regularly mail
     the diffs to the administrator of the server. It may seem a little bit too automatic
     for a server, but it is a good start.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 单独访问所有以前版本的配置文件本身就是一件了不起的事情，它将极大地简化回滚过程。任何合理的源代码控制系统都允许您标记特定的修订版本，基于时间戳检出或创建移动分支。通过一个名为**etckeeper**的工具，即可迅速将工作中的服务器与此源代码控制魔法结合起来（参见[https://github.com/joeyh/etckeeper](https://github.com/joeyh/etckeeper)）。它将自动记录您对`/etc`所做的所有更改，因此在出现问题时，您可以轻松回溯。它还会定期将差异邮寄给服务器的管理员。对于服务器来说，这似乎有点过于自动化，但这是一个很好的起点。
 - en: 'This is a simple command that you may issue in an etckeeper-controlled `/etc`
     folder to quickly revert some changes in `/etc/nginx`:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个简单的命令，您可以在etckeeper控制的`/etc`文件夹中发出，以快速恢复`/etc/nginx`中的某些更改：
 - en: '[PRE0]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Keeping a case journal
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 保持案例日志
 - en: A highly recommended piece of best practice when investigating a website malfunction
     is to keep a log or journal of ideas to implement afterwards. This will leave
     you with a list of things to require from yourself and your colleagues in the
@@ -173,60 +232,84 @@
     a journal. You should dump any crazy or trivial ideas into this journal so that
     you could free your mind for the urgent task at hand. Even if you reject most
     of the ideas afterwards, keeping this journal will help you during the process.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在调查网站故障时，一个非常推荐的最佳实践是记录日志或想法日记以便以后实施。这样你就会有一个清单，上面写着需要你和同事在开发和管理部门做的事情，以防止这类特定问题的再次发生。这也是为什么我们会用日志标记每一步。你应该将任何疯狂或琐碎的想法都记录在这本日志中，这样你就能在紧急任务时释放你的大脑。即使你之后拒绝了大部分的想法，保持这本日志也会在处理过程中帮助你。
 - en: So, without further ado, let's start.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，不再拖延，让我们开始吧。
 - en: Again, what we have is a just vague complaint about a website you are responsible
     for. Someone said that it was not working.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们只是对您负责的网站进行了模糊的抱怨。有人说它不能用了。
 - en: Performing the simplest test
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 执行最简单的测试
 - en: Load the page yourself. This is not the most effective step, but you will do
     that anyway, won't you? It is a natural reflex—the important part is not to come
     to any premature conclusions. If it does not load, you should start with checking
     your internet connection. See the later text.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 亲自加载页面。这可能不是最有效的步骤，但你肯定会这样做，对吧？这是一种自然反应——重要的是不要作出任何过早的结论。如果加载不了，你应该先检查你的互联网连接。请参阅后文。
 - en: If the page works for you, you will feel a false relief. Actually, your problem
     potentially just got harder. The website works for some people (in this case,
     it works for you) but may not work for everyone. See the *HTTP response traffic*
     section here.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果网页对你有效，你可能会感到一种错误的宽慰。实际上，你的问题可能刚刚变得更复杂。该网站对某些人有效（在这种情况下，对你有效），但不一定对所有人都有效。请参见这里的*HTTP响应流量*部分。
 - en: By the way, you may sometimes have the answer right here. For example, you will
     immediately see expired SSL certificates. See also *Certificate test*.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便提一下，有时候你可能已经拥有答案。例如，你会立刻看到过期的SSL证书。另见*证书测试*。
 - en: Performing the Internet connection test
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进行互联网连接测试
 - en: Check that your own internet connection is okay by trying to load a reference
     web page, for example, [https://www.google.com](https://www.google.com).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过尝试加载一个参考网页，检查自己的互联网连接是否正常，例如，[https://www.google.com](https://www.google.com)。
 - en: 'Why is this a separate test at all? Shouldn''t we also talk about electricity
     or clean air then? Two reasons: if you are a small company in a rented office
     space even in the most advanced countries of the world, chances are that you will
     get two–three incidents of ISP failure a year. Also, we need a smooth transition
     to talk about backup connection kits for sysadmins.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么这要作为一个独立的测试？我们难道不应该谈论电力或清洁空气吗？有两个原因：如果你是一家小公司，租用办公室空间，即使是在世界上最先进的国家，你每年也可能会遇到两到三次互联网服务提供商（ISP）故障的情况。此外，我们需要顺畅地过渡到讨论系统管理员的备用连接设备。
 - en: Note
+  id: totrans-39
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Have a permanent indication of your own connection to the Internet
     working. Curiously, many people use the Dropbox icon in the tray for that. While
     this is a cute lifehack, please implement something more professional, office-wide
     and/or for your workstation.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：时刻确保自己的互联网连接是正常的。奇怪的是，许多人会使用任务栏中的Dropbox图标来显示这一点。虽然这是一个有趣的小窍门，但请实现一些更专业、适用于整个办公室和/或你工作站的方式。
 - en: You need to have a backup Internet connection for the rare case of your main
     connection failure. Nowadays, it is usually a mobile phone with a tethering setup.
     Fire it up and redo the tests. It is surprisingly unpopular to have a backup connection
@@ -238,8 +321,12 @@
     with what Dropbox has (with the help of Amazon Web Services) yourself. Scale effects
     buy additional redundancy and talent. But at the same time, the importance of
     your connection rises.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要为主连接故障的罕见情况准备一个备用的互联网连接。如今，这通常是通过手机进行的共享连接。启动它并重新进行测试。令人惊讶的是，备用连接准备好的人并不多，我们想对此说几句。传统上，备份是存储。你的办公室管理员会镜像硬盘；你自己也会在家里为孩子们的照片和文件设置一个忠诚可靠的Time
+    Machine备份。但是在这个时代，随着所有应用程序已经或正在转移到云端，存储备份系统的意义逐渐减弱。你自己是无法建造一个与Dropbox（借助Amazon
+    Web Services）相媲美的系统的。规模效应带来额外的冗余和人才。但与此同时，你的连接的重要性却在上升。
 - en: A modern Chromebook is a fast and cheap workhorse machine right until the WiFi
     vanishes because the access point power supply brick got scorched or something.
     Modern IT people feel less pressure with the storage backup and should use the
@@ -249,12 +336,16 @@
     exactly as you did about your storage backups; these are risk aversion systems.
     They are not required to ever be used, not even once to still be considered a
     successful investment.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 一台现代的Chromebook是一个快速且廉价的工作机器，直到WiFi连接消失，因为接入点的电源适配器被烧毁或发生其他故障。现代IT人员在存储备份方面感受到的压力较小，他们应该将释放出的资源用来确保连接备份。考虑一下你的选项，并投资一种替代方式，或许能够以较少的带宽将你的办公室重新连接到互联网。当这个系统帮助你时，你会感到高兴。也请像对待存储备份那样看待它；这些是风险规避系统。它们并不需要被使用，哪怕一次都不需要使用，它们依然算是一个成功的投资。
 - en: Note
+  id: totrans-43
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: 1) Implement backup uplink for your office. 2) Equip all your system
     administrators (for example, yourself) with remote administration kits. The recommended
     way is to provide them with separate devices (either wireless 3G/LTE dongles or
@@ -262,12 +353,16 @@
     on their main phones because those tend to have problems with charge and traffic
     during the most important moments, whereas a separate company-provided device
     may be required to be fully charged by rules when the person is on duty.'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：1）为你的办公室实施备份上行链路。2）为所有系统管理员（例如你自己）配备远程管理工具包。推荐的方式是提供独立的设备（无线3G/LTE拨号器或预配置的智能手机热点）和预付费数据计划。不要依赖他们的主手机，因为主手机往往在最关键的时刻出现充电和流量问题，而公司提供的独立设备可能会有充满电的要求，特别是在值班时。
 - en: Testing the general HTTP response traffic
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 测试通用HTTP响应流量
 - en: 'Look at your general HTTP monitoring graph or at least `tail -f` the access
     log. This is the most informative way of knowing what the effects of the incident
     are, if they exist. You have to have the infrastructure in place, and we will
@@ -275,47 +370,66 @@
     Nginx"), *Monitoring Nginx*. The general HTTP graph will contain a chart of how
     many HTTP response codes your site generated each minute. You are most interested
     in the level of 200 responses. There are several possibilities, as follows:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看你的通用HTTP监控图表，或者至少`tail -f`访问日志。这是了解事件影响最直接的方式（如果有的话）。你必须有合适的基础设施，我们将在[第6章](ch06.html
+    "第6章：监控Nginx")中说明如何建立一个基础设施，*监控Nginx*。通用HTTP图表将包含每分钟生成的HTTP响应代码的数量图。你最关心的是200响应的数量。以下是几种可能的情况：
 - en: The number of 200 responses dropped to zero or you cannot reach your monitoring.
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 200响应的数量降到零，或者你无法访问监控系统。
 - en: The number of 200 responses dropped to a lower level but above zero. Both of
     these indicate ongoing damage to business with a high level of probability. We
     will discuss them properly later (see the *No traffic* and *Lower traffic* cases)
     right after we deal with the more easy case.
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 200响应的数量降到了一个较低的水平，但仍高于零。这表明业务正在持续受到损害，概率很高。我们将在稍后（参见*无流量*和*流量减少*的情况）详细讨论这些情况，紧接着我们将处理更简单的情况。
 - en: You have roughly the same level of 200 responses as you do usually at this time
     this day of the week.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你现在的200响应数量大致与通常在这一周的这个时刻所得到的数量相同。
 - en: This is a good place to be. Your website is likely serving your visitors in
     the same way it did. This is the time when you have to involve people from development
     because right now, these are the ways that the website may still not do what is
     expected.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个不错的状态。你的网站很可能仍然以以前的方式为访问者提供服务。这时，你必须让开发人员参与进来，因为现在，这些是网站可能仍未按预期运行的方式。
 - en: Note
+  id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Implement this type of general HTTP monitoring—an area chart of four
     colors for 200, 3xx, 4xx, and 5xx HTTP responses as per the Nginx access logs
     with 1-minute granularity and a number of alert thresholds.'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：实现这种类型的通用HTTP监控——按照Nginx访问日志的要求，绘制200、3xx、4xx和5xx HTTP响应的四种颜色的区域图，粒度为1分钟，并设定若干告警阈值。
 - en: Detecting a lying application
+  id: totrans-53
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 检测欺骗的应用程序
 - en: The application behind Nginx does not actually work but still generates responses
     with HTTP 200 Ok code. This is a major crime.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx后面的应用程序实际上无法工作，但仍然返回HTTP 200 Ok响应。这是一个重大错误。
 - en: Good websites never show internal error messages to users. There is no need
     to scare people with unnecessary details, and this would never even be discussed
     if sometimes websites would not go too far by hiding HTTP response codes too.
@@ -324,26 +438,39 @@
     for many practical purposes. All the bots and crawlers will not consider such
     an error to be an error. Your monitoring software will also need special processing
     to distinguish these cases.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 优秀的网站绝不会向用户显示内部错误信息。没有必要用不必要的细节吓唬人，如果网站不至于过度隐藏HTTP响应代码，这个问题甚至都不会被讨论。没有任何东西可以阻止任何人在所有情况下返回200
+    Ok，并仅在响应内容部分指出错误条件。这种做法对于许多实际用途来说是“机器无法读取的”。所有的机器人和爬虫都不会把这种错误当作错误来处理。你的监控软件也需要特别的处理来区分这些情况。
 - en: 'See examples for the famous **404 Not Found** error:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看著名的**404 Not Found**错误示例：
 - en: '[PRE1]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Unfortunately, this situation means that you still have not found the problem,
     you only have found that you lack an easy way to find it.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，这种情况意味着你仍然没有找到问题，你只是发现你缺少一种简单的方法来找到它。
 - en: Note
+  id: totrans-59
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Create issues in your bug tracker for all cases of not reporting errors
     with an HTTP response code. Developers should fix those.'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：在你的错误追踪系统中为所有没有报告错误的HTTP响应代码创建问题。开发者应该修复这些问题。
 - en: The developers should be working shoulder to shoulder with you now. Although
     they are scouting the inner workings of their application code, which is happily
     generating error messages by the numbers without a single 4xx/5xx HTTP response
@@ -352,16 +479,22 @@
     together in the Logging Chapter? If you have response size in your logs, with
     some modifications, it will find lines that contain a number too far away from
     the average.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 开发者现在应该和你并肩工作。尽管他们正在研究其应用程序代码的内部运作，这些代码愉快地生成错误消息而没有任何4xx/5xx HTTP响应代码，但你可以通过搜索开始发出不同流量量的URL来提供一些帮助。你还记得我们在日志章节一起写的脚本吗？如果你在日志中有响应大小，经过一些修改，它将找到那些包含远离平均值的数字的行。
 - en: Note
+  id: totrans-62
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: The top class of monitoring systems applies the theory of disorder
     detection.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：最顶级的监控系统应用了混乱检测理论。
 - en: There are ways to automatically trigger events on sudden unexpected changes
     in a random process (and a stream of numbers that you monitor is such a process).
     Another keyword for you to search for is "anomaly detection." All the systems
@@ -372,16 +505,23 @@
     response number and triggering events on a level of the derivative that is beyond
     a certain threshold. Because the first derivative is an indicator of change, high
     values will correspond to sharp spikes up or down.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一些方法可以在随机过程的突发变化中自动触发事件（而你监控的数字流就是这种过程）。另一个值得搜索的关键字是“异常检测”。我们遇到的所有系统都是专有的，都是根据大型互联网公司的需求在内部开发的。这个领域中也有一些商业化的产品，例如Splunk。你实际上可以尝试这种类型的监控，而不必为了另一个学位重返学校，可以通过监控200
+    HTTP响应代码的导数并在该导数超过某个阈值时触发事件。因为导数是变化的指示器，高值将对应于剧烈的上下波动。
 - en: Working around an integration failure
+  id: totrans-65
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 绕过集成失败
 - en: Your website implements part of its functionality by transparently integrating
     another service, which is having an incident.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的网站通过透明地集成另一个服务来实现部分功能，而这个服务正在发生故障。
 - en: This is a situation when someone else entirely is at fault. Examples of such
     configuration include using external commenting systems, advertisement placement
     systems, statistics and/or tracking software. Your job here is to try switching
@@ -389,16 +529,22 @@
     of application code (even if it is a simple HTML block in a number of static pages),
     we cannot provide you with any specific details. You also should thoroughly document
     which services are blocking your operation.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个完全由别人造成的错误情况。这种配置的例子包括使用外部评论系统、广告投放系统、统计和/或跟踪软件。你的工作是尝试关闭不必要的外部组件。因为这可能需要删除应用程序代码的部分（即使它只是一些静态页面中的简单HTML块），我们无法为你提供任何具体细节。你还应该彻底记录哪些服务正在阻止你的操作。
 - en: Note
+  id: totrans-68
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: 1) Implement monitoring of external services. 2) Invent a plan of
     graceful degradation and implement it. 3) Require asynchronous client-side inclusions.'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：1）实施外部服务监控。2）发明一个优雅降级的计划并实施它。3）要求异步的客户端侧包含。
 - en: Graceful degradation is an interesting concept of having a special mode of operation
     for the times when an unessential part of your website (external or not) does
     not work. For many businesses going into full read-only mode may be graceful enough.
@@ -406,57 +552,81 @@
     bookstore than not responding at all and thus losing credibility in the eyes of
     all search engines, which will happily ditch your sites from their search results
     immediately.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 优雅降级是一个有趣的概念，即在网站的某个非关键部分（无论是外部的还是内部的）无法正常工作时，系统仍然能够进入一种特殊的工作模式。对于许多企业而言，进入完全的只读模式可能已经足够优雅。对于一个电子书店来说，无法下单显然比完全没有响应要好得多，后者会立即失去所有搜索引擎的信任，导致网站被立即从搜索结果中剔除。
 - en: Planning for graceful degradation should start early in the design process.
     That is a topic for a whole separate book or two, of course. At these stages,
     you should at the very least regularly annoy development about it and do as much
     as possible yourself.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 优雅降级的规划应该在设计过程中尽早开始。当然，这是一个完全可以单独写一本或两本书的主题。在这些阶段，至少应该定期提醒开发团队，并尽可能多地自己动手做。
 - en: 'Some other examples of degradation that may be implemented as extreme measures
     to live through some rough periods are:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他一些可能作为极端措施实施的降级示例，以帮助度过一些艰难时刻，包括：
 - en: Removing a full-text search functionality for a while. This is usually a CPU-intensive
     and disk-intensive operation used by a single-digit percentage of your visitors.
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 暂时移除全文搜索功能。这通常是一个CPU和磁盘密集型的操作，只有很小一部分访问者会使用。
 - en: Hiding social functions such as commenting and sharing.
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 隐藏社交功能，如评论和分享。
 - en: Shouldn't we strive to build a system that does not need chopping one of its
     legs off from time to time? Of course we should. But costs may be prohibitively
     high. You cannot plan to work flawlessly under **Distributed Denial of Service**
     attack from a malicious competitor if you are a start-up. This would just cost
     you too much.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们难道不应该努力构建一个系统，不需要时不时地“砍掉一条腿”吗？当然应该。但成本可能会高得让人难以承受。如果你是一个初创公司，你无法计划在**分布式拒绝服务**攻击下完美运行。这会花费你太多。
 - en: Nginx has several tricks up its sleeve to work around external failures.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx有几个技巧，可以绕过外部故障。
 - en: The try_files directive
+  id: totrans-77
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: '`try_files`指令'
 - en: 'This directive provides a way to quickly serve a local file instead of performing
     an upstream request. It is important enough to be presented here. The general
     format is:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个指令提供了一种快速提供本地文件的方式，而不是执行上游请求。它足够重要，因此在这里提到。其通用格式是：
 - en: '[PRE2]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Almost always, `try_files` is used inside a location block that forms a context
     specifying which requests should be processed from local files. The idea may be
     illustrated by this example:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 几乎总是，`try_files`被用在一个location块中，该块定义了应该从本地文件处理中哪些请求。这个概念可以通过以下示例来说明：
 - en: '[PRE3]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: What we have here is a separate system that uses some buzzword-compliant recommendation
     generation technology to provide your website visitors with some personalized
     product offers. These tend to be fragile, and `try_files` protects us by specifying
@@ -464,18 +634,24 @@
     First, the static files are tried from left to right. Once an existing file is
     found, it is used to form the response and the remaining files and named URI block
     are not used.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们这里有一个独立的系统，使用了一些符合流行词汇的推荐生成技术，为网站访问者提供个性化的产品推荐。这些系统往往比较脆弱，`try_files`通过指定回退的静态HTML文件来保护我们。处理的顺序可能会让一些人感到困惑。首先，从左到右尝试静态文件。一旦找到现有文件，就用它来生成响应，剩下的文件和命名的URI块将不再使用。
 - en: Normally, those static files do not exist on the filesystem at all. They get
     created by the monitoring system (or people) in case of emergency. After you or
     your colleagues carefully raise the heavy external component from the dead, you
     remove the static file and Nginx starts to issue actual queries to the upstream.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，这些静态文件根本不存在于文件系统中。它们是在紧急情况下由监控系统（或人员）创建的。当你或你的同事小心翼翼地让那个重型外部组件复活时，你需要移除静态文件，Nginx就会开始发出实际的上游查询。
 - en: Setting up automatic removal from upstream
+  id: totrans-84
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 设置从上游自动删除
 - en: 'Another mechanism provided by Nginx that may help you in these situations is
     the glorious upstream module. This is a whole subsystem that augments the venerable
     `proxy_pass` directive with a lot of failover options. The idea is that instead
@@ -483,80 +659,118 @@
     for client requests, you point to a composite object configured via `upstream`
     block directive. This block is useful together with its contents only, so let
     me start with an example:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 提供的另一个可能在这些情况下帮助你的机制是辉煌的上游模块。这是一个完整的子系统，它增强了尊贵的`proxy_pass`指令，提供了许多故障转移选项。其理念是：与其使用指向外部数据源的传统
+    URL 来生成客户端请求的响应，不如指向一个通过`upstream`块指令配置的复合对象。这个块只有在与其内容一起使用时才有意义，所以让我先从一个例子开始：
 - en: '[PRE4]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'And then later on:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后稍后：
 - en: '[PRE5]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Upstreams defined with the `upstream` directives may be used in all the following
     five client (request-making) modules of Nginx: `proxy`, `fastcgi`, `uwsgi`, `scgi`,
     and `memcached`. They all share similar-looking directives to set up external
     resources to use while serving requests from actual clients. The main directive
     is always `*_pass`, and it is exactly what we use for the example.'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`upstream`指令定义的上游可以在 Nginx 的以下五个客户端（请求发起）模块中使用：`proxy`、`fastcgi`、`uwsgi`、`scgi`和`memcached`。它们共享类似的指令，用于设置在为实际客户端提供服务时使用的外部资源。主要指令始终是`*_pass`，这正是我们示例中使用的指令。
 - en: What this block does is combine a group of servers into an object with some
     embedded group behavior. First, there is rotation. When a `*_pass` directive is
     used to process a request by passing to such an upstream object, the actual server
     is chosen from all the configured alternatives.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一块的作用是将一组服务器组合成一个具有某些嵌入行为的对象。首先是轮询。当使用`*_pass`指令通过传递到这样的上游对象处理请求时，实际的服务器会从所有配置的替代服务器中选择。
 - en: Tip
+  id: totrans-91
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: The algorithm to choose the server is not random. The servers are sequenced
     in a round-robin fashion. You may also provide relative weights of each server
     inside one group. For simplicity, it is convenient to think that the choice is
     random. In the long run, the probability of each variant for weighted round robin
     will be roughly equal to the corresponding probability of the same variant for
     the weighted random distribution.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择服务器的算法并不是随机的。服务器按轮询方式排列。你还可以为每个服务器提供相对的权重。在简单起见，可以把选择看作是随机的。从长远来看，带权重的轮询中每个变体的概率将大致等于相同变体在带权重随机分配中的概率。
 - en: 'The interesting bit of logic that upstream contains is removing failed servers
     from the pool of available choices. This logic is controlled by a number of parameters:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 上游包含的有趣逻辑是将失败的服务器从可用选择池中移除。这个逻辑由多个参数控制：
 - en: '|'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE6]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '| This is a number of failed attempts needed for this particular server to
     become "failed" and be removed from rotation. These failures must happen during
     a fixed period of time specified in the next parameter. |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| 这是需要将特定服务器标记为“失败”并从轮询中移除所需的失败尝试次数。这些失败必须在下一个参数指定的固定时间段内发生。 |'
 - en: '|'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE7]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '| This variable is used for two distinct purposes. First, it specifies the
     length of the period to count failed attempts. Second, it is also used actively
     as a time for which the failed server stays failed without reconsideration. One
     might have some problems with reusing the same value, but things are how they
     are. |'
+  id: totrans-99
   prefs: []
   type: TYPE_TB
+  zh: '| 这个变量有两个不同的用途。首先，它指定了计算失败尝试的时间段长度。其次，它还用于表示失败服务器保持失败状态而不重新考虑的时间。虽然可能会有一些问题使用相同的值，但事情就是这样。
+    |'
 - en: '|'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE8]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '| This is a binary or Boolean parameter. When it exists, the marked server
     is only chosen when all the other, non-backup servers are marked as failed. |'
+  id: totrans-102
   prefs: []
   type: TYPE_TB
+  zh: '| 这是一个二进制或布尔参数。当它存在时，只有当所有其他非备用服务器被标记为失败时，才会选择该标记的服务器。 |'
 - en: You probably already know the way to use the described upstream functionality
     to implement failover for external services that you invoke on the server side.
     The example on the previous page demonstrates exactly that. The named location
@@ -567,12 +781,16 @@
     and not having any buzzwords inside, just serving some static data. You might
     even proxy to the very same instance of Nginx you are writing the configuration
     file for!
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能已经知道如何使用所描述的上游功能，在服务器端为你调用的外部服务实现故障转移。前一页的示例正是演示了这一点。命名位置`@recommender_engine`是一个HTTP代理，将请求隧道传输到三个服务器组成的组中，其中两个服务器看起来非常相似，可能只是为了负载均衡而相互复制。第三个是一个本地服务器，监听一个UNIX域套接字。这可能是一个更简单的应用程序，提供的并非实际的推荐，也没有任何流行的术语，只是提供一些静态数据。你甚至可能会将请求代理到你正在编写配置文件的同一实例的Nginx上！
 - en: Configuring the good old SSI
+  id: totrans-104
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 配置经典的SSI
 - en: '**Server-Side Includes** (**SSI**) is an old technology of very simple dynamic
     generation of HTTP responses totally inside the web server software, Nginx in
     your case. Nginx SSI is a descendant of the old Apache SSI with some useful features.
@@ -582,8 +800,11 @@
     implementing this functionality in your application code with some HTTP client
     library. Nginx will asynchronously fetch a URL with all the proper timeouts and
     gracefully fail to a default block if the remote side is slow or dead.'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '**服务器端包含**（**SSI**）是一种古老的技术，用于在网页服务器软件内部（在你的案例中是Nginx）动态生成HTTP响应。Nginx SSI是旧版Apache
+    SSI的继承者，并加入了一些有用的功能。SSI的语法和操作模式在[http://nginx.org/en/docs/http/ngx_http_ssi_module.html](http://nginx.org/en/docs/http/ngx_http_ssi_module.html)中有详细的文档。简而言之，它是一种从Nginx内部以快速、高效、可控的方式将数据片段粘贴到HTTP响应中的方法。你可以使用它来替代在应用程序代码中通过某些HTTP客户端库实现该功能。Nginx将异步获取URL，并且在远程端响应缓慢或死亡时，优雅地回退到默认块。'
 - en: '**Asynchronous inclusion** is a pretty standard modern way of embedding active
     resources (read: scripts) in a web page in a way that allows browser to never
     block waiting for these scripts to be fetched and executed. It is a job of a frontend
@@ -592,66 +813,90 @@
     Internet is blackholed except your site. By the word blackholing here, I mean
     a specific method of dropping packets in the firewall that will make connections
     not be refused but hang and wait for timeout on the client side.'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '**异步包含**是嵌入活跃资源（如：脚本）到网页中的一种非常标准的现代方式，允许浏览器在等待这些脚本被获取和执行时不被阻塞。这项任务属于前端工程师，确保任何包含的内容都能异步工作。你可以通过提供“干扰”并且搭建一个测试环境，模拟除你网站外整个互联网都被黑洞化来提供帮助。这里提到的黑洞化指的是通过防火墙丢弃数据包的方法，这种方法不会拒绝连接，而是使连接挂起并在客户端等待超时。'
 - en: There were several incidents when a popular Internet counter failure slowed
     down a significant number of independent websites. There is no excuse to include
     counters synchronously.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 曾经发生过几起流行的互联网计数器故障，导致大量独立网站的速度变慢。没有理由在同步情况下包含计数器。
 - en: Both the cases of a *Lying application* and *Integration failure* will also
     eventually lead to lower levels of 200 responses because people will stop using
     a website that technically works but does not serve their needs.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论是*谎言应用*还是*集成故障*，最终都会导致200响应的下降，因为人们会停止使用那些从技术上可用但不能满足需求的网站。
 - en: Note
+  id: totrans-109
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意事项
 - en: 'Journal: Implement proper escalation procedures. At all times, you should know
     whom to call if one of the hosts mentioned in one of your upstream blocks inside
     the Nginx configuration is misbehaving.'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：实施适当的升级流程。无论何时，你都应该知道如果Nginx配置中的上游块中的某个主机行为异常，应该联系谁。
 - en: Planning for more complete monitoring
+  id: totrans-111
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 更完整的监控规划
 - en: Many big modern websites consist of not only hundreds of hosts but hundreds
     of clusters of hosts. Each of those clusters performs a specific role in the whole
     grand scheme of things, whereas individual servers serve the requests providing
     load balancing and high availability. The role of the entry point to such a cluster
     is often delegated to a couple of Nginx boxes with a hardware-based load balancer
     in front of them.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多大型现代网站不仅由数百个主机组成，还由数百个主机集群组成。这些集群中的每一个在整个大计划中扮演着特定的角色，而单独的服务器则提供负载平衡和高可用性的请求服务。将这样一个集群的入口点的角色通常委托给前面有硬件负载均衡器的一对Nginx盒子。
 - en: Each of those may fail. To work around a part of your own externally facing
     infrastructure failure, you first find it by looking manually at a waterfall of
     the page load provided by a modern browser and then either switching the blocking
     part off or quickly fixing it.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 每一个都可能失败。为了解决你自己外部面向基础设施的部分故障，你首先要通过手动查看现代浏览器提供的页面加载的瀑布流来找到它，然后要么关闭阻塞部分，要么快速修复它。
 - en: Note
+  id: totrans-114
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Establish a process where you never open a group of web servers to
     the outside without having a general HTTP monitoring of the type described above
     for those particular servers. Also, consider all unmonitored servers as "critical"
     bugs requiring fixing right after all the "blocking" problems go away and before
     anything else.'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Journal: 建立一个流程，永远不要将一组Web服务器开放到外部，而不进行通用HTTP监控，类似于上述特定服务器的监控。此外，将所有未监控的服务器视为需要在所有“阻塞”问题解决之后立即修复的“关键”错误。'
 - en: Processing a situation of no traffic
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 处理没有流量的情况
 - en: You probably don't serve your users at all. This is the worst scenario for your
     business. All your efforts should be *not* on fixing the problem but on working
     around it. You will debug and fix the problem the right way later, but now you
     need to throw everything at bringing the service back up.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能根本不为用户提供服务。这对你的业务来说是最糟糕的情况。你所有的努力都不应该放在解决问题上，而是应该在绕过问题上。你将会在以后以正确的方式调试和修复问题，但现在你需要投入所有精力来恢复服务。
 - en: One very useful practice in such a situation is to put one of the malfunctioning
     servers *on ice*, that is, removing it from production but leaving it alone for
     the sake of preserving the erroneous state intact. A full disk, a busy waiting
@@ -662,203 +907,297 @@
     but the specifics require knowing your exact configuration and the details of
     the trouble you are facing. Sometimes, it is enough to remove an IP address from
     an upstream block in `nginx.conf`.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下非常有用的一种做法是将一个故障的服务器“冷藏”，即将其从生产中移除，但为了保留错误状态的完整性而将其保留。一个满盘、一个繁忙的等待进程占用了CPU——让这台机器继续这样做，直到你有足够的时间进行彻底的调试。当然，立即尝试清理是很自然的反应，但通过删除单个核心转储或看似存档的日志，你可能会破坏重要的证据。我们知道这可能比这更模糊，但具体情况需要知道你的确切配置和你面临的麻烦的细节。有时，仅仅从`nginx.conf`中的上游块中删除一个IP地址就足够了。
 - en: 'Returning to our example with a heavy backend machine-learning cluster:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 回到我们重型后端机器学习集群的示例：
 - en: '[PRE9]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Removing `machine-learning1` from the block and leaving it alone will make further
     investigations possible after you bring the second host up and start serving users.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 将`machine-learning1`从阻止中移除并将其保留下来，将使您在启动第二台主机并开始为用户提供服务后能够进行进一步的调查。
 - en: 'First, you check the connectivity to the actual Nginx servers. You run a `ping`
     command, leave it in the background for a minute to see the packet loss, and immediately
     try connecting to the `80` port via a Telnet program. If you see `ping` bailing
     out with:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，您检查与实际的Nginx服务器的连接性。您运行`ping`命令，将其在后台运行一分钟以查看丢包情况，并立即尝试通过Telnet程序连接到`80`端口。如果您看到`ping`退出并显示：
 - en: '[PRE10]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '... you have likely found the problem.'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '... 你很可能已经找到了问题。'
 - en: Your domain expired. This is the most stupid problem to have. People get fired
     for that. But this still happens a lot which is insane. One of the popular scenarios
     for smaller shops is when the owner of the business wants to keep ultimate control
     of the property in their own hands and keeps the credentials to the domain registrar
     to themselves but does not have time and resources to actually react to all those
     renewal reminder e-mails. This sounds unprofessional, but it happens frequently.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的域名过期了。这是最愚蠢的问题。因为这个问题，很多人会被解雇。但它仍然经常发生，这真是让人难以置信。小型商店常见的一种情况是，企业主希望将对域名的最终控制权掌握在自己手中，并将域名注册商的登录凭据保留给自己，但却没有时间和资源去及时响应所有续费提醒邮件。听起来不专业，但这种情况时常发生。
 - en: Currently, you have to demand those credentials or demand that they log in and
     immediately pay the registrar to keep the domains delegated.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，你必须要求提供这些凭据，或者要求他们登录并立即支付注册商费用以保持域名的有效性。
 - en: Note
+  id: totrans-127
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Have separate monitoring for all the domains your business uses. There
     are online tools that will check the expiration regularly; you will find them
     in abundance. There are also plugins for popular monitoring packages such as Nagios.'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：为你业务使用的所有域名设置独立的监控。现在有很多在线工具可以定期检查域名到期情况；你可以找到它们的资源非常丰富。流行的监控软件如Nagios也有插件。
 - en: '![Processing a situation of no traffic](img/B04329_03_03.jpg)'
+  id: totrans-129
   prefs: []
   type: TYPE_IMG
+  zh: '![处理无流量情况](img/B04329_03_03.jpg)'
 - en: 'Other bad signs are: `ping` is hanging, and packet loss is way above zero.
     This is the time you call your hosting provider support while simultaneously trying
     to ping from another location. You should have a server or two in a completely
     different data center from your main operation, so you just `ssh` to one of them
     and ping your website from there.'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他不好的迹象包括：`ping`卡住，丢包率远高于零。这时候，你应该拨打托管服务商的支持电话，同时尝试从另一个位置ping。你应该在与你的主要运营数据中心完全不同的地方有一个或两个服务器，这样你就可以通过`ssh`连接到其中一个并从那里ping你的网站。
 - en: 'This is a case of some severe packet loss happening between me and Twitter''s
     `t.co` service. Most of the time, it is a sign of problems on your side, not theirs.
     But rare things happen, and you should be ready for that:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我和Twitter的`t.co`服务之间发生严重丢包的情况。大多数时候，这是你这边的问题，而不是他们的。但偶尔也会有例外，你应该对此做好准备：
 - en: '![Processing a situation of no traffic](img/B04329_03_04.jpg)'
+  id: totrans-132
   prefs: []
   type: TYPE_IMG
+  zh: '![处理无流量情况](img/B04329_03_04.jpg)'
 - en: If `ping` cannot reach your server from there either, start rebooting your servers.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果`ping`也无法从那里访问到你的服务器，开始重启你的服务器。
 - en: You should have a way to reboot an otherwise unreachable server; every modern
     hosting provider has it, whether in the form of a simple menu item **Reboot**,
     such as in Amazon EC2 or a whole **Intelligent Platform Management Interface**
     (**IPMI**) console access.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该有一种方法来重启那些无法访问的服务器；每个现代托管提供商都提供此功能，无论是通过简单的菜单项**重启**，如在Amazon EC2中，还是通过完整的**智能平台管理接口**（**IPMI**）控制台访问。
 - en: '![Processing a situation of no traffic](img/B04329_03_05.jpg)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![处理无流量情况](img/B04329_03_05.jpg)'
 - en: '**Reboot** helps surprisingly often. It may also destroy evidence (for example,
     if you have a "run-away" process hung on a rare bug that will be killed on reboot),
     but being online is still more valuable.'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: '**重启**经常能奇迹般地解决问题。它也可能会销毁证据（例如，如果有一个“失控”的进程挂在一个罕见的错误上，重启后它会被终止），但保持在线依然比什么都不做更有价值。'
 - en: If you cannot reboot or it didn't help, you should be talking to your hosting
     provider already. They may have some kind of connectivity trouble. Otherwise,
     you might be a victim of DDoS, and your hoster has already initiated its anti-DDoS
     measures.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你无法重启服务器或重启没有解决问题，你应该联系你的托管服务提供商。他们可能遇到了某种连接问题。否则，你可能是DDoS攻击的受害者，而你的托管服务商已经启动了反DDoS措施。
 - en: Note
+  id: totrans-138
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Make sure that you have a quick way to reboot any of your servers
     remotely. Gone are the days when such a request required an engineer to go looking
     for your hardware in the racks. What is important is having the startup sequences
     right. Usually, Nginx boxes are stateless (or have only discardable state like
     cache) and come back themselves, but please test them often. It is sometimes too
     easy to make a live configuration change without saving it.'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：确保你有快速远程重启任何服务器的方法。如今，要求工程师去机架里找硬件的时代已经过去。重要的是确保启动序列正确。通常，Nginx服务器是无状态的（或只有可丢弃的状态，如缓存），它们会自己恢复，但请经常测试它们。有时候，进行实时配置更改时，未保存就会出现问题。
 - en: 'You haven''t yet found your problem if the server is reachable and your `telnet`
     to the `80` port shows the following output:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果服务器可达，且你的 `telnet` 命令连接到 `80` 端口时返回以下输出，那么你还没有找到问题所在：
 - en: '![Processing a situation of no traffic](img/B04329_03_06.jpg)'
+  id: totrans-141
   prefs: []
   type: TYPE_IMG
+  zh: '![处理没有流量的情况](img/B04329_03_06.jpg)'
 - en: Nginx is working, but because it is your application that is usually behind
     Nginx that carries the logic of the business, your website is useless. This is
     where you switch hats; now you need to bring up the upstream.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 正在运行，但因为通常是你的应用程序位于 Nginx 后面，并承载着业务逻辑，所以你的网站现在是无用的。这时，你需要切换角色；现在你需要启动上游服务。
 - en: There are several ways in which Nginx connects to the upstream application.
     It may be a rather simple HTTP proxy. This is what historically is called the
     "reverse proxy" or "web accelerator" mode. It may also use FastCGI or other technology
     stack-specific protocols, such as WSGI or PSGI.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 有几种方式连接到上游应用程序。它可能是一个相当简单的 HTTP 代理。这在历史上被称为“反向代理”或“Web 加速器”模式。它也可能使用 FastCGI
+    或其他技术栈特定的协议，如 WSGI 或 PSGI。
 - en: The HTTP mode is easier to debug, and you should recommend it to your developers
     although in the end it is their decision which interface to use. Nginx equally
     supports all of them.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: HTTP 模式更易于调试，你应该向你的开发人员推荐它，尽管最终由他们决定使用哪种接口。Nginx 对所有这些接口都支持。
 - en: 'Finding a problem in your application code is also beyond the scope of our
     book. You may have a database failure or an actual software bug. What you may
     do now, besides engaging developers, is provide your visitors with a nice humble
     static page explaining that you have temporary technical problems. A simple way
     to redirect all requests to a single location is this:'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 找到你应用程序代码中的问题也超出了我们本书的范围。你可能遇到了数据库故障或实际的软件错误。此时，除了让开发人员介入，你可以做的是为访客提供一个简洁的静态页面，解释你们正在面临临时技术问题。一个简单的方式是将所有请求重定向到一个位置：
 - en: '[PRE11]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'This will return a specially crafted HTTP response to all requests. The response
     will have `302` status code (which is the closest to "temporary redirect") and
     a Location: header with the value you provide.'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: '这将返回一个特殊的 HTTP 响应给所有请求。响应将具有 `302` 状态码（这是最接近“临时重定向”的状态码），并带有你提供的 Location:
+    头部。'
 - en: If telnet gives you
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 `telnet` 返回以下信息
 - en: '[PRE12]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: or hangs on the phase "Trying 392.1.2.3..." then read on.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者卡在“尝试 392.1.2.3...”这一阶段，那么继续阅读。
 - en: Note
+  id: totrans-151
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注释
 - en: 'Journal:'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：
 - en: 1) Make sure that you have a way to check connectivity from an external location.
     2) Probably move to another hosting provider. 3) Plan a meeting about having a
     failover scenario for network failure; yes, you can spread out to another data
     center, but this is a very interesting topic reaching way beyond of the scope
     of this book.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 1) 确保你有一种方式检查外部位置的连接性。2) 可能需要切换到另一个托管服务商。3) 计划召开会议，讨论如何为网络故障设置故障切换方案；是的，你可以扩展到另一个数据中心，但这是一个非常有趣的话题，远超本书的范围。
 - en: We are now on one of those steps where hopes are high. Nginx rarely crashes,
     but no response on the `80` port may be a sign of a crash. Try logging in to the
     server with `ssh`. If you fail for whatever reason, reboot your servers and start
     from there. See information about rebooting the earlier.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在正处在那些希望满满的步骤中。Nginx 很少崩溃，但 `80` 端口没有响应可能是崩溃的迹象。尝试使用 `ssh` 登录到服务器。如果因为任何原因登录失败，重启服务器并从那里开始。有关重启的信息，请参见之前的内容。
 - en: Once you are done with it, immediately restart Nginx. The exact commands will
     depend on the type of OS you use.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成后，立即重启 Nginx。具体的命令将取决于你使用的操作系统类型。
 - en: 'On FreeBSD, this is as simple as the following:'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 FreeBSD 上，这样操作就很简单：
 - en: '[PRE13]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'On Debian-based Linux distributions, it is either:'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 在基于 Debian 的 Linux 发行版中，通常是：
 - en: '[PRE14]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '...for Debian 8.0 and higher or:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '...对于 Debian 8.0 及更高版本，或：'
 - en: '[PRE15]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Restarting a daemon serving network requests is an important operation. Although
     this particular failure usually means that it does not serve anything right now,
     we would like to use the occasion to describe how Nginx authors solved the problem
     of restarts.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 重启一个服务网络请求的守护进程是一个重要的操作。尽管这个特定的失败通常意味着它当前没有提供任何服务，我们还是希望借此机会描述 Nginx 的作者如何解决重启问题。
 - en: Restarting Nginx properly
+  id: totrans-163
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 正确重启 Nginx
 - en: There are several modes of restart operation that Nginx implements and the administrator
     is able to control which method is used by sending different signals to the Nginx
     master process. Remember that you send signals with the `kill` command. Nginx
@@ -867,32 +1206,46 @@
     You almost never need to signal the worker processes. Instead, you send signals
     to the master process, which in turn organizes the shutdown and restart of all
     the worker processes.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx实现了几种重启操作模式，管理员可以通过向Nginx主进程发送不同的信号来控制使用哪种方法。记住，你是使用`kill`命令发送信号的。Nginx像一群进程一样运行，处理请求的是工作进程。我们将在下一章深入讨论这一点。你几乎永远不需要给工作进程发送信号。相反，你发送信号给主进程，主进程再组织所有工作进程的关闭和重启。
 - en: 'These are the signals that initiate different restart modes:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是启动不同重启模式的信号：
 - en: '| Signal | Mode |'
+  id: totrans-166
   prefs: []
   type: TYPE_TB
+  zh: '| 信号 | 模式 |'
 - en: '| --- | --- |'
+  id: totrans-167
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| HUP | This is the hangup signal. After receiving this signal, Nginx will
     perform the so-called graceful restart, that is, it will restart without any downtime.
     There won''t be a single HTTP request that went unserved or interrupted. The idea
     behind this mode is to start new worker processes for new requests while waiting
     for the old workers to finish processing of older requests and then remove them.
     |'
+  id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '| HUP | 这是挂起信号。在接收到此信号后，Nginx将执行所谓的优雅重启，也就是在没有任何停机的情况下重启。不会有一个HTTP请求未被处理或中断。这个模式的思想是为新请求启动新的工作进程，同时等待旧的工作进程完成对旧请求的处理，然后将其移除。
+    |'
 - en: '| USR2 | This custom user signal allows you to completely change the binary
     of Nginx. This means full restart including even the master processes. There would
     be a moment when two masters are running with one of them "handing the job over"
     to the other. This mode is needed when you built a newer Nginx with some patches.
     |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| USR2 | 这个自定义用户信号允许你完全更换Nginx的二进制文件。这意味着完全重启，包括甚至主进程。会有一段时间，两个主进程在运行，其中一个“将任务交给”另一个。当你构建了一个包含一些补丁的新版Nginx时，需要使用这种模式。
+    |'
 - en: After a restart, you may have two basic outcomes. First, you see that Nginx
     has successfully restarted. Check that connections to the port `80` can be opened.
     You may have just fixed the problem. If not, your Nginx may have crashed again.
@@ -904,80 +1257,113 @@
     unusual, unexpected situation that requires a custom solution. See the [Chapter
     2](ch02.html "Chapter 2. Searching for Problems in Log Files"), *Logging in to
     Nginx* for more insights.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 重启后，你可能有两种基本结果。首先，你会看到Nginx已成功重启。检查端口`80`是否可以打开。如果是，那么你可能已经解决了问题。如果没有，你的Nginx可能又崩溃了。接下来的步骤包括仔细查看Nginx自身的错误日志，以及操作系统的系统日志（通常是`/var/log/messages`）。这可能是整个调查过程中最不愉快的时刻。我们必须完全交给你处理。不幸的是，我们正处于调试一个非常稳定的软件崩溃的领域，这意味着你遇到了某些非常不寻常、意外的情况，需要定制的解决方案。有关更多信息，请参阅[第2章](ch02.html
+    "第2章：日志文件中寻找问题")，*登录到Nginx*。
 - en: Do you remember rolling back? Try to roll back the entire configuration of the
     server. Try downgrading software and kernel.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 你记得回滚吗？尝试回滚服务器的整个配置。尝试降级软件和内核。
 - en: Note
+  id: totrans-172
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Implement high-availability measures on the level before Nginx. This
     is a step deeper into network configuration, but you will need this sooner or
     later. Read about carp, Cisco IP balancing or maybe switch to a cloud provider
     such as Amazon and use their own solutions. You need a way to switch a misbehaving
     Nginx instance off while replacing it with a working clone on the same IP address.'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：在Nginx之前实现高可用性措施。这是更深入的网络配置步骤，但你迟早会需要。了解一下carp、Cisco IP负载均衡，或者可能切换到像Amazon这样的云服务商，使用他们的解决方案。你需要一种方法，在关闭一个故障的Nginx实例时，将其替换为同一IP地址上的工作副本。
 - en: 'Second, you may see an error message about a problem during the start process.
     If Nginx does not start, it will always report the reason for that—be it a simple
     error in configuration files or something more serious. This happens very often,
     which is surprising. An overconfident young sysadmin makes a change to `nginx.conf`
     and then neither commits it to a VCS, nor even restarts Nginx. After a while when
     you need to make a restart, you see this screenful of terror:'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，你可能会看到启动过程中出现的错误信息。如果 Nginx 无法启动，它总会报告具体的原因——无论是配置文件中的简单错误，还是更严重的问题。这种情况发生得非常频繁，令人惊讶。一位过于自信的年轻系统管理员修改了
+    `nginx.conf`，却既没有提交到版本控制系统，也没有重启 Nginx。过了一段时间，当你需要重启时，你会看到这屏幕上充满恐怖的提示：
 - en: '[PRE16]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: I specifically collected the message from a modern systemd-enabled machine to
     make it a little more confusing. You will deploy on a systemd-based distribution
     with high probability sooner or later. Please see the highlighted line for the
     actual reason. Nginx is wonderful in many ways, and reporting its start errors
     is definitely one of them.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 我特意从一台启用了 systemd 的现代机器上收集了这个信息，目的是让它显得有些混乱。你迟早会在一个基于 systemd 的发行版上进行部署。请参见突出显示的行来查看实际的原因。Nginx
+    在许多方面都非常出色，报告启动错误绝对是其中之一。
 - en: Investigating lower than usual traffic
+  id: totrans-177
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 调查流量低于平常的原因
 - en: This case seems to be easier on the business and it might be, but it is actually
     much worse for you because you don't know what is still working and what is not.
     Maybe you have an electronic bookstore and all your **Order now** clicks are failing.
     Everything else works, but you earn only on successful orders. Unfortunately,
     this is the hardest case of all. On the other side, these are rare.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题对业务似乎较容易处理，可能确实如此，但对你来说却更糟，因为你不知道哪些功能还在正常工作，哪些已经失效。比如，你有一家电子书店，所有的**立即购买**点击都失败了。其他的功能都正常，但你只有成功订单才能盈利。不幸的是，这种情况是最难处理的。不过，这种情况比较罕见。
 - en: A common (human) error is letting your HTTPS certificates expire. The parts
     of your website that are not behind HTTPS will continue to work. Moreover, each
     browser allows a user to override the expiration warning and go on with the business.
     Because of this, you will see a number of successful responses in your monitoring
     and logs, but it will be significantly lower than your usual levels.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个常见的（人为的）错误是让你的 HTTPS 证书过期。网站中没有使用 HTTPS 的部分会继续正常工作。此外，每个浏览器都允许用户忽略过期警告并继续使用。这导致你会在监控和日志中看到一些成功的响应，但成功率会显著低于平常的水平。
 - en: Issuing new certificates is easy. You may also try switching https off for a
     short while in a desperate attempt to serve some more people while you are waiting
     for your new certificates. We cannot recommend that.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 发布新证书很简单。在你等待新证书时，你也可以尝试短暂关闭 HTTPS，试图让更多的人访问。但我们不推荐这么做。
 - en: Note
+  id: totrans-181
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Journal: Monitor certificate expiration. This is very easy and will save you
     from a very unprofessional mishap.'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志：监控证书过期。这非常简单，能避免非常不专业的错误发生。
 - en: One of the more interesting reasons that you may see lower traffic is performance
     problems, and we have a whole chapter devoted to performance coming next.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会看到流量下降的一个有趣原因是性能问题，我们将专门有一章讨论性能，敬请期待。
 - en: Summary
+  id: totrans-184
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: This chapter outlined a simple process of several steps that allows you to work
     around many classes of website failures. You might be an experienced system administrator
     and still benefit from the information because it allows a systematic approach.
@@ -985,5 +1371,8 @@
     tightly focused piece of software with an unusually low failure rate. We hope
     that this chapter and the whole book help you achieve your goals of stability
     with Nginx. The next chapter focuses on the performance of Nginx.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章概述了一个简单的流程，通过几个步骤让你能够规避许多类型的网站故障。即使你是一个经验丰富的系统管理员，仍然可以从这些信息中受益，因为它提供了一种系统化的方法。这可能成为你自己检查清单的起点。例如，Nginx
+    是一款出色的、功能紧凑的软件，故障率异常低。我们希望本章和整本书能帮助你实现通过 Nginx 达到稳定性的目标。下一章将聚焦于 Nginx 的性能。
