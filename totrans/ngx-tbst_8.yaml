@@ -1,47 +1,65 @@
 - en: Appendix A. Rare Nginx Error Messages
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 附录 A. 稀有的 Nginx 错误消息
 - en: We conclude our book with a reference of interesting and not very common error
     messages that you might encounter in your log files. The table in this appendix
     may be an emergency reference or another peek into what could go wrong in your
     setup. In general, Nginx is pretty good at reporting its own problems. The messages
     usually have a standard format with common items, such as severity, function name,
     and pointers to external data that caused the problem.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在本书的结尾部分提供了可能出现在日志文件中的一些有趣且不常见的错误消息。附录中的表格可以作为紧急参考，或者是你在设置过程中可能会遇到问题的另一种窥视。一般来说，Nginx
+    在报告自身问题方面做得相当好，消息通常具有标准格式，包含一些常见项，如严重性、功能名称和指向导致问题的外部数据的指示。
 - en: We would recommend against leaving this table unread until a problem occurs
     because the notes column may contain interesting insights into how Nginx works
     and help you understand it better. Some of these messages you might not see in
     your real working experience, which is okay, as the error conditions are exceptions
     by definition.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们建议不要等问题发生后才阅读此表，因为备注列可能包含一些有趣的见解，帮助你更好地理解 Nginx 的工作原理。你可能在实际工作中不会看到这些消息，这没关系，因为这些错误条件本质上是例外情况。
 - en: '| **could not open error log file: open() "/var/log/nginx/error.log" failed**
     | This is a very common error, which usually indicates problems with permissions
     on either the actual log files or the directory structure. You will see this in
     the `stderr` of the Nginx process because, obviously, it is an error in the error
     reporting mechanism. |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '| **无法打开错误日志文件：open() "/var/log/nginx/error.log" 失败** | 这是一个非常常见的错误，通常表示实际日志文件或目录结构的权限存在问题。你会在Nginx进程的`stderr`中看到此错误，因为显然它是错误报告机制中的问题。
+    |'
 - en: '| **rewrite or internal redirection cycle while internally redirecting** |
     This message means you have a cycle in the rewrite/redirection logic. They may
     be introduced by complex regular expressions that match too much, for example.
     |'
+  id: totrans-4
   prefs: []
   type: TYPE_TB
+  zh: '| **重写或内部重定向循环，在内部重定向时** | 该消息表示在重写/重定向逻辑中存在循环。比如，由于复杂的正则表达式匹配过多内容，可能会引发此问题。|'
 - en: '| **invalid PID number $pid in $file** | The saved PID number is garbled. There
     is a problem with the file that is mentioned in the `pid` directive of your `nginx.conf
     file`. |'
+  id: totrans-5
   prefs: []
   type: TYPE_TB
+  zh: '| **$file 中的无效 PID 数字 $pid** | 保存的 PID 数字混乱。问题出在 `nginx.conf` 文件中 `$pid` 指令所提到的文件上。
+    |'
 - en: '| **getpwnam($user) failed****getgrnam($group) failed** | These two mean that
     there are problems with the user and group that your Nginx is supposed to run
     as. This may happen when you try to use configuration files imported from other
     machines without corrections. See the documentation for the directive at [http://nginx.org/en/docs/ngx_core_module.html#user](http://nginx.org/en/docs/ngx_core_module.html#user).
     |'
+  id: totrans-6
   prefs: []
   type: TYPE_TB
+  zh: '| **getpwnam($user) 失败** 和 **getgrnam($group) 失败** | 这两个错误表示你的 Nginx 运行时所需的用户和组存在问题。这可能发生在你尝试使用从其他机器导入的配置文件时，但没有进行修正。请参见指令的文档：[http://nginx.org/en/docs/ngx_core_module.html#user](http://nginx.org/en/docs/ngx_core_module.html#user)。
+    |'
 - en: '| **could not build $hash, you should increase $hash_max_size:**and**could
     not build $hash, you should increase $hash_bucket_size:** | These are the messages
     that Nginx emits when a hash table hits one of two limits—the total hash size
@@ -51,52 +69,79 @@
     values to get rid of the errors.Also, see the special document about hashes in
     Nginx at [http://nginx.org/en/docs/hash.html](http://nginx.org/en/docs/hash.html).
     |'
+  id: totrans-7
   prefs: []
   type: TYPE_TB
+  zh: '| **无法构建 $hash，应该增加 $hash_max_size:** 和 **无法构建 $hash，应该增加 $hash_bucket_size:**
+    | 当哈希表遇到两个限制之一——总哈希大小和每个单独桶的大小——时，Nginx 会发出这些消息。Nginx 代码中使用了多个哈希表，它们都有相应的指令对，例如
+    `*_max_size` 和 `*_bucket_size`。你需要增加这些值中的一个，才能消除这些错误。此外，请参见有关 Nginx 哈希的专门文档：[http://nginx.org/en/docs/hash.html](http://nginx.org/en/docs/hash.html)。
+    |'
 - en: '| **read()/pread() read only $count of $size from $source** | This message
     means that, unexpectedly, a reading syscall returned less bytes than it should
     have. There are a number of places where this kind of error may originate. |'
+  id: totrans-8
   prefs: []
   type: TYPE_TB
+  zh: '| **read()/pread() 从 $source 读取的 $count 字节少于预期的 $size 字节** | 该消息表示读取系统调用（read）意外地返回了少于预期的字节数。此类错误可能源自多个地方。
+    |'
 - en: '| **the configured event method cannot be used with thread pools** | Thread
     pools require the epoll, eventport or the kqueue event subsystem. |'
+  id: totrans-9
   prefs: []
   type: TYPE_TB
+  zh: '| **配置的事件方法不能与线程池一起使用** | 线程池需要epoll、eventport或kqueue事件子系统。 |'
 - en: '| **pthread_create() failed** | This and a number of similar errors come from
     the thread pool code that uses POSIX threads. |'
+  id: totrans-10
   prefs: []
   type: TYPE_TB
+  zh: '| **pthread_create()失败** | 这些及一些类似错误来自于使用POSIX线程的线程池代码。 |'
 - en: '| **pcre_compile() failed:** | Nginx uses the **Perl Compatible Regular Expressions**
     (**PCRE**) library to implement regexps. PCRE is fine and `pcre_compile()` is
     the function to compile a regular expression before matching it. Its failure indicates
     a bad regular expression. |'
+  id: totrans-11
   prefs: []
   type: TYPE_TB
+  zh: '| **pcre_compile()失败：** | Nginx使用**Perl兼容正则表达式**（**PCRE**）库来实现正则表达式。PCRE本身没有问题，`pcre_compile()`是用来在匹配之前编译正则表达式的函数。它的失败表示正则表达式存在问题。
+    |'
 - en: '| **pcre_study() failed:**and**JIT compiler does not support pattern:** | Besides
     simple compilation, PCRE implements several heuristics to optimize the matching
     of some patterns. That is what `pcre_study()` does. There are very few ways for
     it to fail, but the JIT compiler, which is one of the optimizations, is a complex
     piece of software doing much work. Failure inside it probably means either a bug
     in PCRE or a very weird regular expression. |'
+  id: totrans-12
   prefs: []
   type: TYPE_TB
+  zh: '| **pcre_study()失败：**和**JIT编译器不支持模式：** | 除了简单的编译外，PCRE还实现了几种启发式优化，以优化某些模式的匹配。这就是`pcre_study()`的功能。它失败的原因很少，但JIT编译器作为一种优化，是一个复杂的软件，执行大量工作。它内部的失败很可能意味着PCRE的bug或是一个非常奇怪的正则表达式。
+    |'
 - en: '| **could not change the accept filter to $value** | Accept filters are a feature
     of BSD kernels that allow postponing the return from the blocking `accept()` calls
     until there''s a meaningful and expected piece of incoming data ready in the buffer.This
     is an internal error most probably indicating a bug. |'
+  id: totrans-13
   prefs: []
   type: TYPE_TB
+  zh: '| **无法将接受过滤器更改为 $value** | 接受过滤器是BSD内核的一项功能，它允许在有有意义且预期的传入数据准备好并存储在缓冲区中时，推迟阻塞的`accept()`调用返回。这是一个内部错误，最有可能表示一个bug。
+    |'
 - en: '| **$number worker_connections are not enough** | You need to increase the
     number in the directive `worker_connections`. |'
+  id: totrans-14
   prefs: []
   type: TYPE_TB
+  zh: '| **$number 工作进程连接数不足** | 你需要增加`worker_connections`指令中的数字。 |'
 - en: '| **rename() $filename1 to $filename2 failed before executing new binary process**
     | During the very elaborate process of a graceful executable upgrade, Nginx tried
     to rename the `pid` file and failed. You may read about how Nginx manages to restart
     itself without losing connections at [http://nginx.org/en/docs/control.html](http://nginx.org/en/docs/control.html).See
     the USR2 signal. |'
+  id: totrans-15
   prefs: []
   type: TYPE_TB
+  zh: '| **在执行新的二进制进程之前，rename() $filename1 到 $filename2 失败** | 在精细的优雅可执行文件升级过程中，Nginx尝试重命名`pid`文件时失败。你可以阅读关于Nginx如何在不丢失连接的情况下重启的内容，访问
+    [http://nginx.org/en/docs/control.html](http://nginx.org/en/docs/control.html)。请查看USR2信号。
+    |'
 - en: '| **the number of "worker_processes" is not equal to the number of "worker_cpu_affinity"
     masks, using last mask for remaining worker processes** | CPU affinity is a concept
     of tying worker processes to particular CPUs. The idea is to be able to say, for
@@ -104,21 +149,31 @@
     second worker should run on the second four cores, respectively.The number of
     affinity masks that you specify should correspond to the number of worker processes.
     If it is less, you get this warning message. |'
+  id: totrans-16
   prefs: []
   type: TYPE_TB
+  zh: '| **"worker_processes"的数量与"worker_cpu_affinity"掩码的数量不相等，使用最后一个掩码应用于剩余的工作进程**
+    | CPU亲和性是将工作进程绑定到特定CPU的概念。其目的是能够指定，例如，第一个工作进程只能在前四个核心上运行，第二个工作进程只能在第二组四个核心上运行。你指定的亲和性掩码的数量应与工作进程的数量相对应。如果少了掩码，则会显示此警告消息。
+    |'
 - en: '| **no "events" section in configuration** | Your configuration file misses
     one of the most important sections, which is *Events*. See [Chapter 1](ch01.html
     "Chapter 1. Searching for Problems in Nginx Configuration"), *Searching for Problems
     in Nginx Configuration*. |'
+  id: totrans-17
   prefs: []
   type: TYPE_TB
+  zh: '| **配置中缺少"events"部分** | 你的配置文件缺少一个非常重要的部分，即*Events*部分。请参见 [第1章](ch01.html "第1章。寻找Nginx配置中的问题")，*在Nginx配置中寻找问题*。
+    |'
 - en: '| **$number worker_connections exceed open file resource limit: $number** |
     The resource limit on the number of open files (file descriptors limit) does not
     allow having as many worker connections as you wanted by specifying it with the
     `worker_connections` directive.See the ulimit manpage and also login.conf manpage
     if you are on FreeBSD. |'
+  id: totrans-18
   prefs: []
   type: TYPE_TB
+  zh: '| **$number 工作进程连接数超过了打开文件资源限制: $number** | 打开的文件数（文件描述符限制）的资源限制不允许你通过`worker_connections`指令指定的连接数。请查看`ulimit`手册，并且如果你使用的是FreeBSD系统，还请查看`login.conf`手册。
+    |'
 - en: '| **"ssl_stapling" ignored, issuer certificate not found****"ssl_stapling"
     ignored, no OCSP responder URL in the certificate****certificate status not found
     in the OCSP response****OCSP responder timed out****OCSP responder sent invalid
@@ -132,8 +187,15 @@
     by itself and provides the clients with a signed, time-stamped OCSP ticket.Basically,
     a modern HTTPS website should have SSL stapling on and working. Fix these by following
     all the recommendations in the documentation closely. |'
+  id: totrans-19
   prefs: []
   type: TYPE_TB
+  zh: '| **"ssl_stapling" 被忽略，未找到颁发者证书** **"ssl_stapling" 被忽略，证书中没有 OCSP 响应者 URL**
+    **证书状态在 OCSP 响应中未找到** **OCSP 响应者超时** **OCSP 响应者发送了无效的 "Content-Type" 头部** | 一些不同的消息提到
+    SSL stapling（和 `ssl_stapling` 指令）或 OCSP，可能意味着你的 HTTPS 没有像它应该那样高效工作。X.509 PKI 的最复杂部分之一是证书撤销问题。OCSP
+    是一种较新的尝试，旨在提供关于证书撤销状态的在线信息，在最坏的情况下，它要求客户端定期检查服务器证书与 OCSP 响应者。当开启 OCSP stapling
+    时，Nginx 会自行联系响应者，并为客户端提供签名的、带有时间戳的 OCSP 票证。基本上，现代 HTTPS 网站应该开启并正常工作 SSL stapling。通过严格遵循文档中的所有建议来修复这些问题。
+    |'
 - en: '| **nginx was built with Session Tickets support, however, now it is linked
     dynamically to an OpenSSL library which has no tlsext support, therefore Session
     Tickets are not available**and also the same about "SNI" instead of Session Tickets
@@ -143,55 +205,86 @@
     Tickets is a TLS feature-optimizing handshake count.Both of these require OpenSSL
     support at compile time and at runtime.You may see these error messages when you
     run Nginx from a binary package on a box with bad OpenSSL. |'
+  id: totrans-20
   prefs: []
   type: TYPE_TB
+  zh: '| **Nginx 构建时支持会话票据，但现在它动态链接到一个没有 tlsext 支持的 OpenSSL 库，因此会话票据不可用** 以及同样的问题出现在
+    "SNI" 而非会话票据 | **服务器名称指示** (**SNI**) 是 HTTPS 中 `Host:` 头部的对应项。它是一个较新的 TLS/SSL
+    特性，允许基于名称的虚拟主机配置 HTTPS。在线 Nginx 文档中有一个关于 SNI 的独立章节，见 [http://nginx.org/en/docs/http/configuring_https_servers.html#sni](http://nginx.org/en/docs/http/configuring_https_servers.html#sni)。会话票据是一个优化握手次数的
+    TLS 特性。这两者都需要在编译时和运行时提供 OpenSSL 支持。当你在带有不良 OpenSSL 的机器上运行 Nginx 时，可能会看到这些错误信息。
+    |'
 - en: '| **open(/dev/poll) failed****kqueue() failed****port_create() failed****eventfd()
     failed** | These are all different indications that you have chosen the wrong
     event subsystem with the directive `use` in the events context. See [http://nginx.org/en/docs/events.html](http://nginx.org/en/docs/events.html).
     |'
+  id: totrans-21
   prefs: []
   type: TYPE_TB
+  zh: '| **open(/dev/poll) 失败** **kqueue() 失败** **port_create() 失败** **eventfd() 失败**
+    | 这些都是不同的指示，表明你在事件上下文中的 `use` 指令中选择了错误的事件子系统。请参见 [http://nginx.org/en/docs/events.html](http://nginx.org/en/docs/events.html)。
+    |'
 - en: '| **no servers in upstream** | Upstreams are groups of backends (whether they
     are separate hosts or just server software instances running locally) and you
     specified an empty group. |'
+  id: totrans-22
   prefs: []
   type: TYPE_TB
+  zh: '| **上游没有服务器** | 上游是后端的组（无论它们是独立的主机还是仅仅是在本地运行的服务器软件实例），而你指定了一个空组。 |'
 - en: '| **client intended to send too large body: $number bytes** | Well-behaved
     HTTP clients indicate the size of the requests they send in the `Content-Length:`
     header. When this size exceeds the value from the `client_max_body_size` directive,
     Nginx will reject the request with a 413 code.The default value of this limit
     is only 1 MB, so you may face the problem very often if your website has a function
     of file uploads. |'
+  id: totrans-23
   prefs: []
   type: TYPE_TB
+  zh: '| **客户端试图发送过大的主体：$number 字节** | 行为良好的 HTTP 客户端会在 `Content-Length:` 头部指示它们发送的请求的大小。当这个大小超过
+    `client_max_body_size` 指令中的值时，Nginx 会拒绝请求并返回 413 状态码。这个限制的默认值仅为 1 MB，因此，如果你的网站有文件上传功能，你可能会经常遇到这个问题。
+    |'
 - en: '| **not well formed XML document** | This very vague message is emitted from
     the rarely used XSLT module. It uses libxml2 and therefore needs valid XML documents.
     |'
+  id: totrans-24
   prefs: []
   type: TYPE_TB
+  zh: '| **格式不正确的 XML 文档** | 这个非常模糊的消息来自于较少使用的 XSLT 模块。它使用 libxml2，因此需要有效的 XML 文档。
+    |'
 - en: '| **FastCGI sent in stderr:** | This is a message generated by the FastCGI
     upstream. FastCGI, as a protocol for communications with external processes, provides
     channels for both `stdout` and `stderr` of the backend software. So this is where
     `stderr` ends up. |'
+  id: totrans-25
   prefs: []
   type: TYPE_TB
+  zh: '| **FastCGI 在 stderr 中发送：** | 这是由 FastCGI 上游生成的消息。FastCGI 作为与外部进程通信的协议，提供了后端软件的
+    `stdout` 和 `stderr` 通道。因此，这就是 `stderr` 输出的位置。 |'
 - en: '| **no "proxy_ssl_certificate_key" is defined****no proxy_ssl_trusted_certificate
     for proxy_ssl_verify** | Modern Nginx has the feature of being a good HTTPS client
     as well as a server. The HTTP proxy upstream is able to present a client certificate
     to an HTTPS upstream server. You will need to provide the key to the certificate
     as well.The client part also can verify the certificate of the server and even
     check it against a **Certificate Revokation List** (**CRL**). |'
+  id: totrans-26
   prefs: []
   type: TYPE_TB
+  zh: '| **没有定义 "proxy_ssl_certificate_key"****没有 proxy_ssl_trusted_certificate 用于
+    proxy_ssl_verify** | 现代 Nginx 具备作为一个优良的 HTTPS 客户端和服务器的功能。HTTP 代理上游能够向 HTTPS 上游服务器提供客户端证书。您还需要提供证书的密钥。客户端部分还可以验证服务器的证书，甚至可以与
+    **证书吊销列表** (**CRL**) 进行比对。 |'
 - en: '| **cache $zone uses the $path cache path while previously it used the $path
     cache path****cache $zone had previously different levels****cache file $file
     is too small** | These messages indicate that the Nginx file cache directory was
     moved or otherwise tampered with.You should probably clean it and get ready to
     start again with a cold cache. |'
+  id: totrans-27
   prefs: []
   type: TYPE_TB
+  zh: '| **缓存 $zone 使用 $path 缓存路径，而之前使用的是 $path 缓存路径****缓存 $zone 以前具有不同的级别****缓存文件
+    $file 太小** | 这些消息表明 Nginx 文件缓存目录被移动或以其他方式被篡改。您应该清理缓存并准备从冷缓存重新开始。 |'
 - en: '| **duplicate location $location** | You have two exactly equal location selectors.
     Nginx will give you the line number of the second instance, but you will have
     to find the first yourself. |'
+  id: totrans-28
   prefs: []
   type: TYPE_TB
+  zh: '| **重复位置 $location** | 您有两个完全相同的位置选择器。Nginx 会给出第二个实例的行号，但您需要自己找到第一个实例。 |'

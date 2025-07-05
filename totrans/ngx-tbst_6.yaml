@@ -860,15 +860,19 @@
   id: totrans-118
   prefs: []
   type: TYPE_TB
+  zh: '| `version` | 这是这些数据格式的版本。对于解析器非常重要，因为某些项目只有在特定版本之后才会出现，可能需要升级 Nginx 才能为解析器提供足够的信息。到
+    2015 年 12 月为止，最后一个版本是 6。 |'
 - en: '| `nginx_version` | This is the version of Nginx software. |'
   id: totrans-119
   prefs: []
   type: TYPE_TB
+  zh: '| `nginx_version` | 这是 Nginx 软件的版本。 |'
 - en: '| `address` | This is the IP address of the server generating the status report.
     |'
   id: totrans-120
   prefs: []
   type: TYPE_TB
+  zh: '| `address` | 这是生成状态报告的服务器的 IP 地址。 |'
 - en: '| `generation` | This gets incremented by one each time you reload Nginx configuration.
     So in a sense, this is the number of the current configuration generation. One
     may wonder why the generation number is important. One of the reasons is that
@@ -877,50 +881,63 @@
   id: totrans-121
   prefs: []
   type: TYPE_TB
+  zh: '| `generation` | 每次重新加载 Nginx 配置时，此值会增加 1。所以在某种意义上，这是当前配置版本的编号。有人可能会问为什么配置代号很重要。原因之一是，如果代号或配置已更改，可能不适合比较某些指标，例如性能。
+    |'
 - en: '| `load_timestamp` | The Unix epoch timestamp of the last configuration reload.
     |'
   id: totrans-122
   prefs: []
   type: TYPE_TB
+  zh: '| `load_timestamp` | 上次配置重载的 Unix 时间戳。 |'
 - en: '| `timestamp` | Current UNIX timestamp. |'
   id: totrans-123
   prefs: []
   type: TYPE_TB
+  zh: '| `timestamp` | 当前的 UNIX 时间戳。 |'
 - en: '| `pid` | The process identifier of the worker that processed this specific
     status request. |'
   id: totrans-124
   prefs: []
   type: TYPE_TB
+  zh: '| `pid` | 处理此特定状态请求的工作进程的进程标识符。 |'
 - en: '| `processes` | This is an object with a single field (it may be extended in
     future versions of the response structure), which is named `respawned`, and contains
     the number of all child processes that we restarted after a failure. |'
   id: totrans-125
   prefs: []
   type: TYPE_TB
+  zh: '| `processes` | 这是一个包含单一字段的对象（未来版本的响应结构可能会扩展），该字段名为 `respawned`，表示我们在故障后重启的所有子进程的数量。
+    |'
 - en: '| `connections` | This is an important object containing the information that
     we otherwise can obtain via the open source `ngx_http_stub_status` module. |'
   id: totrans-126
   prefs: []
   type: TYPE_TB
+  zh: '| `connections` | 这是一个重要的对象，包含我们通过开源的 `ngx_http_stub_status` 模块可以获取的信息。 |'
 - en: '| `connections.accepted` | This value inside the `connections` object is the
     total number of all accepted client connections. |'
   id: totrans-127
   prefs: []
   type: TYPE_TB
+  zh: '| `connections.accepted` | `connections` 对象中的这个值表示所有已接受的客户端连接的总数。 |'
 - en: '| `connections.dropped` | This is the total number of dropped connections.
     Note that with `http_stub_status` module, we have to calculate this value ourselves.
     |'
   id: totrans-128
   prefs: []
   type: TYPE_TB
+  zh: '| `connections.dropped` | 这是掉线连接的总数。请注意，在 `http_stub_status` 模块中，我们需要自行计算此值。
+    |'
 - en: '| `connections.active` | The number of currently active connections. |'
   id: totrans-129
   prefs: []
   type: TYPE_TB
+  zh: '| `connections.active` | 当前活动连接的数量。 |'
 - en: '| `connections.idle` | The number of connections that are idling. |'
   id: totrans-130
   prefs: []
   type: TYPE_TB
+  zh: '| `connections.idle` | 空闲连接的数量。 |'
 - en: '| `ssl` | This is also an object with several values inside. Those are SSL
     (actually, TLS) counters. SSL is an older version of the protocol for encrypted
     connections. The proper name for the current protocol is TLS, but the old name
@@ -928,16 +945,21 @@
   id: totrans-131
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl` | 这也是一个包含多个值的对象，这些值是 SSL（实际上是 TLS）计数器。SSL 是加密连接协议的旧版本。当前协议的正确名称是 TLS，但一些保守派专家仍然使用旧名称。
+    |'
 - en: '| `ssl.handshakes` | The total number of TLS handshakes. |'
   id: totrans-132
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl.handshakes` | TLS 握手的总次数。 |'
 - en: '| `ssl.handshakes_failed` | The total number of unsuccessful TLS handshakes.
     This is a very interesting and important value that is not available via `http_stub_status`
     while being rather critical to monitor. |'
   id: totrans-133
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl.handshakes_failed` | TLS 握手失败的总次数。这是一个非常有趣且重要的值，通过 `http_stub_status`
+    无法获取，但对监控来说相当关键。 |'
 - en: '| `ssl.session_reuses` | Each TLS handshake is an expensive operation, and
     there is an optimization that reuses one of the previously established TLS sessions
     to avoid the handshake altogether. A low number here means an opportunity to increase
@@ -945,20 +967,26 @@
   id: totrans-134
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl.session_reuses` | 每次 TLS 握手都是一个开销较大的操作，优化方式是重用先前建立的 TLS 会话，从而完全避免重新握手。这里的低数字意味着可以通过少量投入来提高性能。
+    |'
 - en: '| `requests` | An object with two values. |'
   id: totrans-135
   prefs: []
   type: TYPE_TB
+  zh: '| `requests` | 一个包含两个值的对象。 |'
 - en: '| `requests.total` | This is the same number that is printed last on the third
     line of the `http_stub_status` output. The global counter for all client requests
     received via all connections. |'
   id: totrans-136
   prefs: []
   type: TYPE_TB
+  zh: '| `requests.total` | 这是在 `http_stub_status` 输出的第三行最后显示的数字。所有客户端请求的全局计数器，表示通过所有连接接收的客户端请求总数。
+    |'
 - en: '| `requests.current` | The number of currently processed requests. |'
   id: totrans-137
   prefs: []
   type: TYPE_TB
+  zh: '| `requests.current` | 当前正在处理的请求数量。 |'
 - en: '| `upstreams` | If there is one important feature of Nginx Plus that you want
     to name to justify the purchase, it should probably be the upstreams object in
     the `http_status` output. It allows the metrics of the individual upstreams and
@@ -967,11 +995,14 @@
   id: totrans-138
   prefs: []
   type: TYPE_TB
+  zh: '| `upstreams` | 如果有一个 Nginx Plus 的重要功能，你可能想提及以证明购买的理由，那应该是 `http_status` 输出中的
+    upstreams 对象。它允许监控单个上游和上游内主机的度量数据。前面提到的示例主机没有配置任何上游，因此该对象为空。 |'
 - en: '| `caches` | This object contains the status of all configured caches. Most
     of the cache configuration is done with the upstream directives. |'
   id: totrans-139
   prefs: []
   type: TYPE_TB
+  zh: '| `caches` | 该对象包含所有配置缓存的状态。大多数缓存配置通过上游指令完成。 |'
 - en: '| `server_zones` | This object is a custom storage that you can fill with data
     using the `status_zone` directive inside one of your server blocks. Status zones
     are a new concept in Nginx Plus. They provide an additional level of flexibility
@@ -981,81 +1012,100 @@
   id: totrans-140
   prefs: []
   type: TYPE_TB
+  zh: '| `server_zones` | 该对象是一个自定义存储，你可以使用 `status_zone` 指令在某个服务器区块内填充数据。状态区域是 Nginx
+    Plus 中的新概念。它们提供了收集状态数据的额外灵活性。你可以在 [http://nginx.org/en/docs/http/ngx_http_status_module.html#status_zone](http://nginx.org/en/docs/http/ngx_http_status_module.html#status_zone)
+    查找该指令的详细文档。 |'
 - en: 'Each of the server zones contains a separate multilevel object with the status
     information collected from all servers connected to the same status zone. That
     object looks like this:'
   id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个服务器区域包含一个独立的多层对象，该对象收集了所有连接到相同状态区域的服务器的状态信息。该对象如下所示：
 - en: '| `processing` | The snapshot number of currently processed requests. |'
   id: totrans-142
   prefs: []
   type: TYPE_TB
+  zh: '| `processing` | 当前正在处理的请求的快照数量。 |'
 - en: '| `requests` | The total counter of all requests. |'
   id: totrans-143
   prefs: []
   type: TYPE_TB
+  zh: '| `requests` | 所有请求的总计数。 |'
 - en: '| `responses.total` | The number of responses sent to clients. Should be close
     to the number of requests. |'
   id: totrans-144
   prefs: []
   type: TYPE_TB
+  zh: '| `responses.total` | 发送给客户端的响应数量。应接近请求的数量。 |'
 - en: '| `1xx` | The number of responses with HTTP 1xx status codes. |'
   id: totrans-145
   prefs: []
   type: TYPE_TB
+  zh: '| `1xx` | HTTP 1xx响应的数量。 |'
 - en: '| `2xx` | The number of responses with HTTP 2xx status codes. |'
   id: totrans-146
   prefs: []
   type: TYPE_TB
+  zh: '| `2xx` | HTTP 2xx响应的数量。 |'
 - en: '| `3xx` | The number of responses with HTTP 3xx (usually redirects) status
     codes. |'
   id: totrans-147
   prefs: []
   type: TYPE_TB
+  zh: '| `3xx` | HTTP 3xx响应的数量（通常是重定向）。 |'
 - en: '| `4xx` | The number of responses with HTTP 4xx (usually indicating bad requests
     that should be fixed on the client side) status codes. |'
   id: totrans-148
   prefs: []
   type: TYPE_TB
+  zh: '| `4xx` | HTTP 4xx响应的数量（通常表示请求错误，应该在客户端修复）。 |'
 - en: '| `5xx` | The number of responses with HTTP 5xx (meaning internal server errors)
     status codes. |'
   id: totrans-149
   prefs: []
   type: TYPE_TB
+  zh: '| `5xx` | HTTP 5xx响应的数量（表示内部服务器错误）。 |'
 - en: '| `discarded` | The number of requests that did not generate responses. |'
   id: totrans-150
   prefs: []
   type: TYPE_TB
+  zh: '| `discarded` | 没有生成响应的请求数量。 |'
 - en: '| `received` | Total bytes received from clients. |'
   id: totrans-151
   prefs: []
   type: TYPE_TB
+  zh: '| `received` | 从客户端接收的总字节数。 |'
 - en: '| `sent` | Total bytes sent to clients. |'
   id: totrans-152
   prefs: []
   type: TYPE_TB
+  zh: '| `sent` | 发送给客户端的总字节数。 |'
 - en: Using Nginx Plus alternatives
   id: totrans-153
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Nginx Plus 替代方案
 - en: The Nginx Plus commercial subscription gives you more than just the `ngx_http_status`
     module. If you do not need the other perks of the Plus version but crave more
     metrics, you could explore some of the freely available alternatives.
   id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx Plus 商业订阅不仅仅提供`ngx_http_status`模块。如果你不需要 Plus 版本的其他附加功能，但渴望更多的度量数据，你可以探索一些免费提供的替代方案。
 - en: nginx-module-vts
   id: totrans-155
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: nginx-module-vts
 - en: One way to get more information from inside Nginx is this open source module
     published on GitHub at [https://github.com/vozlt/nginx-module-vts](https://github.com/vozlt/nginx-module-vts).
   id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取更多来自 Nginx 内部信息的一种方式是这个开源模块，该模块在 GitHub 上发布，网址是 [https://github.com/vozlt/nginx-module-vts](https://github.com/vozlt/nginx-module-vts)。
 - en: The author was clearly inspired by the official `ngx_http_status` features and
     even used the same structures and dashboard client-side code (although the older
     version). This may be actually a good thing because you can start integrating
@@ -1068,11 +1118,14 @@
   id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者显然受到了官方`ngx_http_status`功能的启发，甚至使用了相同的结构和客户端仪表板代码（尽管是较旧的版本）。这实际上可能是件好事，因为你可以先开始集成`nginx-module-vts`，然后在准备好订阅时将所有脚本通过最小修改迁移到Nginx
+    Plus。文档非常出色，并且有很多示例。该模块返回的JSON对象中的某些键与官方`ngx_http_status`的键不同，因此我们建议在监控配置文件中抽象出实际的键名。
 - en: Luameter
   id: totrans-158
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Luameter
 - en: Another alternative to the great official `ngx_http_status` is the Luameter
     package, which is a collection of scripts in the Lua programming language that
     integrates with Nginx using the `ngx_http_lua` module. The format of the data
@@ -1081,11 +1134,13 @@
   id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个替代官方`ngx_http_status`的优秀选择是Luameter包，它是一个用Lua编写的脚本集合，集成了Nginx，并使用`ngx_http_lua`模块。Lua收集和导出的数据格式显然也受到了官方昂贵替代品的启发，因此你将能够轻松切换。
 - en: The idea of the very useful `ngx_http_lua` module is to let Nginx administrators
     hook snippets of custom Lua code into different phases of request processing.
   id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 非常有用的`ngx_http_lua`模块的理念是让Nginx管理员在请求处理的不同阶段插入自定义的Lua代码片段。
 - en: Luameter is distributed on a pay-as-you-go model, so it is not free. The lowest
     price is just 10 US dollars, so it is very cheap in comparison with what the commercial
     arm of Nginx sells. Refer to [https://luameter.com/](https://luameter.com/) for
@@ -1093,11 +1148,13 @@
   id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: Luameter采用按需付费模式分发，因此并不是免费的。最低价格仅为10美元，相比Nginx商业版的售价，它非常便宜。有关Luameter的所有信息，请参考[https://luameter.com/](https://luameter.com/)。
 - en: nginx-lua-stats
   id: totrans-162
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: nginx-lua-stats
 - en: This is another collection of scripts in Lua. It may be used by itself to collect
     and export online statistics about the number of generated HTTP responses with
     various HTTP status codes, but it is even more valuable as an example of using
@@ -1105,10 +1162,12 @@
   id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是另一组用Lua编写的脚本。它可以单独使用，收集并导出有关生成的HTTP响应及其各种HTTP状态码的在线统计数据，但作为一个使用Lua钩子收集额外数据并报告数据的示例，它的价值更大。
 - en: The code is published on GitHub at [https://github.com/yandex-sysmon/nginx-lua-stats](https://github.com/yandex-sysmon/nginx-lua-stats).
   id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码已发布在GitHub上，地址是[https://github.com/yandex-sysmon/nginx-lua-stats](https://github.com/yandex-sysmon/nginx-lua-stats)。
 - en: '`nginx-lua-stats` works its magic by setting up a hook on the logging phase,
     which collects the data, and then setting up another hook on the content generation
     phase for a particular location which is able to actually generate a full HTTP
@@ -1116,10 +1175,12 @@
   id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '`nginx-lua-stats`通过在日志记录阶段设置钩子来发挥作用，该钩子收集数据，然后在特定位置的内容生成阶段设置另一个钩子，能够实际生成包含收集的统计数据的完整HTTP响应。'
 - en: 'Here is the relevant part of the `nginx.conf` file:'
   id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是`nginx.conf`文件的相关部分：
 - en: '[PRE16]'
   id: totrans-167
   prefs: []
@@ -1132,11 +1193,13 @@
   id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 对`/stat`位置的请求将返回收集的数据。第二个位置块安装了一个额外的日志处理程序，实际上是一个计数钩子。其效果是，所有对`/html`目录下文档的请求将在日志记录阶段触发`collect_stats.lua`脚本。
 - en: The upsteam_check module in tengine
   id: totrans-169
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: tengine中的upsteam_check模块
 - en: One of the many advantages of open source development models is the possibility
     of forks, which are separate versions of the main software with changes that are
     not accepted by the original author. Sometimes, forks become very successful in
@@ -1147,6 +1210,7 @@
   id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 开源开发模型的众多优点之一是能够进行分叉（fork），即主软件的独立版本，这些版本包含原作者未接受的更改。有时，分叉会非常成功，甚至超越原版本。中国最大的网站之一——淘宝网有自己的Nginx分叉，名为tengine。除了淘宝，许多大型网站也更倾向于使用tengine而非原始的Nginx。Tengine具有一些非常先进的上游管理和监控功能。
 - en: The `upstream_check` module allows us to specify some custom health checks for
     all the hosts in an upstream group. That is an interesting functionality by itself,
     but it is the secondary feature that got the module in this chapter. The directive
@@ -1155,20 +1219,24 @@
   id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '`upstream_check`模块允许我们为上游组中的所有主机指定一些自定义健康检查。这本身就是一个有趣的功能，但正是其次要特性使得该模块被提到在本章中。在一个位置内的指令`check_status`是一个内容生成器，例如我们在本章详细讨论过的官方模块中的`status`和`stub_status`。'
 - en: This directive provides a report on the health of different hosts in an upstream
     group in either human-readable HTML or machine-readable JSON or even CSV format.
   id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 该指令提供了以人类可读的HTML、机器可读的JSON或甚至CSV格式报告上游组中不同主机的健康状况。
 - en: See the examples of configuration and output at [http://tengine.taobao.org/document_cn/http_upstream_check_cn.html](http://tengine.taobao.org/document_cn/http_upstream_check_cn.html).
   id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 请参见配置和输出的示例：[http://tengine.taobao.org/document_cn/http_upstream_check_cn.html](http://tengine.taobao.org/document_cn/http_upstream_check_cn.html)。
 - en: The requests/sec patch by Catap
   id: totrans-174
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Catap的requests/sec补丁
 - en: There is a patch for a very old Nginx version that adds one very interesting
     metric to the `ngx_http_stub_status` output. The metric is the requests rate that
     otherwise may be only approximately calculated using saved past state from the
@@ -1176,20 +1244,24 @@
   id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个针对非常老旧Nginx版本的补丁，它向`ngx_http_stub_status`输出添加了一个非常有趣的指标。这个指标是请求速率，否则只能通过从主总请求计数器中保存的过去状态来大致计算。
 - en: The patch is available at [http://catap.ru/patches/nginx/request_per_seconds.dpatch](http://catap.ru/patches/nginx/request_per_seconds.dpatch).
   id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 补丁可在[http://catap.ru/patches/nginx/request_per_seconds.dpatch](http://catap.ru/patches/nginx/request_per_seconds.dpatch)下载。
 - en: Unfortunately, it does not apply cleanly to modern Nginx source, so you will
     have to do some manual conflict resolution.
   id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，它不能干净地应用于现代的Nginx源码，因此你需要进行一些手动的冲突解决。
 - en: The Ustats module
   id: totrans-178
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Ustats模块
 - en: There is also another piece of rather old code that may or may not be brought
     up to date with modern Nginx. It is called Ustats, and it is officially put into
     the "abandonware" category. Such projects may provide a starting point for some
@@ -1199,11 +1271,13 @@
   id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有另一段相当古老的代码，可能已经过时，也可能未被更新以适应现代的Nginx。它叫做Ustats，官方将其归类为“废弃软件”。这样的项目可能为某些内部开发提供起点。查看[https://github.com/0xc0dec/ustats](https://github.com/0xc0dec/ustats)获取代码，查看[https://code.google.com/p/ustats/](https://code.google.com/p/ustats/)获取一些文档。
 - en: Summary
   id: totrans-180
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 摘要
 - en: In this chapter, we delved deep into the details of different ways to monitor
     a working Nginx instance. There is a very useful command-line log parsing utility
     ngxtop as well as two real-time statistics interfaces, which are available in
@@ -1213,6 +1287,7 @@
   id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们深入探讨了监控一个运行中的Nginx实例的不同方式。介绍了一个非常有用的命令行日志解析工具ngxtop，以及两个实时统计接口，这些接口在开源版和商业版Nginx中都有提供。我们详细讨论了这些接口暴露的所有数据项，并讨论了与市场上许多监控系统的集成选项。
 - en: The next chapter will conclude the whole book by giving future directions for
     the reader. It may even seem to contain some career advice. There is also an appendix
     providing a reference into all the different errors and warnings that you may
