@@ -1305,16 +1305,21 @@
   id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置中遗漏了缓存的两个重要参数，这意味着你将使用默认值。`proxy_cache_methods` 默认只缓存 GET 和 HEAD 请求，这可能对你的
+    Web 应用程序并不最优。而 `proxy_cache_key` 默认值为 `$scheme$proxy_host$request_uri,`，如果你的 Web
+    应用程序对不同用户发出类似请求，这可能会很危险。了解这些指令，并为键添加唯一性，或者通过 `proxy_cache_bypass` 回退到未缓存行为。
 - en: Another example that we would like to present is much more complex. Let us devote
     a separate section to it.
   id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们想介绍的另一个示例要复杂得多。我们将专门为它提供一个单独的章节。
 - en: Caching static files
   id: totrans-138
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 缓存静态文件
 - en: When scaling a website horizontally, you will inevitably find yourself in the
     situation of having many identical Nginx-powered servers behind a low-level balancer.
     All of them will proxy the requests to the same upstream server farm, and there
@@ -1326,6 +1331,8 @@
   id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 在水平扩展网站时，你不可避免地会发现自己处于一种情况，即有许多相同的 Nginx 服务器位于低层负载均衡器后面。它们都会将请求代理到相同的上游服务器集群，且在同步网站所服务的活跃、动态内容时不会出现问题。但如果你遵循将所有静态内容本地化以允许
+    Nginx 以最原生、最高效的方式提供服务的建议，你将面临一个任务，即在各处拥有相同文件的多个副本。
 - en: The other way to do the same task is a setup where a farm of Nginx instances
     is used to serve a huge library of static files, for example, video or music.
     Having a copy of that library on each Nginx node is out of the question because
@@ -1333,12 +1340,15 @@
   id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成同一任务的另一种方法是使用一组 Nginx 实例来提供一个巨大的静态文件库，比如视频或音乐。因为文件库太大，所以在每个 Nginx 节点上都拥有一份副本是不可能的。
 - en: As usual, there are many possible solutions for these two cases. One choice
     is having a secondary smaller farm of Nginx servers serving the files to the main
     farm, which will employ caching inside the `ngx_proxy` upstream.
   id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 和往常一样，这两种情况有很多可能的解决方案。一个选择是拥有一个较小的 Nginx 服务器集群，向主集群提供文件，这样主集群将使用 `ngx_proxy`
+    上游进行缓存。
 - en: Another interesting solution uses a network filesystem mounted on the nodes.
     The traditional Unix NFS has a bad reputation, but in reality, on current Linux
     kernels, it is stable enough to be used in production. Two of the alternatives
@@ -1351,6 +1361,10 @@
   id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个有趣的解决方案是使用挂载在节点上的网络文件系统。传统的 Unix NFS 名声不好，但实际上，在当前的 Linux 内核上，它稳定到足以在生产环境中使用。两种替代方案是
+    AFS 和 SMBFS。挂载点下的文件对于 Nginx 看起来是本地文件，但它们仍然需要通过网络下载，这比读取一块好的本地 SSD 要慢得多。幸运的是，现代
+    Linux 内核具有从 NFS 和 AFS 本地缓存文件的能力。这种功能被称为 FS-Cache，并且使用一个独立的用户空间守护进程`cachefilesd`来存储来自网络文件系统的本地副本。你可以在[https://people.redhat.com/dhowells/fscache/FS-Cache.pdf](https://people.redhat.com/dhowells/fscache/FS-Cache.pdf)了解有关
+    FS-Cache 的更多信息。
 - en: FS-Cache configuration is rather straightforward, and we will not focus on it.
     There is another way to do it, which follows the philosophy of Nginx much more
     closely. SlowFS is a third-party, upstream-like module for Nginx, which provides
@@ -1359,16 +1373,20 @@
   id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: FS-Cache 的配置相当简单，我们在这里不重点讨论。还有一种方法更紧密地遵循 Nginx 的理念。SlowFS 是一个第三方的类似上游模块，为 Nginx
+    提供了一个简单的文件系统子树接口。该接口包括缓存功能，这与其他所有 Nginx 上游相同。
 - en: '**SlowFS** is open source under a very permissive license and is available
     either from the author''s website or directly from GitHub as a repository. Refer
     to [http://labs.frickle.com/nginx_ngx_slowfs_cache](http://labs.frickle.com/nginx_ngx_slowfs_cache).'
   id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '**SlowFS** 是开源的，采用非常宽松的许可证，可以通过作者的网站或直接从 GitHub 仓库获取。参考 [http://labs.frickle.com/nginx_ngx_slowfs_cache](http://labs.frickle.com/nginx_ngx_slowfs_cache)。'
 - en: 'Here is an example SlowFS configuration:'
   id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个 SlowFS 配置的例子：
 - en: '[PRE7]'
   id: totrans-146
   prefs: []
@@ -1382,11 +1400,14 @@
   id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 该配置在 `/var/www/nfs` 中可用的文件上安装了一个透明缓存层。文件的实际存储方式并不重要，它们仍然会根据 `slowfs_*` 系列指令指定的参数进行缓存。但显然，只有当
+    `/var/db/cache` 比 `/var/www/nfs` 快得多时，你才能注意到加速效果。
 - en: Replacing external redirects with internal ones
   id: totrans-148
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 用内部重定向替代外部重定向
 - en: As modern frontend frameworks grow more and more complex, there is an alarming
     rise in the number of the so-called client-side redirects. Nginx has a great facility
     that will allow you to save some traffic and precious client waiting time on client
@@ -1394,25 +1415,30 @@
   id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着现代前端框架变得越来越复杂，所谓的客户端重定向的数量也在令人担忧地增加。Nginx 有一个很好的功能，可以帮助你节省一些流量，并减少客户端因重定向而等待的时间。首先，让我们简要回顾一下这些重定向。
 - en: 'All the HTTP responses are documents consisting of three principal parts:'
   id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有的 HTTP 响应都是由三部分主要内容组成的文档：
 - en: 'There''s the HTTP code (200: Ok, 404: Not found, and so on)'
   id: totrans-151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '这里有一些 HTTP 状态码（200: 成功，404: 未找到，等等）'
 - en: There are a number of loosely structured key-value pairs in the form of headers
   id: totrans-152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这里有一些松散结构的键值对，形式为头部信息
 - en: There is a relatively large, opaque, optional body
   id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这里有一个相对较大的、不透明的可选主体
 - en: There is a lot of good HTTP response codes documentation on the Internet (and
     also some hilarious pieces given at [http://httpstatusdogs.com/](http://httpstatusdogs.com/))—the
     ones that are relevant to our discussion are in the fourth hundred, that is, between
@@ -1420,6 +1446,8 @@
   id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 互联网上有很多关于 HTTP 响应代码的文档（还有一些搞笑的内容，可以在[http://httpstatusdogs.com/](http://httpstatusdogs.com/)找到）——与我们讨论相关的代码在四百以内，即
+    300 到 399 之间。
 - en: Responses with those codes are indications that a browser should immediately
     make another request instead of the original one. This is why they are called
     redirects. The semantic differences between various 3xx codes are less important
@@ -1427,6 +1455,7 @@
   id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 带有这些状态码的响应表示浏览器应该立即发起另一个请求，而不是原始请求。这就是为什么它们被称为重定向。不同 3xx 状态码之间的语义差异在这里并不重要。
 - en: What is important is that many redirects are superfluous. HTTP clients (for
     example, browsers) spend time on redirects that serve no particular reason besides
     cleaning up the URL in the address bar. Does Yahoo really need to redirect me
@@ -1438,22 +1467,28 @@
   id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是，许多重定向是多余的。HTTP 客户端（例如浏览器）在重定向上花费了时间，而这些重定向并没有特别的意义，除了清理地址栏中的 URL。雅虎真的需要将我从
+    `yahoo.de` 重定向到 `ru.yahoo.com`、`www.yahoo.com`，以及 [https://www.yahoo.com](https://www.yahoo.com)
+    吗？这让我浏览器发出三次额外的请求，完全可以避免。如果你控制的网站有这种行为，你可以向相应的开发人员提出这个问题。你也可以建议一个简单的修复方法，稍后在文中会提到。
 - en: There is a cool, little web service that allows you to see the redirects chain
     as well as some other metainformation that may be useful for debugging. It may
     be referred to at [https://httpstatus.io/](https://httpstatus.io/).
   id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个很棒的小型网络服务，可以让你查看重定向链条以及一些可能对调试有用的其他元信息。你可以在[https://httpstatus.io/](https://httpstatus.io/)查看它。
 - en: You may go and check whether some of your websites make unneeded redirects,
     which may cost your slow mobile users' precious seconds before they actually get
     to the content of your site.
   id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以去检查一下你的网站是否存在不必要的重定向，这可能会使得移动用户在真正加载网站内容之前浪费宝贵的几秒钟。
 - en: '![Replacing external redirects with internal ones](img/B04329_04_02.jpg)'
   id: totrans-159
   prefs: []
   type: TYPE_IMG
+  zh: '![用内部重定向替代外部重定向](img/B04329_04_02.jpg)'
 - en: Nginx has a feature named "internal redirects". The idea is that all the intermediate
     HTTP request-response pairs are processed right inside the server. The client
     gets the content from the end of the chain in response to the original request.
@@ -1463,6 +1498,8 @@
   id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 有一个名为“内部重定向”的功能。其思路是所有中间的 HTTP 请求-响应对都在服务器内部处理。客户端从链条的末端获得内容，以响应原始请求。有多种方法可以在
+    Nginx 中启用内部重定向，但最灵活的方式可能是由 Nginx 后的上游生成的 `X-Accel-Redirect` 响应头。
 - en: For the internal redirects to work with this method, you will have to change
     the configuration of your upstream software. Instead of generating true redirects
     via HTTP 3xx response codes coupled with the `Location:` response header, you
@@ -1477,11 +1514,15 @@
   id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让内部重定向能够使用这种方法工作，你需要更改上游软件的配置。你需要生成早前提到的 `X-Accel-Redirect:` 头，而不是通过 HTTP
+    3xx 响应码和 `Location:` 响应头生成真正的重定向。这实际上是你需要做的唯一修改。这里有一些需要小心的地方，全部与浏览器的安全模型有关。像雅虎示例中所展示的地理重定向在现在已经相当少见，因此优化它们可能不值得，因为你在错误的域上发布
+    cookies 会引发麻烦。然而，`example.com` 到 `www.example.com` 的重定向仍然非常流行，且看起来是内部重定向的完美候选。
 - en: Summary
   id: totrans-162
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we discussed several approaches to finding performance problems
     in your Nginx installation. We mostly focused on working with legacy websites
     that you might have inherited and are optimizing. The reason for this is that
@@ -1489,9 +1530,12 @@
   id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们讨论了几种方法来查找你 Nginx 安装中的性能问题。我们主要集中在处理你可能继承并正在优化的遗留网站。之所以这样做，是因为 Nginx
+    本身很少会有性能不足的问题。
 - en: As an operations specialist, you increased your value for the business by gaining
     knowledge on how to speed up existing working websites having load and customers
     but based on some pre-Nginx technologies that were a limiting factor.
   id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一名运营专家，你通过学习如何加速现有的、已经有负载和客户的工作网站，提升了自己在业务中的价值，但这些网站基于一些早期的 Nginx 技术，成为了限制因素。
