@@ -1364,11 +1364,13 @@
   id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个要更改的参数是发送和接收缓冲区的大小。请注意，这些值仅用于示范目的——它们可能导致过多的内存使用，因此一定要在特定场景下进行测试。
 - en: Linux
   id: totrans-211
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Linux
 - en: '[PRE63]'
   id: totrans-212
   prefs:
@@ -1380,6 +1382,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FreeBSD
 - en: '[PRE64]'
   id: totrans-214
   prefs:
@@ -1391,6 +1394,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Solaris
 - en: '[PRE65]'
   id: totrans-216
   prefs:
@@ -1404,6 +1408,7 @@
   id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以直接在NGINX的配置中更改这些缓冲区，以使其仅对NGINX有效，而不影响机器上运行的其他软件。当你有多个服务运行时，这可能是必要的，但你希望确保NGINX能够充分利用你的网络堆栈。
 - en: '[PRE66]'
   id: totrans-218
   prefs: []
@@ -1418,15 +1423,18 @@
   id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据你的网络设置，你会注意到性能有显著变化。不过，你应该检查你的具体设置，并一次只做一个更改，观察每个更改后的结果。性能调优可以在很多不同的层次上进行，这里简要的讨论并没有充分涵盖这一主题。如果你有兴趣深入了解性能调优，应该阅读一些相关书籍和在线资源。
 - en: Tip
   id: totrans-220
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: '**Making network tuning changes in Solaris persistent**'
   id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: '**在Solaris中使网络调优更改持久化**'
 - en: In the previous two sections, we changed several TCP-level parameters on the
     command line. For Linux and FreeBSD, these changes would be persisted after a
     reboot due to the changes also being made in system configuration files (for example,
@@ -1435,6 +1443,7 @@
   id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前两个部分中，我们更改了多个TCP级别的参数。在Linux和FreeBSD中，由于这些更改也会在系统配置文件中进行（例如，`/etc/sysctl.conf`），因此这些更改在重启后会持久化。对于Solaris，情况则不同。这些更改并没有在`sysctls`中进行，因此无法在该文件中持久化。
 - en: Solaris 10 and above offers the **Service Management Framework** (**SMF**).
     This is a unique way of managing services and ensuring a start order at reboot.
     (Of course, it is much more than this, but this oversimplification serves here.)
@@ -1443,28 +1452,33 @@
   id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: Solaris 10及以上版本提供了**服务管理框架**（**SMF**）。这是一种独特的服务管理方式，并确保重启时服务的启动顺序。（当然，它不仅仅是这个，但这种过度简化在此处是适用的。）为了使前面提到的TCP级别更改持久化，我们可以编写一个SMF清单和相应的脚本来应用这些更改。
 - en: These are detailed in [Appendix D](apd.html "Appendix D. Persisting Solaris
     Network Tunings"), *Persisting Solaris Network Tunings*.
   id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些内容在[附录D](apd.html "附录D. 持久化Solaris网络调优")，*持久化Solaris网络调优*中有详细说明。
 - en: Using the Stub Status module
   id: totrans-225
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Stub Status模块
 - en: NGINX provides an introspection module, which outputs certain statistics about
     how it is running. This module is called **Stub Status** and is enabled with the
     `--with-http_stub_status_module` configure flag.
   id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX提供了一个内省模块，输出有关其运行方式的某些统计信息。此模块称为**Stub Status**，通过`--with-http_stub_status_module`配置标志启用。
 - en: 'To see the statistics produced by this module, the `stub_status` directive
     needs to be set to `on`. A separate `location` directive should be created for
     this module, so that an ACL may be applied:'
   id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 要查看此模块生成的统计信息，`stub_status`指令需要设置为`on`。应为此模块创建一个单独的`location`指令，以便可以应用访问控制列表（ACL）：
 - en: '[PRE67]'
   id: totrans-228
   prefs: []
@@ -1475,6 +1489,7 @@
   id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 从本地主机调用此URI（例如，使用`curl` `http://localhost/nginx_status`）将显示类似以下内容的输出：
 - en: '[PRE68]'
   id: totrans-230
   prefs: []
@@ -1491,6 +1506,7 @@
   id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里我们看到有2,532个打开的连接，其中NGINX当前正在读取93个请求头，13个连接处于NGINX正在读取请求体、处理请求或向客户端写响应的状态。剩下的2,426个请求被视为`keepalive`连接。自从启动此`nginx`进程以来，它已经接受并处理了1,476,737,983个连接，意味着没有一个连接在被接受后立即关闭。通过这1,476,737,983个连接，共处理了3,553,635,810个请求，意味着每个连接平均处理了约2.4个请求。
 - en: This kind of data can be collected and graphed using your favorite system metrics
     tool chain. There are plugins for Munin, Nagios, collectd, and others, which use
     the `stub_status` module to collect statistics. Over time, you may notice certain
@@ -1500,11 +1516,13 @@
   id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 这类数据可以使用你喜欢的系统监控工具链进行收集和绘制图表。Munin、Nagios、collectd等都有插件，利用`stub_status`模块收集统计信息。随着时间推移，你可能会注意到某些趋势，并能够将其与特定因素关联，但前提是数据已被收集。用户流量的激增以及操作系统的变化应该在这些图表中可见。
 - en: Summary
   id: totrans-233
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: Problems surface on a number of levels when bringing a new piece of software
     into production. Some errors can be tested for and eradicated in a test environment;
     others surface only under real load with real users. To discover the reasons for
@@ -1521,9 +1539,11 @@
   id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将一款新软件投入生产环境时，会在多个层面上出现问题。有些错误可以在测试环境中进行测试并消除；而另一些问题只有在实际负载和真实用户下才会显现。为了发现这些问题的原因，NGINX提供了非常详细的日志记录，涵盖多个层级。某些消息可能有多种解释，但总体模式是可以理解的。通过调整配置并查看产生的错误信息，我们可以大致了解如何解读错误日志中的条目。操作系统对NGINX的运行有影响，因为它对多用户系统的默认设置施加了一些限制。理解TCP层面的情况有助于在实际负载下调整这些参数以适应条件。通过我们排除故障的介绍，我们看到`stub_status`模块能够提供哪些信息。这些数据有助于我们大致了解NGINX的性能表现。
 - en: The appendices are up next. The first is a directive reference, listing all
     of NGINX's configuration directives in one place, including default values and
     in which context they may be used.
   id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来是附录。第一个附录是指令参考，列出了NGINX的所有配置指令，包括默认值以及它们可以在哪些上下文中使用。

@@ -1,34 +1,51 @@
 - en: Appendix A. Directive Reference
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 附录 A. 指令参考
 - en: This appendix lists the configuration directives used throughout the book. There
     are also some directives that did not appear in the book, but are listed here
     for completeness. The entries have been expanded to show under which context each
     directive may be used. If a directive has a default value, it has been listed
     as well. These directives are current as of NGINX Version 1.3.9\. The most up-to-date
     list can be found at [http://nginx.org/en/docs/dirindex.html](http://nginx.org/en/docs/dirindex.html).
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本附录列出了全书中使用的配置指令。还有一些指令在书中没有出现，但为了完整性，这里列出。条目已扩展，展示了每个指令可以使用的上下文。如果指令有默认值，也已列出。这些指令适用于
+    NGINX 版本 1.3.9。最新的指令列表可以在[http://nginx.org/en/docs/dirindex.html](http://nginx.org/en/docs/dirindex.html)找到。
 - en: 'Table: Directive reference'
+  id: totrans-2
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 表：指令参考
 - en: '| Directive | Explanation | Context/Default |'
+  id: totrans-3
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 解释 | 上下文/默认值 |'
 - en: '| --- | --- | --- |'
+  id: totrans-4
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| `accept_mutex` | Serializes the `accept()` method on new connections by worker
     processes. | Valid context: `events`Default value: `on` |'
+  id: totrans-5
   prefs: []
   type: TYPE_TB
+  zh: '| `accept_mutex` | 在新连接的 `accept()` 方法上进行序列化，以便由工作进程处理。 | 有效上下文：`events` 默认值：`on`
+    |'
 - en: '| `accept_mutex_delay` | The maximum time a worker process will wait to accept
     new connections if another worker is already doing this. | Valid context: `events`Default
     value: `500ms` |'
+  id: totrans-6
   prefs: []
   type: TYPE_TB
+  zh: '| `accept_mutex_delay` | 如果另一个工作进程已经在接受新连接，当前工作进程等待接受新连接的最大时间。 | 有效上下文：`events`
+    默认值：`500ms` |'
 - en: '| `access_log` | Describes where and how access logs are to be written. The
     first parameter is a path to the file where the logs are to be stored. Variables
     may be used in constructing the path. The special value `off` disables the access
@@ -39,257 +56,404 @@
     this size cannot exceed the size of the atomic disk write for that filesystem.
     | Valid contexts: `http`, `server`, `location`, `if in location`, `limit_except`Default
     value`: logs`/`access.log combined` |'
+  id: totrans-7
   prefs: []
   type: TYPE_TB
+  zh: '| `access_log` | 描述了访问日志应该写入的位置和方式。第一个参数是日志存储文件的路径。构建路径时可以使用变量。特殊值 `off` 可禁用访问日志。可选的第二个参数表示写入日志时将使用的
+    `log_format`。如果未配置第二个参数，则使用预定义的组合格式。可选的第三个参数表示如果使用写入缓冲区来记录日志时，缓冲区的大小。如果使用写入缓冲区，则此大小不能超过该文件系统的原子磁盘写入大小。
+    | 有效上下文：`http`，`server`，`location`，`if in location`，`limit_except` 默认值：`logs`/`access.log
+    combined` |'
 - en: '| `add_after_body` | Adds the result of processing a subrequest after the response
     body. | Valid context: `location`Default value: - |'
+  id: totrans-8
   prefs: []
   type: TYPE_TB
+  zh: '| `add_after_body` | 在响应体之后添加处理子请求的结果。 | 有效上下文：`location` 默认值：- |'
 - en: '| `add_before_body` | Adds the result of processing a subrequest before the
     response body. | Valid context: `location`Default value: - |'
+  id: totrans-9
   prefs: []
   type: TYPE_TB
+  zh: '| `add_before_body` | 在响应体之前添加处理子请求的结果。 | 有效上下文：`location` 默认值：- |'
 - en: '| `add_header` | Adds fields to a header present in responses with the HTTP
     codes 200, 204, 206, 301, 302, 303, 304, or 307. | Valid contexts: `http`, `server`,
     `location`Default value: - |'
+  id: totrans-10
   prefs: []
   type: TYPE_TB
+  zh: '| `add_header` | 向响应中包含 HTTP 代码 200、204、206、301、302、303、304 或 307 的头部添加字段。
+    | 有效上下文：`http`，`server`，`location` 默认值：- |'
 - en: '| `addition_types` | Lists the MIME types of a response in addition to `text/html`,
     in which an addition will be made. May be `*` to enable all MIME types. | Valid
     contexts: `http`, `server`, `location`Default value: `text/html` |'
+  id: totrans-11
   prefs: []
   type: TYPE_TB
+  zh: '| `addition_types` | 列出了除了 `text/html` 之外，响应中会进行附加的 MIME 类型。可以设置为 `*` 以启用所有
+    MIME 类型。 | 有效上下文：`http`，`server`，`location` 默认值：`text/html` |'
 - en: '| `aio` | This directive enables the use of asynchronous file I/O. It is available
     on all modern versions of FreeBSD and distributions of Linux. On FreeBSD, `aio`
     may be used to preload data for `sendfile`. Under Linux, `directio` is required,
     which automatically disables `sendfile`. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-12
   prefs: []
   type: TYPE_TB
+  zh: '| `aio` | 该指令启用异步文件 I/O 的使用。它适用于所有现代版本的 FreeBSD 和 Linux 发行版。在 FreeBSD 上，`aio`
+    可用于预加载数据以供 `sendfile` 使用。在 Linux 上，需要使用 `directio`，该选项会自动禁用 `sendfile`。 | 有效上下文：`http`，`server`，`location`
+    默认值：`off` |'
 - en: '| `alias` | Defines another name for the `location`, as found on the filesystem.
     If the location is specified with a regular expression, the alias should reference
     captures defined in that regular expression. | Valid context: `location`Default
     value: - |'
+  id: totrans-13
   prefs: []
   type: TYPE_TB
+  zh: '| `alias` | 定义 `location` 的另一个名称，如在文件系统中所找到的。如果位置使用正则表达式指定，则别名应引用该正则表达式中定义的捕获组。
+    | 有效上下文：`location` 默认值：- |'
 - en: '| `allow` | Allows access from this IP address, network, or `all`. | Valid
     contexts: `http`, `server`, `location`, `limit_except`Default value: -. |'
+  id: totrans-14
   prefs: []
   type: TYPE_TB
+  zh: '| `allow` | 允许来自此 IP 地址、网络或 `all` 的访问。 | 有效上下文：`http`、`server`、`location`、`limit_except`
+    默认值：- |'
 - en: '| `ancient_browser` | Specifies one or more strings, which if found in the
     `User-Agent` header, will indicate that the browser is considered ancient by setting
     the `$ancient_browser` variable to the `ancient_browser_value` directive. | Valid
     contexts: `http`, `server`, `location`Default value: -. |'
+  id: totrans-15
   prefs: []
   type: TYPE_TB
+  zh: '| `ancient_browser` | 指定一个或多个字符串，如果在 `User-Agent` 头部中找到这些字符串，则表明浏览器被认为是过时的，通过将
+    `$ancient_browser` 变量设置为 `ancient_browser_value` 指令的值。 | 有效上下文：`http`、`server`、`location`
+    默认值：- |'
 - en: '| `ancient_browser_value` | The value to which the `$ancient_browser` variable
     will be set. | Valid contexts: `http`, `server`, `location`Default value: `1`.
     |'
+  id: totrans-16
   prefs: []
   type: TYPE_TB
+  zh: '| `ancient_browser_value` | 设置 `$ancient_browser` 变量的值。 | 有效上下文：`http`、`server`、`location`
+    默认值：`1`。 |'
 - en: '| `auth_basic` | Enables authentication using HTTP Basic Authentication. The
     parameter string is used as the realm name. If the special value `off` is used,
     this indicates that the `auth_basic` value of the parent configuration level is
     negated. | Valid contexts: `http`, `server`, `location`, `limit_except`Default
     value: `off`. |'
+  id: totrans-17
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_basic` | 启用 HTTP 基本认证。参数字符串用于作为领域名称。如果使用特殊值 `off`，则表示否定父配置级别的 `auth_basic`
+    值。 | 有效上下文：`http`、`server`、`location`、`limit_except` 默认值：`off`。 |'
 - en: '| `auth_basic_user_file` | Indicates the location of a file of `username:password:comment`
     tuples used to authenticate users. The `password` needs to be encrypted with the
     crypt algorithm. The comment is optional. | Valid contexts: `http`, `server`,
     `location`, `limit_except`Default value: - |'
+  id: totrans-18
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_basic_user_file` | 指定用于验证用户的 `username:password:comment` 元组文件的位置。`password`
+    需要用 crypt 算法加密。评论是可选的。 | 有效上下文：`http`、`server`、`location`、`limit_except` 默认值：-
+    |'
 - en: '| `auth_http` | This directive specifies the server used for authenticating
     the POP3/IMAP user. | Valid contexts: `mail`, `server`Default value: - |'
+  id: totrans-19
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_http` | 此指令指定用于验证 POP3/IMAP 用户的服务器。 | 有效上下文：`mail`、`server` 默认值：- |'
 - en: '| `auth_http_header` | Sets an additional header (first parameter) to the specified
     value (second parameter). | Valid contexts: `mail`, `server`Default value: - |'
+  id: totrans-20
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_http_header` | 将额外的头部（第一个参数）设置为指定的值（第二个参数）。 | 有效上下文：`mail`、`server`
+    默认值：- |'
 - en: '| `auth_http_timeout` | The maximum amount of time NGINX will wait when communicating
     with an authentication server. | Valid contexts: `mail`, `server`Default value:
     `60s` |'
+  id: totrans-21
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_http_timeout` | NGINX 与认证服务器通信时的最大等待时间。 | 有效上下文：`mail`、`server` 默认值：`60s`
+    |'
 - en: '| `autoindex` | Activates the automatic generation of a directory listing page.
     | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-22
   prefs: []
   type: TYPE_TB
+  zh: '| `autoindex` | 启用自动生成目录列表页面。 | 有效上下文：`http`、`server`、`location` 默认值：`off`
+    |'
 - en: '| `autoindex_exact_size` | Indicates whether the file sizes in a directory
     listing page should be listed in bytes or rounded to kilobytes, megabytes, and
     gigabytes. | Valid contexts: `http`, `server`, `location`.Default value: `on`
     |'
+  id: totrans-23
   prefs: []
   type: TYPE_TB
+  zh: '| `autoindex_exact_size` | 指示目录列表页面中的文件大小是否应以字节显示，或四舍五入为千字节、兆字节和千兆字节。 | 有效上下文：`http`、`server`、`location`。
+    默认值：`on` |'
 - en: '| `autoindex_localtime` | Sets the file modification time in a directory listing
     page to either local time (`on`) or UTC (`off`). | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-24
   prefs: []
   type: TYPE_TB
+  zh: '| `autoindex_localtime` | 设置目录列表页中的文件修改时间为本地时间（`on`）或 UTC（`off`）。 | 有效上下文：`http`、`server`、`location`
+    默认值：`off` |'
 - en: '| `break` | Ends the processing of the `rewrite` module directives found within
     the same context. | Valid contexts: `server`, `location`, `if`Default value: -
     |'
+  id: totrans-25
   prefs: []
   type: TYPE_TB
+  zh: '| `break` | 结束同一上下文内 `rewrite` 模块指令的处理。 | 有效上下文：`server`、`location`、`if` 默认值：-
+    |'
 - en: '| `charset` | Adds the character set specified to the `Content-Type` response
     header. If this is different than the `source_charset` directive, a conversion
     is performed. | Valid contexts: `http`, `server`, `location`, `if in location`Default
     value: `off` |'
+  id: totrans-26
   prefs: []
   type: TYPE_TB
+  zh: '| `charset` | 将指定的字符集添加到 `Content-Type` 响应头中。如果与 `source_charset` 指令不同，将执行转换。
+    | 有效上下文：`http`、`server`、`location`、`if in location` 默认值：`off` |'
 - en: '| `charset_map` | Sets up a conversion table from one character set to another.
     Each character code is specified in hexadecimal. The files `conf/koi-win`, `conf/koi-utf`,
     and `conf/win-utf` include mappings from `koi8-r` to `windows-1251`, from `koi8-r`
     to `utf-8`, and from `windows-1251` to `utf-8`, respectively. | Valid context:
     `http`Default value: - |'
+  id: totrans-27
   prefs: []
   type: TYPE_TB
+  zh: '| `charset_map` | 设置从一种字符集到另一种字符集的转换表。每个字符代码以十六进制表示。文件 `conf/koi-win`、`conf/koi-utf`
+    和 `conf/win-utf` 包含从 `koi8-r` 到 `windows-1251`、从 `koi8-r` 到 `utf-8` 和从 `windows-1251`
+    到 `utf-8` 的映射。 | 有效上下文：`http` 默认值：- |'
 - en: '| `charset_types` | Lists the MIME types of a response in addition to `text/html`,
     in which a character set conversion will be made. It may be `*` to enable all
     MIME types. | Valid contexts: `http`, `server`, `location`Default value: `text/html`,
     `text/xml`, `text/plain`, `text/vnd.wap.wml`, `application/x-javascript`, `application/rss+xml`
     |'
+  id: totrans-28
   prefs: []
   type: TYPE_TB
+  zh: '| `charset_types` | 列出除 `text/html` 之外的响应 MIME 类型，在这些类型中将进行字符集转换。可以设置为 `*`，以启用所有
+    MIME 类型。 | 有效上下文：`http`、`server`、`location` 默认值：`text/html`、`text/xml`、`text/plain`、`text/vnd.wap.wml`、`application/x-javascript`、`application/rss+xml`
+    |'
 - en: '| `chunked_transfer_encoding` | Allows disabling the standard HTTP/1.1 chunked
     transfer encoding in responses to the clients. | Valid contexts: `http`, `server`,
     `location`Default value: `on` |'
+  id: totrans-29
   prefs: []
   type: TYPE_TB
+  zh: '| `chunked_transfer_encoding` | 允许在响应客户端时禁用标准的 HTTP/1.1 分块传输编码。 | 有效上下文：`http`、`server`、`location`
+    默认值：`on` |'
 - en: '| `client_body_buffer_size` | Used to set a buffer size for the client request
     body larger than the default two memory pages, in order to prevent temporary files
     from being written to disk. | Valid contexts: `http`, `server`, `location`Default
     value: `8k&#124;16k` (platform dependent) |'
+  id: totrans-30
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_buffer_size` | 用于设置大于默认两页内存的客户端请求体缓冲区大小，以防止临时文件写入磁盘。 | 有效上下文：`http`、`server`、`location`
+    默认值：`8k&#124;16k`（平台相关） |'
 - en: '| `client_body_in_file_only` | Used for debugging or further processing of
     the client request body, this directive can be set to `on` to force saving the
     client request body to a file. The value `clean` will cause the files to be removed
     after the request processing is finished. | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-31
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_in_file_only` | 用于调试或进一步处理客户端请求体，此指令可以设置为 `on`，强制将客户端请求体保存到文件中。`clean`
+    值将导致请求处理完成后删除文件。 | 有效上下文：`http`、`server`、`location` 默认值：`off` |'
 - en: '| `client_body_in_single_buffer` | This directive will force NGINX to save
     the entire client request body in a single buffer, to reduce copy operations.
     | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-32
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_in_single_buffer` | 此指令将强制 NGINX 将整个客户端请求体保存在一个单独的缓冲区中，以减少复制操作。
+    | 有效上下文：`http`、`server`、`location` 默认值：`off` |'
 - en: '| `client_body_temp_path` | Defines a directory path for saving the client
     request body. If a second, third, or fourth parameter is given, these specify
     a subdirectory hierarchy with the parameter value as the number of characters
     in the subdirectory name. | Valid contexts: `http`, `server`, `location`Default
     value: `client_body_temp` |'
+  id: totrans-33
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_temp_path` | 定义保存客户端请求体的目录路径。如果提供第二、第三或第四个参数，这些参数指定了子目录层次结构，并且参数值表示子目录名中的字符数。
+    | 有效上下文：`http`、`server`、`location` 默认值：`client_body_temp` |'
 - en: '| `client_body_timeout` | Specifies the length of time between successive read
     operations of the client body. If reached, the client receives a 408 error message
     (`Request Timeout`). | Valid contexts: `http`, `server`, `location`Default value:
     `60s` |'
+  id: totrans-34
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_timeout` | 指定客户端请求体的连续读取操作之间的时间长度。如果达到此时间限制，客户端将收到 408 错误信息（`请求超时`）。
+    | 有效上下文：`http`、`server`、`location` 默认值：`60s` |'
 - en: '| `client_header_buffer_size` | Used for specifying a buffer size for the client
     request header, when this needs to be larger than the default 1 KB. | Valid contexts:
     `http`, `server`Default value: `1k` |'
+  id: totrans-35
   prefs: []
   type: TYPE_TB
+  zh: '| `client_header_buffer_size` | 用于指定客户端请求头的缓冲区大小，当需要大于默认的 1 KB 时使用。 | 有效上下文：`http`、`server`
+    默认值：`1k` |'
 - en: '| `client_header_timeout` | Specifies the length of time for reading the entire
     client header. If reached, the client receives a 408 error message (`Request Timeout`).
     | Valid contexts: `http`, `server`Default value: `60s` |'
+  id: totrans-36
   prefs: []
   type: TYPE_TB
+  zh: '| `client_header_timeout` | 指定读取完整客户端请求头的时间长度。如果达到此时间限制，客户端将收到 408 错误信息（`请求超时`）。
+    | 有效上下文：`http`、`server` 默认值：`60s` |'
 - en: '| `client_max_body_size` | Defines the largest allowable client request body,
     before a 413 (`Request Entity Too Large`) error is returned to the browser. |
     Valid contexts: `http`, `server`, `location`Default value: `1m` |'
+  id: totrans-37
   prefs: []
   type: TYPE_TB
+  zh: '| `client_max_body_size` | 定义允许的最大客户端请求体大小，超过该大小会返回 413（`请求实体太大`）错误到浏览器。 |
+    有效上下文：`http`、`server`、`location` 默认值：`1m` |'
 - en: '| `connection_pool_size` | Fine tunes per-connection memory allocation. | Valid
     contexts: `http`, `server`Default value: `256` |'
+  id: totrans-38
   prefs: []
   type: TYPE_TB
+  zh: '| `connection_pool_size` | 精细调整每个连接的内存分配。 | 有效上下文: `http`，`server` 默认值: `256`
+    |'
 - en: '| `create_full_put_path` | Allows recursive directory creation when using WebDAV.
     | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-39
   prefs: []
   type: TYPE_TB
+  zh: '| `create_full_put_path` | 在使用 WebDAV 时允许递归创建目录。 | 有效上下文: `http`，`server`，`location`
+    默认值: `off` |'
 - en: '| `daemon` | Sets whether or not to daemonize the `nginx` process. | Valid
     context: `main`Default value: `on` |'
+  id: totrans-40
   prefs: []
   type: TYPE_TB
+  zh: '| `daemon` | 设置是否将 `nginx` 进程后台化。 | 有效上下文: `main` 默认值: `on` |'
 - en: '| `dav_access` | Sets filesystem access permissions for newly-created files
     and directories. If `group` or `all` is specified, `user` may be omitted. | Valid
     contexts: `http`, `server`, `location`Default value: `user:rw` |'
+  id: totrans-41
   prefs: []
   type: TYPE_TB
+  zh: '| `dav_access` | 设置新创建的文件和目录的文件系统访问权限。如果指定了 `group` 或 `all`，则可以省略 `user`。 |
+    有效上下文: `http`，`server`，`location` 默认值: `user:rw` |'
 - en: '| `dav_methods` | Allows the specified HTTP and WebDAV methods. When `PUT`
     is used, a temporary file is first created and then renamed. So, it''s recommended
     to put `client_body_temp_path` on the same filesystem as the destination. A modification
     date for such files may be specified in the `Date` header. | Valid contexts: `http`,
     `server`, `location`Default value: `off` |'
+  id: totrans-42
   prefs: []
   type: TYPE_TB
+  zh: '| `dav_methods` | 允许指定的 HTTP 和 WebDAV 方法。当使用 `PUT` 时，首先会创建一个临时文件，然后将其重命名。因此，建议将
+    `client_body_temp_path` 放在与目标相同的文件系统上。此类文件的修改日期可以在 `Date` 头中指定。 | 有效上下文: `http`，`server`，`location`
+    默认值: `off` |'
 - en: '| `debug_connection` | Enables debug logging for any client matching the value
     of this directive. It may be specified multiple times. To debug UNIX-domain sockets,
     use `unix:`. | Valid contexts: `events`Default value: - |'
+  id: totrans-43
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_connection` | 启用调试日志记录，适用于与该指令值匹配的任何客户端。可以多次指定此项。要调试 UNIX 域套接字，请使用
+    `unix:`。 | 有效上下文: `events` 默认值: - |'
 - en: '| `debug_points` | When debugging, the process will either create a core file
     (`abort`) or stop (`stop`) so that a system debugger may be attached. | Valid
     context: `main`Default value: - |'
+  id: totrans-44
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_points` | 在调试时，进程将创建一个核心文件（`abort`）或停止（`stop`），以便可以附加系统调试器。 | 有效上下文:
+    `main` 默认值: - |'
 - en: '| `default_type` | Sets the default MIME type of a response. This comes into
     play if the MIME type of the file cannot be matched to one of those specified
     by the `types` directive. | Valid contexts: `http`, `server`, `location`Default
     value: `text/plain` |'
+  id: totrans-45
   prefs: []
   type: TYPE_TB
+  zh: '| `default_type` | 设置响应的默认 MIME 类型。如果文件的 MIME 类型无法与 `types` 指令中指定的类型匹配，则此项生效。
+    | 有效上下文: `http`，`server`，`location` 默认值: `text/plain` |'
 - en: '| `deny` | Denies access from this IP address, network, or `all`. | Valid contexts:
     `http`, `server`, `location`, `limit_except`Default value: - |'
+  id: totrans-46
   prefs: []
   type: TYPE_TB
+  zh: '| `deny` | 拒绝来自此 IP 地址、网络或 `all` 的访问。 | 有效上下文: `http`，`server`，`location`，`limit_except`
+    默认值: - |'
 - en: '| `directio` | Enables the operating system-specific flag or function for serving
     files larger than the parameter given. Required when using `aio` on Linux. | Valid
     contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-47
   prefs: []
   type: TYPE_TB
+  zh: '| `directio` | 启用操作系统特定的标志或功能，用于处理比给定参数大的文件。使用 Linux 上的 `aio` 时需要此项。 | 有效上下文:
+    `http`，`server`，`location` 默认值: `off` |'
 - en: '| `directio_alignment` | Sets the alignment for `directio`. The default of
     `512` is usually enough, although it''s recommended to increase this to `4K` when
     using XFS on Linux. | Valid contexts: `http`, `server`, `location`Default value:
     `512` |'
+  id: totrans-48
   prefs: []
   type: TYPE_TB
+  zh: '| `directio_alignment` | 设置 `directio` 的对齐方式。默认值为 `512`，通常足够，但建议在 Linux 上使用
+    XFS 时将其增加到 `4K`。 | 有效上下文: `http`，`server`，`location` 默认值: `512` |'
 - en: '| `disable_symlinks` | Refer to the *HTTP file path directives* table in the
     *Finding files* section in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP Server"),
     *The NGINX HTTP Server*. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-49
   prefs: []
   type: TYPE_TB
+  zh: '| `disable_symlinks` | 请参见[第6章](ch06.html "第6章. NGINX HTTP 服务器")中*查找文件*部分的*HTTP
+    文件路径指令*表格，*NGINX HTTP 服务器*。 | 有效上下文: `http`，`server`，`location` 默认值: `off` |'
 - en: '| `empty_gif` | Causes a 1x1 pixel transparent GIF to be emitted for that `location`.
     | Valid context: `location`Default value: - |'
+  id: totrans-50
   prefs: []
   type: TYPE_TB
+  zh: '| `empty_gif` | 为该 `location` 生成一个 1x1 像素的透明 GIF。 | 有效上下文: `location` 默认值:
+    - |'
 - en: '| `env` | Sets environment variables for use in:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `env` | 设置用于以下环境变量：'
 - en: inheritance during a live upgrade
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现场升级时的继承
 - en: making use of them in the `perl` module
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使其在 `perl` 模块中可用
 - en: making them available to worker processes
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使其可供工作进程使用
 - en: 'Specifying the variable alone will use the value found in the `nginx` environment.
     Setting a variable may be done in the form `var=value`.N.B. NGINX is an internal
     variable and shouldn''t be set by the user. | Valid context: `main`Default value:
     `TZ` |'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 单独指定变量将使用 `nginx` 环境中找到的值。设置变量可以采用 `var=value` 的形式。注意：`NGINX` 是一个内部变量，不应由用户设置。
+    | 有效上下文：`main`默认值：`TZ` |
 - en: '| `error_log` | The `error_log` file is where all errors will be written. It
     may be set to a file or `stderr`. If no other `error_log` is given in a separate
     context, this log file will be used for all errors, globally. A second parameter
@@ -298,734 +462,1142 @@
     `debug` level errors are only available if the `--with-debug` configuration switch
     was given at compile time. | Valid contexts: `main`, `http`, `server`, `location`Default
     value: `logs/error.log error` |'
+  id: totrans-56
   prefs: []
   type: TYPE_TB
+  zh: '| `error_log` | `error_log` 文件是记录所有错误的地方。它可以设置为文件或 `stderr`。如果在其他上下文中未提供 `error_log`，则此日志文件将用于记录所有错误，作用于全局。此指令的第二个参数表示错误将以哪种级别（`debug`、`info`、`notice`、`warn`、`error`、`crit`、`alert`、`emerg`）记录到日志中。请注意，只有在编译时使用了
+    `--with-debug` 配置开关时，`debug` 级别的错误才会生效。 | 有效上下文：`main`、`http`、`server`、`location`默认值：`logs/error.log
+    error` |'
 - en: '| `error_page` | Defines a URI to be served when an error level response code
     is encountered. Adding an `=` parameter allows the response code to be changed.
     If the argument to this parameter is left empty, the response code will be taken
     from the URI, which must in this case be served by an upstream server of some
     sort. | Valid contexts: `http`, `server`, `location`, `if in location`Default
     value: - |'
+  id: totrans-57
   prefs: []
   type: TYPE_TB
+  zh: '| `error_page` | 定义遇到错误级响应代码时提供的 URI。添加 `=` 参数允许更改响应代码。如果此参数的值为空，则响应代码将从 URI
+    中获取，且该 URI 必须由某种上游服务器提供。 | 有效上下文：`http`、`server`、`location`、`if in location`默认值：-
+    |'
 - en: '| `etag` | Disables automatically generating the `ETag` response header for
     static resources. | Valid contexts: `http`, `server`, `location`Default value:
     `on` |'
+  id: totrans-58
   prefs: []
   type: TYPE_TB
+  zh: '| `etag` | 禁用自动为静态资源生成 `ETag` 响应头。 | 有效上下文：`http`、`server`、`location`默认值：`on`
+    |'
 - en: '| `events` | Defines a new context in which connection-processing directives
     are specified. | Valid context: `main`.Default value: - |'
+  id: totrans-59
   prefs: []
   type: TYPE_TB
+  zh: '| `events` | 定义一个新上下文，用于指定连接处理指令。 | 有效上下文：`main`默认值：- |'
 - en: '| `expires` | Refer to the *Header modifying directives* table in the *Caching
     in the filesystem* section in [Chapter 7](ch07.html "Chapter 7. NGINX for the
     Developer"), *NGINX for the Developer*. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-60
   prefs: []
   type: TYPE_TB
+  zh: '| `expires` | 参见《[第7章](ch07.html "第7章：开发者使用 NGINX")》中 *文件系统缓存* 部分的 *头部修改指令*
+    表。 | 有效上下文：`http`、`server`、`location`默认值：`off` |'
 - en: '| `fastcgi_bind` | Specifies which address should be used for the outgoing
     connections to a FastCGI server. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-61
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_bind` | 指定应使用哪个地址来进行与 FastCGI 服务器的外向连接。 | 有效上下文：`http`、`server`、`location`默认值：-
+    |'
 - en: '| `fastcgi_buffer_size` | The size of the buffer used for the first part of
     the response from the FastCGI server, in which the response headers are found.
     | Valid contexts: `http`, `server`, `location`Default value: `4k&#124;8k` (platform
     dependent) |'
+  id: totrans-62
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_buffer_size` | 用于从 FastCGI 服务器接收响应的第一部分的缓冲区大小，该部分包含响应头。 | 有效上下文：`http`、`server`、`location`默认值：`4k&#124;8k`（平台相关）
+    |'
 - en: '| `fastcgi_buffers` | The number and size of buffers used for the response
     from a FastCGI server, for a single connection. | Valid contexts: `http`, `server`,
     `location`Default value: `4k`&#124;`8k` (platform dependent) |'
+  id: totrans-63
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_buffers` | 为单个连接使用的 FastCGI 服务器响应的缓冲区数量和大小。 | 有效上下文：`http`、`server`、`location`默认值：`4k`&#124;`8k`（平台相关）
+    |'
 - en: '| `fastcgi_busy_buffers_size` | The total size of the buffer space allocated
     to sending the response to the client while still being read from the FastCGI
     server. This is typically set to two `fastcgi_buffers`. | Valid contexts: `http`,
     `server`, `location`default value: `4k&#124;8k` (platform dependent) |'
+  id: totrans-64
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_busy_buffers_size` | 分配给发送响应给客户端的缓冲区空间的总大小，同时响应仍从 FastCGI 服务器读取。通常设置为两个
+    `fastcgi_buffers` 的大小。 | 有效上下文：`http`、`server`、`location`默认值：`4k&#124;8k`（平台相关）
+    |'
 - en: '| `fastcgi_cache` | Defines a shared memory zone to be used for caching. |
     Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache` | 定义用于缓存的共享内存区域。 | 有效上下文：`http`、`server`、`location`默认值：`off`
+    |'
 - en: '| `fastcgi_cache_bypass` | One or more string variables, which when non-empty
     or non-zero, will cause the response to be taken from the FastCGI server instead
     of the cache. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-66
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_bypass` | 一个或多个字符串变量，当其非空或非零时，将导致响应从FastCGI服务器获取，而不是从缓存中获取。
+    | 有效上下文：`http`，`server`，`location` 默认值：- |'
 - en: '| `fastcgi_cache_key` | A string used as the key for storing and retrieving
     cache values. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-67
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_key` | 用作存储和检索缓存值的字符串键。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `fastcgi_cache_lock` | Enabling this directive will prevent multiple requests
     from making an entry into the same cache key. | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-68
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_lock` | 启用此指令将防止多个请求同时在相同缓存键中创建条目。 | 有效上下文：`http`，`server`，`location`
+    默认值：`off` |'
 - en: '| `fastcgi_cache_lock_timeout` | The length of time a request will wait for
     an entry to appear in the cache or for the `fastcgi_cache_lock` to be released.
     | Valid contexts: `http`, `server`, `location`Default value: `5s` |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_lock_timeout` | 请求等待缓存条目出现或`fastcgi_cache_lock`释放的时间长度。 |
+    有效上下文：`http`，`server`，`location` 默认值：`5s` |'
 - en: '| `fastcgi_cache_min_uses` | The number of requests for a certain key needed
     before a response is cached. | Valid contexts: `http`, `server`, `location`Default
     value: `1` |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_min_uses` | 对于某个键，在缓存响应之前，所需的请求次数。 | 有效上下文：`http`，`server`，`location`
+    默认值：`1` |'
 - en: '| `fastcgi_cache_path` | Refer to the *FastCGI directives* table in the *Using
     NGINX with PHP-FPM* section in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP
     Server"), *The NGINX HTTP Server*. | Valid context: `http`Default value: - |'
+  id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_path` | 请参考[第6章](ch06.html "第6章：NGINX HTTP服务器")的《*使用NGINX与PHP-FPM*》部分中的*FastCGI指令*表。
+    | 有效上下文：`http` 默认值：- |'
 - en: '| `fastcgi_cache_use_stale` | The cases under which it is acceptable to serve
     stale cached data when an error occurs while accessing the FastCGI server. The
     `updating` parameter indicates the case when fresh data are being loaded. | Valid
     contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-72
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_use_stale` | 在访问FastCGI服务器时出现错误时，何种情况下可以接受提供过期缓存数据。`updating`参数表示正在加载新数据的情况。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `fastcgi_cache_valid` | Indicates the length of time for which a cached response
     with response code 200, 301, or 302 is valid. If an optional response code is
     given before the time parameter, that time is only for that response code. The
     special parameter `any` indicates that any response code should be cached for
     that length of time. | Valid contexts: `http`, `server`, `location`Default value:
     - |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_valid` | 指示缓存响应的有效时间，响应代码为200、301或302时有效。如果在时间参数前给定可选的响应代码，则该时间仅适用于该响应代码。特殊参数`any`表示任何响应代码应缓存该时长。
+    | 有效上下文：`http`，`server`，`location` 默认值：- |'
 - en: '| `fastcgi_connect_timeout` | The maximum amount of time NGINX will wait for
     its connection to be accepted when making a request to a FastCGI server. | Valid
     contexts: `http`, `server`, `location`Default value: `60s` |'
+  id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_connect_timeout` | NGINX在请求FastCGI服务器时，等待连接被接受的最大时间。 | 有效上下文：`http`，`server`，`location`
+    默认值：`60s` |'
 - en: '| `fastcgi_hide_header` | A list of header fields that should not be passed
     on to the client. | Valid contexts: `http`, `server`, `location`Default value:
     - |'
+  id: totrans-75
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_hide_header` | 一些不应传递给客户端的头部字段列表。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `fastcgi_ignore_client_abort` | If set to `on`, NGINX will not abort the
     connection to a FastCGI server if the client aborts the connection. | Valid contexts:
     `http`, `server`, `location`Default value: `off` |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_ignore_client_abort` | 如果设置为`on`，NGINX将在客户端中止连接时，不中止与FastCGI服务器的连接。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `fastcgi_ignore_headers` | Sets which headers may be disregarded when processing
     the response from the FastCGI server. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-77
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_ignore_headers` | 设置处理FastCGI服务器响应时可以忽略的头部字段。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `fastcgi_index` | Sets the name of a file to be appended to `$fastcgi_script_name`
     that ends with a slash. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-78
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_index` | 设置要附加到`$fastcgi_script_name`的文件名，文件名以斜杠结尾。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `fastcgi_intercept_errors` | If enabled, NGINX will display a configured
     `error_page` directive instead of the response directly from the FastCGI server.
     | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-79
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_intercept_errors` | 如果启用，NGINX 将显示配置的 `error_page` 指令，而不是直接从 FastCGI
+    服务器返回响应。 | 有效上下文：`http`、`server`、`location` 默认值：`off` |'
 - en: '| `fastcgi_keep_conn` | Enables the `keepalive` connections to the FastCGI
     servers by instructing the server not to immediately close the connection. | Valid
     contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-80
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_keep_conn` | 通过指示服务器不要立即关闭连接，启用与 FastCGI 服务器的 `keepalive` 连接。 |
+    有效上下文：`http`、`server`、`location` 默认值：`off` |'
 - en: '| `fastcgi_max_temp_file_size` | The maximum size of the overflow file, written
     when the response doesn''t fit into the memory buffers. | Valid contexts: `http`,
     `server`, `location`Default value: `1024m` |'
+  id: totrans-81
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_max_temp_file_size` | 当响应不能完全放入内存缓冲区时，溢出文件的最大大小。 | 有效上下文：`http`、`server`、`location`
+    默认值：`1024m` |'
 - en: '| `fastcgi_next_upstream` | Refer to the *FastCGI directives* table in the
     *Using NGINX with PHP-FPM* section in [Chapter 6](ch06.html "Chapter 6. The NGINX
     HTTP Server"), *The NGINX HTTP Server*. | Valid contexts: `http`, `server`, `location`Default
     value: error timeout |'
+  id: totrans-82
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_next_upstream` | 请参考 *FastCGI 指令* 表格，位于 [第六章](ch06.html "第六章 NGINX
+    HTTP 服务器") *使用 NGINX 与 PHP-FPM* 部分，*NGINX HTTP 服务器*。 | 有效上下文：`http`、`server`、`location`
+    默认值：错误超时 |'
 - en: '| `fastcgi_no_cache` | One or more string variables, which when non-empty or
     non-zero will instruct NGINX not to save the response from the FastCGI server
     in the cache. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-83
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_no_cache` | 一个或多个字符串变量，当其值非空或非零时，指示 NGINX 不将 FastCGI 服务器的响应缓存。 |
+    有效上下文：`http`、`server`、`location` 默认值：- |'
 - en: '| `fastcgi_param` | Sets a parameter and its value to be passed to the FastCGI
     server. If the parameter should only be passed when the value is non-empty, the
     additional `if_not_empty` parameter should be set. | Valid contexts: `http`, `server`,
     `location`Default value: - |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_param` | 设置一个参数及其值，传递给 FastCGI 服务器。如果该参数仅在值非空时传递，则应设置额外的 `if_not_empty`
+    参数。 | 有效上下文：`http`、`server`、`location` 默认值：- |'
 - en: '| `fastcgi_pass` | Specifies the FastCGI server to which the request is passed,
     either as an `address:port` combination or as `unix:path` for a UNIX-domain socket.
     | Valid contexts: `location`, `if in location`Default value: - |'
+  id: totrans-85
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_pass` | 指定请求传递给的 FastCGI 服务器，可以是 `address:port` 组合，也可以是 `unix:path`
+    用于 UNIX 域套接字。 | 有效上下文：`location`、`if in location` 默认值：- |'
 - en: '| `fastcgi_pass_header` | Overrides the disabled headers set in `fastcgi_hide_header`,
     allowing them to be sent to the client. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-86
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_pass_header` | 覆盖 `fastcgi_hide_header` 中禁用的头部，允许它们发送给客户端。 | 有效上下文：`http`、`server`、`location`
+    默认值：- |'
 - en: '| `fastcgi_read_timeout` | Specifies the length of time that needs to elapse
     between two successive read operations from a FastCGI server before the connection
     is closed. | Valid contexts: `http`, `server`, `location`Default value: `60s`
     |'
+  id: totrans-87
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_read_timeout` | 指定从 FastCGI 服务器进行两次连续读取操作之间需要经过的时间长度，超时后关闭连接。 |
+    有效上下文：`http`、`server`、`location` 默认值：`60s` |'
 - en: '| `fastcgi_send_lowat` | This is a FreeBSD directive. When non-zero, it will
     tell NGINX to use either the `NOTE_LOWAT` kqueue method or the `SO_SNDLOWAT` socket
     option with the specified size when communicating with an upstream server. Ignored
     in Linux, Solaris, and Windows. | Valid contexts: `http`, `server`, `location`Default
     value: `0` |'
+  id: totrans-88
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_send_lowat` | 这是一个 FreeBSD 指令。当设置为非零时，它会告知 NGINX 在与上游服务器通信时使用 `NOTE_LOWAT`
+    kqueue 方法或指定大小的 `SO_SNDLOWAT` 套接字选项。在 Linux、Solaris 和 Windows 中会被忽略。 | 有效上下文：`http`、`server`、`location`
+    默认值：`0` |'
 - en: '| `fastcgi_send_timeout` | The length of time that needs to elapse between
     two successive write operations to a FastCGI server before the connection is closed.
     | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  id: totrans-89
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_send_timeout` | 在关闭连接之前，两次连续写操作到 FastCGI 服务器之间需要经过的时间长度。 | 有效上下文：`http`、`server`、`location`
+    默认值：`60s` |'
 - en: '| `fastcgi_split_path_info` | Defines a regular expression with two captures.
     The first capture will be the value of the `$fastcgi_script_name` variable. The
     second capture becomes the value of the `$fastcgi_path_info` variable. | Valid
     context: `location`Default value: - |'
+  id: totrans-90
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_split_path_info` | 定义一个包含两个捕获组的正则表达式。第一个捕获组将是 `$fastcgi_script_name`
+    变量的值。第二个捕获组将成为 `$fastcgi_path_info` 变量的值。 | 有效上下文：`location` 默认值：- |'
 - en: '| `fastcgi_store` | Enables storing responses retrieved from a FastCGI server
     as files on the disk. The `on` parameter will use the `alias` or `root` directive
     as the base path under which to store the file. A string may instead be given,
     to indicate an alternative location to store the files. | Valid contexts: `http`,
     `server`, `location`Default value: `off` |'
+  id: totrans-91
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_store` | 启用将从 FastCGI 服务器获取的响应作为文件存储在磁盘上。`on` 参数将使用 `alias` 或 `root`
+    指令作为存储文件的基础路径。也可以给定一个字符串，表示存储文件的替代位置。| 有效上下文：`http`、`server`、`location` 默认值：`off`
+    |'
 - en: '| `fastcgi_store_access` | Sets file access permissions for the newly-created
     `fastcgi_store` files. | Valid contexts: `http`, `server`, `location`Default value:
     `user:rw` |'
+  id: totrans-92
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_store_access` | 设置新创建的 `fastcgi_store` 文件的访问权限。| 有效上下文：`http`、`server`、`location`
+    默认值：`user:rw` |'
 - en: '| `fastcgi_temp_file_write_size` | Limits the amount of data buffered to a
     temporary file at one time, so that NGINX will not be blocked for too long on
     a single request. | Valid contexts: `http`, `server`, `location`Default value:
     `8k&#124;16k` (platform dependent) |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_temp_file_write_size` | 限制一次性缓冲到临时文件的数据量，以避免 NGINX 在单个请求上被阻塞过长时间。|
+    有效上下文：`http`、`server`、`location` 默认值：`8k&#124;16k`（平台相关） |'
 - en: '| `fastcgi_temp_path` | A directory where temporary files may be buffered as
     they are proxied from the FastCGI server, optionally multilevel deep. If a second,
     third, or fourth parameter is given, these specify a subdirectory heirarchy with
     the parameter value as the number of characters in the subdirectory name. | Valid
     contexts: `http`, `server`, `location`Default value: `fastcgi_temp` |'
+  id: totrans-94
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_temp_path` | 一个目录，用于缓冲从 FastCGI 服务器代理过来的临时文件，可能是多级深层。如果给定第二、第三或第四个参数，这些参数指定一个子目录层次，其中子目录名称的字符数由参数值决定。|
+    有效上下文：`http`、`server`、`location` 默认值：`fastcgi_temp` |'
 - en: '| `flv` | Activates the `flv` module for this `location`. | Valid context:
     `location`Default value: - |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| `flv` | 为此 `location` 激活 `flv` 模块。| 有效上下文：`location` 默认值：- |'
 - en: '| `geo` | Defines a new context, in which a variable is set to a specified
     value, dependent on the IP address found in another variable. If no other variable
     is specified, `$remote_addr` is used to determine the IP address. The format of
     the context definition is:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `geo` | 定义一个新的上下文，在该上下文中，变量将被设置为基于另一个变量中的 IP 地址的指定值。如果没有指定其他变量，则使用 `$remote_addr`
+    来确定 IP 地址。上下文定义的格式为：'
 - en: '[PRE0]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The following parameters are recognized within the context:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下参数在上下文中被识别：
 - en: '`delete`: Deletes the specified network'
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`delete`：删除指定的网络'
 - en: '`default`: The variable will be set to this value if no IP address matches'
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`default`：如果没有 IP 地址匹配，变量将设置为此值'
 - en: '`include`: Includes a file of address-to-value mappings'
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`include`：包含一个地址到值的映射文件'
 - en: '`proxy`: Defines an address or network of a direct connection from which the
     IP address will be taken from the `X-Forwarded-For` header'
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy`：定义一个直接连接的地址或网络，从 `X-Forwarded-For` 头部中提取 IP 地址'
 - en: '`proxy_recursive`: Works with `proxy` to specify that the last address in a
     multi-valued `X-Forwarded-For` header will be used'
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_recursive`：与 `proxy` 配合使用，指定在多值 `X-Forwarded-For` 头部中最后一个地址将被使用'
 - en: '`ranges`: When defined, indicates that the following addresses are specified
     as ranges'
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ranges`：当定义时，表示以下地址被指定为范围'
 - en: '| Valid context: `http`Default value: - |'
+  id: totrans-105
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http` 默认值：- |'
 - en: '| `geoip_city` | The path to a GeoIP database file containing IP address-to-city
     mappings. The following variables then become available:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `geoip_city` | 包含 IP 地址到城市映射的 GeoIP 数据库文件的路径。接下来可用以下变量：'
 - en: '`$geoip_city_country_code`: Two-letter country code'
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city_country_code`：两字母国家代码'
 - en: '`$geoip_city_country_code3`: Three-letter country code'
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city_country_code3`：三字母国家代码'
 - en: '`$geoip_city_country_name`: Country name'
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city_country_name`：国家名称'
 - en: '`$geoip_region`: Country region name'
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_region`：国家区域名称'
 - en: '`$geoip_city`: City name'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city`：城市名称'
 - en: '`$geoip_postal_code`: Postal code'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_postal_code`：邮政编码'
 - en: '| valid context: `http`Default value: - |'
+  id: totrans-113
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http` 默认值：- |'
 - en: '| `geoip_country` | The path to a GeoIP database file containing the IP address-to-country
     mappings. The following variables then become available:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `geoip_country` | 包含 IP 地址到国家映射的 GeoIP 数据库文件的路径。接下来可用以下变量：'
 - en: '`$geoip_country_code`: Two-letter country code'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_country_code`：两字母国家代码'
 - en: '`$geoip_country_code3`: Three-letter country code'
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_country_code3`：三字母国家代码'
 - en: '`$geoip_country_name`: Country name'
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_country_name`：国家名称'
 - en: '| Valid context: `http`Default value: - |'
+  id: totrans-118
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http` 默认值：- |'
 - en: '| `geoip_org` | The path to a GeoIP database file containing the IP address-to-organization
     mappings. The following variable then becomes available:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `geoip_org` | 包含IP地址到组织映射的GeoIP数据库文件的路径。然后，以下变量变得可用： |'
 - en: '`$geoip_org`: Organization name'
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_org`: 组织名称'
 - en: '| Valid context: `http`.Default value: - |'
+  id: totrans-121
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http`。默认值：- |'
 - en: '| `geoip_proxy` | Defines an address or network of a direct connection from
     which the IP address will be taken from the `X-Forwarded-For` header. | Valid
     context: `http`Default value: - |'
+  id: totrans-122
   prefs: []
   type: TYPE_TB
+  zh: '| `geoip_proxy` | 定义一个直接连接的地址或网络，从中提取IP地址，将从`X-Forwarded-For`头中获取。 | 有效上下文：`http`默认值：-
+    |'
 - en: '| `geoip_proxy_recursive` | Works with `geoip_proxy`, to specify that the last
     address in a multivalued `X-Forwarded-For` header will be used. | Valid context:
     `http`Default value: `off`. |'
+  id: totrans-123
   prefs: []
   type: TYPE_TB
+  zh: '| `geoip_proxy_recursive` | 与`geoip_proxy`一起工作，指定在多值`X-Forwarded-For`头中最后的地址将被使用。
+    | 有效上下文：`http`默认值：`off`。 |'
 - en: '| `gunzip` | Enables the decompression of gzipped files when the client doesn''t
     support gzip. | Valid contexts: `http`, `server`, `location`Default value: `off`
     |'
+  id: totrans-124
   prefs: []
   type: TYPE_TB
+  zh: '| `gunzip` | 启用当客户端不支持gzip时解压缩gzipped文件。 | 有效上下文：`http`、`server`、`location`默认值：`off`
+    |'
 - en: '| `gunzip buffers` | Specifies the number and size of buffers used for decompressing
     a response. | Valid contexts: `http`, `server`, `location`Default value: `32 4k&#124;16
     8k` (platform dependent) |'
+  id: totrans-125
   prefs: []
   type: TYPE_TB
+  zh: '| `gunzip buffers` | 指定用于解压缩响应的缓冲区数量和大小。 | 有效上下文：`http`、`server`、`location`默认值：`32
+    4k&#124;16 8k`（平台依赖） |'
 - en: '| `gzip` | Enables or disables the compression of responses. | Valid contexts:
     `http`, `server`, `location`, `if in location`Default value: `off` |'
+  id: totrans-126
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip` | 启用或禁用响应的压缩。 | 有效上下文：`http`、`server`、`location`、`if in location`默认值：`off`
+    |'
 - en: '| `gzip_buffers` | Specifies the number and size of buffers used for compressing
     a response. | Valid contexts: `http`, `server`, `location`Default value: `32 4k&#124;16
     8k` (platform dependent) |'
+  id: totrans-127
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_buffers` | 指定用于压缩响应的缓冲区数量和大小。 | 有效上下文：`http`、`server`、`location`默认值：`32
+    4k&#124;16 8k`（平台依赖） |'
 - en: '| `gzip_comp_level` | The gzip compression level (1-9). | Valid contexts: `http`,
     `server`, `location`Default value: `1` |'
+  id: totrans-128
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_comp_level` | gzip压缩级别（1-9）。 | 有效上下文：`http`、`server`、`location`默认值：`1`
+    |'
 - en: '| `gzip_disable` | A regular expression of `User-Agents` that shouldn''t receive
     a compressed response. The special value `msie6` is a shortcut for `MSIE [4-6]\.`,
     excluding `MSIE 6.0; ... SV1`. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-129
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_disable` | 一个不应接收压缩响应的`User-Agent`的正则表达式。特殊值`msie6`是`MSIE [4-6]\.`的简写，排除`MSIE
+    6.0; ... SV1`。 | 有效上下文：`http`、`server`、`location`默认值：- |'
 - en: '| `gzip_http_version` | The minimum HTTP version of a request before compression
     is considered. | Valid contexts: `http`, `server`, `location`Default value: `1.1`
     |'
+  id: totrans-130
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_http_version` | 考虑压缩的请求的最小HTTP版本。 | 有效上下文：`http`、`server`、`location`默认值：`1.1`
+    |'
 - en: '| `gzip_min_length` | The minimum length of a response before compression is
     considered, determined by the `Content-Length` header. | Valid contexts: `http`,
     `server`, `location`Default value: `20` |'
+  id: totrans-131
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_min_length` | 压缩考虑之前响应的最小长度，由`Content-Length`头确定。 | 有效上下文：`http`、`server`、`location`默认值：`20`
+    |'
 - en: '| `gzip_proxied` | Refer to the *Gzip module directives* table in the *Compressing*
     section in [Chapter 5](ch05.html "Chapter 5. Reverse Proxy Advanced Topics"),
     *Reverse Proxy Advanced Topics*. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-132
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_proxied` | 请参阅[第5章](ch05.html "第5章 反向代理高级话题")中的*压缩模块指令*表，*反向代理高级话题*。
+    | 有效上下文：`http`、`server`、`location`默认值：`off` |'
 - en: '| `gzip_static` | Enables checking for precompressed files, to be delivered
     directly to clients which support gzip compression. | Valid contexts: `http`,
     `server`, `location`Default value: `off` |'
+  id: totrans-133
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_static` | 启用检查预压缩文件，直接交付给支持gzip压缩的客户端。 | 有效上下文：`http`、`server`、`location`默认值：`off`
+    |'
 - en: '| `gzip_types` | The MIME types that should be compressed with gzip, in addition
     to the default `text/html`. It may be `*` to enable all MIME types. | Valid contexts:
     `http`, `server`, `location`Default value: `text/html` |'
+  id: totrans-134
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_types` | 应该使用gzip压缩的MIME类型，除了默认的`text/html`之外。它可以是`*`以启用所有MIME类型。 |
+    有效上下文：`http`、`server`、`location`默认值：`text/html` |'
 - en: '| `gzip_vary` | Enables or disables the response header `Vary: Accept-Encoding`
     if `gzip` or `gzip_static` is active. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-135
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_vary` | 启用或禁用响应头`Vary: Accept-Encoding`，如果`gzip`或`gzip_static`处于活动状态。
+    | 有效上下文：`http`、`server`、`location`默认值：`off` |'
 - en: '| `http` | Sets up a configuration context in which HTTP server directives
     are specified. | Valid context: `main`Default value: - |'
+  id: totrans-136
   prefs: []
   type: TYPE_TB
+  zh: '| `http` | 设置一个配置上下文，用于指定HTTP服务器指令。 | 有效上下文：`main` 默认值：- |'
 - en: '| `if` | Refer to the *Rewrite module directives* table in the *Introducing
     the rewrite module* section in [Appendix B](apb.html "Appendix B. Rewrite Rule
     Guide"), *Rewrite Rule Guide*. | Valid contexts: `server`, `location`Default value:
     - |'
+  id: totrans-137
   prefs: []
   type: TYPE_TB
+  zh: '| `if` | 请参见[附录B](apb.html "附录B：重写规则指南")中的*重写模块指令*表格，位于*重写模块介绍*一节。 | 有效上下文：`server`，`location`
+    默认值：- |'
 - en: '| `if_modified_since` | Controls how the modification time of a response is
     compared to the value of the `If-Modified-Since` request header:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `if_modified_since` | 控制响应的修改时间如何与`If-Modified-Since`请求头的值进行比较：'
 - en: '`off`: The `If-Modified-Since` header is ignored'
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`：忽略`If-Modified-Since`头部'
 - en: '`exact`: An exact match is made (default)'
+  id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`exact`：进行精确匹配（默认）'
 - en: '`before`: The modification time of the response is less than or equal to the
     value of the `If-Modified-Since` header'
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`before`：响应的修改时间小于或等于`If-Modified-Since`头部的值'
 - en: '| Valid contexts: `http`, `server`, `location`Default value: `exact` |'
+  id: totrans-142
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http`，`server`，`location` 默认值：`exact` |'
 - en: '| `ignore_invalid_headers` | Disables ignoring headers with invalid names.
     A valid name is composed of ASCII letters, numbers, the hyphen, and possibly the
     underscore (controlled by the `underscores_in_headers` directive). | Valid contexts:
     `http`, `server`Default value: `on` |'
+  id: totrans-143
   prefs: []
   type: TYPE_TB
+  zh: '| `ignore_invalid_headers` | 禁用忽略无效名称的头部。有效名称由ASCII字母、数字、连字符和可能的下划线组成（由`underscores_in_headers`指令控制）。
+    | 有效上下文：`http`，`server` 默认值：`on` |'
 - en: '| `image_filter` | Refer to the *Image filter directives* table in the *Generating
     images* section in [Chapter 7](ch07.html "Chapter 7. NGINX for the Developer"),
     *NGINX for the Developer*. | Valid context: `location`Default value: - |'
+  id: totrans-144
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter` | 请参见[第7章](ch07.html "第7章：开发者的NGINX")中的*图像过滤指令*表格，位于*开发者的NGINX*一节。
+    | 有效上下文：`location` 默认值：- |'
 - en: '| `image_filter_buffer` | The size of the buffer used to process images. If
     more memory is needed, the server will return a 415 error (`Unsupported Media
     Type`). | Valid contexts: `http`, `server`, `location`Default value: `1M` |'
+  id: totrans-145
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_buffer` | 用于处理图像的缓冲区大小。如果需要更多内存，服务器将返回415错误（`不支持的媒体类型`）。 |
+    有效上下文：`http`，`server`，`location` 默认值：`1M` |'
 - en: '| `image_filter_jpeg_quality` | The quality of the resulting JPEG image, after
     processing. Not recommended to exceed 95. | Valid contexts: `http`, `server`,
     `location`Default value: `75` |'
+  id: totrans-146
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_jpeg_quality` | 处理后的JPEG图像质量。建议不要超过95。 | 有效上下文：`http`，`server`，`location`
+    默认值：`75` |'
 - en: '| `image_filter_sharpen` | Increases the sharpness of a processed image by
     this percentage. | Valid contexts: `http`, `server`, `location`Default value:
     `0` |'
+  id: totrans-147
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_sharpen` | 通过此百分比增加处理后图像的锐度。 | 有效上下文：`http`，`server`，`location`
+    默认值：`0` |'
 - en: '| `image_filter_transparency` | Disables preserving transparency of transformed
     GIF and PNG images. The default `on` preserves transparency. | Valid contexts:
     `http`, `server`, `location`Default value: `on` |'
+  id: totrans-148
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_transparency` | 禁用对转换后的GIF和PNG图像的透明度保护。默认值`on`表示保持透明度。 | 有效上下文：`http`，`server`，`location`
+    默认值：`on` |'
 - en: '| `imap_auth` | Sets the supported client authentication mechanism. It can
     be one or more of `login`, `plain`, or `cram-md5`. | Valid contexts: `mail`, `server`Default
     value: `plain` |'
+  id: totrans-149
   prefs: []
   type: TYPE_TB
+  zh: '| `imap_auth` | 设置支持的客户端认证机制。可以是`login`，`plain`或`cram-md5`之一或多个。 | 有效上下文：`mail`，`server`
+    默认值：`plain` |'
 - en: '| `imap_capabilities` | Indicates which IMAP4 capabilities are supported by
     the backend server. | Valid contexts: `mail`, `server`Default value: `IMAP4 IMAP4rev1
     UIDPLUS` |'
+  id: totrans-150
   prefs: []
   type: TYPE_TB
+  zh: '| `imap_capabilities` | 指示后端服务器支持哪些IMAP4功能。 | 有效上下文：`mail`，`server` 默认值：`IMAP4
+    IMAP4rev1 UIDPLUS` |'
 - en: '| `imap_client_buffer` | Sets the size of the read buffer for IMAP commands.
     | Valid contexts: `mail`, `server`Default value: `4k&#124;8k` (platform dependent)
     |'
+  id: totrans-151
   prefs: []
   type: TYPE_TB
+  zh: '| `imap_client_buffer` | 设置IMAP命令的读取缓冲区大小。 | 有效上下文：`mail`，`server` 默认值：`4k&#124;8k`（依平台而定）
+    |'
 - en: '| `include` | The path to a file containing additional configuration directives.
     It may be specified as a glob to include multiple files. | Valid context: `any`Default
     value: - |'
+  id: totrans-152
   prefs: []
   type: TYPE_TB
+  zh: '| `include` | 包含额外配置指令的文件路径。可以指定通配符以包含多个文件。 | 有效上下文：`any` 默认值：- |'
 - en: '| `index` | Defines which file will be served to the client when a URI ending
     with `/` is received. It may be multivalued. | Valid contexts: `http`, `server`,
     `location`Default value: `index.html` |'
+  id: totrans-153
   prefs: []
   type: TYPE_TB
+  zh: '| `index` | 定义接收到以`/`结尾的URI时，哪个文件将被提供给客户端。它可以是多个值。 | 有效上下文：`http`，`server`，`location`
+    默认值：`index.html` |'
 - en: '| `internal` | Specifies a `location` that can only be used for internal requests
     (redirects defined in other directives, rewrite requests, and similar request
     processing directives). | Valid context: `location`Default value: - |'
+  id: totrans-154
   prefs: []
   type: TYPE_TB
+  zh: '| `internal` | 指定只能用于内部请求的 `location`（在其他指令中定义的重定向、重写请求以及类似的请求处理指令）。 | 有效上下文：`location`
+    默认值：- |'
 - en: '| `ip_hash` | Ensures the distribution of clients evenly over all `server`
     by hashing the IP address, keying on its class C network. | Valid context: `upstream`Default
     value: - |'
+  id: totrans-155
   prefs: []
   type: TYPE_TB
+  zh: '| `ip_hash` | 通过对 IP 地址进行哈希处理，确保客户端在所有 `server` 之间均匀分布，哈希基于其 C 类网络。 | 有效上下文：`upstream`
+    默认值：- |'
 - en: '| `keepalive` | The number of connections to upstream servers that are cached
     per worker process. When used with HTTP connections, `proxy_http_version` should
     be set to `1.1` and `proxy_set_header` to `Connection`. | Valid context: `upstream`Default
     value: - |'
+  id: totrans-156
   prefs: []
   type: TYPE_TB
+  zh: '| `keepalive` | 每个工作进程缓存的与上游服务器的连接数。当与 HTTP 连接一起使用时，`proxy_http_version` 应设置为
+    `1.1`，并将 `proxy_set_header` 设置为 `Connection`。 | 有效上下文：`upstream` 默认值：- |'
 - en: '| `keepalive_disable` | Disables keep-alive requests for certain browser types.
     | Valid contexts: `http`, `server`, `location`Default value: `msie6` |'
+  id: totrans-157
   prefs: []
   type: TYPE_TB
+  zh: '| `keepalive_disable` | 禁用某些浏览器类型的 keep-alive 请求。 | 有效上下文：`http`、`server`、`location`
+    默认值：`msie6` |'
 - en: '| `keepalive_requests` | Defines how many requests may be made over one `keepalive`
     connection before it is closed. | Valid contexts: `http`, `server`, `location`Default
     value: `100` |'
+  id: totrans-158
   prefs: []
   type: TYPE_TB
+  zh: '| `keepalive_requests` | 定义在关闭之前可以通过一个 `keepalive` 连接发出的请求数。 | 有效上下文：`http`、`server`、`location`
+    默认值：`100` |'
 - en: '| `keepalive_timeout` | Specifies how long a `keep-alive` connection will stay
     open. A second parameter may be given, to set a Keep-Alive header in the response.
     | Valid contexts: `http`, `server`, `location`Default value: `75s` |'
+  id: totrans-159
   prefs: []
   type: TYPE_TB
+  zh: '| `keepalive_timeout` | 指定 `keep-alive` 连接保持打开的时间。可以提供第二个参数，以在响应中设置 Keep-Alive
+    头。 | 有效上下文：`http`、`server`、`location` 默认值：`75s` |'
 - en: '| `large_client_header_buffers` | Defines the maximum `number` and `size` of
     a large client request header. | Valid contexts: `http`, `server`Default value:
     `4 8k` |'
+  id: totrans-160
   prefs: []
   type: TYPE_TB
+  zh: '| `large_client_header_buffers` | 定义大型客户端请求头的最大 `number` 和 `size`。 | 有效上下文：`http`、`server`
+    默认值：`4 8k` |'
 - en: '| `least_conn` | Activates the load-balancing algorithm where the server with
     the least number of active connections is chosen for the next new connection.
     | Valid context: `upstream`Default value: - |'
+  id: totrans-161
   prefs: []
   type: TYPE_TB
+  zh: '| `least_conn` | 启用负载均衡算法，选择具有最少活动连接的服务器进行下一个新连接。 | 有效上下文：`upstream` 默认值：-
+    |'
 - en: '| `limit_conn` | Specifies a shared memory zone (configured with `limit_conn_zone`)
     and the maximum number of connections that are allowed per key value. | Valid
     contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-162
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_conn` | 指定一个共享内存区域（使用 `limit_conn_zone` 配置）和每个键值允许的最大连接数。 | 有效上下文：`http`、`server`、`location`
+    默认值：- |'
 - en: '| `limit_conn_log_level` | When NGINX limits a connection due to the `limit_conn`
     directive, this directive specifies at which log level that limitation is reported.
     | Valid contexts: `http`, `server`, `location`Default value: `error` |'
+  id: totrans-163
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_conn_log_level` | 当 NGINX 因为 `limit_conn` 指令限制了连接时，该指令指定在哪个日志级别报告该限制。
+    | 有效上下文：`http`、`server`、`location` 默认值：`error` |'
 - en: '| `limit_conn_zone` | Specifies the key to be limited in `limit_conn` as the
     first parameter. The second parameter, `zone`, indicates the name of the shared
     memory zone used to store the key and current number of connections per key and
     the size of that zone (`name:size`). | Valid context: `http`Default value: - |'
+  id: totrans-164
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_conn_zone` | 指定在 `limit_conn` 中作为第一个参数限制的键。第二个参数 `zone` 表示用于存储键及每个键当前连接数的共享内存区域的名称及该区域的大小（`name:size`）。
+    | 有效上下文：`http` 默认值：- |'
 - en: '| `limit_except` | Will limit a `location` to the specified HTTP verb(s) (`GET`
     also includes `HEAD`). | Valid context: `location`Default value: - |'
+  id: totrans-165
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_except` | 将 `location` 限制为指定的 HTTP 动词（`GET` 也包括 `HEAD`）。 | 有效上下文：`location`
+    默认值：- |'
 - en: '| `limit_rate` | Limits the rate (in bytes per second) at which clients can
     download content. The rate limit works on a connection level, meaning that a single
     client could increase their throughput by opening multiple connections. | Valid
     context: `http`, `server`, `location`, `if in location`Default value: `0` |'
+  id: totrans-166
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_rate` | 限制客户端下载内容的速率（以每秒字节数为单位）。速率限制作用于连接级别，这意味着单个客户端可以通过打开多个连接来提高其吞吐量。
+    | 有效上下文：`http`、`server`、`location`、`if in location` 默认值：`0` |'
 - en: '| `limit_rate_after` | Starts the `limit_rate` after this number of bytes have
     been transferred. | Valid contexts: `http`, `server`, `location`, `if in location`Default
     value: `0` |'
+  id: totrans-167
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_rate_after` | 在传输了指定字节数后，启动 `limit_rate` 限制。 | 有效上下文：`http`、`server`、`location`、`if
+    in location` 默认值：`0` |'
 - en: '| `limit_req` | Sets a limit with bursting capability on the number of requests
     for a specific key in a shared memory store (configured with `limit_req_zone`).
     The burst may be specified with the second parameter. If there shouldn''t be a
     delay in between requests up to the burst, a third parameter `nodelay` needs to
     be configured. | Valid context: `http`, `server`, `location`Default value: - |'
+  id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_req` | 为共享内存存储区（通过 `limit_req_zone` 配置）中的特定键设置带有突发能力的请求限制。突发量可以通过第二个参数指定。如果在突发期间不应该有请求之间的延迟，则需要配置第三个参数
+    `nodelay`。 | 有效上下文：`http`、`server`、`location` 默认值：- |'
 - en: '| `limit_req_log_level` | When NGINX limits the number of requests due to the
     `limit_req` directive, this directive specifies at which log level that limitation
     is reported. A delay is logged at a level one less than the one indicated here.
     | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_req_log_level` | 当 NGINX 由于 `limit_req` 指令限制请求数量时，此指令指定该限制被记录的日志级别。延迟将以低一个级别记录。
+    | 有效上下文：`http`、`server`、`location` 默认值：- |'
 - en: '| `limit_req_zone` | Specifies the key to be limited in `limit_req` as the
     first parameter. The second parameter, `zone`, indicates the name of the shared
     memory zone used to store the key and current number of requests per key and the
     size of that zone (`name:size`). The third parameter, `rate`, configures the number
     of requests per second (r/s) or per minute (r/m) before the limit is imposed.
     | Valid context: `http`Default value: - |'
+  id: totrans-170
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_req_zone` | 在 `limit_req` 中指定需要限制的键作为第一个参数。第二个参数 `zone` 表示用于存储键及每个键当前请求数的共享内存区域的名称，以及该区域的大小（`name:size`）。第三个参数
+    `rate` 配置每秒（r/s）或每分钟（r/m）限制前的请求数。 | 有效上下文：`http` 默认值：- |'
 - en: '| `limit_zone` | Deprecated. Use `limit_conn_zone` instead. | Valid context:
     `http`Default value: - |'
+  id: totrans-171
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_zone` | 已废弃。请改用 `limit_conn_zone`。 | 有效上下文：`http` 默认值：- |'
 - en: '| `lingering_close` | This directive specifies how a client connection will
     be kept open for more data. | Valid contexts: `http`, `server`, `location`Default
     value: `on` |'
+  id: totrans-172
   prefs: []
   type: TYPE_TB
+  zh: '| `lingering_close` | 此指令指定客户端连接将在接收更多数据时保持开启。 | 有效上下文：`http`、`server`、`location`
+    默认值：`on` |'
 - en: '| `lingering_time` | In connection with the `lingering_close` directive, this
     directive will specify how long a client connection will be kept open for processing
     more data. | Valid contexts: `http`, `server`, `location`Default value: `30s`
     |'
+  id: totrans-173
   prefs: []
   type: TYPE_TB
+  zh: '| `lingering_time` | 与 `lingering_close` 指令一起使用时，此指令将指定客户端连接将在接收更多数据时保持打开的时间。
+    | 有效上下文：`http`、`server`、`location` 默认值：`30s` |'
 - en: '| `lingering_timeout` | Also in conjunction with `lingering_close`, this directive
     indicates how long NGINX will wait for additional data before closing the client
     connection. | Valid contexts: `http`, `server`, `location`default value: `5s`
     |'
+  id: totrans-174
   prefs: []
   type: TYPE_TB
+  zh: '| `lingering_timeout` | 与 `lingering_close` 一起使用时，此指令表示 NGINX 在关闭客户端连接前等待额外数据的时间。
+    | 有效上下文：`http`、`server`、`location` 默认值：`5s` |'
 - en: '| `listen` (http) | Refer to the *listen parameters* table in the section named
     *The virtual server section* in [Chapter 2](ch02.html "Chapter 2. A Configuration
     Guide"), *A Configuration Guide*. | Valid context: `server`Default value: `*:80
     &#124; *:8000` |'
+  id: totrans-175
   prefs: []
   type: TYPE_TB
+  zh: '| `listen` (http) | 请参阅[第2章](ch02.html "Chapter 2. A Configuration Guide")中
+    *虚拟服务器部分* 的 *listen 参数* 表格，*配置指南*。 | 有效上下文：`server` 默认值：`*:80 &#124; *:8000` |'
 - en: '| `listen` (mail) | The `listen` directive uniquely identifies a socket binding
     under NGINX. It takes the following parameter:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `listen` (mail) | `listen` 指令在 NGINX 中唯一标识一个套接字绑定。它接受以下参数：'
 - en: '`bind`: make a separate `bind()` call for this `address:port` pair.'
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`bind`：为这个 `address:port` 配对进行单独的 `bind()` 调用。'
 - en: '| Valid context: `server`Default value: - |'
+  id: totrans-178
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`server` 默认值：- |'
 - en: '| `location` | Defines a new context based on the request URI. | Valid context:
     `server`, `location`Default value: - |'
+  id: totrans-179
   prefs: []
   type: TYPE_TB
+  zh: '| `location` | 定义一个基于请求 URI 的新上下文。 | 有效上下文：`server`、`location` 默认值：- |'
 - en: '| `lock_file` | The prefix name for lock files. Depending on the platform,
     a lock file may be needed to implement `accept_mutex` and shared memory access
     serialization. | Valid context: `main`Default value: `logs/nginx.lock`. |'
+  id: totrans-180
   prefs: []
   type: TYPE_TB
+  zh: '| `lock_file` | 锁文件的前缀名称。根据平台的不同，可能需要锁文件来实现 `accept_mutex` 和共享内存访问的序列化。 | 有效上下文：`main`
+    默认值：`logs/nginx.lock`。 |'
 - en: '| `log_format` | Specifies which fields should appear in the log file and what
     format they should take. | Valid context: `http`Default value: combined `$remote_addr
     - $remote_user [$time_local], "$request" $status $body_bytes_sent, "$http_referer""$http_user_agent"''`
     |'
+  id: totrans-181
   prefs: []
   type: TYPE_TB
+  zh: '| `log_format` | 指定哪些字段应出现在日志文件中，并设置其格式。 | 有效上下文：`http` 默认值：`combined "$remote_addr
+    - $remote_user [$time_local], "$request" $status $body_bytes_sent, "$http_referer""$http_user_agent"''`
+    |'
 - en: '| `log_not_found` | Disables reporting of 404 errors in the error log. | Valid
     contexts: `http`, `server`, `location`Default value: `on` |'
+  id: totrans-182
   prefs: []
   type: TYPE_TB
+  zh: '| `log_not_found` | 禁用在错误日志中报告 404 错误。 | 有效上下文：`http`，`server`，`location` 默认值：`on`
+    |'
 - en: '| `log_subrequest` | Enables logging of subrequests in the access log. | Valid
     contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-183
   prefs: []
   type: TYPE_TB
+  zh: '| `log_subrequest` | 启用访问日志中的子请求日志记录。 | 有效上下文：`http`，`server`，`location` 默认值：`off`
+    |'
 - en: '| `mail` | Sets up a configuration context in which mail server directives
     are specified. | Valid context: `main`Default value: - |'
+  id: totrans-184
   prefs: []
   type: TYPE_TB
+  zh: '| `mail` | 设置一个配置上下文，在该上下文中指定邮件服务器指令。 | 有效上下文：`main` 默认值：- |'
 - en: '| `map` | Defines a new context, in which a variable is set to a specified
     value, dependent on the value of a source variable. The format of the context
     definition is:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `map` | 定义一个新上下文，在该上下文中，变量的值根据源变量的值被设置为指定值。上下文定义的格式如下：'
 - en: '[PRE1]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The string or strings to be mapped may also be regular expressions. The following
     parameters are recognized within the context:'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些要映射的字符串也可以是正则表达式。在该上下文中识别以下参数：
 - en: '`default`: Sets a default value for the variable if the value of the source
     variable didn''t match any of the strings or regular expressions specified'
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`default`：如果源变量的值没有匹配任何指定的字符串或正则表达式，则为变量设置一个默认值。'
 - en: '`hostnames`: Indicates that source values may be hostnames with a prefix or
     suffix glob'
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`hostnames`：表示源值可能是带有前缀或后缀通配符的主机名。'
 - en: '`include`: Includes a file with string-to-value mappings'
+  id: totrans-190
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`include`：包含一个文件，其中包含字符串到值的映射。'
 - en: '| Valid context: `http`Default value: - |'
+  id: totrans-191
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http` 默认值：- |'
 - en: '| `map_hash_bucket_size` | The bucket size used to hold the `map` hash tables.
     | Valid context: `http`Default value: `32&#124;64&#124;128` |'
+  id: totrans-192
   prefs: []
   type: TYPE_TB
+  zh: '| `map_hash_bucket_size` | 用于存储 `map` 哈希表的桶大小。 | 有效上下文：`http` 默认值：`32&#124;64&#124;128`
+    |'
 - en: '| `map_hash_max_size` | The maximum size of the `map` hash tables. | Valid
     context: `http`Default value: `2048` |'
+  id: totrans-193
   prefs: []
   type: TYPE_TB
+  zh: '| `map_hash_max_size` | `map` 哈希表的最大大小。 | 有效上下文：`http` 默认值：`2048` |'
 - en: '| `master_process` | Determines whether or not to start worker processes. |
     Valid context: `main`Default value: `on` |'
+  id: totrans-194
   prefs: []
   type: TYPE_TB
+  zh: '| `master_process` | 决定是否启动工作进程。 | 有效上下文：`main` 默认值：`on` |'
 - en: '| `max_ranges` | Sets the maximum number of ranges allowed in a byte-range
     request. Specifying `0` disables byte-range support. | Valid contexts: `http`,
     `server`, `location`Default value: - |'
+  id: totrans-195
   prefs: []
   type: TYPE_TB
+  zh: '| `max_ranges` | 设置字节范围请求中允许的最大范围数。指定 `0` 会禁用字节范围支持。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `memcached_bind` | Specifies which address should be used for outgoing connections
     to a memcached server. | Valid contexts: `http`, `server`, `location`Default value:
     - |'
+  id: totrans-196
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_bind` | 指定用于与 memcached 服务器建立连接的地址。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `memcached_buffer_size` | The size of the buffer for the response from memcached.
     This response is then sent synchronously to the client. | Valid contexts: `http`,
     `server`, `location`Default value: `4k&#124;8k` |'
+  id: totrans-197
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_buffer_size` | memcached 响应的缓冲区大小。此响应随后会同步发送到客户端。 | 有效上下文：`http`，`server`，`location`
+    默认值：`4k&#124;8k` |'
 - en: '| `memcached_connect_timeout` | The maximum length of time NGINX will wait
     for its connection to be accepted when making a request to a memcached server.
     | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  id: totrans-198
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_connect_timeout` | NGINX 在向 memcached 服务器发起请求时，等待连接被接受的最长时间。 |
+    有效上下文：`http`，`server`，`location` 默认值：`60s` |'
 - en: '| `memcached_gzip_flag` | Specifies a value, when found in the response from
     a memcached server, which will set the `Content-Encoding` header to `gzip`. |
     Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-199
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_gzip_flag` | 指定一个值，当在 memcached 服务器的响应中找到该值时，会将 `Content-Encoding`
+    头设置为 `gzip`。 | 有效上下文：`http`，`server`，`location` 默认值：- |'
 - en: '| `memcached_next_upstream` | Refer to the *Memcached module directives* table
     in the *Caching in the database* section in [Chapter 7](ch07.html "Chapter 7. NGINX
     for the Developer"), *NGINX for the Developer*. | Valid contexts: `http`, `server`,
     `location`Default value: error timeout |'
+  id: totrans-200
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_next_upstream` | 请参见[第 7 章](ch07.html "第7章：开发者的NGINX")中的 *Memcached模块指令*
+    表，*开发者的NGINX*。 | 有效上下文：`http`，`server`，`location` 默认值：错误超时 |'
 - en: '| `memcached_pass` | Specifies the name or address of a memcached server and
     its port. It may also be a `server` group, as declared in an `upstream` context.
     | Valid contexts: `location`, `if in location`Default value: - |'
+  id: totrans-201
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_pass` | 指定一个 memcached 服务器的名称或地址及其端口。它也可以是一个在 `upstream` 上下文中声明的
+    `server` 组。 | 有效上下文：`location`、`if in location` 默认值：- |'
 - en: '| `memcached_read_timeout` | Specifies the length of time that needs to elapse
     between two successive read operations from a memcached server before the connection
     is closed. | Valid contexts: `http`, `server`, `location`Default value: `60s`
     |'
+  id: totrans-202
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_read_timeout` | 指定在两个连续的读操作之间，需要经过的时间长度，超过该时间连接会被关闭。 | 有效上下文：`http`、`server`、`location`
+    默认值：`60s` |'
 - en: '| `memcached_send_timeout` | The length of time that needs to elapse between
     two successive write operations to a memcached server before the connection is
     closed. | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  id: totrans-203
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_send_timeout` | 在两个连续的写操作之间，需要经过的时间长度，超过该时间连接会被关闭。 | 有效上下文：`http`、`server`、`location`
+    默认值：`60s` |'
 - en: '| `merge_slashes` | Disables the removal of multiple slashes. The default value
     of `on` means that NGINX will compress two or more `/` characters into one. |
     Valid contexts: `http`, `server`Default value: `on` |'
+  id: totrans-204
   prefs: []
   type: TYPE_TB
+  zh: '| `merge_slashes` | 禁用去除多个斜杠。默认值为 `on`，表示 NGINX 会将两个或更多的 `/` 字符压缩成一个。 | 有效上下文：`http`、`server`
+    默认值：`on` |'
 - en: '| `min_delete_depth` | Allows the WebDAV `DELETE` method to remove files when
     at least this number of elements is present in the request path. | Valid contexts:
     `http`, `server`, `location`Default value: `0` |'
+  id: totrans-205
   prefs: []
   type: TYPE_TB
+  zh: '| `min_delete_depth` | 允许 WebDAV `DELETE` 方法在请求路径中至少包含此数量的元素时删除文件。 | 有效上下文：`http`、`server`、`location`
+    默认值：`0` |'
 - en: '| `modern_browser` | Specifies a `browser` and `version` parameter, which together
     will indicate that the browser is considered modern by setting the `$modern_browser`
     variable to `modern_browser_value`. The `browser` parameter may take one of the
@@ -1034,905 +1606,1403 @@
     `ancient_browser` nor in `modern_browser` or has a missing `User-Agent` header
     is considered modern. | Valid contexts: `http`, `server`, `location`Default value:
     - |'
+  id: totrans-206
   prefs: []
   type: TYPE_TB
+  zh: '| `modern_browser` | 指定 `browser` 和 `version` 参数，二者一起表示通过将 `$modern_browser`
+    变量设置为 `modern_browser_value`，浏览器被认为是现代浏览器。`browser` 参数可以取以下值之一：`msie`、`gecko`、`opera`、`safari`
+    或 `konqueror`。可以指定 `unlisted` 参数，表示任何未在 `ancient_browser` 或 `modern_browser` 中找到的浏览器，或缺少
+    `User-Agent` 头部的浏览器，都会被认为是现代浏览器。 | 有效上下文：`http`、`server`、`location` 默认值：- |'
 - en: '| `modern_browser_value` | The value to which the `$modern_browser` variable
     will be set. | Valid contexts: `http`, `server`, `location`Default value: `1`
     |'
+  id: totrans-207
   prefs: []
   type: TYPE_TB
+  zh: '| `modern_browser_value` | `$modern_browser` 变量将设置为的值。 | 有效上下文：`http`、`server`、`location`
+    默认值：`1` |'
 - en: '| `mp4` | Activates the `mp4` module for this `location`. | Valid context:
     `location`Default value: - |'
+  id: totrans-208
   prefs: []
   type: TYPE_TB
+  zh: '| `mp4` | 为该 `location` 启用 `mp4` 模块。 | 有效上下文：`location` 默认值：- |'
 - en: '| `mp4_buffer_size` | Sets the initial buffer size for delivering MP4 files.
     | Valid contexts: `http`, `server`, `location`Default value: `512K` |'
+  id: totrans-209
   prefs: []
   type: TYPE_TB
+  zh: '| `mp4_buffer_size` | 设置用于传输 MP4 文件的初始缓冲区大小。 | 有效上下文：`http`、`server`、`location`
+    默认值：`512K` |'
 - en: '| `mp4_max_buffer_size` | Sets the maximum size of the buffer used to process
     MP4 metadata. | Valid contexts: `http`, `server`, `location`Default value: `10M`
     |'
+  id: totrans-210
   prefs: []
   type: TYPE_TB
+  zh: '| `mp4_max_buffer_size` | 设置用于处理 MP4 元数据的缓冲区的最大大小。 | 有效上下文：`http`、`server`、`location`
+    默认值：`10M` |'
 - en: '| `msie_padding` | Enables the disabling of adding comments to responses with
     a status greater than 400 for MSIE clients, in order to pad the response size
     to 512 bytes. | Valid contexts: `http`, `server`, `location`Default value: `on`
     |'
+  id: totrans-211
   prefs: []
   type: TYPE_TB
+  zh: '| `msie_padding` | 允许禁用为状态大于 400 的响应添加注释，以便为 MSIE 客户端填充响应大小至 512 字节。 | 有效上下文：`http`、`server`、`location`
+    默认值：`on` |'
 - en: '| `msie_refresh` | This directive enables the sending of a `refresh` instead
     of a `redirect` for MSIE clients. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-212
   prefs: []
   type: TYPE_TB
+  zh: '| `msie_refresh` | 该指令允许为 MSIE 客户端发送 `refresh` 而非 `redirect`。 | 有效上下文：`http`、`server`、`location`
+    默认值：`off` |'
 - en: '| `multi_accept` | Instructs a worker process to accept all new connections
     at once. Disregarded if the `kqueue` event method is used because `kqueue` reports
     the number of new connections waiting to be accepted. | Valid context: `events`Default
     value: `off` |'
+  id: totrans-213
   prefs: []
   type: TYPE_TB
+  zh: '| `multi_accept` | 指示工作进程一次性接受所有新的连接。如果使用 `kqueue` 事件方法，则会忽略此指令，因为 `kqueue`
+    会报告等待接受的新连接数。 | 有效上下文：`events` 默认值：`off` |'
 - en: '| `open_file_cache` | Configures a cache that can store open file descriptors,
     directory lookups, and file lookup errors. | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-214
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache` | 配置一个缓存，可以存储打开的文件描述符、目录查找和文件查找错误。 | 有效的上下文：`http`，`server`，`location`
+    默认值：`off` |'
 - en: '| `open_file_cache_errors` | Enables the caching of the file lookup errors
     by the `open_file_cache` directive. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-215
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache_errors` | 启用`open_file_cache`指令缓存文件查找错误。 | 有效的上下文：`http`，`server`，`location`
+    默认值：`off` |'
 - en: '| `open_file_cache_min_uses` | Configures the minimum number of uses for a
     file within the `inactive` parameter to `open_file_cache` for that file descriptor
     to remain open in the cache. | Valid contexts: `http`, `server`, `location`Default
     value: `1` |'
+  id: totrans-216
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache_min_uses` | 配置文件在`inactive`参数中的最小使用次数，以便该文件描述符在缓存中保持打开状态。
+    | 有效的上下文：`http`，`server`，`location` 默认值：`1` |'
 - en: '| `open_file_cache_valid` | Specifies the time interval between the validity
     checks for the items in the `open_file_cache` directive. | Valid contexts: `http`,
     `server`, `location`Default value: `60s` |'
+  id: totrans-217
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache_valid` | 指定`open_file_cache`指令中项的有效性检查之间的时间间隔。 | 有效的上下文：`http`，`server`，`location`
+    默认值：`60s` |'
 - en: '| `open_log_file_cache` | Refer to the *HTTP logging directives* table in the
     *Logging* section in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP Server"),
     *The NGINX HTTP Server*. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-218
   prefs: []
   type: TYPE_TB
+  zh: '| `open_log_file_cache` | 请参阅*HTTP日志指令*表格，位于*Logging*部分的[第6章](ch06.html "第6章：NGINX
+    HTTP服务器")中，*NGINX HTTP服务器*。 | 有效的上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `optimize_server_names` | This is deprecated. Use the `server_name_in_redirect`
     directive instead. | Valid contexts: `http`, `server`Default value: `off` |'
+  id: totrans-219
   prefs: []
   type: TYPE_TB
+  zh: '| `optimize_server_names` | 该选项已被弃用。请改用`server_name_in_redirect`指令。 | 有效的上下文：`http`，`server`
+    默认值：`off` |'
 - en: '| `override_charset` | Indicates whether the charset specified in the `Content-Type`
     header of a response received from a `proxy_pass` or `fastcgi_pass` request should
     be converted or not. If the response comes as a result of a subrequest, conversion
     to the main request''s charset will always be performed. | Valid contexts: `http`,
     `server`, `location`, `if in location`Default value: `off` |'
+  id: totrans-220
   prefs: []
   type: TYPE_TB
+  zh: '| `override_charset` | 指示是否应转换从`proxy_pass`或`fastcgi_pass`请求收到的响应中的`Content-Type`头部指定的字符集。如果响应是作为子请求的结果，则总是会转换为主请求的字符集。
+    | 有效的上下文：`http`，`server`，`location`，`if in location` 默认值：`off` |'
 - en: '| `pcre_jit` | Enables just-in-time compilation of Perl-compatible regular
     expressions known at configuration time. JIT support needs to be enabled in the
     PCRE library to make use of this speedup. | Valid context: `main`Default value:
     `off` |'
+  id: totrans-221
   prefs: []
   type: TYPE_TB
+  zh: '| `pcre_jit` | 启用Perl兼容正则表达式的即时编译，已知在配置时可用。要利用此加速，必须在PCRE库中启用JIT支持。 | 有效的上下文：`main`
+    默认值：`off` |'
 - en: '| `perl` | Activates a Perl handler for this location. The argument is the
     name of the handler or a string describing a full subroutine. | Valid contexts:
     `location`, `limit_except`Default value: - |'
+  id: totrans-222
   prefs: []
   type: TYPE_TB
+  zh: '| `perl` | 为此位置激活Perl处理程序。参数是处理程序的名称或描述完整子程序的字符串。 | 有效的上下文：`location`，`limit_except`
+    默认值：- |'
 - en: '| `perl_modules` | Specifies an additional search path for Perl modules. |
     Valid context: `http`Default value: - |'
+  id: totrans-223
   prefs: []
   type: TYPE_TB
+  zh: '| `perl_modules` | 指定Perl模块的额外搜索路径。 | 有效的上下文：`http` 默认值：- |'
 - en: '| `perl_require` | Indicates a Perl module that will be loaded at each NGINX
     reconfiguration. It may be specified multiple times for separate modules. | Valid
     context: `http`Default value: - |'
+  id: totrans-224
   prefs: []
   type: TYPE_TB
+  zh: '| `perl_require` | 指示每次NGINX重新配置时将加载的Perl模块。可以为不同的模块多次指定。 | 有效的上下文：`http` 默认值：-
+    |'
 - en: '| `perl_set` | Installs a Perl handler to set the value of a variable. The
     argument is the name of the handler or a string describing a full subroutine.
     | Valid context: `http`Default value: - |'
+  id: totrans-225
   prefs: []
   type: TYPE_TB
+  zh: '| `perl_set` | 安装Perl处理程序以设置变量的值。参数是处理程序的名称或描述完整子程序的字符串。 | 有效的上下文：`http` 默认值：-
+    |'
 - en: '| `pid` | This is the file where the process ID of the main process will be
     written, overwriting the compiled-in default. | Valid context: `main`Default value:
     `nginx.pid` |'
+  id: totrans-226
   prefs: []
   type: TYPE_TB
+  zh: '| `pid` | 这是将写入主进程进程ID的文件，覆盖编译时的默认值。 | 有效的上下文：`main` 默认值：`nginx.pid` |'
 - en: '| `pop3_auth` | Sets the supported client authentication mechanism. It can
     be one or more of `plain`, `apop`, or `cram-md5`. | Valid contexts: `mail`, `server`Default
     value: `plain` |'
+  id: totrans-227
   prefs: []
   type: TYPE_TB
+  zh: '| `pop3_auth` | 设置支持的客户端认证机制。它可以是`plain`、`apop`或`cram-md5`之一或多个。 | 有效的上下文：`mail`，`server`
+    默认值：`plain` |'
 - en: '| `pop3_capabilities` | Indicates which POP3 capabilities are supported by
     the backend server. | Valid contexts: `mail`, `server`Default value: `TOP USER
     UIDL` |'
+  id: totrans-228
   prefs: []
   type: TYPE_TB
+  zh: '| `pop3_capabilities` | 指示后端服务器支持哪些POP3功能。 | 有效上下文：`mail`，`server` 默认值：`TOP
+    USER UIDL` |'
 - en: '| `port_in_redirect` | Determines whether or not the port will be specified
     in a `redirect` method issued by NGINX. | Valid contexts: `http`, `server`, `location`Default
     value: `on` |'
+  id: totrans-229
   prefs: []
   type: TYPE_TB
+  zh: '| `port_in_redirect` | 确定是否在NGINX发出的 `redirect` 方法中指定端口。 | 有效上下文：`http`，`server`，`location`
+    默认值：`on` |'
 - en: '| `postpone_output` | Specifies the minimum size of data for NGINX to send
     to the client. If possible, no data will be sent until this value is reached.
     | Valid contexts: `http`, `server`, `location`Default value: `1460` |'
+  id: totrans-230
   prefs: []
   type: TYPE_TB
+  zh: '| `postpone_output` | 指定NGINX发送到客户端的数据的最小大小。如果可能，在达到此值之前不会发送任何数据。 | 有效上下文：`http`，`server`，`location`
+    默认值：`1460` |'
 - en: '| `protocol` | Indicates which protocol is supported by this mail server context.
     It may be one of `imap`, `pop3`, or `smtp`. | Valid context: `server`Default value:
     - |'
+  id: totrans-231
   prefs: []
   type: TYPE_TB
+  zh: '| `protocol` | 指示此邮件服务器上下文支持哪种协议。它可能是 `imap`，`pop3` 或 `smtp` 之一。 | 有效上下文：`server`
+    默认值：- |'
 - en: '| `proxy` | Enables or disables mail proxying. | Valid context: `server`Default
     value: - |'
+  id: totrans-232
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy` | 启用或禁用邮件代理。 | 有效上下文：`server` 默认值：- |'
 - en: '| `proxy_bind` | Specifies which address should be used for outgoing connections
     to a proxied server. | Valid contexts: `http`, `server`, `location`Default value:
     - |'
+  id: totrans-233
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_bind` | 指定用于与代理服务器进行外发连接的地址。 | 有效上下文：`http`，`server`，`location` 默认值：-
+    |'
 - en: '| `proxy_buffer` | Allows setting the size of the buffer used for the mail
     proxy connection beyond the default of one page. | Valid contexts: `mail`, `server`Default
     value: `4k&#124;8k` (platform dependent) |'
+  id: totrans-234
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffer` | 允许设置用于邮件代理连接的缓冲区大小，超过默认的单页大小。 | 有效上下文：`mail`，`server` 默认值：`4k&#124;8k`（平台相关）
+    |'
 - en: '| `proxy_buffer_size` | The size of the buffer used for the first part of the
     response from the upstream server, in which the response headers are found. |
     Valid contexts: `http`, `server`, `location`Default value: `4k&#124;8k` (platform
     dependent) |'
+  id: totrans-235
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffer_size` | 用于从上游服务器接收响应的第一部分的缓冲区大小，响应头就在其中。 | 有效上下文：`http`，`server`，`location`
+    默认值：`4k&#124;8k`（平台相关） |'
 - en: '| `proxy_buffering` | Activates buffering of proxied content; when switched
     off, responses are sent synchronously to the client as soon as they are received.
     | Valid contexts: `http`, `server`, `location`Default value: `on` |'
+  id: totrans-236
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffering` | 启用代理内容的缓冲；当关闭时，响应将在接收到后同步发送到客户端。 | 有效上下文：`http`，`server`，`location`
+    默认值：`on` |'
 - en: '| `proxy_buffers` | The number and size of buffers used for responses from
     upstream servers. | Valid contexts: `http`, `server`, `location`Default value:
     `8 4k&#124;8k` (platform dependent) |'
+  id: totrans-237
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffers` | 用于上游服务器响应的缓冲区的数量和大小。 | 有效上下文：`http`，`server`，`location`
+    默认值：`8 4k&#124;8k`（平台相关） |'
 - en: '| `proxy_busy_buffers_size` | The total size of buffer space allocated to sending
     the response to the client while still being read from the upstream server. This
     is typically set to two `proxy_buffers`. | Valid contexts: `http`, `server`, `location`Default
     value: `8k&#124;16k` (platform dependent) |'
+  id: totrans-238
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_busy_buffers_size` | 分配给发送响应到客户端的缓冲区总大小，同时数据仍在从上游服务器读取。通常设置为两个 `proxy_buffers`
+    的大小。 | 有效上下文：`http`，`server`，`location` 默认值：`8k&#124;16k`（平台相关） |'
 - en: '| `proxy_cache` | Defines a shared memory zone to be used for caching. | Valid
     contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-239
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache` | 定义用于缓存的共享内存区域。 | 有效上下文：`http`，`server`，`location` 默认值：`off`
+    |'
 - en: '| `proxy_cache_bypass` | One or more string variables, which when non-empty
     or non-zero, will cause the response to be taken from the upstream server instead
     of the cache. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-240
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_bypass` | 一个或多个字符串变量，当它们非空或非零时，将导致响应从上游服务器而不是缓存中获取。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `proxy_cache_key` | A string used as the key for storing and retrieving cache
     values. | Valid contexts: `http`, `server`, `location`Default value: `$scheme$proxy_host$request_uri`
     |'
+  id: totrans-241
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_key` | 用作存储和检索缓存值的键的字符串。 | 有效上下文：`http`，`server`，`location`
+    默认值：`$scheme$proxy_host$request_uri` |'
 - en: '| `proxy_cache_lock` | Enabling this directive will prevent multiple requests
     from making an entry into the same cache key. | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-242
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_lock` | 启用此指令将防止多个请求对同一缓存键进行条目写入。 | 有效上下文：`http`，`server`，`location`
+    默认值：`off` |'
 - en: '| `proxy_cache_lock_timeout` | The length of time a request will wait for an
     entry to appear in the cache or for the `proxy_cache_lock` directive to be released.
     | Valid contexts: `http`, `server`, `location`Default value: `5s` |'
+  id: totrans-243
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_lock_timeout` | 请求等待缓存条目出现或 `proxy_cache_lock` 指令释放的最长时间。 |
+    有效上下文：`http`，`server`，`location` 默认值：`5s` |'
 - en: '| `proxy_cache_min_uses` | The number of requests for a certain key needed
     before a response is cached. | Valid contexts: `http`, `server`, `location`Default
     value: `1` |'
+  id: totrans-244
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_min_uses` | 在缓存响应之前，某个键所需的请求次数。 | 有效上下文：`http`，`server`，`location`
+    默认值：`1` |'
 - en: '| `proxy_cache_path` | Refer to the *Proxy module caching directives* table
     in the *Caching* section in [Chapter 5](ch05.html "Chapter 5. Reverse Proxy Advanced
     Topics"), *Reverse Proxy Advanced Topics*. | Valid context: `http`Default value:
     - |'
+  id: totrans-245
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_path` | 参考 [第 5 章](ch05.html "Chapter 5. Reverse Proxy Advanced
+    Topics") *反向代理高级主题* 中的 *代理模块缓存指令* 表。 | 有效上下文：`http` 默认值：- |'
 - en: '| `proxy_cache_use_stale` | The cases under which it is acceptable to serve
     stale cached data when an error occurs when accessing the upstream server. The
     `updating` parameter indicates the case when fresh data are being loaded. | Valid
     contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-246
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_use_stale` | 在访问上游服务器时发生错误时，可以提供陈旧的缓存数据的情况。`updating` 参数表示正在加载新数据的情况。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `proxy_cache_valid` | Indicates the length of time for which a cached response
     with response code 200, 301, or 302 is valid. If an optional response code is
     given before the time parameter, that time is only for that response code. The
     special parameter `any` indicates that any response code should be cached for
     that length of time. | Valid contexts: `http`, `server`, `location`Default value:
     - |'
+  id: totrans-247
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_valid` | 指示具有响应代码 200、301 或 302 的缓存响应有效的时间长度。如果在时间参数之前给出了可选的响应代码，则该时间仅适用于该响应代码。特殊参数
+    `any` 表示任何响应代码应缓存该长度的时间。 | 有效上下文：`http`，`server`，`location` 默认值：- |'
 - en: '| `proxy_connect_timeout` | The maximum amount of time NGINX will wait for
     its connection to be accepted when making a request to an upstream server. | Valid
     contexts: `http`, `server`, `location`Default value: `60s` |'
+  id: totrans-248
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_connect_timeout` | NGINX 在向上游服务器发起请求时，等待连接被接受的最长时间。 | 有效上下文：`http`，`server`，`location`
+    默认值：`60s` |'
 - en: '| `proxy_cookie_domain` | Replaces the domain attribute of the `Set-Cookie`
     header from the upstream server; the domain to be replaced can either be a string
     or a regular expression, or reference a variable. | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-249
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cookie_domain` | 替换来自上游服务器的 `Set-Cookie` 头部的域名属性；要替换的域名可以是字符串、正则表达式或引用变量。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `proxy_cookie_path` | Replaces the path attribute of the `Set-Cookie` header
     from the upstream server; the path to be replaced can either be a string or a
     regular expression, or reference a variable. | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-250
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cookie_path` | 替换来自上游服务器的 `Set-Cookie` 头部的路径属性；要替换的路径可以是字符串、正则表达式或引用变量。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `proxy_header_hash_bucket_size` | The bucket size used to hold proxy header
     names (one name cannot be longer than the value of this directive). | Valid contexts:
     `http`, `server`, `location`, `if`Default value: `64` |'
+  id: totrans-251
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_header_hash_bucket_size` | 用于存储代理头部名称的桶大小（一个名称不能长于此指令的值）。 | 有效上下文：`http`，`server`，`location`，`if`
+    默认值：`64` |'
 - en: '| `proxy_header_hash_max_size` | The total size of headers received from the
     upstream server. | Valid contexts: `http`, `server`, `location`Default value:
     `512` |'
+  id: totrans-252
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_header_hash_max_size` | 从上游服务器接收到的头部的总大小。 | 有效上下文：`http`，`server`，`location`
+    默认值：`512` |'
 - en: '| `proxy_hide_header` | A list of header fields that should not be passed on
     to the client. | Valid contexts: `http`, `server`, `location`Default value: -
     |'
+  id: totrans-253
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_hide_header` | 不应传递给客户端的头部字段列表。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `proxy_http_version` | The HTTP protocol version used to communicate with
     upstream servers (use `1.1` for `keepalive` connections). | Valid contexts: `http`,
     `server`, `location`Default value: `1.0` |'
+  id: totrans-254
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_http_version` | 用于与上游服务器通信的 HTTP 协议版本（对于 `keepalive` 连接，使用 `1.1`）。
+    | 有效上下文：`http`，`server`，`location` 默认值：`1.0` |'
 - en: '| `proxy_ignore_client_abort` | If set to `on`, NGINX will not abort the connection
     to an upstream server if the client aborts the connection. | Valid contexts: `http`,
     `server`, `location`Default value: `off` |'
+  id: totrans-255
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_ignore_client_abort` | 如果设置为 `on`，则在客户端中止连接时，NGINX 不会中止与上游服务器的连接。
+    | 有效上下文：`http`、`server`、`location` 默认值：`off` |'
 - en: '| `proxy_ignore_headers` | Sets which headers may be disregarded when processing
     the response from the upstream server. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-256
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_ignore_headers` | 设置在处理上游服务器响应时可以忽略哪些头信息。 | 有效上下文：`http`、`server`、`location`
+    默认值：- |'
 - en: '| `proxy_intercept_errors` | If enabled, NGINX will display a configured `error_page`
     instead of the response directly from the upstream server. | Valid contexts: `http`,
     `server`, `location`Default value: `off` |'
+  id: totrans-257
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_intercept_errors` | 如果启用，NGINX 将显示配置的 `error_page`，而不是直接从上游服务器响应。
+    | 有效上下文：`http`、`server`、`location` 默认值：`off` |'
 - en: '| `proxy_max_temp_file_size` | The maximum size of the overflow file, written
     when the response doesn''t fit into memory buffers. | Valid contexts: `http`,
     `server`, `location`Default value: `1024m` |'
+  id: totrans-258
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_max_temp_file_size` | 溢出文件的最大大小，当响应不能完全适应内存缓冲区时，将写入该文件。 | 有效上下文：`http`、`server`、`location`
+    默认值：`1024m` |'
 - en: '| `proxy_next_upstream` | Indicates the conditions under which the next upstream
     server will be selected for the response. This won''t be used if the client has
     already been sent something. The conditions are specified using the following
     parameters:'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_next_upstream` | 指示在何种条件下会选择下一个上游服务器来响应。 如果客户端已经收到响应，则不会使用此设置。条件由以下参数指定：'
 - en: '`error`: An error occurred while communicating with the upstream server'
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`error`: 与上游服务器通信时发生了错误'
 - en: '`timeout`: A timeout occurred while communicating with the upstream server'
+  id: totrans-261
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`timeout`: 与上游服务器通信时发生了超时'
 - en: '`invalid_header`: The upstream server returned an empty or otherwise invalid
     response'
+  id: totrans-262
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`invalid_header`: 上游服务器返回了空的或无效的响应'
 - en: '`http_500`: The upstream server responded with a 500 error code'
+  id: totrans-263
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_500`: 上游服务器返回了 500 错误码'
 - en: '`http_503`: The upstream server responded with a 503 error code'
+  id: totrans-264
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_503`: 上游服务器返回了 503 错误码'
 - en: '`http_504`: The upstream server responded with a 504 error code'
+  id: totrans-265
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_504`: 上游服务器返回了 504 错误码'
 - en: '`http_404`: The upstream server responded with a 404 error code'
+  id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_404`: 上游服务器返回了 404 错误码'
 - en: '`off`: Disables passing the request to the next upstream server when an error
     occurs'
+  id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`: 当发生错误时，禁用将请求传递到下一个上游服务器'
 - en: '| Valid contexts: `http`, `server`, `location`Default value: `error timeout`
     |'
+  id: totrans-268
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http`、`server`、`location` 默认值：`error timeout` |'
 - en: '| `proxy_no_cache` | Defines the conditions under which the response will not
     be saved to the cache. The parameters are string variables, which evaluate to
     something non-empty and non-zero to not cache. | Valid contexts: `http`, `server`,
     `location`Default value: - |'
+  id: totrans-269
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_no_cache` | 定义在何种条件下响应不会被保存到缓存中。参数是字符串变量，评估为非空且非零时，不进行缓存。 | 有效上下文：`http`、`server`、`location`
+    默认值：- |'
 - en: '| `proxy_pass` | Specifies the upstream server to which the request is passed,
     in the form of a URL. | Valid contexts: `location`, `if in location`, `limit_except`Default
     value: - |'
+  id: totrans-270
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass` | 指定请求传递到的上游服务器，采用 URL 形式。 | 有效上下文：`location`、`if in location`、`limit_except`
+    默认值：- |'
 - en: '| `proxy_pass_error_message` | Useful in situations where the backend authentication
     process emits a useful error message to the client. | Valid contexts: `mail`,
     `server`Default value: `off` |'
+  id: totrans-271
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass_error_message` | 在后端身份验证过程中发出有用错误信息并返回给客户端时非常有用。 | 有效上下文：`mail`、`server`
+    默认值：`off` |'
 - en: '| `proxy_pass_header` | Overrides the disabled headers set in `proxy_hide_header`,
     allowing them to be sent to the client. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-272
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass_header` | 覆盖 `proxy_hide_header` 中禁用的头信息，允许将其发送给客户端。 | 有效上下文：`http`、`server`、`location`
+    默认值：- |'
 - en: '| `proxy_pass_request_body` | Prevents sending the body of the request to the
     upstream server if set to `off`. | Valid contexts: `http`, `server`, `location`Default
     value: `on` |'
+  id: totrans-273
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass_request_body` | 如果设置为 `off`，则阻止将请求的主体发送到上游服务器。 | 有效上下文：`http`、`server`、`location`
+    默认值：`on` |'
 - en: '| `proxy_pass_request_headers` | Prevents sending the headers of the request
     to the upstream server if set to `off`. | Valid contexts: `http`, `server`, `location`Default
     value: `on` |'
+  id: totrans-274
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass_request_headers` | 如果设置为 `off`，则阻止将请求的头信息发送到上游服务器。 | 有效上下文：`http`、`server`、`location`
+    默认值：`on` |'
 - en: '| `proxy_read_timeout` | Specifies the length of time that needs to elapse
     between two successive read operations from an upstream server before the connection
     is closed. | Valid contexts: `http`, `server`, `location`Default value: `60s`
     |'
+  id: totrans-275
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_read_timeout` | 指定从上游服务器进行两次连续读操作之间所需的时间长度，超过此时间连接将关闭。 | 有效上下文：`http`，`server`，`location`
+    默认值：`60s` |'
 - en: '| `proxy_redirect` | Rewrites the `Location` and `Refresh` headers received
     from the upstream servers; useful for working around assumptions made by an application
     framework. | Valid contexts: `http`, `server`, `location`Default value: `default`
     |'
+  id: totrans-276
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_redirect` | 重写从上游服务器接收到的`Location`和`Refresh`头部；有助于绕过应用程序框架的假设。 | 有效上下文：`http`，`server`，`location`
+    默认值：`default` |'
 - en: '| `proxy_send_lowat` | If non-zero, NGINX will try to minimize the number of
     send operations on outgoing connections to a proxied server. It is ignored in
     Linux, Solaris, and Windows. | Valid contexts: `http`, `server`, `location`Default
     value: `0` |'
+  id: totrans-277
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_send_lowat` | 如果非零，NGINX 将尽量减少对代理服务器的发送操作次数。在 Linux、Solaris 和 Windows
+    中忽略此设置。 | 有效上下文：`http`，`server`，`location` 默认值：`0` |'
 - en: '| `proxy_send_timeout` | The length of time that needs to elapse between two
     successive write operations to an upstream server before the connection is closed.
     | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  id: totrans-278
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_send_timeout` | 在关闭连接之前，需要在两次连续写操作之间经过的时间长度。 | 有效上下文：`http`，`server`，`location`
+    默认值：`60s` |'
 - en: '| `proxy_set_body` | The body of a request sent to an upstream server may be
     altered by setting this directive. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-279
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_set_body` | 通过设置此指令，可以更改发送到上游服务器的请求体。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `proxy_set_header` | Rewrites the contents of the headers sent to an upstream
     server; may also be used to not send certain headers by setting its value to the
     empty string. | Valid contexts: `http`, `server`, `location`Default value: `Host
     $proxy_host`, `Connection close` |'
+  id: totrans-280
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_set_header` | 重写发送到上游服务器的头部内容；也可以通过将其值设置为空字符串来不发送某些头部。 | 有效上下文：`http`，`server`，`location`
+    默认值：`Host $proxy_host`，`Connection close` |'
 - en: '| `proxy_ssl_session_reuse` | Sets whether or not SSL sessions may be reused
     when proxying. | Valid contexts: `http`, `server`, `location`Default value: `on`
     |'
+  id: totrans-281
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_ssl_session_reuse` | 设置是否可以在代理过程中重用 SSL 会话。 | 有效上下文：`http`，`server`，`location`
+    默认值：`on` |'
 - en: '| `proxy_store` | Enables storing responses retrieved from an upstream server
     as files on disk. The `on` parameter will use the `alias` or `root` directive
     as the base path under which to store the file. A string may instead be given,
     to indicate an alternative location to store the files. | Valid contexts: `http`,
     `server`, `location`Default value: `off` |'
+  id: totrans-282
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_store` | 启用将从上游服务器获取的响应存储为磁盘上的文件。`on` 参数将使用`alias`或`root`指令作为存储文件的基础路径。可以提供一个字符串，指示用于存储文件的备用位置。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `proxy_store_access` | Sets file access permissions for the newly-created
     `proxy_store` files. | Valid contexts: `http`, `server`, `location`Default value:
     `user:rw` |'
+  id: totrans-283
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_store_access` | 设置新创建的`proxy_store`文件的文件访问权限。 | 有效上下文：`http`，`server`，`location`
+    默认值：`user:rw` |'
 - en: '| `proxy_temp_file_write_size` | Limits the amount of data buffered to a temporary
     file at one time, so that NGINX will not be blocked for too long on a single request.
     | Valid contexts: `http`, `server`, `location`Default value: `8k&#124;16k` (platform
     dependent) |'
+  id: totrans-284
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_temp_file_write_size` | 限制一次将数据缓冲到临时文件中的量，以避免 NGINX 在单个请求上阻塞过长时间。
+    | 有效上下文：`http`，`server`，`location` 默认值：`8k&#124;16k`（平台相关） |'
 - en: '| `proxy_temp_path` | A directory where temporary files may be buffered as
     they are proxied from the upstream server, optionally multilevel deep. If a second,
     third, or fourth parameter is given, these specify a subdirectory hierarchy with
     the parameter value as the number of characters in the subdirectory name. | Valid
     contexts: `http`, `server`, `location`Default value: `proxy_temp` |'
+  id: totrans-285
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_temp_path` | 用于缓冲从上游服务器代理过来的临时文件的目录，可选择多级深度。如果给定第二、第三或第四个参数，这些参数指定了子目录层次结构，参数值表示子目录名称中的字符数。
+    | 有效上下文：`http`，`server`，`location` 默认值：`proxy_temp` |'
 - en: '| `proxy_timeout` | If a timeout beyond the default of 24 hours is required,
     this directive can be used. | Valid contexts: `mail`, `server`Default value: `24h`
     |'
+  id: totrans-286
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_timeout` | 如果需要超过默认24小时的超时时间，可以使用此指令。 | 有效上下文：`mail`，`server` 默认值：`24h`
+    |'
 - en: '| `random_index` | Activates randomly choosing a file to be served to the client
     when a URI ending with `/` is received. | Valid context: `location`Default value:
     `off` |'
+  id: totrans-287
   prefs: []
   type: TYPE_TB
+  zh: '| `random_index` | 启用此选项后，当接收到以`/`结尾的 URI 时，将随机选择一个文件提供给客户端。 | 有效上下文：`location`
+    默认值：`off` |'
 - en: '| `read_ahead` | If possible, the kernel will preread files up to the `size`
     parameter. Supported on current FreeBSD and Linux (the `size` parameter is ignored
     on Linux). | Valid contexts: `http`, `server`, `location`Default value: `0` |'
+  id: totrans-288
   prefs: []
   type: TYPE_TB
+  zh: '| `read_ahead` | 如果可能，内核将预读文件直到`size`参数。当前FreeBSD和Linux支持此功能（`size`参数在Linux上被忽略）。
+    | 有效上下文：`http`，`server`，`location` 默认值：`0` |'
 - en: '| `real_ip_header` | Sets the header whose value is used as the client IP address
     when `set_real_ip_from` matches the connecting IP. | Valid contexts: `http`, `server`,
     `location`Default value: `X-Real-IP` |'
+  id: totrans-289
   prefs: []
   type: TYPE_TB
+  zh: '| `real_ip_header` | 设置一个标头，其值在`set_real_ip_from`匹配连接IP时用作客户端IP地址。 | 有效上下文：`http`，`server`，`location`
+    默认值：`X-Real-IP` |'
 - en: '| `real_ip_recursive` | Works with `set_real_ip_from`, to specify that the
     last address in a multi-valued `real_ip_header` header will be used. | Valid contexts:
     `http`, `server`, `location`Default value: `off` |'
+  id: totrans-290
   prefs: []
   type: TYPE_TB
+  zh: '| `real_ip_recursive` | 与`set_real_ip_from`一起工作，用于指定多值`real_ip_header`头中的最后一个地址将被使用。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `recursive_error_pages` | Enables doing more than one redirect using the
     `error_page` directive (default is `off`). | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-291
   prefs: []
   type: TYPE_TB
+  zh: '| `recursive_error_pages` | 启用后可以使用`error_page`指令进行多次重定向（默认是`off`）。 | 有效上下文：`http`，`server`，`location`
+    默认值：`off` |'
 - en: '| `referer_hash_bucket_size` | The bucket size of the valid referers hash tables.
     | Valid contexts: `server`, `location`Default value: `64` |'
+  id: totrans-292
   prefs: []
   type: TYPE_TB
+  zh: '| `referer_hash_bucket_size` | 有效referers哈希表的桶大小。 | 有效上下文：`server`，`location`
+    默认值：`64` |'
 - en: '| `referer_hash_max_size` | The maximum size of the valid referers hash tables.
     | Valid contexts: `server`, `location`Default value: `2048` |'
+  id: totrans-293
   prefs: []
   type: TYPE_TB
+  zh: '| `referer_hash_max_size` | 有效referers哈希表的最大大小。 | 有效上下文：`server`，`location`
+    默认值：`2048` |'
 - en: '| `request_pool_size` | Fine tunes per-request memory allocation. | Valid contexts:
     `http`, `server`Default value: `4k` |'
+  id: totrans-294
   prefs: []
   type: TYPE_TB
+  zh: '| `request_pool_size` | 微调每个请求的内存分配。 | 有效上下文：`http`，`server` 默认值：`4k` |'
 - en: '| `reset_timedout_connection` | With this directive enabled, connections that
     have been timed out will immediately be reset, freeing all associated memory.
     The default is to leave the socket in the `FIN_WAIT1` state, which will always
     be the case for the `keepalive` connections. | Valid contexts: `http`, `server`,
     `location`Default value: `off` |'
+  id: totrans-295
   prefs: []
   type: TYPE_TB
+  zh: '| `reset_timedout_connection` | 启用此指令后，超时的连接将立即重置，释放所有相关内存。默认情况下，套接字将处于`FIN_WAIT1`状态，这对于`keepalive`连接始终是这样。
+    | 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `resolver` | Configures one or more name servers to be used to resolve upstream
     server names into IP addresses. An optional `valid` parameter overrides the TTL
     of the domain name record. | Valid contexts: `http`, `server`, `location`Default
     value: - |'
+  id: totrans-296
   prefs: []
   type: TYPE_TB
+  zh: '| `resolver` | 配置一个或多个名称服务器，用于将上游服务器名称解析为IP地址。可选的`valid`参数可以覆盖域名记录的TTL。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `resolver_timeout` | Sets the timeout for name resolution. | Valid contexts:
     `http`, `server`, `location`Default value: `30s` |'
+  id: totrans-297
   prefs: []
   type: TYPE_TB
+  zh: '| `resolver_timeout` | 设置名称解析的超时时间。 | 有效上下文：`http`，`server`，`location` 默认值：`30s`
+    |'
 - en: '| `return` | Stops processing and returns the specified code to the client.
     The non-standard code 444 will close the connection without sending any response
     headers. If a code additionally has text accompanying it, the text will be placed
     in the response body. If instead, a URL is given after the code, that URL will
     be the value of the `Location` header. A URL without a code is treated as a code
     302. | Valid contexts: `server`, `location`, `if`Default value: - |'
+  id: totrans-298
   prefs: []
   type: TYPE_TB
+  zh: '| `return` | 停止处理并返回指定的代码给客户端。非标准代码444会在不发送任何响应头的情况下关闭连接。如果代码后面附带文本，该文本将放入响应体中。如果代码后面给出一个URL，则该URL将作为`Location`头的值。没有代码的URL被视为代码302。
+    | 有效上下文：`server`，`location`，`if` 默认值：- |'
 - en: '| `rewrite` | Refer to the *Rewrite module directives* table in the *Introducing
     the rewrite module* section in [Appendix B](apb.html "Appendix B. Rewrite Rule
     Guide"), *Rewrite Rule Guide*. | Valid contexts: `server`, `location`, `if`Default
     value: - |'
+  id: totrans-299
   prefs: []
   type: TYPE_TB
+  zh: '| `rewrite` | 请参阅[附录 B](apb.html "附录 B. 重写规则指南")中 *重写模块指南* 部分的 *重写模块指令* 表。
+    | 有效上下文：`server`，`location`，`if` 默认值：- |'
 - en: '| `rewrite_log` | Activates `notice` level logging of `rewrites` to the `error_log`.
     | Valid contexts: `http`, `server`, `if in server`, `location`, `if in location`Default
     value: `off` |'
+  id: totrans-300
   prefs: []
   type: TYPE_TB
+  zh: '| `rewrite_log` | 激活将`rewrites`的`notice`级别日志记录到`error_log`中。 | 有效的上下文：`http`、`server`、`if
+    in server`、`location`、`if in location` 默认值：`off` |'
 - en: '| `root` | Sets the path to the document root. Files are found by appending
     the URI to the value of this directive. | Valid contexts: `http`, `server`, `location`,
     `if in location`Default value: `html` |'
+  id: totrans-301
   prefs: []
   type: TYPE_TB
+  zh: '| `root` | 设置文档根路径。通过将URI附加到该指令的值上，可以找到文件。 | 有效的上下文：`http`、`server`、`location`、`if
+    in location` 默认值：`html` |'
 - en: '| `satisfy` | Allows access if `all` or `any` of the `access` or `auth_basic`
     directives grant access. The default value `all` indicates that a user must come
     from a specific network address and enter the correct password. | Valid contexts:
     `http`, `server`, `location`Default value: `all` |'
+  id: totrans-302
   prefs: []
   type: TYPE_TB
+  zh: '| `satisfy` | 如果`access`或`auth_basic`指令中的`all`或`any`允许访问，则允许访问。默认值`all`表示用户必须来自特定的网络地址并输入正确的密码。
+    | 有效的上下文：`http`、`server`、`location` 默认值：`all` |'
 - en: '| `satisfy_any` | This is deprecated. Use the `any` parameter of the `satisfy`
     directive. | Valid contexts: `http`, `server`, `location`Default value: `off`
     |'
+  id: totrans-303
   prefs: []
   type: TYPE_TB
+  zh: '| `satisfy_any` | 该指令已被弃用。请使用`satisfy`指令的`any`参数。 | 有效的上下文：`http`、`server`、`location`
+    默认值：`off` |'
 - en: '| `secure_link_secret` | A salt used to compute the MD5 hash of a URI. | Valid
     context: `location`Default value: - |'
+  id: totrans-304
   prefs: []
   type: TYPE_TB
+  zh: '| `secure_link_secret` | 用于计算URI的MD5哈希值的盐值。 | 有效的上下文：`location` 默认值：- |'
 - en: '| `send_lowat` | If non-zero, NGINX will try to minimize the number of send
     operations on client sockets. Ignored in Linux, Solaris, and Windows. | Valid
     contexts: `http`, `server`, `location`Default value: `0` |'
+  id: totrans-305
   prefs: []
   type: TYPE_TB
+  zh: '| `send_lowat` | 如果非零，NGINX将尽量减少客户端套接字的发送操作次数。在Linux、Solaris和Windows中被忽略。 |
+    有效的上下文：`http`、`server`、`location` 默认值：`0` |'
 - en: '| `send_timeout` | This directive sets a timeout between two successive write
     operations for a client receiving a response. | Valid contexts: `http`, `server`,
     `location`Default value: `60s` |'
+  id: totrans-306
   prefs: []
   type: TYPE_TB
+  zh: '| `send_timeout` | 此指令设置客户端接收响应时，连续两次写操作之间的超时时间。 | 有效的上下文：`http`、`server`、`location`
+    默认值：`60s` |'
 - en: '| `sendfile` | Enable using `sendfile(2)` to directly copy data from one file
     descriptor to another. | Valid contexts: `http`, `server`, `location`, `if in
     location`Default value: `off` |'
+  id: totrans-307
   prefs: []
   type: TYPE_TB
+  zh: '| `sendfile` | 启用使用`sendfile(2)`直接从一个文件描述符复制数据到另一个文件描述符。 | 有效的上下文：`http`、`server`、`location`、`if
+    in location` 默认值：`off` |'
 - en: '| `sendfile_max_chunk` | Sets the maximum size of data to copy in one `sendfile(2)`
     call to prevent a worker from seizing. | Valid contexts: `http`, `server`, `location`Default
     value: `0` |'
+  id: totrans-308
   prefs: []
   type: TYPE_TB
+  zh: '| `sendfile_max_chunk` | 设置每次`sendfile(2)`调用时复制的最大数据大小，以防止工作进程被占用。 | 有效的上下文：`http`、`server`、`location`
+    默认值：`0` |'
 - en: '| `server` (`http`) | Creates a new configuration context, defining a virtual
     host. The `listen` directive specifies the IP address(es) and port(s); the `server_name`
     directive lists the `Host` header values that this context matches. | Valid context:
     `http`Default value: - |'
+  id: totrans-309
   prefs: []
   type: TYPE_TB
+  zh: '| `server` (`http`) | 创建一个新的配置上下文，定义一个虚拟主机。`listen`指令指定IP地址和端口；`server_name`指令列出此上下文匹配的`Host`头部值。
+    | 有效的上下文：`http` 默认值：- |'
 - en: '| `server` (upstream) | Refer to the *Upstream modules directives* table in
     the *The upstream module* section in [Chapter 4](ch04.html "Chapter 4. NGINX as
     a Reverse Proxy"), *NGINX as a Reverse Proxy*. | Valid context: `upstream`Default
     value: - |'
+  id: totrans-310
   prefs: []
   type: TYPE_TB
+  zh: '| `server` (upstream) | 请参阅[第4章](ch04.html "第4章 NGINX作为反向代理")中*Upstream模块指令*表格，*NGINX作为反向代理*部分。
+    | 有效的上下文：`upstream` 默认值：- |'
 - en: '| `server` (`mail`) | Creates a new configuration context, defining a mail
     server. The `listen` directive specifies the IP address(es) and port(s); the `server_name`
     directive sets the name of the server. | Valid context: `mail`Default value: -
     |'
+  id: totrans-311
   prefs: []
   type: TYPE_TB
+  zh: '| `server` (`mail`) | 创建一个新的配置上下文，定义一个邮件服务器。`listen`指令指定IP地址和端口；`server_name`指令设置服务器的名称。
+    | 有效的上下文：`mail` 默认值：- |'
 - en: '| `server_name` (`http`) | Configures the names that a virtual host may respond
     to. | Valid context: `server`Default value: "" |'
+  id: totrans-312
   prefs: []
   type: TYPE_TB
+  zh: '| `server_name` (`http`) | 配置虚拟主机可能响应的名称。 | 有效的上下文：`server` 默认值："" |'
 - en: '| `server_name` (`mail`) | Sets the name of the server, which is used in the
     following ways:'
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `server_name` (`mail`) | 设置服务器的名称，服务器名称可用于以下几种方式：'
 - en: The POP3/SMTP server greeting
+  id: totrans-314
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: POP3/SMTP服务器问候语
 - en: The salt for SASL CRAM-MD5 authentication
+  id: totrans-315
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: SASL CRAM-MD5身份验证的盐值
 - en: The EHLO name when using `xclient` to talk to an SMTP backend
+  id: totrans-316
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用`xclient`与SMTP后台通信时的EHLO名称
 - en: '| Valid contexts: `mail`, `server`Default value: `hostname` |'
+  id: totrans-317
   prefs: []
   type: TYPE_TB
+  zh: '| 有效的上下文：`mail`、`server` 默认值：`hostname` |'
 - en: '| `server_name_in_redirect` | Activates using the first value of the `server_name`
     directive in any redirect issued by NGINX within this context. | Valid contexts:
     `http`, `server`, `location`Default value: `off` |'
+  id: totrans-318
   prefs: []
   type: TYPE_TB
+  zh: '| `server_name_in_redirect` | 启用在此上下文中通过NGINX发出的任何重定向中使用`server_name`指令的第一个值。
+    | 有效的上下文：`http`，`server`，`location`默认值：`off` |'
 - en: '| `server_names_hash_bucket_size` | The bucket size used to hold the `server_name`
     hash tables. | Valid context: `http`Default value: `32&#124;64&#124;128` (processor
     dependent) |'
+  id: totrans-319
   prefs: []
   type: TYPE_TB
+  zh: '| `server_names_hash_bucket_size` | 用于存放`server_name`哈希表的桶大小。 | 有效的上下文：`http`默认值：`32|64|128`（依赖于处理器）
+    |'
 - en: '| `server_names_hash_max_size` | The maximum size of the `server_name` hash
     tables. | Valid context: `http`Default value: `512` |'
+  id: totrans-320
   prefs: []
   type: TYPE_TB
+  zh: '| `server_names_hash_max_size` | `server_name`哈希表的最大大小。 | 有效的上下文：`http`默认值：`512`
+    |'
 - en: '| `server_tokens` | Disables sending the NGINX version string in error messages
     and the `Server` response header (default value is `on`). | Valid contexts: `http`,
     `server`, `location`Default value: `on` |'
+  id: totrans-321
   prefs: []
   type: TYPE_TB
+  zh: '| `server_tokens` | 禁用在错误信息和`Server`响应头中发送NGINX版本字符串（默认值为`on`）。 | 有效的上下文：`http`，`server`，`location`默认值：`on`
+    |'
 - en: '| `set` | Sets a given variable to a specific value. | Valid context: `server`,
     `location`, `if`Default value: - |'
+  id: totrans-322
   prefs: []
   type: TYPE_TB
+  zh: '| `set` | 将给定变量设置为指定值。 | 有效的上下文：`server`，`location`，`if`默认值：- |'
 - en: '| `set_real_ip_from` | Defines the connecting address(es) from which the client
     IP will be extracted from the `real_ip_header` directive. The value `unix:` means
     that all connections from UNIX-domain sockets will be treated this way. | Valid
     contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-323
   prefs: []
   type: TYPE_TB
+  zh: '| `set_real_ip_from` | 定义从哪些连接地址中提取客户端IP，这些地址来自`real_ip_header`指令。`unix:`值表示所有来自UNIX域套接字的连接都将按此方式处理。
+    | 有效的上下文：`http`，`server`，`location`默认值：- |'
 - en: '| `smtp_auth` | Sets the supported SASL client authentication mechanism. It
     can be one or more of `login`, `plain`, or `cram-md5`. | Valid contexts: `mail`,
     `server`Default value: `login`, `plain` |'
+  id: totrans-324
   prefs: []
   type: TYPE_TB
+  zh: '| `smtp_auth` | 设置支持的SASL客户端认证机制。可以是`login`、`plain`或`cram-md5`之一或多个。 | 有效的上下文：`mail`，`server`默认值：`login`，`plain`
+    |'
 - en: '| `smtp_capabilities` | Indicates which SMTP capabilities are supported by
     the backend server. | Valid contexts: `mail`, `server`Default value: - |'
+  id: totrans-325
   prefs: []
   type: TYPE_TB
+  zh: '| `smtp_capabilities` | 指示后端服务器支持的SMTP功能。 | 有效的上下文：`mail`，`server`默认值：- |'
 - en: '| `so_keepalive` | Sets the TCP `keepalive` parameter on the socket connection
     to the proxied server. | Valid contexts: `mail`, `server`Default value: `off`
     |'
+  id: totrans-326
   prefs: []
   type: TYPE_TB
+  zh: '| `so_keepalive` | 在与代理服务器的套接字连接上设置TCP `keepalive` 参数。 | 有效的上下文：`mail`，`server`默认值：`off`
+    |'
 - en: '| `source_charset` | Defines the charset of a response. If it is different
     from the defined charset, a conversion is performed. | Valid contexts: `http`,
     `server`, `location`, `if in location`Default value: - |'
+  id: totrans-327
   prefs: []
   type: TYPE_TB
+  zh: '| `source_charset` | 定义响应的字符集。如果与定义的字符集不同，则会进行转换。 | 有效的上下文：`http`，`server`，`location`，`if
+    in location`默认值：- |'
 - en: '| `split_clients` | Creates a context in which variables appropriate to A/B
     (or split) testing are set. The string specified in the first parameter is hashed
     using `MurmurHash2`. The variable specified in the second parameter is then set
     to a value based on how the string falls within the range of hash values. The
     match is specified as either a percentage or `*` to place weights on the values.
     | valid context(s): httpdefault value: - |'
+  id: totrans-328
   prefs: []
   type: TYPE_TB
+  zh: '| `split_clients` | 创建一个适合A/B（或分割）测试的上下文。第一个参数指定的字符串通过`MurmurHash2`进行哈希处理。然后，第二个参数指定的变量将基于字符串在哈希值范围内的位置设置为一个值。匹配可以指定为百分比或`*`，以对值进行加权。
+    | 有效的上下文：`http`默认值：- |'
 - en: '| `ssi` | Enables the processing of SSI files. | Valid contexts: `http`, `server`,
     `location`, `if in location`Default value: `off` |'
+  id: totrans-329
   prefs: []
   type: TYPE_TB
+  zh: '| `ssi` | 启用SSI文件的处理。 | 有效的上下文：`http`，`server`，`location`，`if in location`默认值：`off`
+    |'
 - en: '| `ssi_min_file_chunk` | Sets the minimum size of a file above which it should
     be sent using `sendfile(2)`. | Valid contexts: `http`, `server`, `location`Default
     value: `1k` |'
+  id: totrans-330
   prefs: []
   type: TYPE_TB
+  zh: '| `ssi_min_file_chunk` | 设置文件的最小大小，超过此大小的文件应使用`sendfile(2)`发送。 | 有效的上下文：`http`，`server`，`location`默认值：`1k`
+    |'
 - en: '| `ssi_silent_errors` | Suppresses the error message normally output when an
     error occurs during SSI processing. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-331
   prefs: []
   type: TYPE_TB
+  zh: '| `ssi_silent_errors` | 抑制在SSI处理过程中发生错误时通常输出的错误信息。 | 有效的上下文：`http`，`server`，`location`默认值：`off`
+    |'
 - en: '| `ssi_types` | Lists the MIME types of a response in addition to `text/html`
     in which SSI commands are processed. It may be `*` to enable all MIME types. |
     Valid contexts: `http`, `server`, `location`Default value: `text/html` |'
+  id: totrans-332
   prefs: []
   type: TYPE_TB
+  zh: '| `ssi_types` | 在响应中列出除了`text/html`外SSI命令处理的MIME类型。可以是`*`以启用所有MIME类型。 | 有效上下文：`http`,
+    `server`, `location`默认值：`text/html` |'
 - en: '| `ssi_value_length` | Sets the maximum length of values for parameters used
     in Server Side Includes. | Valid contexts: `http`, `server`, `location`Default
     value: `256` |'
+  id: totrans-333
   prefs: []
   type: TYPE_TB
+  zh: '| `ssi_value_length` | 设置用于服务器端包含的参数值的最大长度。 | 有效上下文：`http`, `server`, `location`默认值：`256`
+    |'
 - en: '| `ssl` (`http`) | Enables the HTTPS protocol for this virtual server. | Valid
     contexts: `http`, `server`Default value: `off` |'
+  id: totrans-334
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl` (`http`) | 启用此虚拟服务器的HTTPS协议。 | 有效上下文：`http`, `server`默认值：`off` |'
 - en: '| `ssl` (`mail`) | Indicates if this context should support SSL/TLS transactions.
     | Valid contexts: `mail`, `server`Default value: `off` |'
+  id: totrans-335
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl` (`mail`) | 指示此上下文是否支持SSL/TLS事务。 | 有效上下文：`mail`, `server`默认值：`off` |'
 - en: '| `ssl_certificate` (`http`) | The path to the file containing the SSL certificate
     for this `server_name` in PEM format. If intermediate certificates are required,
     they need to be added in order after the certificate corresponding to the `server_name`
     directive, up to the root, if necessary. | Valid contexts: `http`, `server`Default
     value: - |'
+  id: totrans-336
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate` (`http`) | 包含以PEM格式存储的`server_name`的SSL证书文件路径。如果需要中间证书，需要按顺序添加在与`server_name`指令对应的证书之后，必要时直至根证书。
+    | 有效上下文：`http`, `server`默认值：- |'
 - en: '| `ssl_certificate` (`mail`) | The path to the PEM-encoded SSL certificate(s)
     for this virtual server. | Valid contexts: `mail`, `server`Default value: - |'
+  id: totrans-337
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate` (`mail`) | 这个虚拟服务器的PEM编码SSL证书的路径。 | 有效上下文：`mail`, `server`默认值：-
+    |'
 - en: '| `ssl_certificate_key` (`http`) | The path to the file containing the SSL
     certificate''s secret key. | Valid contexts: `http`, `server`Default value: -
     |'
+  id: totrans-338
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate_key` (`http`) | 包含SSL证书秘密密钥的文件路径。 | 有效上下文：`http`, `server`默认值：-
+    |'
 - en: '| `ssl_certificate_key` (`mail`) | The path to the PEM-encoded SSL secret key
     for this virtual server. | Valid contexts: `mail`, `server`Default value: - |'
+  id: totrans-339
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate_key` (`mail`) | 这个虚拟服务器的PEM编码SSL密钥的路径。 | 有效上下文：`mail`, `server`默认值：-
+    |'
 - en: '| `ssl_ciphers` | The ciphers that should be supported in this virtual server
     context (OpenSSL format). | Valid contexts: `http`, `server`Default value: `HIGH:!aNULL:!MD5`
     |'
+  id: totrans-340
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_ciphers` | 在这个虚拟服务器上支持的密码（OpenSSL格式）。 | 有效上下文：`http`, `server`默认值：`HIGH:!aNULL:!MD5`
+    |'
 - en: '| `ssl_client_certificate` | The path to the file containing the PEM-encoded
     public CA certificate(s) of the certificate authorities used to sign client certificates.
     | Valid contexts: `http`, `server`Default value: - |'
+  id: totrans-341
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_client_certificate` | 包含用于签署客户端证书的证书颁发机构的PEM编码公共CA证书的文件路径。 | 有效上下文：`http`,
+    `server`默认值：- |'
 - en: '| `ssl_crl` | The path to the file containing the PEM-encoded **certificate
     revocation list** (**CRL**) for the client certificates that are to be verified.
     | Valid contexts: `http`, `server`Default value: - |'
+  id: totrans-342
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_crl` | 包含用于验证客户端证书的PEM编码证书吊销列表（**CRL**）的文件路径。 | 有效上下文：`http`, `server`默认值：-
+    |'
 - en: '| `ssl_dhparam` | The path to a file containing DH parameters, used for EDH
     ciphers. | Valid contexts: `http`, `server`Default value: - |'
+  id: totrans-343
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_dhparam` | 包含DH参数的文件路径，用于EDH密码。 | 有效上下文：`http`, `server`默认值：- |'
 - en: '| `ssl_engine` | Specifies a hardware SSL accelerator. | Valid context: `main`Default
     value: - |'
+  id: totrans-344
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_engine` | 指定硬件SSL加速器。 | 有效上下文：`main`默认值：- |'
 - en: '| `ssl_prefer_server_ciphers` (`http`) | Indicates that the server ciphers
     are to be preferred over the client''s ciphers when using the SSLv3 and TLS protocols.
     | Valid contexts: `http`, `server`Default value: `off` |'
+  id: totrans-345
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_prefer_server_ciphers` (`http`) | 当使用SSLv3和TLS协议时，指示服务器密码优先于客户端密码。 |
+    有效上下文：`http`, `server`默认值：`off` |'
 - en: '| `ssl_prefer_server_ciphers` (`mail`) | Indicates that SSLv3 and TLSv1 server
     ciphers are preferred over the client''s ciphers. | Valid contexts: `mail`, `server`Default
     value: `off` |'
+  id: totrans-346
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_prefer_server_ciphers` (`mail`) | 指示SSLv3和TLSv1服务器密码优先于客户端密码。 | 有效上下文：`mail`,
+    `server`默认值：`off` |'
 - en: '| `ssl_protocols` (`http`) | Indicates which SSL protocols should be enabled.
     | Valid contexts: `http`, `server`Default value: `SSLv3`, `TLSv1`, `TLSv1.1`,
     `TLSv1.2` |'
+  id: totrans-347
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_protocols` (`http`) | 指示应启用哪些SSL协议。 | 有效上下文：`http`, `server`默认值：`SSLv3`,
+    `TLSv1`, `TLSv1.1`, `TLSv1.2` |'
 - en: '| `ssl_protocols` (`mail`) | Indicates which SSL protocols should be enabled.
     | Valid contexts: `mail`, `server`Default value: `SSLv3`, `TLSv1`, `TLSv1.1`,
     `TLSv1.2` |'
+  id: totrans-348
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_protocols` (`mail`) | 指示应启用哪些 SSL 协议。 | 有效上下文：`mail`，`server`默认值：`SSLv3`，`TLSv1`，`TLSv1.1`，`TLSv1.2`
+    |'
 - en: '| `ssl_session_cache` (`http`) | Sets the type and size of the SSL cache to
     store session parameters. A cache can be one of the following types:'
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `ssl_session_cache` (`http`) | 设置 SSL 缓存的类型和大小，以存储会话参数。缓存可以是以下类型之一：'
 - en: '`off`: Clients are told that sessions won''t be reused at all'
+  id: totrans-350
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`: 客户端被告知根本不会重用会话'
 - en: '`none`: Clients are told that sessions are reused, but they aren''t really'
+  id: totrans-351
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`none`: 客户端被告知会重用会话，但实际上并没有'
 - en: '`builtin`: An OpenSSL builtin cache used by only one worker with a size specified
     in sessions'
+  id: totrans-352
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`builtin`: 只有一个工作进程使用的 OpenSSL 内置缓存，会话大小指定在会话中'
 - en: '`shared`: A cache shared by all worker processes, given a name and session
     size specified in megabytes'
+  id: totrans-353
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`shared`: 所有工作进程共享的缓存，指定名称和以兆字节为单位的会话大小'
 - en: '| Valid contexts: `http`, `server`Default value: `none` |'
+  id: totrans-354
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http`，`server`默认值：`none` |'
 - en: '| `ssl_session_cache` (`mail`) | Sets the type and size of the SSL cache to
     store session parameters. A cache can be one of the following types:'
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `ssl_session_cache` (`mail`) | 设置 SSL 缓存的类型和大小，以存储会话参数。缓存可以是以下类型之一：'
 - en: '`off`: Clients are told that sessions won''t be reused at all'
+  id: totrans-356
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`: 客户端被告知根本不会重用会话'
 - en: '`none`: Clients are told that sessions are reused, but they aren''t really'
+  id: totrans-357
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`none`: 客户端被告知会重用会话，但实际上并没有'
 - en: '`builtin`: An OpenSSL builtin cache used by only one worker with a size specified
     in sessions'
+  id: totrans-358
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`builtin`: 只有一个工作进程使用的 OpenSSL 内置缓存，会话大小指定在会话中'
 - en: '`shared`: A cache shared by all worker processes, given a name and session
     size specified in megabytes'
+  id: totrans-359
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`shared`: 所有工作进程共享的缓存，指定名称和以兆字节为单位的会话大小'
 - en: '| Valid contexts: `mail`, `server`Default value: `none` |'
+  id: totrans-360
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`mail`，`server`默认值：`none` |'
 - en: '| `ssl_session_timeout` (`http`) | How long the client can use the same SSL
     parameters, provided they are stored in the cache. | Valid contexts: `http`, `server`Default
     value: `5m` |'
+  id: totrans-361
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_timeout` (`http`) | 客户端可以使用相同的 SSL 参数的时间长短，只要它们存储在缓存中。 | 有效上下文：`http`，`server`默认值：`5m`
+    |'
 - en: '| `ssl_session_timeout` (`mail`) | How long the client can use the same SSL
     parameters, provided they are stored in the cache. | Valid contexts: `mail`, `server`Default
     value: `5m` |'
+  id: totrans-362
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_timeout` (`mail`) | 客户端可以使用相同的 SSL 参数的时间长短，只要它们存储在缓存中。 | 有效上下文：`mail`，`server`默认值：`5m`
+    |'
 - en: '| `ssl_stapling` | Enables stapling of OCSP responses. The CA certificate of
     the server''s issuer should be contained in the file specified by `ssl_trusted_certificate`.
     A resolver should also be specified to be able to resolve the OCSP responder hostname.
     | Valid contexts: `http`, `server`Default value: `off` |'
+  id: totrans-363
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_stapling` | 启用 OCSP 响应的装订。服务器的颁发者的 CA 证书应包含在由 `ssl_trusted_certificate`
+    指定的文件中。还应指定一个解析器以能够解析 OCSP 响应器的主机名。 | 有效上下文：`http`，`server`默认值：`off` |'
 - en: '| `ssl_stapling_file` | The path to a DER-formatted file containing the stapled
     OCSP response. | Valid contexts: `http`, `server`Default value: - |'
+  id: totrans-364
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_stapling_file` | 包含装订 OCSP 响应的 DER 格式文件的路径。 | 有效上下文：`http`，`server`默认值：-
+    |'
 - en: '| `ssl_stapling_responder` | A URL specifying the OCSP responder. Only URLs
     beginning with `http://` are currently supported. | Valid contexts: `http`, `server`Default
     value: - |'
+  id: totrans-365
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_stapling_responder` | 指定 OCSP 响应器的 URL。当前仅支持以 `http://` 开头的 URL。 | 有效上下文：`http`，`server`默认值：-
+    |'
 - en: '| `ssl_stapling_verify` | Enables verification of OCSP responses. | Valid contexts:
     `http`, `server`Default value: - |'
+  id: totrans-366
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_stapling_verify` | 启用 OCSP 响应的验证。 | 有效上下文：`http`，`server`默认值：- |'
 - en: '| `ssl_trusted_certificate` | The path to a file containing PEM-formatted SSL
     certificates of the CA''s signing client certificates and OCSP responses when
     `ssl_stapling` is enabled. | Valid contexts: `http`, `server`Default value: -
     |'
+  id: totrans-367
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_trusted_certificate` | 包含 PEM 格式的 SSL 证书的文件路径，用于 CA 的签名客户端证书和启用 `ssl_stapling`
+    时的 OCSP 响应。 | 有效上下文：`http`，`server`默认值：- |'
 - en: '| `ssl_verify_client` | Enables verification of SSL client certificates. If
     the `optional` parameter is specified, a client certificate will be requested
     and if present, verified. If the `optional_no_ca` parameter is specified, a client
     certificate is requested, but doesn''t require it to be signed by a trusted CA
     certificate. | Valid contexts: `http`, `server`Default value: `off` |'
+  id: totrans-368
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_verify_client` | 启用 SSL 客户端证书的验证。如果指定了 `optional` 参数，将请求客户端证书，并且如果存在则验证。如果指定了
+    `optional_no_ca` 参数，则请求客户端证书，但不要求其由受信任的 CA 证书签名。 | 有效上下文：`http`，`server`默认值：`off`
+    |'
 - en: '| `ssl_verify_depth` | Sets how many signers will be checked before declaring
     the certificate invalid. | Valid contexts: `http`, `server`Default value: `1`
     |'
+  id: totrans-369
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_verify_depth` | 设置在声明证书无效之前将检查多少个签发者。 | 有效上下文：`http`，`server` 默认值：`1`
+    |'
 - en: '| `starttls` | Indicates whether or not STLS/STARTTLS are supported and/or
     required for further communication with this server. | Valid contexts: `mail`,
     `server`Default value: `off` |'
+  id: totrans-370
   prefs: []
   type: TYPE_TB
+  zh: '| `starttls` | 指示是否支持和/或需要使用STLS/STARTTLS进行与该服务器的进一步通信。 | 有效上下文：`mail`，`server`
+    默认值：`off` |'
 - en: '| `sub_filter` | Sets the string to be matched without regards to case and
     the string to be substituted into that match. The substitution string may contain
     variables. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-371
   prefs: []
   type: TYPE_TB
+  zh: '| `sub_filter` | 设置不区分大小写的匹配字符串和要替换为该匹配的字符串。替换字符串可以包含变量。 | 有效上下文：`http`，`server`，`location`
+    默认值：- |'
 - en: '| `sub_filter_once` | Setting to `off` will cause the match in `sub_filter`
     to be made as many times as the string is found. | Valid contexts: `http`, `server`,
     `location`Default value: `on` |'
+  id: totrans-372
   prefs: []
   type: TYPE_TB
+  zh: '| `sub_filter_once` | 设置为`off`将导致`sub_filter`中的匹配尽可能多次发生，直到找到所有字符串为止。 | 有效上下文：`http`，`server`，`location`
+    默认值：`on` |'
 - en: '| `sub_filter_types` | Lists the MIME types of a response in addition to `text/html`
     in which a substitution will be made. It may be `*` to enable all MIME types.
     | Valid contexts: `http`, `server`, `location`Default value: `text/html` |'
+  id: totrans-373
   prefs: []
   type: TYPE_TB
+  zh: '| `sub_filter_types` | 列出除`text/html`外的响应MIME类型，其中将进行替换。可以使用`*`来启用所有MIME类型。
+    | 有效上下文：`http`，`server`，`location` 默认值：`text/html` |'
 - en: '| `tcp_nodelay` | Enables or disables the `TCP_NODELAY` option for the `keep-alive`
     connections. | Valid contexts: `http`, `server`, `location`Default value: `on`
     |'
+  id: totrans-374
   prefs: []
   type: TYPE_TB
+  zh: '| `tcp_nodelay` | 启用或禁用`keep-alive`连接的`TCP_NODELAY`选项。 | 有效上下文：`http`，`server`，`location`
+    默认值：`on` |'
 - en: '| `tcp_nopush` | Relevant only when the `sendfile` directive is used. Enables
     NGINX to attempt to send response headers in one packet, as well as sending a
     file in full packets. | Valid contexts: `http`, `server`, `location`Default value:
     `off` |'
+  id: totrans-375
   prefs: []
   type: TYPE_TB
+  zh: '| `tcp_nopush` | 仅在使用`sendfile`指令时相关。启用NGINX尝试将响应头以一个数据包发送，并且将文件以完整数据包发送。 |
+    有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `timeout` | The amount of time NGINX will wait before a connection to the
     backend server is finalized. | Valid contexts: `mail`, `server`Default value:
     `60s` |'
+  id: totrans-376
   prefs: []
   type: TYPE_TB
+  zh: '| `timeout` | NGINX在与后台服务器建立连接之前等待的时间。 | 有效上下文：`mail`，`server` 默认值：`60s` |'
 - en: '| `timer_resolution` | Specifies how often `gettimeofday()` is called instead
     of each time a kernel event is received. | Valid context: `main`Default value:
     - |'
+  id: totrans-377
   prefs: []
   type: TYPE_TB
+  zh: '| `timer_resolution` | 指定每当接收到内核事件时，`gettimeofday()`的调用频率。 | 有效上下文：`main` 默认值：-
+    |'
 - en: '| `try_files` | Tests the existence of files given as parameters. If none of
     the previous files are found, the last entry is used as a fallback, so ensure
     that this path or named `location` exists. | Valid contexts: `server`, `location`Default
     value: - |'
+  id: totrans-378
   prefs: []
   type: TYPE_TB
+  zh: '| `try_files` | 测试给定为参数的文件是否存在。如果没有找到任何之前的文件，则使用最后一个条目作为回退，因此请确保该路径或命名的`location`存在。
+    | 有效上下文：`server`，`location` 默认值：- |'
 - en: '| `types` | Sets up a map of MIME types to filename extensions. NGINX ships
     with a `conf/mime.types` file that contains most MIME type mappings. Using `include`
     to load this file should be sufficient for most purposes. | Valid contexts: `http`,
     `server`, `location`Default value:'
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `types` | 设置MIME类型与文件扩展名的映射。NGINX附带一个`conf/mime.types`文件，其中包含大多数MIME类型映射。使用`include`加载此文件应足以满足大多数需求。
+    | 有效上下文：`http`，`server`，`location` 默认值： |'
 - en: '[PRE2]'
+  id: totrans-380
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '|'
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `types_hash_bucket_size` | The bucket size used to hold the `types` hash
     tables. | Valid contexts: `http`, `server`, `location`Default value: `32&#124;64&#124;128`
     (processor dependent) |'
+  id: totrans-382
   prefs: []
   type: TYPE_TB
+  zh: '| `types_hash_bucket_size` | 用于存放`types`哈希表的桶大小。 | 有效上下文：`http`，`server`，`location`
+    默认值：`32&#124;64&#124;128`（处理器依赖） |'
 - en: '| `types_hash_max_size` | The maximum size of the `types` hash tables. | Valid
     contexts: `http`, `server`, `location`Default value: `1024` |'
+  id: totrans-383
   prefs: []
   type: TYPE_TB
+  zh: '| `types_hash_max_size` | `types`哈希表的最大大小。 | 有效上下文：`http`，`server`，`location`
+    默认值：`1024` |'
 - en: '| `underscores_in_headers` | Enables the use of the underscore character in
     client request headers. If left at the default value `off`, evaluation of such
     headers is subject to the value of the `ignore_invalid_headers` directive. | Valid
     contexts: `http`, `server`Default value: `off` |'
+  id: totrans-384
   prefs: []
   type: TYPE_TB
+  zh: '| `underscores_in_headers` | 启用在客户端请求头中使用下划线字符。如果保持默认值`off`，则此类头部的评估将受`ignore_invalid_headers`指令的值影响。
+    | 有效上下文：`http`，`server` 默认值：`off` |'
 - en: '| `uninitialized_variable_warn` | Controls whether or not warnings about uninitialized
     variables are logged. | Valid contexts: `http`, `server`, `location`, `if`Default
     value: `on` |'
+  id: totrans-385
   prefs: []
   type: TYPE_TB
 - en: '| `upstream` | Sets up a named context in which a group of servers is defined.
     | Valid context: `http`Default value: - |'
+  id: totrans-386
   prefs: []
   type: TYPE_TB
 - en: '| `use` | The `use` directive indicates which connection processing method
@@ -1940,178 +3010,249 @@
     in an `events` context, if used. It is especially useful when the compiled-in
     default is found to produce errors over time. | Valid context: `events`Default
     value: - |'
+  id: totrans-387
   prefs: []
   type: TYPE_TB
 - en: '| `user` | The `user` and `group` under which the worker processes will run
     is configured using this parameter. If the `group` is omitted, a group name equal
     to that of the `user` will be used. | Valid context: `main`Default value: `nobody
     nobody` |'
+  id: totrans-388
   prefs: []
   type: TYPE_TB
 - en: '| `userid` | Activates the module according to the following parameters:'
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
 - en: '`on`: Sets Version 2 cookies and logs those received'
+  id: totrans-390
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`v1`: Sets Version 1 cookies and logs those received'
+  id: totrans-391
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`log`: Disables setting of cookies, but enables logging them'
+  id: totrans-392
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`off`: Disables both the setting of cookies and the logging of them'
+  id: totrans-393
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '| Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  id: totrans-394
   prefs: []
   type: TYPE_TB
 - en: '| `userid_domain` | Configures a domain to be set in the cookie. | Valid contexts:
     `http`, `server`, `location`Default value: `none` |'
+  id: totrans-395
   prefs: []
   type: TYPE_TB
 - en: '| `userid_expires` | Sets the age of the cookie. If the keyword `max` is used,
     this translates to `31 Dec 2037 23:55:55 GMT`. | Valid contexts: `http`, `server`,
     `location`Default value: - |'
+  id: totrans-396
   prefs: []
   type: TYPE_TB
 - en: '| `userid_mark` | Sets the first character of the tail of the `userid_name`
     cookie''s base64 representation. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
+  id: totrans-397
   prefs: []
   type: TYPE_TB
 - en: '| `userid_name` | Sets the name of the cookie. | Valid contexts: `http`, `server`,
     `location`Default value: `uid` |'
+  id: totrans-398
   prefs: []
   type: TYPE_TB
 - en: '| `userid_p3p` | Configures the P3P header. | Valid contexts: `http`, `server`,
     `location`Default value: - |'
+  id: totrans-399
   prefs: []
   type: TYPE_TB
 - en: '| `userid_path` | Defines the path set in the cookie. | Valid contexts: `http`,
     `server`, `location`Default value: `/` |'
+  id: totrans-400
   prefs: []
   type: TYPE_TB
 - en: '| `userid_service` | Identity of the service that set the cookie. For example,
     the default value for Version 2 cookies is the IP address of the server that set
     the cookie. | Valid contexts: `http`, `server`, `location`Default value: IP address
     of the server |'
+  id: totrans-401
   prefs: []
   type: TYPE_TB
 - en: '| `valid_referers` | Defines which values of the `Referer` header will cause
     the `$invalid_referer` variable to be set to an empty string. Otherwise it will
     be set to `1`. The parameters can be one or more of the following:'
+  id: totrans-402
   prefs: []
   type: TYPE_NORMAL
 - en: '`none`: There is no `Referer` header'
+  id: totrans-403
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`blocked`: The `Referer` header is present, but empty or lacking a scheme'
+  id: totrans-404
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`server_names`: The `Referer` value is one of the `server_names`'
+  id: totrans-405
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'arbitrary string: the value of the `Referer` header is a server name with or
     without URI prefixes and `*` at the beginning or end'
+  id: totrans-406
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'regular expression: matches the text after the scheme in the `Referer` header''s
     value'
+  id: totrans-407
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '| Valid context: `server`, `location`Default value: - |'
+  id: totrans-408
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文: `server`, `location` 默认值: - |'
 - en: '| `variables_hash_bucket_size` | The bucket size used to hold the remaining
     variables. | Valid context: `http`Default value: `64` |'
+  id: totrans-409
   prefs: []
   type: TYPE_TB
+  zh: '| `variables_hash_bucket_size` | 用于存储剩余变量的桶大小。 | 有效上下文: `http` 默认值: `64` |'
 - en: '| `variables_hash_max_size` | The maximum size of the hash that holds the remaining
     variables. | Valid context: `http`Default value: `512` |'
+  id: totrans-410
   prefs: []
   type: TYPE_TB
+  zh: '| `variables_hash_max_size` | 存储剩余变量的哈希表的最大大小。 | 有效上下文: `http` 默认值: `512` |'
 - en: '| `worker_aio_requests` | The number of open asynchronous I/O operations for
     a single worker process when using `aio` with `epoll`. | Valid context: `events`Default
     value: `32` |'
+  id: totrans-411
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_aio_requests` | 在使用`aio`和`epoll`时，单个工作进程可以打开的异步I/O操作数。 | 有效上下文: `events`
+    默认值: `32` |'
 - en: '| `worker_connections` | This directive configures the maximum number of simultaneous
     connections that a worker process may have open. This includes, but is not limited
     to, client connections and connections to upstream servers. | Valid context: `events`Default
     value: `512` |'
+  id: totrans-412
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_connections` | 此指令配置工作进程可以打开的最大同时连接数。包括但不限于客户端连接和与上游服务器的连接。 | 有效上下文:
+    `events` 默认值: `512` |'
 - en: '| `worker_cpu_affinity` | Binds worker processes to CPU sets, as specified
     by a bitmask. Only available on FreeBSD and Linux. | Valid context: `main`Default
     value: - |'
+  id: totrans-413
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_cpu_affinity` | 将工作进程绑定到CPU集，按位掩码指定。仅在FreeBSD和Linux上可用。 | 有效上下文:
+    `main` 默认值: - |'
 - en: '| `worker_priority` | Sets the scheduling priority for worker processes. Works
     like the nice command, with a negative number being a higher priority. | Valid
     context: `main`Default value: `0` |'
+  id: totrans-414
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_priority` | 设置工作进程的调度优先级。其作用类似于nice命令，负数表示更高优先级。 | 有效上下文: `main`
+    默认值: `0` |'
 - en: '| `worker_processes` | This is the number of worker processes that will be
     started. These will handle all connections made by clients. Choosing the right
     number is a complex process, a good rule of thumb is to set this equal to the
     number of CPU cores. | Valid context: `main`Default value: `1` |'
+  id: totrans-415
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_processes` | 这是将启动的工作进程数量。这些进程将处理所有客户端的连接。选择合适的数量是一个复杂的过程，一个好的经验法则是将其设置为CPU核心数。
+    | 有效上下文: `main` 默认值: `1` |'
 - en: '| `worker_rlimit_core` | Changes the limit on core file size of a running process.
     | Valid context: `main`Default value: - |'
+  id: totrans-416
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_rlimit_core` | 更改运行中进程的核心文件大小限制。 | 有效上下文: `main` 默认值: - |'
 - en: '| `worker_rlimit_nofile` | Changes the limit on the number of open files of
     a running process. | Valid context: `main`Default value: - |'
+  id: totrans-417
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_rlimit_nofile` | 更改运行中进程的最大打开文件数限制。 | 有效上下文: `main` 默认值: - |'
 - en: '| `worker_rlimit_sigpending` | Changes the limit on the number of pending signals
     of a running process when using the `rtsig` connection processing method. | Valid
     context: `main`Default value: - |'
+  id: totrans-418
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_rlimit_sigpending` | 当使用`rtsig`连接处理方法时，更改运行中进程的挂起信号数量限制。 | 有效上下文:
+    `main` 默认值: - |'
 - en: '| `working_directory` | The current working directory for worker processes.
     It should be writable by the worker to produce core files. | Valid context: `main`Default
     value: - |'
+  id: totrans-419
   prefs: []
   type: TYPE_TB
+  zh: '| `working_directory` | 工作进程的当前工作目录。该目录应可由工作进程写入，以生成核心文件。 | 有效上下文: `main` 默认值:
+    - |'
 - en: '| `xclient` | The SMTP protocol allows checking based on `IP/HELO/LOGIN` parameters,
     which are passed via the `XCLIENT` command. This directive enables NGINX to communicate
     this information. | Valid contexts: `mail`, `server`Default value: `on` |'
+  id: totrans-420
   prefs: []
   type: TYPE_TB
+  zh: '| `xclient` | SMTP协议允许基于`IP/HELO/LOGIN`参数进行检查，这些参数通过`XCLIENT`命令传递。此指令启用NGINX传递这些信息。
+    | 有效上下文: `mail`, `server` 默认值: `on` |'
 - en: '| `xml_entities` | The path to the DTD that declares the character entities
     referenced in the XML to be processed. | Valid contexts: `http`, `server`, `location`default
     value: - |'
+  id: totrans-421
   prefs: []
   type: TYPE_TB
+  zh: '| `xml_entities` | 处理XML中引用的字符实体的DTD路径。 | 有效上下文: `http`, `server`, `location`
+    默认值: - |'
 - en: '| `xslt_param` | Parameters passed to the stylesheets, whose values are XPath
     expressions. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-422
   prefs: []
   type: TYPE_TB
+  zh: '| `xslt_param` | 传递给样式表的参数，其值为XPath表达式。 | 有效上下文: `http`, `server`, `location`
+    默认值: - |'
 - en: '| `xslt_string_param` | Parameters passed to the stylesheets, whose values
     are strings. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  id: totrans-423
   prefs: []
   type: TYPE_TB
+  zh: '| `xslt_string_param` | 传递给样式表的参数，其值为字符串。 | 有效上下文: `http`, `server`, `location`
+    默认值: - |'
 - en: '| `xslt_stylesheet` | The path to an XSLT stylesheet used to transform an XML
     response. Parameters may be passed as a series of key/value pairs. | Valid context:
     `location`Default value: - |'
+  id: totrans-424
   prefs: []
   type: TYPE_TB
+  zh: '| `xslt_stylesheet` | 用于转换 XML 响应的 XSLT 样式表路径。可以作为一系列键/值对传递参数。 | 有效上下文：`location`
+    默认值：- |'
 - en: '| `xslt_types` | Lists the MIME types of a response in addition to `text/xml`,
     in which a substitution will be made. It may be `*` to enable all MIME types.
     If the transformation results in an HTML response, the MIME type will be changed
     to `text/html`. | Valid contexts: `http`, `server`, `location`Default value: `text/xml`
     |'
+  id: totrans-425
   prefs: []
   type: TYPE_TB
+  zh: '| `xslt_types` | 列出响应的 MIME 类型，除了 `text/xml`，在其中会进行替换。它可以是 `*`，以启用所有 MIME 类型。如果转换结果是
+    HTML 响应，MIME 类型将更改为 `text/html`。 | 有效上下文：`http`，`server`，`location` 默认值：`text/xml`
+    |'
