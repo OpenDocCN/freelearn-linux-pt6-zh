@@ -1,81 +1,119 @@
 - en: 'Chapter 2. All About Rewrites: The Rewrite Module'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第二章：重写所有内容：重写模块
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将涵盖：
 - en: Setting up a simple redirect
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置一个简单的重定向
 - en: Using variables in your rewrite
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在重写中使用变量
 - en: Using cookies for your rewrites
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 cookies 进行重写
 - en: Using browser agents for your rewrites
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用浏览器代理进行重写
 - en: Using rate limits as a condition for rewrites
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用速率限制作为重写的条件
 - en: Blocking requests based on HTTP referrers
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于 HTTP 引荐来源阻止请求
 - en: Serving maintenance page when deploying
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 部署时提供维护页面
 - en: Setting up a WordPress site with static file serving
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置一个具有静态文件服务的 WordPress 站点
 - en: Setting up a Drupal site with static file serving
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置一个具有静态文件服务的 Drupal 站点
 - en: Setting up a Magento site with static file serving
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置一个具有静态文件服务的 Magento 站点
 - en: Converting your apache .htaccess into Nginx rewrites
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将 Apache 的 .htaccess 转换为 Nginx 重写规则
 - en: Using maps to make configurations cleaner
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 map 使配置更简洁
 - en: Introduction
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: This chapter is devoted to the rewrite module; it will teach you the basics
     and also allow you to configure various commonly available web development frameworks
     to work correctly with your Nginx setup using the correct rewrite rules.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章专注于重写模块；它将教你基础知识，并且让你能够使用正确的重写规则配置各种常见的 Web 开发框架，使其在 Nginx 设置中正常工作。
 - en: Setting up a simple redirect
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置一个简单的重定向
 - en: A lot of sites undergo changes, and in some cases complete rewriting. In most
     cases the earlier contents URLs would have changed, leading to loss of SEO and,
     of course, inconvenience for older clients. This recipe will help you write simple
     rewrites so that you can ensure that your new site has all the redirect working.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 很多网站都会进行更改，在某些情况下会完全重写。大多数情况下，早期的内容 URL 会发生变化，导致 SEO 丧失，当然也给老用户带来不便。这个方法将帮助你编写简单的重写规则，确保你的网站的所有重定向都能正常工作。
 - en: How to do it...
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Let''s take a simple example of a site called [http://www.example1.com](http://www.example1.com).
     It earlier had a page called [http://www.example1.com/blog/test-post.html](http://www.example1.com/blog/test-post.html)
     and now it''s been redone. The new blog has a different URL scheme and this old
@@ -83,837 +121,1262 @@
     It may look like a simple change, but when an older bookmarked user visits the
     older URL they would get a 404 error page. The configuration change below will
     easily let you rewrite the older URL to the new one:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看一个简单的例子，假设有一个名为 [http://www.example1.com](http://www.example1.com) 的站点。它之前有一个页面，URL
+    为 [http://www.example1.com/blog/test-post.html](http://www.example1.com/blog/test-post.html)，现在已经重新设计过。新的博客有一个不同的
+    URL 结构，旧的文章现在位于 [http://www.example1.com/blog/test-post/](http://www.example1.com/blog/test-post/)。看起来这只是一个简单的更改，但当一个旧的书签用户访问旧的
+    URL 时，他们会看到 404 错误页面。以下的配置更改可以轻松将旧的 URL 重写到新的 URL：
 - en: '[PRE0]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: How it works...
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This creates a permanent redirection [301] rule for the older URL and makes
     it point to the new one. Over time this can be removed as permanent redirects
     changes the bookmarks and makes sure that people/crawlers do not keep coming back
     to the older URL.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会为旧 URL 创建一个永久性重定向[301]规则，并将其指向新 URL。随着时间的推移，可以移除此规则，因为永久性重定向会改变书签，并确保人们/爬虫不会继续访问旧的
+    URL。
 - en: There's more...
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: 'You can also do a temporary redirection which is the 302 redirection by removing
     the permanent keyword that is:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以进行临时重定向，即 302 重定向，只需删除永久关键字，即：
 - en: '[PRE1]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This means that the browser will not update the bookmark and also the search
     crawlers will not update the new URL as the primary one for the content on the
     page.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着浏览器不会更新书签，并且搜索爬虫也不会将新 URL 更新为该页面内容的主 URL。
 - en: Using variables in your rewrite
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在重写中使用变量
 - en: Now that we are comfortable with the basics, we can go ahead and write more
     interesting rewrites using conditions based on various variables accessible inside
     the configuration. We will look at a simple example where we check for the presence
     of a particular GET parameter in the URI, in the presence of which we rewrite
     to a special URL.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经掌握了基础知识，接下来我们可以根据配置中可访问的各种变量，编写更有趣的重写规则。我们将查看一个简单的示例，在该示例中，我们检查 URI 中是否存在某个特定的
+    GET 参数，如果存在，则重写到一个特殊的 URL。
 - en: How to do it...
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'We will use the following piece of configuration to create the conditional
     rewrite:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用以下配置来创建条件重写：
 - en: '[PRE2]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: How it works...
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: If you type in any URL which has a GET parameter special (for example, [http://www.example.com/?special=beta&test=test1)](http://www.example.com/?special=beta&test=test1))
     it will show a corresponding special page for beta. This is very useful if you
     want to hide certain parts of your site or make it accessible only by using a
     basic key in the parameter.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你输入任何包含GET参数的URL（例如，[http://www.example.com/?special=beta&test=test1](http://www.example.com/?special=beta&test=test1)），它将显示相应的beta特殊页面。如果你想隐藏网站的某些部分，或者使其只能通过在参数中使用基本密钥来访问，这将非常有用。
+    |
 - en: There's more...
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多... |
 - en: As seen above, you can configure a lot more variables available to you in the
     HTTP header. Here is a list of more variables that we can access to write more
     interesting rules.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，你可以配置更多可用的HTTP头变量。以下是更多变量的列表，我们可以访问这些变量来编写更有趣的规则。 |
 - en: '| Variable | Description |'
+  id: totrans-36
   prefs: []
   type: TYPE_TB
+  zh: '| 变量 | 描述 |'
 - en: '| --- | --- |'
+  id: totrans-37
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `$arg_PARAMETER` | This variable contains the value of the GET request variable
     PARAMETER if present in the query string. |'
+  id: totrans-38
   prefs: []
   type: TYPE_TB
+  zh: '| `$arg_PARAMETER` | 此变量包含查询字符串中如果存在参数`PARAMETER`的GET请求变量的值。 |'
 - en: '| `$args` | This variable contains the query string in the URL, for example
     `foo=123&bar=blahblah` if the URL is `http://example1.com/? foo=123&bar=blahblah`
     |'
+  id: totrans-39
   prefs: []
   type: TYPE_TB
+  zh: '| `$args` | 此变量包含URL中的查询字符串，例如，如果URL为`http://example1.com/?foo=123&bar=blahblah`，则为`foo=123&bar=blahblah`。
+    |'
 - en: '| `$binary_remote_addr` | The address of the client in binary form. |'
+  id: totrans-40
   prefs: []
   type: TYPE_TB
+  zh: '| `$binary_remote_addr` | 客户端的二进制地址。 |'
 - en: '| `$body_bytes_sent` | The bytes of the body sent. |'
+  id: totrans-41
   prefs: []
   type: TYPE_TB
+  zh: '| `$body_bytes_sent` | 发送的正文字节数。 |'
 - en: '| `$content_length` | This variable is equal to line Content-Length in the
     header of request. |'
+  id: totrans-42
   prefs: []
   type: TYPE_TB
+  zh: '| `$content_length` | 此变量等于请求头中的Content-Length行。 |'
 - en: '| `$content_type` | This variable is equal to line Content-Type in the header
     of request. |'
+  id: totrans-43
   prefs: []
   type: TYPE_TB
+  zh: '| `$content_type` | 此变量等于请求头中的Content-Type行。 |'
 - en: '| `$document_root` | This variable is equal to the value of directive root
     for the current request. |'
+  id: totrans-44
   prefs: []
   type: TYPE_TB
+  zh: '| `$document_root` | 此变量等于当前请求的root指令的值。 |'
 - en: '| `$document_uri` | The same as `$uri`. |'
+  id: totrans-45
   prefs: []
   type: TYPE_TB
+  zh: '| `$document_uri` | 与`$uri`相同。 |'
 - en: '| `$host` | This variable contains the value of the ''Host'' value in the request
     header, or the name of the server processing if the ''Host'' value is not available.
     |'
+  id: totrans-46
   prefs: []
   type: TYPE_TB
+  zh: '| `$host` | 此变量包含请求头中`Host`的值，或者如果`Host`值不可用，则包含处理该请求的服务器名称。 |'
 - en: '| `$http_HEADER` | The value of the HTTP header HEADER when converted to lowercase
     and with "dashes" converted to "underscores", for example, `$http_user_agent,
     $http_referer`. |'
+  id: totrans-47
   prefs: []
   type: TYPE_TB
+  zh: '| `$http_HEADER` | HTTP头部`HEADER`的值，当转换为小写并将“破折号”转换为“下划线”时，例如，`$http_user_agent`，`$http_referer`。
+    |'
 - en: '| `$is_args` | Evaluates to "?" if `$args` is set, returns "" otherwise. |'
+  id: totrans-48
   prefs: []
   type: TYPE_TB
+  zh: '| `$is_args` | 如果设置了`$args`，则返回“?”，否则返回“”。 |'
 - en: '| `$request_uri` | This variable is equal to the *original* request URI as
     received from the client including the args. It cannot be modified. Look at `$uri`
     for the post-rewrite/altered URI. Does not include host name. Example: "/foo/bar.php?arg=baz".
     |'
+  id: totrans-49
   prefs: []
   type: TYPE_TB
+  zh: '| `$request_uri` | 此变量等于从客户端接收的*原始*请求URI，包括参数。它不可修改。查看`$uri`以获取重写/更改后的URI。不包括主机名。例如："/foo/bar.php?arg=baz"。
+    |'
 - en: '| `$scheme` | The HTTP scheme (that is http, https). Evaluated only on demand,
     for example: `rewrite ^(.+)$ $scheme://example.com$1 redirect`; |'
+  id: totrans-50
   prefs: []
   type: TYPE_TB
+  zh: '| `$scheme` | HTTP协议（即http、https）。仅在需要时评估，例如：`rewrite ^(.+)$ $scheme://example.com$1
+    redirect`; |'
 - en: '| `$server_addr` | This variable contains the server address. It is advisable
     to indicate addresses correctly in the listen directive and use the bind parameter
     so that a system call is not made every time this variable is accessed. |'
+  id: totrans-51
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_addr` | 此变量包含服务器地址。建议在`listen`指令中正确指示地址，并使用`bind`参数，以便每次访问该变量时不进行系统调用。
+    |'
 - en: '| `$server_name` | The name of the server. |'
+  id: totrans-52
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_name` | 服务器的名称。 |'
 - en: '| `$server_port` | This variable is equal to the port of the server, to which
     the request arrived. |'
+  id: totrans-53
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_port` | 此变量等于请求到达的服务器端口。 |'
 - en: '| `$server_protocol` | This variable is equal to the protocol of request, usually
     this is HTTP/1.0 or HTTP/1.1. |'
+  id: totrans-54
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_protocol` | 此变量等于请求的协议，通常为HTTP/1.0或HTTP/1.1。 |'
 - en: '| `$uri` | This variable is equal to current URI in the request (without arguments,
     those are in `$args.)` It can differ from `$request_uri` which is what is sent
     by the browser. Examples of how it can be modified are internal redirects, or
     with the use of index. Does not include host name. Example:`"/foo/bar.html"` |'
+  id: totrans-55
   prefs: []
   type: TYPE_TB
+  zh: '| `$uri` | 此变量等于请求中的当前URI（不包含参数，参数在`$args`中）。它可能与`$request_uri`不同，后者是浏览器发送的URI。它的修改方式包括内部重定向或使用索引。不包括主机名。例如：`"/foo/bar.html"`
+    |'
 - en: Using cookies for your rewrites
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Cookies进行重写 |
 - en: Most websites today use their cookies to effectively track and interact with
     the client's browser. Nginx with its powerful rewrite module, allows us to write
     some interesting rules with the information that may exist in the browser cookies.
     You can check out the various cookies on your browser through the preferences.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在大多数网站使用其Cookies来有效跟踪和与客户端浏览器进行交互。Nginx通过其强大的重写模块，允许我们编写一些有趣的规则，利用可能存在于浏览器Cookies中的信息。你可以通过偏好设置查看浏览器中的各种Cookies。
 - en: '![Using cookies for your rewrites](img/4965_02_01.jpg)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![使用Cookies进行重写](img/4965_02_01.jpg)'
 - en: How to do it...
+  id: totrans-59
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'We can take the simple example of a site which is running the staging and production
     versions on the same Nginx instance. Based upon the cookie, the URL is rewritten
     into the correct one. The following snippet will allow you to switch sites based
     upon what is in the cookie:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以举一个简单的例子，假设一个站点在同一Nginx实例上运行预发布和生产版本。根据Cookie，URL会被重写为正确的版本。以下代码片段将允许你根据Cookie中的内容切换站点：
 - en: '[PRE3]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: How it works...
+  id: totrans-62
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: In the above configuration the cookie value is checked for the type of setup
     that the user is accessing. This cookie is set on the user logging in by the application,
     so a testing user will be able to access cutting-edge features, while a staging
     user will be able to access beta features for testing only, and the normal users
     will continue to use the stable production system.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的配置中，会检查Cookie的值，以确定用户正在访问的设置类型。此Cookie由应用程序在用户登录时设置，因此测试用户将能够访问前沿功能，而预发布用户仅能访问用于测试的Beta功能，普通用户将继续使用稳定的生产系统。
 - en: Using browser agents for your rewrites
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用浏览器代理进行重写
 - en: In this recipe we will see how we can utilize rewrites for displaying alternative
     sites based on the user agent of the client's browser. We can take the example
     of a very flashy site that wants to display different sets of pages based upon
     the browser that the client is using. The following two screenshots display how
     `facebook.com` appears on a normal desktop browser and on an iPhone; the URL however
     remains the same.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们将看到如何利用重写根据客户端浏览器的用户代理显示不同的站点。我们可以以一个非常炫酷的网站为例，该网站希望根据客户端使用的浏览器显示不同的页面集。以下两张截图展示了`facebook.com`在普通桌面浏览器和iPhone浏览器中的显示效果；然而，URL保持不变。
 - en: '![Using browser agents for your rewrites](img/4965_02_02.jpg)'
+  id: totrans-66
   prefs: []
   type: TYPE_IMG
+  zh: '![使用浏览器代理进行重写](img/4965_02_02.jpg)'
 - en: In the preceding screenshot, we are looking at the full browser version of Facebook,
     and you can see a fairly wide-screen site. In the following screenshot, we can
     see the mobile version of Facebook which clearly lets go of a lot of functionality
     because of the reduced screen-size.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的截图中，我们看到的是Facebook的完整浏览器版本，你可以看到一个相当宽屏的网站。在接下来的截图中，我们可以看到Facebook的移动版本，明显因为屏幕尺寸的缩小，放弃了很多功能。
 - en: '![Using browser agents for your rewrites](img/4965_02_03.jpg)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![使用浏览器代理进行重写](img/4965_02_03.jpg)'
 - en: How to do it...
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: The simple example that we take is of an iPhone surfing the website and how
     you can actually rewrite the URL to show them a completely iPhone-compatible website.
     The configuration below is a great start for it!
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们举的简单例子是，iPhone用户浏览网站时，如何将URL重写为显示完全兼容iPhone的站点。下面的配置是一个很好的开始！
 - en: '[PRE4]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: How it works...
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: The idea is simple. What it allows is checking the HTTP USER AGENT header that
     already comes to us. We see if it is an iPhone or an iPod browser. If that is
     the case, we actually set a variable to some value. If that variable is "1", we
     go ahead and rewrite the URL to the mobile version of the site.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 其原理很简单。它允许我们检查已经传来的HTTP用户代理头。如果它是iPhone或iPod浏览器，我们就设置一个变量为某个值。如果该变量为"1"，我们就继续将URL重写为移动版本的网站。
 - en: Using rate limits as a condition for rewrites
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用速率限制作为重写的条件
 - en: Nginx has some really interesting built-in features around rate limiting requests.
     This recipe will help you understand how exactly you can control the requests
     to your application, thereby maintaining a certain quality of service to your
     users even under significant loads.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx在请求的速率限制方面有一些非常有趣的内置功能。本示例将帮助你理解如何控制对应用程序的请求，从而即使在负载较重的情况下，也能保持一定的服务质量。
 - en: Nginx lets you define zones that act as storage area for the state of sessions.
     The value of the session key is decided by the chosen variable which, is usually
     the IP or the hostname of the client.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx允许你定义区域，这些区域作为会话状态的存储区。会话键的值由所选择的变量决定，通常是客户端的IP地址或主机名。
 - en: How to do it...
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: In this example, we will see how we can rate limit based on certain parameters,
     like the user agent.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们将看看如何基于某些参数进行速率限制，比如用户代理。
 - en: '[PRE5]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: How it works...
+  id: totrans-80
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In the preceding example we check if the user agent contains MSIE, in which
     case it will rate limit the transfer to 5000 bytes only.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的示例中，我们检查用户代理是否包含MSIE，如果是，它将仅限速传输5000字节。
 - en: There's more...
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'You can also set up request based rate limiting by using the following snippet:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以通过使用以下代码片段来设置基于请求的速率限制：
 - en: '[PRE6]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The above configuration creates a zone called one, which has a session storage
     size of 10MB allocated to it and allows a rate of one request per second in this
     particular configuration. In case any request comes that is outside of the rate
     limit that cannot be served, it will get a "Service unavailable" 503 page. You
     can store approximately 16000 sessions in a 1MB zone. You can choose to create
     as many zones as you require for your system.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置创建了一个名为“one”的区域，为其分配了10MB的会话存储空间，并允许每秒一个请求的速率。在此配置下，如果任何请求超出了速率限制且无法提供服务，它将返回“服务不可用”503页面。你可以在一个1MB的区域中存储大约16000个会话。你可以根据系统需求创建任意数量的区域。
 - en: '![There''s more...](img/4965_02_04.jpg)'
+  id: totrans-86
   prefs: []
   type: TYPE_IMG
+  zh: '![还有更多...](img/4965_02_04.jpg)'
 - en: Blocking requests based on HTTP referrers
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于HTTP来源阻止请求
 - en: In this recipe, we will take the example of writing a rule which will look at
     your HTTP REFERER header line of the request and block spammers on your site.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们将以编写一个规则为例，该规则查看请求的HTTP REFERER头，并阻止你网站上的垃圾邮件者。
 - en: '![Blocking requests based on HTTP referrers](img/4965_02_05.jpg)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![基于HTTP来源阻止请求](img/4965_02_05.jpg)'
 - en: The preceding screenshot displays the spam comments on a blog for a single day;
     these have been made by automated bots which are trying to get linkbacks for their
     various properties. These techniques fall under the dark aspects of SEO.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的截图展示了某个博客一天内的垃圾评论；这些评论是由自动化的机器人发布的，目的是为他们的各种属性获取反向链接。这些技术属于SEO的黑暗面。
 - en: How to do it...
+  id: totrans-91
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'To block spammer bots from visiting your site, you can use the following code
     snippet inside the location part of your configuration:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了阻止垃圾邮件机器人访问你的网站，你可以在配置的location部分中使用以下代码片段：
 - en: '[PRE7]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: How it works...
+  id: totrans-94
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This basically has a look at the `$http_referer` variable and matches it with
     the various keywords provided. This is a very effective in ensuring that you do
     not have a lot of spam in your system linking back to bad sites! In case the keywords
     do match, it returns a 403 client error.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 这基本上是查看`$http_referer`变量，并将其与提供的各种关键词进行匹配。这在确保系统中没有大量垃圾邮件链接到恶意网站方面非常有效！如果关键词确实匹配，它将返回403客户端错误。
 - en: '![How it works...](img/4965_02_06.jpg)'
+  id: totrans-96
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965_02_06.jpg)'
 - en: Serving maintenance page when deploying
+  id: totrans-97
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 部署时提供维护页面
 - en: One of the few things that most sites need to do is deploy code, and usually
     do it when the site is running on production. Nginx is really amazing in terms
     of how it can easily reload its configuration without terminating the client connections.
     You can have a look at the reloading recipe in the previous chapter to know more.
     In this recipe, we will have a look at a simple way of setting up a system which
     can make your deployment pain free for the end user and you as well!
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数网站需要做的事情之一就是部署代码，通常是在站点运行在生产环境时进行。Nginx在轻松重新加载配置而不终止客户端连接方面真的很棒。你可以查看上一章的重载方法来了解更多信息。在这个示例中，我们将展示一种简单的方法来设置一个系统，使得部署对最终用户和你自己来说都没有痛苦！
 - en: How to do it...
+  id: totrans-99
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: Let's run through step-by-step what one needs to do to make a working deployment.
     In the process the various configuration changes will also be outlined.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们逐步了解一下需要做什么来实现一个可用的部署。在这个过程中，也会概述各种配置更改。
 - en: Create a directory which has the temporary "Coming back soon" HTML file. Let's
     call this `/var/www/www.example1.com/deployment/` and the file is `index.html`.
+  id: totrans-101
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个目录，里面放有临时的“Coming back soon”HTML文件。我们称这个目录为`/var/www/www.example1.com/deployment/`，文件名为`index.html`。
 - en: 'You need to create an alternative configuration file which will be called `temporary.conf`.
     This file basically replaces the server configuration for [www.example1.com](http://www.example1.com)
     with the following:'
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要创建一个替代的配置文件，名为`temporary.conf`。该文件基本上会用以下内容替换[www.example1.com](http://www.example1.com)的服务器配置：
 - en: '[PRE8]'
+  id: totrans-103
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Now we can write a small script for deployment. It will basically put the site
     into a temporary mode and then update your codebase. After the code update, it
     will simply copy the older production configuration and reload Nginx.
+  id: totrans-104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们可以编写一个小脚本来进行部署。它基本上会将站点置于临时模式，然后更新你的代码库。代码更新后，它将简单地复制旧的生产配置并重新加载 Nginx。
 - en: '[PRE9]'
+  id: totrans-105
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: How it works...
+  id: totrans-106
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In this recipe, we simply use our earlier learned techniques and combine them
     with some nifty bash scripting to write a simple deployment script. The idea is
     to rewrite all the URLs to the maintenance page when the site is being deployed,
     and once done with the backend code deployment we revert back to the older production
     configuration.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个实例中，我们将简单地运用之前学到的技巧，并结合一些巧妙的 bash 脚本编写一个简单的部署脚本。这个思路是，当站点正在部署时，重写所有 URL 指向维护页面，等后台代码部署完成后，我们将恢复到以前的生产配置。
 - en: '![How it works...](img/4965_02_07.jpg)'
+  id: totrans-108
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965_02_07.jpg)'
 - en: Setting up a WordPress site with static file serving
+  id: totrans-109
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用静态文件服务设置 WordPress 站点
 - en: WordPress is one of the world's leading blogging systems, and is pretty much
     the defacto standard today. It has a fairly easy setup with Apache2 and makes
     setting up of clean URLs pretty simple as well. However, with Nginx, (and PHP
     over fcgi) setting up WordPress with clean URLs requires some amount of work.
     My own blog is running on WordPress with Nginx!
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: WordPress 是全球领先的博客系统之一，今天几乎是事实上的标准。它与 Apache2 配合设置相对简单，也使得设置干净的 URL 非常容易。然而，使用
+    Nginx（以及 PHP over fcgi）时，设置 WordPress 的干净 URL 需要一些工作。我自己的博客就运行在 WordPress 和 Nginx
+    上！
 - en: '![Setting up a WordPress site with static file serving](img/4965_02_08.jpg)'
+  id: totrans-111
   prefs: []
   type: TYPE_IMG
+  zh: '![使用静态文件服务设置 WordPress 站点](img/4965_02_08.jpg)'
 - en: How to do it...
+  id: totrans-112
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: Let's try to set up a complete WordPress blog using Nginx and PHP over fcgi.
     In this recipe, you will end up learning the various details around the WordPress
     and Nginx stack.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试使用 Nginx 和 PHP over fcgi 设置一个完整的 WordPress 博客。在这个实例中，你将学习 WordPress 和 Nginx
+    技术栈的各种细节。
 - en: Download WordPress - [http://Wordpress.org/latest.tar.gz](http://Wordpress.org/latest.tar.gz).
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下载 WordPress - [http://Wordpress.org/latest.tar.gz](http://Wordpress.org/latest.tar.gz)。
 - en: Untar it at `/var/www/www.example1.com/:`
+  id: totrans-115
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 `/var/www/www.example1.com/` 解压它：
 - en: '[PRE10]'
+  id: totrans-116
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Add the following configuration in `Nginx.conf` within the http directive:'
+  id: totrans-117
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 `Nginx.conf` 文件中的 http 指令下添加以下配置：
 - en: '[PRE11]'
+  id: totrans-118
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Restart the server:'
+  id: totrans-119
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重启服务器：
 - en: '[PRE12]'
+  id: totrans-120
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Go to the blog, and start the installation.![How to do it...](img/4965_02_09.jpg)
+  id: totrans-121
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 访问博客并开始安装。![如何操作...](img/4965_02_09.jpg)
 - en: Log in to the administrative section and set up the clean URLs.
+  id: totrans-122
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 登录到管理部分并设置干净的 URL。
 - en: '[PRE13]'
+  id: totrans-123
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '![How to do it...](img/4965_02_10.jpg)'
+  id: totrans-124
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_02_10.jpg)'
 - en: The following screenshot is the permalink setting that allows you to have clean
     URLs without .php with the various parameters appended. That makes it very search
     engine and human friendly:![How to do it...](img/4965_02_11b.jpg)
+  id: totrans-125
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 以下截图展示了固定链接设置，它可以让你在没有 `.php` 后缀的情况下使用干净的 URL，并附加各种参数。这样非常有利于搜索引擎和用户友好：![如何操作...](img/4965_02_11b.jpg)
 - en: We are nearly done. Now you can go ahead and customize your cool, new WordPress
     blog!
+  id: totrans-126
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们快完成了。现在你可以继续自定义你那个酷炫的新 WordPress 博客！
 - en: '![How to do it...](img/4965_02_12.jpg)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_02_12.jpg)'
 - en: How it works...
+  id: totrans-128
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This is a fairly basic setup. The clean URLs are handled by one rewrite. The
     interesting part is the static file serving, which is highlighted in the configuration
     above, that checks if the file being served is a static file (that is a GIF, PNG,
     DOC, and so on). If it is, then the file is served with an expiry header with
     long expiration time. This reduces the consumed bandwidth as it facilitates extended
     client side caching.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当基础的设置。干净的 URL 由一个重写规则处理。比较有趣的是静态文件服务，如上面的配置所示，它会检查所提供的文件是否是静态文件（例如 GIF、PNG、DOC
+    等）。如果是，则该文件会带有一个长期过期时间的过期头部进行服务。这可以减少消耗的带宽，因为它便于客户端延长缓存。
 - en: There's more...
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'Many sites have alternative setups to handle higher loads, and use plugins
     like `wp-supercache.` The following configuration has the correct rewrites for
     fully utilizing the combined power of `wp-supercache` and Nginx. This setup has
     the capability to handle a significant amount of load within very low resource
     constraints:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多站点有替代方案来应对更高的负载，并使用像 `wp-supercache` 这样的插件。以下配置具有正确的重写规则，可以充分利用 `wp-supercache`
+    和 Nginx 的结合能力。该设置能够在非常低的资源限制下处理大量的负载：
 - en: '[PRE14]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: In the following screenshot you can see the WP super cache Manager plugin configuration
     page which allows you to setup other parameters for the caching based on your
     site requirements. In the above example we handle the basic settings which assume
     that all the pages need to be cached.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下方的截图中，您可以看到 WP 超级缓存管理插件的配置页面，允许您根据网站要求设置缓存的其他参数。在上面的例子中，我们处理了基本设置，假设所有页面都需要缓存。
 - en: '![There''s more...](img/4965_02_13.jpg)'
+  id: totrans-134
   prefs: []
   type: TYPE_IMG
+  zh: '![还有更多...](img/4965_02_13.jpg)'
 - en: Setting up a Drupal site with static file serving
+  id: totrans-135
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置具有静态文件服务的 Drupal 网站
 - en: Drupal is an emerging open source CMS and has captured the imagination of many
     PHP developers and enthusiasts alike. In this recipe, we will have a look at how
     we can set up Drupal using Nginx and PHP over FastCGI.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: Drupal 是一个新兴的开源 CMS，吸引了许多 PHP 开发者和爱好者的关注。在本食谱中，我们将看看如何通过 FastCGI 使用 Nginx 和
+    PHP 来设置 Drupal。
 - en: '![Setting up a Drupal site with static file serving](img/4965_02_14.jpg)'
+  id: totrans-137
   prefs: []
   type: TYPE_IMG
+  zh: '![设置具有静态文件服务的 Drupal 网站](img/4965_02_14.jpg)'
 - en: How to do it...
+  id: totrans-138
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Download Drupal: [http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz](http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz)'
+  id: totrans-139
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '下载 Drupal: [http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz](http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz)'
 - en: Untar Drupal to `/var/www/www.example1.com/`.
+  id: totrans-140
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 Drupal 解压到 `/var/www/www.example1.com/`。
 - en: Add the following to your `Nginx.conf:`
+  id: totrans-141
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '将以下内容添加到您的 `Nginx.conf:` '
 - en: '[PRE15]'
+  id: totrans-142
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Reload Nginx:'
+  id: totrans-143
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重新加载 Nginx：
 - en: '[PRE16]'
+  id: totrans-144
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Set up Drupal:'
+  id: totrans-145
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 设置 Drupal：
 - en: '![How to do it...](img/4965_02_15.jpg)'
+  id: totrans-146
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_02_15.jpg)'
 - en: 'The preceding screenshot lets you set up the database settings for the installation.
     In the following screen, you will be logged in as administrator and will have
     the ability to manipulate the various options of the platform:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的截图让您设置安装的数据库设置。在接下来的屏幕中，您将以管理员身份登录，并能操作平台的各种选项：
 - en: '![How to do it...](img/4965_02_16b.jpg)'
+  id: totrans-148
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_02_16b.jpg)'
 - en: How it works...
+  id: totrans-149
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The basic Drupal setup is very similar to the WordPress setup shown in the earlier
     recipe, and has the same rewrite rules. You need to transform the clean URL into
     a parameterized URL for `index.php`, as shown in the highlighted directive, `try_files`.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本的 Drupal 设置与前面食谱中显示的 WordPress 设置非常相似，并且具有相同的重写规则。您需要将干净的 URL 转换为 `index.php`
+    的参数化 URL，如高亮显示的指令 `try_files` 所示。
 - en: There's more...
+  id: totrans-151
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: Drupal has an exciting caching framework called Boost, which enhances the speed
     drastically. It can be used in conjunction with Nginx to handle fairly high loads.
     Do note that this stack with the boost modules has certain pitfalls when it comes
     to large Drupal sites; it is best utilized with smaller portals.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: Drupal 有一个令人兴奋的缓存框架，叫做 Boost，它能显著提高速度。它可以与 Nginx 一起使用，处理相当高的负载。请注意，这个堆栈与 Boost
+    模块在处理大型 Drupal 网站时会有一些陷阱；它最好用于较小的门户网站。
 - en: '[PRE17]'
+  id: totrans-153
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Tip
+  id: totrans-154
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: The important assumption in the above case is that the boost cache is set at
     `/cache/`.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述案例中的一个重要假设是 Boost 缓存设置在 `/cache/`。
 - en: '![There''s more...](img/4965_02_17.jpg)'
+  id: totrans-156
   prefs: []
   type: TYPE_IMG
+  zh: '![还有更多...](img/4965_02_17.jpg)'
 - en: Setting up a Magento site with static file serving
+  id: totrans-157
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置具有静态文件服务的 Magento 网站
 - en: Magento is a neat e-commerce CMS which has been around for a fair bit of time.
     It has gained widespread acceptance due to its strong API and committed developer
     community. In this recipe, we will have a look at how to set up Magento using
     Nginx and PHP over FastCGI.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: Magento 是一个整洁的电子商务 CMS，已经存在了一段时间。由于其强大的 API 和忠诚的开发者社区，它已经获得了广泛的接受。在本食谱中，我们将看看如何通过
+    FastCGI 使用 Nginx 和 PHP 来设置 Magento。
 - en: '![Setting up a Magento site with static file serving](img/4965_02_18.jpg)'
+  id: totrans-159
   prefs: []
   type: TYPE_IMG
+  zh: '![设置具有静态文件服务的 Magento 网站](img/4965_02_18.jpg)'
 - en: How to do it...
+  id: totrans-160
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Download Magento: [http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip](http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip)'
+  id: totrans-161
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '下载 Magento: [http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip](http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip)'
 - en: Untar Magento to `/var/www/www.example1.com/`.
+  id: totrans-162
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 Magento 解压到 `/var/www/www.example1.com/`。
 - en: Add this to your `Nginx.conf:`
+  id: totrans-163
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '将此添加到您的 `Nginx.conf:` '
 - en: '[PRE18]'
+  id: totrans-164
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'Reload Nginx:'
+  id: totrans-165
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重新加载 Nginx：
 - en: '[PRE19]'
+  id: totrans-166
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'Install Magento:'
+  id: totrans-167
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 安装 Magento：
 - en: '![How to do it...](img/4965_02_19.jpg)'
+  id: totrans-168
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_02_19.jpg)'
 - en: How it works...
+  id: totrans-169
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: Magento, unlike Drupal or WordPress, does not rewrite its URL to `index.php`.
     All the pages map to `index.php`. This is achieved by the rewrite rule that has
     been highlighted in the configuration code above.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: Magento 不像 Drupal 或 WordPress 那样将其 URL 重写为 `index.php`。所有页面都映射到 `index.php`。这是通过上面配置代码中高亮的重写规则实现的。
 - en: Converting your Apache's .htaccess into Nginx rewrites
+  id: totrans-171
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将 Apache 的 .htaccess 转换为 Nginx 重写规则
 - en: One of the primary uses of Nginx rewrites is to help you easily translate Apache2's
     .htaccess to usable Nginx configuration. Apache2 is the dominant open source web
     server in the world. In such a situation, inevitably most of the code available
     has .htaccess rules and very little direction regarding how to go about configuring
     Nginx rewrites so that it can properly run the site.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 重写的一个主要用途是帮助你轻松地将 Apache2 的 .htaccess 转换为可用的 Nginx 配置。Apache2 是全球主流的开源
+    Web 服务器。在这种情况下，不可避免地大多数可用代码都有 .htaccess 规则，并且很少有关于如何配置 Nginx 重写规则以便正确运行站点的指导。
 - en: How to do it...
+  id: totrans-173
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '如何操作…… '
 - en: In this we will have a look at an example where we take an .htaccess file and
     see its equivalent Nginx rewrite rules. In the later sections, we will have a
     look at some patterns that emerge out of the conversion which you can later utilize
     for converting other scripts.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们将查看一个示例，看看如何将 .htaccess 文件及其等效的 Nginx 重写规则。接下来的章节，我们将看看转换过程中出现的一些模式，之后你可以利用这些模式转换其他脚本。
 - en: '[PRE20]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'The equivalent Nginx rule set is:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 等效的 Nginx 规则集是：
 - en: '[PRE21]'
+  id: totrans-177
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: How it works...
+  id: totrans-178
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: 'Now let''s have a look at how exactly the rules have got translated, so the
     Apache rewrite rules basically enforce the following rules:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们来看一下规则是如何被转换的，Apache 重写规则基本上执行以下规则：
 - en: If the request is on port 80 and the URL is /signup/ then it is rewritten to
     the HTTPS version
+  id: totrans-180
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果请求在端口 80 上，并且 URL 为 /signup/，则它会被重写为 HTTPS 版本。
 - en: It redirects all `/signup/plan` or `/signup/plan/` to `/signup/index.php?account_type=plan`
+  id: totrans-181
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它将所有的 `/signup/plan` 或 `/signup/plan/` 重定向到 `/signup/index.php?account_type=plan`
 - en: It redirects all `/home/123` or `/home/123/` to `home.php?home_id=123`
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它将所有的 `/home/123` 或 `/home/123/` 重定向到 `home.php?home_id=123`
 - en: It fixes all `/homes/` to `/home/`
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它将所有 `/homes/` 修正为 `/home/`
 - en: So basically, if you notice, the conversion is very direct and rather simple.
     The Apache .htaccess basically utilizes a sequential set of conditions which are
     converted to if conditionals statements in Nginx which manipulate some variables.
     The following table gives you a clearer look at the direct conversion of the rewrites.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以基本上，如果你注意到，转换是非常直接且相当简单的。Apache .htaccess 基本上利用一组顺序条件，这些条件在 Nginx 中被转换为 if
+    条件语句，用来操作一些变量。下表为你提供了更清晰的视角，展示了重写规则的直接转换。
 - en: '| Apache | Nginx | Notes |'
+  id: totrans-185
   prefs: []
   type: TYPE_TB
+  zh: '| Apache | Nginx | 备注 |'
 - en: '| --- | --- | --- |'
+  id: totrans-186
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| RewriteCond %{SERVER_PORT} 80 | if ($server_port ~ "80"){ set $rule_0 1$rule_0;
     } | This is a simple rewrite conditional check for what is the server port. |'
+  id: totrans-187
   prefs: []
   type: TYPE_TB
+  zh: '| RewriteCond %{SERVER_PORT} 80 | if ($server_port ~ "80"){ set $rule_0 1$rule_0;
+    } | 这是一个简单的重写条件检查，检查服务器端口。 |'
 - en: '| RewriteCond %{REQUEST_URI} ^/signup/? | if ($uri ~ "^/signup/?"){ set $rule_0
     2$rule_0; } | This is a check for the URL structure. |'
+  id: totrans-188
   prefs: []
   type: TYPE_TB
+  zh: '| RewriteCond %{REQUEST_URI} ^/signup/? | if ($uri ~ "^/signup/?"){ set $rule_0
+    2$rule_0; } | 这是对 URL 结构的检查。 |'
 - en: '| RewriteRule ^(.*)$ https://www.example.com/$1 [R,L] | if ($rule_0 = "21"){
     rewrite ^/(.*)$ https://www.example.com/$1 redirect; break; } | This Rule is fired
     only when the above two conditions are met. It''s a redirect as specified by the
     R in the Apache configuration and redirect in Nginx. |'
+  id: totrans-189
   prefs: []
   type: TYPE_TB
+  zh: '| RewriteRule ^(.*)$ https://www.example.com/$1 [R,L] | if ($rule_0 = "21"){
+    rewrite ^/(.*)$ https://www.example.com/$1 redirect; break; } | 这个规则仅在上述两个条件满足时触发。它是一个重定向，就像
+    Apache 配置中的 R 和 Nginx 中的 redirect 所指定的那样。 |'
 - en: '| RewriteRule ^signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 [NC,L]
     | rewrite ^/signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 last; | This
     simply matches URLs which look like /signup/something and rewrites them to /signup/index.php?account_type=something
     . If you notice, something can contain alphabets to have a match. |'
+  id: totrans-190
   prefs: []
   type: TYPE_TB
+  zh: '| RewriteRule ^signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 [NC,L]
+    | rewrite ^/signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 last; | 这只是匹配像
+    /signup/something 这样的 URL，并将其重写为 /signup/index.php?account_type=something。如果你注意到，something
+    可以包含字母以进行匹配。 |'
 - en: '| RewriteRule ^home/([0-9]+)/?$ home.php?home_id=$1 [NC,L] | rewrite ^/home/([0-9]+)/?$
     /home.php?home_id=$1 last; | This is similar to the above rewrite and matched
     for a number. |'
+  id: totrans-191
   prefs: []
   type: TYPE_TB
+  zh: '| RewriteRule ^home/([0-9]+)/?$ home.php?home_id=$1 [NC,L] | rewrite ^/home/([0-9]+)/?$
+    /home.php?home_id=$1 last; | 这与上面的重写规则类似，并且匹配一个数字。 |'
 - en: '| RewriteRule ^homes/([0-9]+)/?$ home.php?home_id=$1 [NC,L] | rewrite ^/homes/([0-9]+)/?$
     /home.php?home_id=$1 last; | This rewrite is matches for patterns like /homes/123,
     /homes/123123 and so on. It is similar to the above rewrites. |'
+  id: totrans-192
   prefs: []
   type: TYPE_TB
+  zh: '| RewriteRule ^homes/([0-9]+)/?$ home.php?home_id=$1 [NC,L] | rewrite ^/homes/([0-9]+)/?$
+    /home.php?home_id=$1 last; | 这个重写规则匹配像 /homes/123、/homes/123123 这样的模式。它与上述的重写规则类似。
+    |'
 - en: It is clear how you can take rewrite conditionals in Apache htaccess, and convert
     them to Nginx conditions which modify the value of a variable as shown in the
     comparison above. It is fairly simple to see the pattern of conversion for the
     actual rewrites that take place by looking at the table above.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 很明显，你可以将 Apache htaccess 中的重写条件转换为 Nginx 条件，如上面的对比所示，这些条件会修改变量的值。从表格中很容易看出实际的重写转换模式。
 - en: There's more...
+  id: totrans-194
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多……
 - en: Today, there are a lot of online tools that are fairly advanced and let you
     convert your .htaccess file directly into an Nginx configuration! Though it is
     still safe to assume that more efficient code is generated by human conversion
     in slightly complex cases. You can try using [http://www.anilcetin.com/convert-apache-htaccess-to-nginx/](http://www.anilcetin.com/convert-apache-htaccess-to-nginx/)
     and see your Apache configuration converted into Nginx configuration with one
     click.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 今天，有许多功能强大的在线工具可以直接将你的 .htaccess 文件转换为 Nginx 配置！虽然在稍微复杂的情况下，人工转换仍然能生成更高效的代码，但你可以尝试使用
+    [http://www.anilcetin.com/convert-apache-htaccess-to-nginx/](http://www.anilcetin.com/convert-apache-htaccess-to-nginx/)
+    这个工具，一键将你的 Apache 配置转换为 Nginx 配置。
 - en: Using maps to make configurations cleaner
+  id: totrans-196
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 map 来使配置更加简洁
 - en: There is a very useful Nginx module that allows the classification of set of
     values into different sets of values, which is then stored in a variable. The
     idea is that it makes it much simpler to write switch-case, like statements where
     you have a different rewrite when there is a different value. So let us look at
     some examples where the map module is effectively used.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个非常有用的 Nginx 模块，它允许将一组值分类到不同的值集合中，并将其存储在一个变量中。这个思路使得编写类似 `switch-case` 语句变得更加简单，在这些语句中，当值不同时，会有不同的重写规则。所以，让我们看一些有效使用
+    map 模块的例子。
 - en: How to do it...
+  id: totrans-198
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作……
 - en: 'Let''s say you want to detect the incoming hostname and want to do something
     different on certain domains and sub-domains, we will write a map and utilize
     it in a simple rewrite rule:'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你想检测传入的主机名，并且想在某些域名和子域名上执行不同的操作，我们将编写一个 map，并在一个简单的重写规则中使用它：
 - en: '[PRE22]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: How it works...
+  id: totrans-201
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: This idea is simple. Here you have taken the `$http_host` variable and created
     a map where it will simply fill `$name` with the value corresponding to the matched
     value. So for example, if the site visited was [http://abc.site.com](http://abc.site.com)
     then the $name value would be set at three as per the map.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个思路很简单。这里你取了 `$http_host` 变量，并创建了一个 map，在这个 map 中，它会根据匹配的值简单地将 `$name` 填充为对应的值。所以例如，如果访问的网站是
+    [http://abc.site.com](http://abc.site.com)，那么 `$name` 的值将根据 map 被设置为 3。
 - en: 'The hostname directive allows you to write one instead of two mappings if you
     want to cover a complete domain, that is:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 主机名指令允许你写一个映射，而不是两个映射，假如你想覆盖整个域名，即：
 - en: '[PRE23]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'Instead of:'
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 而不是：
 - en: '[PRE24]'
+  id: totrans-206
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: There's more…
+  id: totrans-207
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多……
 - en: 'After this variable is mapped, one can utilize this for triggering other rewrite
     rules. The recipe for using cookies with rewrite rules could have potentially
     utilized this approach to have a much cleaner configuration file:'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个变量映射之后，你可以利用它触发其他重写规则。使用 cookies 与重写规则配合的方案，可能会采用这种方法，从而使配置文件更加简洁：
 - en: '[PRE25]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'The above can be simply translated into:'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述内容可以简单地转换为：
 - en: '[PRE26]'
+  id: totrans-211
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: This looks much cleaner and effectively is the equivalent to the configuration
     that is not using the Map module.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样看起来更简洁，并且实际上等同于未使用 Map 模块的配置。

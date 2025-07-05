@@ -1,560 +1,830 @@
 - en: Chapter 1. The Core HTTP Module
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 1 章. 核心 HTTP 模块
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将涵盖：
 - en: Installing new modules and compiling Nginx
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安装新模块并编译 Nginx
 - en: Running Nginx in debug mode
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以调试模式运行 Nginx
 - en: Easy reloading of Nginx using the CLI
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 CLI 轻松重新加载 Nginx
 - en: Splitting configuration files for better management
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 拆分配置文件以便更好的管理
 - en: Setting up multiple virtual hosts
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置多个虚拟主机
 - en: Setting up a default catch-all virtual host
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置默认的 catch-all 虚拟主机
 - en: Using wildcards in virtual hosts
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在虚拟主机中使用通配符
 - en: Setting up the number of worker processes correctly
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正确设置工作进程数
 - en: Increasing the size of uploaded files
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 增加上传文件的大小
 - en: Using dynamic SSI for simple sites
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用动态 SSI 处理简单站点
 - en: Adding content before and after a particular page
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在特定页面前后添加内容
 - en: Enabling auto indexing of a directory
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 启用目录的自动索引
 - en: Serving any random web page from a directory
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从目录中提供任何随机网页
 - en: Serving cookies for identifying and logging users
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提供 Cookie 用于识别和记录用户
 - en: Re-encoding the response to another encoding
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将响应重新编码为另一种编码
 - en: Enabling Gzip compression on some content types
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为某些内容类型启用 Gzip 压缩
 - en: Setting up 404 and other error pages
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置 404 和其他错误页面
 - en: Introduction
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: This chapter deals with the basics of Nginx configuration and implementation.
     By the end of it you should be able to compile Nginx on your machine, create virtual
     hosts, set up user tracking, and get PHP to work.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了 Nginx 配置和实现的基础知识。到本章结束时，您应该能够在您的机器上编译 Nginx，创建虚拟主机，设置用户跟踪，并让 PHP 正常工作。
 - en: Installing new modules and compiling Nginx
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 安装新模块并编译 Nginx
 - en: Today, most softwares are designed to be modular and extensible. Nginx, with
     its great community, has an amazing set of modules out there that lets it do some
     pretty interesting things. Although most operating system distributions have Nginx
     binaries in their repositories, it is a necessary skill to be able to compile
     new, bleeding edge modules, and try them out. Now we will outline how one can
     go about compiling and installing Nginx with its numerous third-party modules.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 如今，大多数软件都设计成模块化和可扩展的。Nginx 拥有一个庞大的社区，并提供了一系列很棒的模块，能够让它执行一些非常有趣的功能。虽然大多数操作系统发行版都在其软件库中提供了
+    Nginx 的二进制文件，但能够编译新的、前沿的模块并进行尝试是一个必要的技能。接下来我们将介绍如何编译和安装 Nginx 以及它的众多第三方模块。
 - en: How to do it...
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: The first step is to get the latest Nginx distribution, so that you are in sync
     with the security and performance patches ([http://sysoev.ru/nginx/nginx-0.7.67.tar.gz](http://sysoev.ru/nginx/nginx-0.7.67.tar.gz)).
     Do note that you will require sudo or root access to do some of the installation
     steps going ahead.![How to do it...](img/4965_01_01.jpg)
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 第一步是获取最新的 Nginx 发行版，以确保与安全性和性能补丁保持同步（[http://sysoev.ru/nginx/nginx-0.7.67.tar.gz](http://sysoev.ru/nginx/nginx-0.7.67.tar.gz)）。请注意，在某些安装步骤中，您可能需要
+    sudo 或 root 权限。![如何操作...](img/4965_01_01.jpg)
 - en: 'Un-tar the Nginx source code. This is simple, you will need to enter the following
     command:'
+  id: totrans-25
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 解压 Nginx 源代码。这很简单，您只需输入以下命令：
 - en: '[PRE0]'
+  id: totrans-26
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Go into the directory and configure it. This is essential, as here you can
     enable and disable the core modules that already come with Nginx. Following is
     a sample configure command:'
+  id: totrans-27
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 进入目录并进行配置。这一步很关键，因为在这里你可以启用或禁用 Nginx 自带的核心模块。以下是一个示例配置命令：
 - en: '[PRE1]'
+  id: totrans-28
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'You can figure out more about what other modules and configuration flags use:'
+  id: totrans-29
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您可以了解更多关于其他模块和配置标志的信息：
 - en: '[PRE2]'
+  id: totrans-30
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'If you get an error, then you will need to install the build dependencies,
     depending on your system. For example, if you are running a Debian based system,
     you can enter the following command:'
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果出现错误，您需要根据系统安装构建依赖项。例如，如果您使用的是 Debian 系统，可以输入以下命令：
 - en: '[PRE3]'
+  id: totrans-32
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This will install all the required build dependencies, like PCRE and TLS libraries.
+  id: totrans-33
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这将安装所有必需的构建依赖项，如 PCRE 和 TLS 库。
 - en: 'After this, you can simply go ahead and build it:'
+  id: totrans-34
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 完成后，您可以继续构建它：
 - en: '[PRE4]'
+  id: totrans-35
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'This was the plain vanilla installation! If you want to install some new modules,
     we take the example of the HTTP subscribe-publish module:'
+  id: totrans-36
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这就是普通的原始安装！如果您想安装一些新模块，我们以 HTTP 订阅发布模块为例：
 - en: Download your module ([http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz](http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz)).
+  id: totrans-37
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下载您的模块（[http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz](http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz)）。
 - en: Un-tar it at a certain location:/path/to/module.
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在某个位置解压：/path/to/module。
 - en: 'Reconfigure Nginx installation:'
+  id: totrans-39
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重新配置 Nginx 安装：
 - en: '[PRE5]'
+  id: totrans-40
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The important part is to point the add-module flag to the right module path.
     The rest is handled by the Nginx configuration script.
+  id: totrans-41
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重要部分是将add-module标志指向正确的模块路径，其余部分由Nginx配置脚本处理。
 - en: You can continue to build and install Nginx as shown in step 5.
+  id: totrans-42
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你可以继续按照第5步所示的方式构建和安装Nginx。
 - en: '[PRE6]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: If you have followed steps 1 to 10, it will be really easy for you to install
     any Nginx module.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你按照步骤1到10操作，那么安装任何Nginx模块将变得非常简单。
 - en: There's more...
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: 'If you want to check that the module is installed correctly, you can enter
     the following command:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想检查模块是否正确安装，可以输入以下命令：
 - en: '[PRE7]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'A sample output is something as shown in the following screenshot:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例输出如下所示：
 - en: '![There''s more...](img/4965_01_02.jpg)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![还有更多内容...](img/4965_01_02.jpg)'
 - en: This basically gives you the compilation flags that were used to install this
     particular binary of Nginx, indirectly listing the various modules that were compiled
     into it.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这基本上会给你列出用于安装此特定Nginx二进制文件的编译标志，间接列出编译进该二进制文件的各种模块。
 - en: Running Nginx in debug mode
+  id: totrans-51
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 以调试模式运行Nginx
 - en: Nginx is a fairly stable piece of software which has been running in production
     for over a decade and has built a very strong developer community around it. But,
     like all software there are issues and bugs which crop up under the most critical
     of situations. When that happens, it's usually best to reload Nginx with higher
     levels of error logging and if possible, in the debug mode.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx是一款相当稳定的软件，已经在生产环境中运行了十多年，并且围绕它建立了一个非常强大的开发者社区。但像所有软件一样，在最关键的情况下，也会出现一些问题和bug。当这种情况发生时，通常最好重新加载Nginx，并开启更高等级的错误日志记录，若可能的话，还应开启调试模式。
 - en: How to do it...
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'If you want the debug mode, then you will need to compile Nginx with the debug
     flag (--with-debug). In most cases, most of the distributions have packages where
     Nginx is pre-compiled with debug flag. Here are the various levels of debugging
     that you can utilize:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想启用调试模式，那么你需要使用调试标志（--with-debug）编译Nginx。在大多数情况下，很多发行版都有预编译了调试标志的Nginx包。以下是你可以利用的各种调试级别：
 - en: '[PRE8]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Tip
+  id: totrans-56
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: '**Downloading the example code**'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '**下载示例代码**'
 - en: You can download the example code files for all Packt books you have purchased
     from your account at [http://www.PacktPub.com](http://www.PacktPub.com). If you
     purchased this book elsewhere, you can visit [http://www.PacktPub.com/support](http://www.PacktPub.com/support)
     and register to have the files e-mailed directly to you.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以从你在[http://www.PacktPub.com](http://www.PacktPub.com)的账户中下载所有你购买的Packt书籍的示例代码文件。如果你在其他地方购买了本书，可以访问[http://www.PacktPub.com/support](http://www.PacktPub.com/support)并注册，直接通过电子邮件将文件发送给你。
 - en: 'If you do not set the error log location, it will log to a compiled-in default
     log location. This logging is in addition to the normal error logging that you
     can do per site. Here is what the various specific debug flags do:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有设置错误日志的位置，它将记录到一个编译时默认的日志位置。这个日志记录是除了你可以针对每个站点进行的常规错误日志记录之外的额外记录。以下是各种具体调试标志的作用：
 - en: '| Flags | Application |'
+  id: totrans-60
   prefs: []
   type: TYPE_TB
+  zh: '| 标志 | 应用程序 |'
 - en: '| --- | --- |'
+  id: totrans-61
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `debug_core` | Lets you dump the core when Nginx crashes |'
+  id: totrans-62
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_core` | 在Nginx崩溃时允许你转储核心文件 |'
 - en: '| `debug_alloc` | Logs all memory allocation warnings and errors |'
+  id: totrans-63
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_alloc` | 记录所有内存分配警告和错误 |'
 - en: '| `debug_mutex` | Logs potential mutex issues |'
+  id: totrans-64
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_mutex` | 记录潜在的互斥问题 |'
 - en: '| `debug_event` | Logs events module issues |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_event` | 记录事件模块问题 |'
 - en: '| `debug_http` | This is the default HTTP logging |'
+  id: totrans-66
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_http` | 这是默认的HTTP日志记录 |'
 - en: '| `debug_imap` | This is the default IMAP logging |'
+  id: totrans-67
   prefs: []
   type: TYPE_TB
+  zh: '| `debug_imap` | 这是默认的IMAP日志记录 |'
 - en: There's more...
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: Nginx allows us to log errors for specific IP addresses. Here is a sample configuration
     that will log errors from `192.168.1.1` and the IP range of `192.168.10.0/24:`
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx允许我们为特定的IP地址记录错误。以下是一个示例配置，它将记录来自`192.168.1.1`和`192.168.10.0/24` IP范围的错误：
 - en: '[PRE9]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: This is extremely useful when you want to debug in the production environment,
     as logging for all cases has unnecessary performance overheads. This feature allows
     you to not set a global debug on the `error_log`, while being able to see the
     debug output for specific matched IP blocks based on the user's IP address.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你希望在生产环境中进行调试时，这个功能非常有用，因为记录所有情况的日志会带来不必要的性能开销。这个特性使你能够不在`error_log`上设置全局调试，同时根据用户的IP地址查看特定匹配的IP块的调试输出。
 - en: Easy reloading of Nginx using the CLI
+  id: totrans-72
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用CLI轻松重新加载Nginx
 - en: Depending on the system that you have, it will offer one clean way of reloading
     your Nginx setup
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据你所使用的系统，它将提供一种简洁的方式来重新加载你的Nginx设置
 - en: '**Debian based:** `/etc/init.d/Nginx reload`'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**基于 Debian：** `/etc/init.d/Nginx reload`'
 - en: '**Fedora based:** `service Nginx reload`'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**基于 Fedora：** `service Nginx reload`'
 - en: '**FreeBSD/BSD:** `service Nginx reload`'
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**FreeBSD/BSD：** `service Nginx reload`'
 - en: '**Windows:** `Nginx -s reload`'
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Windows：** `Nginx -s reload`'
 - en: 'All the preceding commands reload Nginx; they send a HUP signal to the main
     Nginx process. You can send quite a few control signals to the Nginx master process,
     as outlined in the following table. These let you manage some of the basic administrative
     tasks:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述所有命令都会重新加载 Nginx；它们会向主 Nginx 进程发送 HUP 信号。你可以向 Nginx 主进程发送许多控制信号，具体见下表。这些信号帮助你管理一些基本的管理任务：
 - en: '| Signal | Activity |'
+  id: totrans-79
   prefs: []
   type: TYPE_TB
+  zh: '| 信号 | 活动 |'
 - en: '| --- | --- |'
+  id: totrans-80
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| TERM,INT | Quick shutdown |'
+  id: totrans-81
   prefs: []
   type: TYPE_TB
+  zh: '| TERM,INT | 快速关闭 |'
 - en: '| QUIT | Graceful shutdown |'
+  id: totrans-82
   prefs: []
   type: TYPE_TB
+  zh: '| QUIT | 优雅地关闭 |'
 - en: '| HUP | Reload configuration, gracefully shutdown the worker processes and
     restart them |'
+  id: totrans-83
   prefs: []
   type: TYPE_TB
+  zh: '| HUP | 重新加载配置，优雅地关闭 worker 进程并重启它们 |'
 - en: '| USR1 | Reopen the log files |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '| USR1 | 重新打开日志文件 |'
 - en: '| USR2 | Upgrade the executable on the fly, when you have already installed
     it |'
+  id: totrans-85
   prefs: []
   type: TYPE_TB
+  zh: '| USR2 | 升级可执行文件（已安装时） |'
 - en: '| WINCH | Gracefully shutdown the worker process |'
+  id: totrans-86
   prefs: []
   type: TYPE_TB
+  zh: '| WINCH | 优雅地关闭 worker 进程 |'
 - en: How to do it...
+  id: totrans-87
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: Let me run you through the simple steps of how you can reload Nginx from the
     command line.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我带你通过简单的步骤，如何从命令行重新加载 Nginx。
 - en: Open a terminal on your system. Most UNIX-based systems already have fairly
     powerful terminals, while you can use PuTTY on Windows systems.
+  id: totrans-89
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 打开系统中的终端。大多数 UNIX 系统已经有相当强大的终端，而你可以在 Windows 系统上使用 PuTTY。
 - en: Type in `ps auxww | grep nginx`. This will output something as shown in the
     following screenshot:![How to do it...](img/4965_01_03.jpg)
+  id: totrans-90
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 输入 `ps auxww | grep nginx`。这将输出如下所示的内容：![如何操作...](img/4965_01_03.jpg)
 - en: If nothing comes, then it means that Nginx is not running on your system.
+  id: totrans-91
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果没有任何输出，则表示 Nginx 没有在你的系统上运行。
 - en: If you get the preceding output, then you can see the master process and the
     two worker processes (it may be more, depending on your `worker_processes` configuration).
     The important number is `3322`, which is basically the PID of the master process.
+  id: totrans-92
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果你得到上述输出，那么你可以看到主进程和两个 worker 进程（根据你的 `worker_processes` 配置，可能会更多）。重要的数字是 `3322`，这基本上是主进程的
+    PID。
 - en: To reload Nginx, you can issue the command `kill -HUP <PID of the nginx master
     process>`. In this case, the PID of the master process is `3322`. This will basically
     read the configurations again, gracefully close your current connections, and
     start new worker processes. You can issue another `ps auxww | grep nginx` to see
     new PIDs for the worker processes (4582,4583):![How to do it...](img/4965_01_04.jpg)
+  id: totrans-93
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要重新加载 Nginx，可以发出命令 `kill -HUP <Nginx 主进程的 PID>`。在这种情况下，主进程的 PID 是 `3322`。这基本上会重新读取配置文件，优雅地关闭当前连接，并启动新的
+    worker 进程。你可以再执行一次 `ps auxww | grep nginx` 来查看新的 worker 进程 PID（4582，4583）：![如何操作...](img/4965_01_04.jpg)
 - en: If the worker PIDs do not change it means that you may have a problem while
     reloading the configuration files. Go ahead and check the Nginx error log.
+  id: totrans-94
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果 worker PIDs 没有变化，意味着在重新加载配置文件时可能出现了问题。你可以检查 Nginx 错误日志。
 - en: This is very useful while writing scripts, which control Nginx configuration.
     A good example is when you are deploying code on production; you will temporarily
     point the site to a static landing page.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 在编写控制 Nginx 配置的脚本时，这非常有用。一个好的例子是当你在生产环境中部署代码时，你会暂时将站点指向一个静态的登陆页面。
 - en: Splitting configuration files for better management
+  id: totrans-96
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为了更好的管理，拆分配置文件
 - en: By default, when you are installing Nginx you get this one monolithic configuration
     file which contains a whole lot of sample configurations. Due to its extremely
     modular and robust designing, Nginx allows you to maintain your configuration
     file as a set of multiple linked files.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，当你安装 Nginx 时，你会得到一个包含大量示例配置的单一配置文件。由于其极为模块化和强大的设计，Nginx 允许你将配置文件维护为一组多个关联的文件。
 - en: How to do it...
+  id: totrans-98
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Let''s take a sample configuration file `nginx.conf` and see how can it be
     broken into logical, maintainable pieces:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们以一个示例配置文件 `nginx.conf` 为例，看看它是如何被拆分成逻辑上、易于维护的模块的：
 - en: '[PRE10]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'The preceding configuration is basically serving a simple PHP site at `http://www.example1.com`
     using FastCGI. Now we can go ahead and split this file into the following structure:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置基本上是在 `http://www.example1.com` 提供一个简单的 PHP 网站，使用 FastCGI。现在我们可以继续将这个文件拆分成以下结构：
 - en: '`nginx.conf:` The central configuration file remains'
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`nginx.conf:` 中央配置文件保持不变'
 - en: '`fcgi.conf:` This will contain all the FastCGI configurations'
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`fcgi.conf:` 这将包含所有 FastCGI 配置'
 - en: '`sites-enabled/:` This directory will contain all the sites that are enabled
     (much like Apache2''s sites-enabled directory)'
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sites-enabled/:` 该目录将包含所有启用的站点（类似于Apache2的sites-enabled目录）'
 - en: '`sites-available/:` This directory will contain all the sites that are not
     active, but available (again, much like Apache2''s sites-available)'
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sites-available/:` 该目录将包含所有未启用但可用的网站（类似于Apache2的sites-available目录）'
 - en: '`sites-enabled/site1.conf:` This is the sample virtual host configuration of
     the sample PHP site'
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sites-enabled/site1.conf:` 这是示例PHP站点的虚拟主机配置示例'
 - en: The following code is for the new `nginx.conf`
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是新的`nginx.conf`的代码：
 - en: '[PRE11]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: If you notice, you will see how `includes` has allowed the inclusion of external
     configuration files. It should be noted that if we have any errors in any of the
     files, the Nginx server will fail to reload.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你注意到，你会看到`includes`允许包含外部配置文件。需要注意的是，如果我们在任何文件中有错误，Nginx服务器将无法重新加载。
 - en: Here is the FastCGI configuration which is used by this setup; generally most
     Nginx installations provide a default one.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是该设置使用的FastCGI配置；通常大多数Nginx安装都会提供一个默认的配置。
 - en: The following is the code for `fcgi.conf:`
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是`fcgi.conf`的代码：
 - en: '[PRE12]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The following is the code for `sites-enabled/site1.conf:`
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是`sites-enabled/site1.conf`的代码：
 - en: '[PRE13]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: This sort of a file arrangement allows clean separation of the main configuration
     and the auxiliary ones. It also promotes structured thinking, which is useful
     when you have to quickly switch or deploy sites.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种文件排列方式实现了主配置和辅助配置的干净分离。它还促进了结构化思维，当你需要快速切换或部署站点时，这种思维方式非常有用。
 - en: We will go over the various configurations that you see in these files in other
     chapters. For example, `fcgi.conf` is covered in the recipe to get PHP working
     with Nginx using FastCGI.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在其他章节中详细讨论你在这些文件中看到的各种配置。例如，`fcgi.conf`的内容在使用FastCGI让PHP与Nginx一起工作时会涉及到。
 - en: Setting up multiple virtual hosts
+  id: totrans-117
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置多个虚拟主机
 - en: Usually any web server hosts one or more domains, and Nginx, like any good web
     server, allows you to easily configure as many virtual hosts as you want.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常任何Web服务器托管一个或多个域名，而Nginx作为一个优秀的Web服务器，允许你轻松配置任意数量的虚拟主机。
 - en: How to do it...
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: Let's take a simple example. You want to set up a simple set of webpages on
     [www.example1.com](http://www.example1.com). Here is the sample configuration
     which needs to go into the `sites-enabled/site1.conf:`
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看一个简单的例子。你想在[www.example1.com](http://www.example1.com)上设置一组简单的网页。以下是需要放入`sites-enabled/site1.conf`中的示例配置：
 - en: '[PRE14]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: How it works...
+  id: totrans-122
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: So let's see how this works. The `listen` defines the port on which the web
     server is listening (in this case, its 80)! The `server_name` lets you easily
     define the domain that maps to this virtual host configuration. Inside, you can
     start defining how the virtual host works. In this case it serves set of HTML
     pages from the `/var/www/www.example1.com` directory.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么我们来看看它是如何工作的。`listen`定义了Web服务器监听的端口（在这个例子中是80）！`server_name`让你轻松定义映射到此虚拟主机配置的域名。在其中，你可以开始定义虚拟主机的工作方式。在这个例子中，它从`/var/www/www.example1.com`目录提供一组HTML页面。
 - en: So when you reload your Nginx configuration assuming that your DNS records point
     correctly at your server, you should see your HTML pages load when you access
     the web address (in this case, [http://www.example1.com)](http://www.example1.com)).
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，当你重新加载Nginx配置时，假设你的DNS记录正确指向服务器，你应该能在访问网页地址时看到HTML页面加载（在这个例子中是[http://www.example1.com)](http://www.example1.com)）。
 - en: There's more...
+  id: totrans-125
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: 'Here is a quick checklist to get you started:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是快速入门的检查清单：
 - en: Create a simple directory with the HTML files.
+  id: totrans-127
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个包含HTML文件的简单目录。
 - en: Create a simple configuration file containing the virtual host configuration
     for `www.example1.com`.
+  id: totrans-128
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个简单的配置文件，包含`www.example1.com`的虚拟主机配置。
 - en: Reload Nginx.
+  id: totrans-129
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重新加载Nginx。
 - en: Point your DNS server to the correct server running Nginx.
+  id: totrans-130
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将你的DNS服务器指向正确运行Nginx的服务器。
 - en: Load `www.example1.com`.
+  id: totrans-131
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 加载`www.example1.com`。
 - en: Setting up a default catch-all virtual host
+  id: totrans-132
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置默认的catch-all虚拟主机
 - en: Once you are comfortable setting up the virtual hosts, you will end up in a
     situation where you have a lot of domains pointing at the IP. In addition to the
     domains, you would also have the web server responding to the IP addresses it
@@ -565,37 +835,53 @@
     In such a scenario, when the user types in `abc.example1.com` or an IP address
     the web server will not be able to serve the relevant content (be it 404 or some
     other promotional page).
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你习惯了设置虚拟主机，你将遇到一个有很多域名指向同一IP的情况。除了这些域名外，你还会有Web服务器响应它所托管的IP地址，以及指向该IP的其他许多未使用的子域名。我们可以通过一个简单的示例来看这个问题，假设你有[http://www.example1.com](http://www.example1.com)指向IP地址，你已经配置了虚拟主机来处理域名[www.example1.com](http://www.example1.com)和[example1.com](http://example1.com)。在这种情况下，当用户输入`abc.example1.com`或IP地址时，Web服务器将无法提供相关内容（无论是404还是其他促销页面）。
 - en: How to do it...
+  id: totrans-134
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做……
 - en: For situations like the one above, one can utilize the default catchall virtual
     host that Nginx provides; here is a simple example where this default catchall
     virtual host serves a simple set of web pages.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于像上述情况这样的情形，可以利用Nginx提供的默认通配符虚拟主机；这里是一个简单的示例，展示了这个默认的通配符虚拟主机如何服务一组简单的网页。
 - en: The following is the code for `sites-enabled/default.conf:`
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是`sites-enabled/default.conf`的代码：
 - en: '[PRE15]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: How it works...
+  id: totrans-138
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: The key thing to note is the fact that you are listening on the default port
     and that the `server_name` is "_" which is the catchall mechanism. So whenever
     the user enters a domain for which you have no defined virtual host, pages will
     get server from the `/var/www/default` directory.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键点是你正在监听默认端口，并且`server_name`设置为"_"，这是一种通配符机制。所以，每当用户输入一个没有定义虚拟主机的域名时，页面将从`/var/www/default`目录提供。
 - en: Using wildcards in virtual hosts
+  id: totrans-140
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在虚拟主机中使用通配符
 - en: Imagine a situation where you need to create an application that needs to serve
     dynamic pages on subdomains! In that case, you will need to set up a virtual host
     in Nginx that can utilize wildcards. Nginx has been made ground up to handle such
@@ -603,391 +889,584 @@
     Let's say you are building an application that needs to handle the various subdomains
     such as `a.example1.com`, `b.example1.com`, and so on. The following configuration
     would let the application behind handle all these various subdomains.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 想象一个需要在子域上提供动态页面的应用程序！在这种情况下，你需要在Nginx中设置一个可以使用通配符的虚拟主机。Nginx从一开始就被设计成处理这种场景。所以，让我们以我们最喜欢的例子[http://www.example1.com](http://www.example1.com)为例。假设你正在构建一个需要处理各种子域（如`a.example1.com`，`b.example1.com`等）的应用程序。以下配置将允许后台应用程序处理所有这些不同的子域。
 - en: How to do it...
+  id: totrans-142
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做……
 - en: You will need to set a wildcard on the DNS entry. Without the DNS entries, the
     domain (and subdomains) will never resolve to your server IP. A sample DNS entry
     is given below which points the domain `http://example1.com` to the IP `69.9.64.11:`
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要在DNS条目上设置通配符。没有DNS条目，域名（和子域）永远无法解析到你的服务器IP。以下是一个示例DNS条目，将域名`http://example1.com`指向IP
+    `69.9.64.11:`。
 - en: '[PRE16]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Once you know how your DNS works, you can add this to your `nginx.conf` inside
     the http section:'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你了解了你的DNS如何工作，你可以将其添加到`nginx.conf`的http部分：
 - en: '[PRE17]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: How it works...
+  id: totrans-147
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: The important part to note is that in this case, you are serving all the subdomains
     using the same code base. We have also set the virtual host to serve the non-www
     domain as well (example1.com which is different from [www.example1.com)](http://www.example1.com)).
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要注意的重要部分是，在这种情况下，你是使用相同的代码库来服务所有的子域名。我们还设置了虚拟主机来服务非www域名（例如example1.com，它与[www.example1.com](http://www.example1.com)不同）。
 - en: So when you type [a.example1.com](http://a.example1.com), your web application
     will receive [a.example1.com](http://a.example1.com) as the domain that was requested
     from the web server and it can process the HTTP response accordingly.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，当你输入[a.example1.com](http://a.example1.com)时，你的Web应用程序会接收到[a.example1.com](http://a.example1.com)作为从Web服务器请求的域名，并根据情况处理HTTP响应。
 - en: Setting up the number of worker processes correctly
+  id: totrans-150
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 正确设置工作进程的数量
 - en: Nginx like any other UNIX-based server software, works by spawning multiple
     processes and allows the configuration of various parameters around them as well.
     One of the basic configurations is the number of worker processes spawned! It
     is by far one of the first things that one has to configure in Nginx.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 像其他基于 UNIX 的服务器软件一样，Nginx 通过生成多个进程来工作，并允许对它们周围的各种参数进行配置。基本配置之一是生成的工作进程数！这是配置
+    Nginx 时最先需要设置的事项之一。
 - en: How to do it...
+  id: totrans-152
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: This particular configuration can be found at the top of the sample configuration
     file `nginx.conf:`
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个特定的配置可以在示例配置文件 `nginx.conf` 的顶部找到：
 - en: '[PRE18]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: In the preceding configuration, we can see how the various process configurations
     work. You first set the UNIX user under which the process runs, then you can set
     the number of worker processes that Nginx needs to spawn, after that we have some
     file locations where the errors are logged and the PIDs (process IDs) are saved.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述配置中，我们可以看到各种进程配置的工作方式。你首先设置进程运行的 UNIX 用户，然后设置 Nginx 需要生成的工作进程数，接下来是一些文件位置，用于记录错误和保存
+    PID（进程 ID）。
 - en: How it works...
+  id: totrans-156
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'By default, `worker_processes` is set at 2\. It is a crucial setting in a high
     performance environment as Nginx uses it for the following reasons:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，`worker_processes` 设置为 2\. 在高性能环境中，这个设置非常关键，因为 Nginx 会基于以下原因使用它：
 - en: It uses SMP, which allows you to efficiently use multi-cores or multi-processors
     systems very efficiently and have a definite performance gain.
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它使用 SMP（对称多处理），可以高效利用多核或多处理器系统，从而获得明显的性能提升。
 - en: It increases the number of processes decreases latency as workers get blocked
     on disk I/O.
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它通过增加进程数来减少延迟，因为当工作进程被磁盘 I/O 阻塞时，延迟会降低。
 - en: It limits the number of connections per process when any of the various supported
     event types are used. A worker process cannot have more connections than specified
     by the `worker_connections` directive.
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当使用任何支持的事件类型时，它限制每个进程的连接数。一个工作进程的连接数不能超过 `worker_connections` 指令所指定的数量。
 - en: There's more...
+  id: totrans-161
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: It is recommended that you set `worker_processes` as the number of cores available
     on your server. If you know the values of `worker_processes` and `worker_connections`,
     one can easily calculate the maximum number of connections that Nginx can handle
     in the current setup.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 建议将 `worker_processes` 设置为服务器上可用的核心数。如果你知道 `worker_processes` 和 `worker_connections`
+    的值，那么就可以轻松计算出 Nginx 在当前设置下能处理的最大连接数。
 - en: '*Maximum clients* = `worker_processes` * `worker_connections`'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: '*最大客户端数* = `worker_processes` * `worker_connections`'
 - en: Increasing the size of uploaded files
+  id: totrans-164
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 增加上传文件的大小
 - en: Usually when you are running a site where the user uploads a lot of files, you
     will see that when they upload a file which is more than 1MB in size you get an
     Nginx error stating, "Request entity too Large" (413), as shown in the following
     screenshot. We will look at how Nginx can be configured to handle larger uploads.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常当你运行一个用户上传大量文件的网站时，你会发现当用户上传一个超过 1MB 的文件时，会收到 Nginx 错误，提示“请求实体过大”（413），如下图所示。我们将研究如何配置
+    Nginx 来处理更大的文件上传。
 - en: '![Increasing the size of uploaded files](img/4965_01_05.jpg)'
+  id: totrans-166
   prefs: []
   type: TYPE_IMG
+  zh: '![增加上传文件的大小](img/4965_01_05.jpg)'
 - en: How to do it...
+  id: totrans-167
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'This is controlled by one simple part of the Nginx configuration. You can simply
     paste this in the server part of the Nginx configuration:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一点由 Nginx 配置中的一个简单部分控制。你只需将其粘贴到 Nginx 配置中的服务器部分即可：
 - en: '[PRE19]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: This preceding configuration will allow you to upload a 100 megabyte file. Anything
     more than that, and you will receive a 413\. You can set this to any value which
     is less than the available disk space to Nginx, which is primarily because Nginx
     downloads the file to a temporary location before forwarding it to the backend
     application.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置允许你上传一个 100 兆字节的文件。超过这个大小，你将收到 413 错误。你可以将此设置为小于 Nginx 可用磁盘空间的任何值，主要原因是
+    Nginx 会先将文件下载到临时位置，然后再将其转发到后端应用程序。
 - en: There's more...
+  id: totrans-171
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: Nginx also lets us control other factors related to people uploading files on
     the web application, like timeouts in case the client has a slow connection. A
     slow client can keep one of your application threads busy and thus potentially
     slow down your application. This is a problem that is experienced on all the heavy
     multimedia user-driven sites, where the consumer uploads all kinds of rich data
     such as images, documents, videos, and so on. So it is sensible to set low timeouts.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 还允许我们控制与用户在 Web 应用程序上传文件相关的其他因素，比如在客户端连接较慢的情况下设置超时。一个慢速客户端可能会占用你应用程序的一个线程，从而可能拖慢应用程序的速度。这是所有大型多媒体用户驱动站点中都会遇到的问题，在这些站点上，消费者上传各种丰富的数据，如图片、文档、视频等。因此，设置较低的超时是明智的。
 - en: '[PRE20]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: So, here the first two settings help you control the timeout when the body is
     not received at one read-step (basically, if the server is queried and no response
     comes back). Similarly, you can set the timeout for the HTTP header as well. The
     following table lists out the various directives and limits you can set around
     client uploading.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，这里前两个设置帮助你控制在请求体未在一次读取中接收到时的超时（基本上，如果服务器被查询但没有响应）。类似地，你也可以设置 HTTP 头的超时。下表列出了与客户端上传相关的各种指令和限制。
 - en: '| Directive | Use |'
+  id: totrans-175
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 用法 |'
 - en: '| --- | --- |'
+  id: totrans-176
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `client_body_in_file_only` | This directive forces Nginx to always store
     a client request body in temporary disk files, even if the file size is 0.The
     file will not be removed at request completion. |'
+  id: totrans-177
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_in_file_only` | 该指令强制 Nginx 总是将客户端请求体存储在临时磁盘文件中，即使文件大小为 0。文件将在请求完成时不会被移除。
+    |'
 - en: '| `client_body_in_single_buffer` | This directive specifies whether to keep
     the whole body in a single client request buffer. |'
+  id: totrans-178
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_in_single_buffer` | 该指令指定是否将整个请求体保存在单个客户端请求缓冲区中。 |'
 - en: '| `client_body_buffer_size` | This directive specifies the client request body
     buffer size.If the request body is more than the buffer, then the entire request
     body or some part is written in a temporary file. |'
+  id: totrans-179
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_buffer_size` | 该指令指定客户端请求体缓冲区的大小。如果请求体大于缓冲区，则整个请求体或部分内容将写入临时文件。
+    |'
 - en: '| `client_body_temp_path` | This directive assigns the directory for storing
     the temporary files in it with the body of the request. |'
+  id: totrans-180
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_temp_path` | 该指令指定存储请求体临时文件的目录。 |'
 - en: '| `client_body_timeout` | This directive sets the read timeout for the request
     body from client. |'
+  id: totrans-181
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_timeout` | 该指令设置从客户端读取请求体的超时。 |'
 - en: '| `client_header_buffer_size` | This directive sets the header buffer size
     for the request header from client. |'
+  id: totrans-182
   prefs: []
   type: TYPE_TB
+  zh: '| `client_header_buffer_size` | 该指令设置客户端请求头的缓冲区大小。 |'
 - en: '| `client_header_timeout` | This directive assigns timeout with reading of
     the title of the request of client. |'
+  id: totrans-183
   prefs: []
   type: TYPE_TB
+  zh: '| `client_header_timeout` | 该指令设置读取客户端请求头时的超时。 |'
 - en: '| `client_max_body_size` | This directive assigns the maximum accepted body
     size of client request, indicated by the line Content-Length in the header of
     request. |'
+  id: totrans-184
   prefs: []
   type: TYPE_TB
+  zh: '| `client_max_body_size` | 该指令指定客户端请求的最大接受体积，由请求头中的 Content-Length 行表示。 |'
 - en: Using dynamic SSI for simple sites
+  id: totrans-185
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用动态 SSI 来处理简单站点
 - en: With the advent of modern feature-full web servers, most of them have Server-Side
     Includes (SSI) built in. Nginx provides easy SSI support which can let you do
     pretty much all basic web stuff.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着现代功能全面的 Web 服务器的出现，大多数服务器都内置了服务器端包含（SSI）。Nginx 提供了简单的 SSI 支持，使你能够完成几乎所有基本的
+    Web 操作。
 - en: How to do it...
+  id: totrans-187
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做到这一点...
 - en: Let's take a simple example and start understanding what one can achieve with
     it.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过一个简单的例子开始理解如何使用它。
 - en: 'Add the following code to the `nginx.conf` file:'
+  id: totrans-189
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将以下代码添加到 `nginx.conf` 文件中：
 - en: '[PRE21]'
+  id: totrans-190
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'Add the following code to the `index.html` file:'
+  id: totrans-191
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将以下代码添加到 `index.html` 文件中：
 - en: '[PRE22]'
+  id: totrans-192
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Add the following code to the `header.html` file:'
+  id: totrans-193
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将以下代码添加到 `header.html` 文件中：
 - en: '[PRE23]'
+  id: totrans-194
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'Add the following code to the `footer.html` file:'
+  id: totrans-195
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将以下代码添加到 `footer.html` 文件中：
 - en: '[PRE24]'
+  id: totrans-196
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: How it works...
+  id: totrans-197
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何运作...
 - en: This is a simple example where we can see that you can simply include some partials
     in the larger page, and in addition to that you can create block as well within
     the page. So the`<block>` directive allows you to create silent blocks that can
     be included later, while the`<include>` directive can be used to include HTML
     partials from other files, or even URL end points. The`<echo>` directive is used
     to output certain variables from within the Nginx context.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个简单的示例，我们可以看到，你可以简单地在较大的页面中包含一些局部内容，除此之外，你还可以在页面内创建块。因此，`<block>` 指令允许你创建静默块，这些块可以稍后包含，而
+    `<include>` 指令则用于从其他文件或 URL 端点中包含 HTML 部分。`<echo>` 指令用于输出来自 Nginx 上下文中的某些变量。
 - en: There's more...
+  id: totrans-199
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'You can utilize this feature for all kinds of interesting setups where:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以将此功能应用于各种有趣的设置，场景包括：
 - en: You are serving different blocks of HTML for different browsers types
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你为不同浏览器类型提供不同的 HTML 块
 - en: You want to optimize and speed up certain common blocks of the sites
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你希望优化并加速某些常见网站块的加载
 - en: You want to build a simple site with template inheritance without installing
     any other scripting language
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你想构建一个简单的网站，使用模板继承而无需安装任何其他脚本语言
 - en: Adding content before and after a particular page
+  id: totrans-204
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在特定页面前后添加内容
 - en: Today, in most of the sites that we visit, the webpage structure is formally
     divided into a set of boxes. Usually, all sites have a static header and a footer
     block. Here, in this following page you can see the YUI builder generating the
     basic framework of such a page.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 今天，在我们访问的大多数网站中，网页结构通常被正式分为一组框。通常，所有网站都有一个静态的头部和脚部块。以下页面中，你可以看到 YUI 构建器生成这种页面的基本框架。
 - en: In such a scenario, Nginx has a really useful way of adding content before and
     after it serves a certain page. This will potentially allow you to separate the
     various blocks and optimize their performance individually, as well.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，Nginx 提供了一种非常有用的方法，在服务特定页面之前和之后添加内容。这将有助于你将各种块分开，并单独优化它们的性能。
 - en: 'Let''s have a look at an example page:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看一个示例页面：
 - en: '![Adding content before and after a particular page](img/4965_01_06.jpg)'
+  id: totrans-208
   prefs: []
   type: TYPE_IMG
+  zh: '![在特定页面前后添加内容](img/4965_01_06.jpg)'
 - en: 'So here we want to insert the header block before the content, and then append
     the footer block:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以在这里，我们想在内容之前插入头部块，然后附加脚部块：
 - en: '![Adding content before and after a particular page](img/4965_01_07.jpg)'
+  id: totrans-210
   prefs: []
   type: TYPE_IMG
+  zh: '![在特定页面前后添加内容](img/4965_01_07.jpg)'
 - en: How to do it…
+  id: totrans-211
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何实现…
 - en: 'The sample configuration for this particular page would look like this:'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 该页面的示例配置如下所示：
 - en: '[PRE25]'
+  id: totrans-213
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: This can act as a performance enhancer by allowing you to load CSS based upon
     the browser only. There can be cases where you want to introduce something into
     the header or the footer on short notice, without modifying your backend application.
     This provides an easy fix for those situations.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过仅根据浏览器加载 CSS，它可以作为性能增强工具。有时你可能希望在不修改后端应用程序的情况下，迅速向头部或脚部添加一些内容。这为这种情况提供了一个简单的解决方法。
 - en: Note
+  id: totrans-215
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not installed by default and it is necessary to enable it when
     building Nginx.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块默认未安装，构建 Nginx 时需要启用它。
 - en: '[PRE26]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Enabling auto indexing of a directory
+  id: totrans-218
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 启用目录的自动索引
 - en: Nginx has an inbuilt auto-indexing module. Any request where the index file
     is not found will route to this module. This is similar to the directory listing
     that Apache displays.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 内置了自动索引模块。任何找不到索引文件的请求都会路由到该模块。这类似于 Apache 显示的目录列表。
 - en: How to do it...
+  id: totrans-220
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'Here is the example of one such Nginx directory listing. It is pretty useful
     when you want to share some files over your local network. To start auto index
     on any directory all you need to do is to carry out the following example and
     place it in the server section of the Nginx configuration file:'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个 Nginx 目录列表示例。当你希望在本地网络上共享一些文件时，这非常有用。要在任何目录上启动自动索引，你只需执行以下示例，并将其放置在 Nginx
+    配置文件的服务器部分：
 - en: '[PRE27]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: How it works...
+  id: totrans-223
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'This will simply enable auto indexing when the user types in `http://www.example1.com`.
     You can also control some other things in the listings in this way:'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将仅在用户输入 `http://www.example1.com` 时启用自动索引。你还可以通过这种方式控制列表中的一些其他内容：
 - en: '[PRE28]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: This will turn off the exact file size listing and will only show the estimated
     sizes. This can be useful when you are worried about file privacy issues.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将关闭精确的文件大小列出，仅显示估算大小。当你担心文件隐私问题时，这非常有用。
 - en: '[PRE29]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'This will represent the timestamps on the files as your local server time (it
     is GMT by default):'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将表示文件的时间戳为本地服务器时间（默认是GMT）：
 - en: '![How it works...](img/4965_01_08.jpg)'
+  id: totrans-229
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_01_08.jpg)'
 - en: This image displays a sample index auto-generated by Nginx using the preceding
     configuration. You can see the filenames, timestamp, and the file sizes as the
     three data columns.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 这张图片显示了Nginx使用之前的配置自动生成的示例索引。你可以看到文件名、时间戳和文件大小作为三个数据列。
 - en: Serving any random web page from a directory
+  id: totrans-231
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从目录中提供任意网页
 - en: There has been a recent trend for a lot of sites to test out their new pages
     based upon the A/B methodology. You can explore more about its history and the
     various companies that have adopted this successfully as a part of their development
@@ -996,84 +1475,122 @@
     or the number of clicks on a particular element). Then you go about getting people
     to randomly visit these pages and get data about their behavior on them. This
     lets you iteratively improve the page and the elements on them.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近有许多网站开始采用A/B测试方法来测试新页面。你可以在[http://en.wikipedia.org/wiki/A/B_testing](http://en.wikipedia.org/wiki/A/B_testing)了解更多关于A/B测试的历史以及采用这一方法成功的各家公司。在这个实践中，你有一组页面和一些指标（比如注册人数，或者某个特定元素的点击次数）。然后，你会让一些人随机访问这些页面，并获取他们在页面上的行为数据。这让你能够逐步改进页面及其元素。
 - en: '![Serving any random web page from a directory](img/4965OS_01_09.jpg)'
+  id: totrans-233
   prefs: []
   type: TYPE_IMG
+  zh: '![从目录中提供任意网页](img/4965OS_01_09.jpg)'
 - en: Nginx has something that will let you to run your own A-B test without writing
     any code at all. It allows you to randomly select any web page from a directory
     and display it.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx有一个功能，可以让你在无需编写任何代码的情况下运行自己的A-B测试。它允许你从目录中随机选择任何网页并显示。
 - en: How to do it...
+  id: totrans-235
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Let''s have a look at a sample configuration which needs to be placed within
     the HTTP section of the Nginx configuration:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看一个示例配置，需要放在Nginx配置的HTTP部分：
 - en: '[PRE30]'
+  id: totrans-237
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: How it works...
+  id: totrans-238
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: Let's assume that you have some files in the `/var/www/www.example1.com/test_index`
     directory. When you turn on the random index it will scan the directory and then
     send a randomly picked file instead of the default `index.html`. The only exceptions
     are plain files. Whole filenames which start with a dot will not be part of the
     site of files to be picked from.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你在`/var/www/www.example1.com/test_index`目录下有一些文件。当你启用随机索引时，它会扫描该目录，然后随机选择一个文件来替代默认的`index.html`。唯一的例外是纯文件名。以点号（.）开头的整个文件名将不会成为可选文件的一部分。
 - en: 'So here are two sample test pages, with slightly differing headers. Notice
     that the URLs are the same. So it will let you determine if the end user is clicking
     through more with the red link or the blue link using pure statistical methods:'
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以这里有两个示例测试页面，头部稍有不同。注意URL是相同的。通过纯粹的统计方法，它可以帮助你判断最终用户是更倾向于点击红色链接还是蓝色链接：
 - en: '![How it works...](img/4965_01_10.jpg)'
+  id: totrans-241
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_01_10.jpg)'
 - en: The preceding screenshot displays `A.html` on opening the site. There is equal
     probability of opening both the pages, much like the tossing of a coin and getting
     heads or tails.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的截图显示了在打开网站时显示的是`A.html`。打开这两个页面的概率是相等的，就像抛硬币一样，可能是正面或反面。
 - en: '![How it works...](img/4965_01_11.jpg)'
+  id: totrans-243
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_01_11.jpg)'
 - en: So, using the A-B testing as an example, you can set an `A.html` and a `B.html`,
     which would be served to the user randomly. It would allow you to easily measure
     a lot of interesting client behavior by simply analyzing the Nginx access logs.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，作为A-B测试的一个例子，你可以设置一个`A.html`和一个`B.html`，它们会随机显示给用户。这将让你通过简单地分析Nginx访问日志，轻松地测量许多有趣的用户行为。
 - en: Serving cookies for identifying and logging users
+  id: totrans-245
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 提供用于识别和记录用户的Cookie
 - en: Nginx has a useful functionality of serving cookies for identifying users. This
     is very useful in tracking anonymous user behavior in case a website does not
     want to employ external analytics software. This module is compatible with the
     `mod_uid` module in Apache2, which provides a similar functionality.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx具有一个有用的功能，用于提供Cookie来识别用户。在网站不想使用外部分析软件的情况下，这对于跟踪匿名用户行为非常有用。这个模块与Apache2中的`mod_uid`模块兼容，后者提供了类似的功能。
 - en: How to do it…
+  id: totrans-247
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何操作…
 - en: 'Here is a sample configuration for this module. This goes in the server section
     of the configuration:'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是该模块的示例配置。它需要放在配置文件的服务器部分：
 - en: '[PRE31]'
+  id: totrans-249
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: How it works...
+  id: totrans-250
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Now let''s see and understand what the various directives are about. The first
     `userid` directive enables this module; the second assigns a name to the cookie
     which is going to be written on the client side. The next three directives are
@@ -1084,115 +1601,171 @@
     about the user. It is basically an XML file that allows you to programmatically
     display your privacy policy. The following code is a simple example configuration
     of how you can define a policy where the data is removed after 4 months:'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们来看看并理解各种指令的含义。第一个 `userid` 指令启用此模块；第二个指令为将要在客户端写入的 cookie 分配一个名称。接下来的三个指令是需要的标准
+    cookie 信息（主域名、路径和过期时间）。最后一个指令使浏览器能够理解网站遵循的隐私做法。这是通过使用 P3P 协议完成的，该协议允许网站声明它们收集的用户信息的使用方式。它基本上是一个
+    XML 文件，允许你以编程方式显示隐私政策。以下代码是一个简单的配置示例，展示了如何定义一个在 4 个月后删除数据的政策：
 - en: '[PRE32]'
+  id: totrans-252
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: This XML put on the server will objectively define the privacy policies of the
     site to the incoming bots or users.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 XML 放在服务器上将客观地定义网站的隐私政策，供来访的机器人或用户查看。
 - en: There's more...
+  id: totrans-254
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: On enabling this module, some variables are available in the Nginx configuration
     which allow you do fairly interesting things. You have access to some variables
     in the configuration contest, like `$uid_got,$uid_set`.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 启用此模块后，在 Nginx 配置中会有一些变量可用，允许你做一些非常有趣的事情。你可以访问一些配置中的变量，如`$uid_got`、`$uid_set`。
 - en: These can be used for writing interesting rewrite rules. A simple application
     using these variables is to log the users coming on your site and then determining
     the user bounce rates on your website by parsing the logs.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些可以用于编写有趣的重写规则。使用这些变量的一个简单应用是记录访问你网站的用户，然后通过解析日志来确定用户的跳出率。
 - en: Re-encoding the response to another encoding
+  id: totrans-257
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将响应重新编码为另一种编码
 - en: File encoding is a major issue on most websites, a lot of time the database
     (MySQL in most cases) is configured to run using the Latin-1 encoding instead
     of the UTF-8 encoding that is the prevalent standard. Nginx provides an easy solution
     for changing your web page encoding on-the-fly, so that your users do not end
     up with garbled characters on your website
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 文件编码是大多数网站的一个主要问题，很多时候数据库（大多数情况下是 MySQL）被配置为使用 Latin-1 编码，而不是广泛使用的 UTF-8 编码。Nginx
+    提供了一个简单的解决方案，可以动态更改网页编码，避免用户在你的网站上看到乱码。
 - en: How to do it...
+  id: totrans-259
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'All you need to do is to place this in the server section of your Nginx configuration:'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要做的就是将以下内容放入 Nginx 配置的服务器部分：
 - en: '[PRE33]'
+  id: totrans-261
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: How it works...
+  id: totrans-262
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'This basically defines the fact that the source character set is `koi8-r`.
     If the encoding is different from the charset character set, then re-encoding
     is carried out. In case your original response already has a "Content-Type" header
     present then you will need to use the following to override and do the re-encoding:'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 这基本上定义了源字符集是`koi8-r`。如果编码与字符集不同，则会进行重新编码。如果原始响应中已经存在 "Content-Type" 头部，则需要使用以下内容来覆盖并进行重新编码：
 - en: '[PRE34]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: There's more...
+  id: totrans-265
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: 'You can also decide how the re-encoding happens by defining a character mapping.
     A simple example is the following:'
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以通过定义字符映射来决定如何进行重新编码。一个简单的示例如下：
 - en: '[PRE35]'
+  id: totrans-267
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: Nginx lets you do these neat little things that can make your site more accessible
     and usable for the end-user.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 让你做一些小巧的操作，可以让你的网站对最终用户更加易访问和可用。
 - en: Enabling Gzip compression on some content types
+  id: totrans-269
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 对某些内容类型启用 Gzip 压缩
 - en: As the Web has evolved, we have had improvements in web server and browser technologies.
     In recent times, with the booming consumer Internet market, the web application
     has had to become faster.
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着网络的发展，网页服务器和浏览器技术也得到了改善。近年来，随着消费者互联网市场的蓬勃发展，网页应用必须变得更加快速。
 - en: Compression techniques, which were already present, have come of age and now
     most sites enable a fairly high degree of compression on the pages they serve.
     Nginx being state of the art, has Gzip compression and allows a whole lot of options
     on how to go about it.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 已经存在的压缩技术已经成熟，现在大多数网站都会对其提供的页面启用较高程度的压缩。作为最先进的技术，Nginx 提供了 Gzip 压缩，并允许有很多选项来进行配置。
 - en: How to do it...
+  id: totrans-272
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'You will need to modify your Nginx configuration file and add the following
     directives:'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要修改 Nginx 配置文件并添加以下指令：
 - en: '[PRE36]'
+  id: totrans-274
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: How it works...
+  id: totrans-275
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This sample configuration allows you to turn on the Gzip compression of the
     outgoing page for all pages which are over 1000 bytes. This limit is set because
     compression technology performance degrades as the page size becomes smaller.
     You can then set the various MIME types for which the compression should occur;
     this particular example will compress only plain text files and XML files.
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个示例配置允许你为所有大于 1000 字节的页面启用 Gzip 压缩。设置这个限制是因为压缩技术在页面大小较小时性能会下降。你可以设置不同的 MIME
+    类型，以决定哪些文件需要进行压缩；这个示例仅压缩纯文本文件和 XML 文件。
 - en: Older browsers are not the best when it comes to utilizing this, and you can
     disable Gzip depending on the browser type. One of the most interesting settings
     is the level of compression where you need to make a choice between the amount
@@ -1201,92 +1774,141 @@
     It is recommended to follow a middle path on this particular setting; the client
     also spends more CPU time decompressing the page if you set this. A sensible setting
     of this value would be six.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 旧版浏览器在使用这项功能时效果不佳，你可以根据浏览器类型禁用 Gzip。最有趣的设置之一是压缩级别，你需要在压缩和服务页面时所需的 CPU 时间与要花费的
+    CPU 时间之间做出选择（*这个数字越高，更多的 CPU 时间会花费在压缩和发送页面上*）。建议在这个设置上采取中庸之道；如果设置了此选项，客户端也会花费更多的
+    CPU 时间来解压页面。这个值的合理设置应该是六。
 - en: There's more...
+  id: totrans-278
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'For proxy requests, `gzip_proxied` actually allows or disallows the compression
     of the response of the proxy request based on the request and the response. You
     can use the following parameters:'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于代理请求，`gzip_proxied` 实际上根据请求和响应允许或禁止压缩代理请求的响应。你可以使用以下参数：
 - en: '| parameter | Function |'
+  id: totrans-280
   prefs: []
   type: TYPE_TB
+  zh: '| 参数 | 功能 |'
 - en: '| --- | --- |'
+  id: totrans-281
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `off` | Disables compression for all proxy requests |'
+  id: totrans-282
   prefs: []
   type: TYPE_TB
+  zh: '| `off` | 禁用所有代理请求的压缩 |'
 - en: '| `expired` | Enables compression, if the `Expires` header prevents caching
     |'
+  id: totrans-283
   prefs: []
   type: TYPE_TB
+  zh: '| `expired` | 如果 `Expires` 头部阻止缓存，则启用压缩 |'
 - en: '| `no-cache` | Enables compression if `Cache-Control` header contains `no-cache`
     |'
+  id: totrans-284
   prefs: []
   type: TYPE_TB
+  zh: '| `no-cache` | 如果 `Cache-Control` 头部包含 `no-cache`，则启用压缩 |'
 - en: '| `no-store` | Enables compression if `Cache-Control` header contains `no-store`
     |'
+  id: totrans-285
   prefs: []
   type: TYPE_TB
+  zh: '| `no-store` | 如果 `Cache-Control` 头部包含 `no-store`，则启用压缩 |'
 - en: '| `private` | Enables compression if `Cache-Control` header contains `private`
     |'
+  id: totrans-286
   prefs: []
   type: TYPE_TB
+  zh: '| `private` | 如果 `Cache-Control` 头部包含 `private`，则启用压缩 |'
 - en: '| `no_last_modified` | Enables compression if `Last-Modified` isn''t set |'
+  id: totrans-287
   prefs: []
   type: TYPE_TB
+  zh: '| `no_last_modified` | 如果未设置 `Last-Modified`，则启用压缩 |'
 - en: '| `no_etag` | Enables compression if there is no `ETag` header |'
+  id: totrans-288
   prefs: []
   type: TYPE_TB
+  zh: '| `no_etag` | 如果没有 `ETag` 头部，则启用压缩 |'
 - en: '| `auth` | Enables compression if there is an `Authorization` header |'
+  id: totrans-289
   prefs: []
   type: TYPE_TB
+  zh: '| `auth` | 如果有 `Authorization` 头部，则启用压缩 |'
 - en: '| `any` | Enables compression for all requests |'
+  id: totrans-290
   prefs: []
   type: TYPE_TB
+  zh: '| `any` | 启用所有请求的压缩 |'
 - en: So in the preceding example (expired `no-cache no-store private auth)` it is
     clear that the compression is enabled when the `Expires` header prevents caching,
     when the `Cache-Control` contains `no-cache, no-store`, or `private`, and when
     there is an `Authorization` header present. This allows tremendous control on
     how the compression is delivered to the client's browser.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以在前面的示例中（expired `no-cache no-store private auth)`），显然当 `Expires` 头部阻止缓存时，启用压缩；当
+    `Cache-Control` 包含 `no-cache`、`no-store` 或 `private` 时，启用压缩；并且当存在 `Authorization`
+    头部时，也启用压缩。这提供了对如何将压缩传递到客户端浏览器的巨大控制。
 - en: Setting up 404 and other error pages
+  id: totrans-292
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置 404 和其他错误页面
 - en: All web applications have errors and missing pages, and Nginx has easy methods
     of ensuring that the end user has a good experience when the application does
     not respond correctly. It successfully handles all the HTTP errors with default
     pages, which can gracefully notify the users that something has gone wrong.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有 Web 应用程序都有错误和缺失页面，而 Nginx 提供了简便的方法，确保在应用程序未正确响应时，最终用户依然能获得良好的体验。它成功地处理了所有
+    HTTP 错误，并使用默认页面优雅地通知用户出了点问题。
 - en: How to do it...
+  id: totrans-294
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: Nginx allows you to do pretty interesting things with error pages. Following
     are some example configurations which can be placed within the HTTP or server
     section.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 允许你在错误页面上做一些有趣的事情。以下是一些示例配置，可以放在 HTTP 或服务器部分。
 - en: We are also going to define a named location using the "@" prefix after location.
     These locations are not used during the normal processing of any request and are
     intended to only process internally redirected requests.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将使用“@”前缀定义一个命名的位置。这些位置不会在任何请求的正常处理过程中使用，旨在仅处理内部重定向的请求。
 - en: '[PRE37]'
+  id: totrans-297
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: How it works...
+  id: totrans-298
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The first example allows you to map a simple 404 page to a simple HTML. The
     next example allows the mapping of various application error codes to another
     generic application error HTML page. You can also map the error page to some other
@@ -1296,16 +1918,25 @@
     code to a 200 (HTTP OK). This is useful in situations where you have excessive
     404 pages on the site, and would prefer not sending a 404 back as reply, but a
     200 with a very small GIF file in return.
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个示例让你将一个简单的404页面映射到一个简单的HTML页面。下一个示例则允许将各种应用错误代码映射到另一个通用的应用错误HTML页面。你还可以将错误页面映射到其他外部网站（`http://example1.com/forbidden.html`）。第四个示例允许将页面映射到另一个位置，定义为`@fallback`。最后一个示例很有意思，它实际上允许你将响应代码更改为200（HTTP
+    OK）。这在你的网站上有过多的404页面时非常有用，你可能不希望返回404，而是返回一个200，并附带一个非常小的GIF文件。
 - en: You can utilize this very effectively to give the end user a better experience
     when they inadvertently reach dead ends and application errors on your site.
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以非常有效地利用这一点，为终端用户提供更好的体验，当他们无意中遇到死链和应用错误时。
 - en: If you do not set these error pages correctly, you will get the default Nginx
     error pages which may not be useful to the user and may turn them away.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你没有正确设置这些错误页面，你将看到默认的Nginx错误页面，这些页面可能对用户没有帮助，甚至可能让他们离开。
 - en: '![How it works...](img/4965_01_12.jpg)'
+  id: totrans-302
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965_01_12.jpg)'
