@@ -1,4 +1,5 @@
 - en: Chapter 2. Configuring Core Modules
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -6,76 +7,99 @@
     modules of Nginx, which are also called the core modules. We will discuss the
     module-related configuration options and important points that one needs to remember
     while using these options.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
 - en: Understanding the Main module
+  id: totrans-2
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'The Nginx `Main` module consists of the following configuration directives
     or commands:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
 - en: '| Name | Value | Default | Example |'
+  id: totrans-4
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- |'
+  id: totrans-5
   prefs: []
   type: TYPE_TB
 - en: '| daemon | on, off | on |   |'
+  id: totrans-6
   prefs: []
   type: TYPE_TB
 - en: '| master_process | on, off | on |   |'
+  id: totrans-7
   prefs: []
   type: TYPE_TB
 - en: '| timer_resolution | interval | 0 | 100ms |'
+  id: totrans-8
   prefs: []
   type: TYPE_TB
 - en: '| pid | file | logs/nginx.pid | /var/log/nginx.pid |'
+  id: totrans-9
   prefs: []
   type: TYPE_TB
 - en: '| lock_file | file | logs/nginx.lock | /var/log/nginx.lock |'
+  id: totrans-10
   prefs: []
   type: TYPE_TB
 - en: '| worker_processes | number, auto | 1 | 2 |'
+  id: totrans-11
   prefs: []
   type: TYPE_TB
 - en: '| debug_points | stop, abort | null | stop |'
+  id: totrans-12
   prefs: []
   type: TYPE_TB
 - en: '| user | user [group] | nobody nobody | www users |'
+  id: totrans-13
   prefs: []
   type: TYPE_TB
 - en: '| worker_priority | number | 0 | 15 |'
+  id: totrans-14
   prefs: []
   type: TYPE_TB
 - en: '| worker_cpu_affinity | cpu mask |   | 0101 1010 |'
+  id: totrans-15
   prefs: []
   type: TYPE_TB
 - en: '| worker_rlimit_nofile | number |   | 1000 |'
+  id: totrans-16
   prefs: []
   type: TYPE_TB
 - en: '| worker_rlimit_core | size |   | 500M |'
+  id: totrans-17
   prefs: []
   type: TYPE_TB
 - en: '| worker_rlimit_sigpending | number |   | 1000 |'
+  id: totrans-18
   prefs: []
   type: TYPE_TB
 - en: '| working_directory | directory | compile time | /usr/local/nginx |'
+  id: totrans-19
   prefs: []
   type: TYPE_TB
 - en: '| env | variable = value |   | PERL5LIB=/data/site/modules |'
+  id: totrans-20
   prefs: []
   type: TYPE_TB
 - en: Explaining directives
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: We will now discuss all the `Main` module's directives mentioned in the preceding
     table in detail.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
 - en: daemon
+  id: totrans-23
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -84,6 +108,7 @@
     little or no user intervention. Since Version 1.0.9 of Nginx, it is safe to run
     Nginx with this option turned off. It is not possible to do a binary upgrade of
     Nginx without stopping it, if this option is off.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
 - en: Nginx's master process is responsible for nonstop binary upgrades. The signal
@@ -96,9 +121,11 @@
     will run Nginx in the foreground without a master process, and you can terminate
     it simply by pressing *Ctrl* + *R*. However, you should not run Nginx in production
     without the daemon mode and `master_process`.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
 - en: master_process
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -108,9 +135,11 @@
     should always run in production with the `master_process` option turned on. The
     only reason you might want to turn `master_process` off is for debugging reasons,
     as it might be much simpler to debug the code in a single-process mode.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
 - en: timer_resolution
+  id: totrans-28
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -120,32 +149,46 @@
     off if `gettimeofday()` shows up as an overhead on a busy server. You won't notice
     any difference on an idle server though. One good reason to use `timer_resolution`
     is to get the exact time in logs for the upstream response times.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置`timer_resolution`指令将减少`gettimeofday()`系统调用的次数。系统不会对每个内核事件执行该系统调用，而是每个指定的时间间隔仅调用一次`gettimeofday()`。如果在繁忙的服务器上`gettimeofday()`被认为是一个开销，您可能需要关闭此选项。不过在空闲服务器上您不会注意到任何区别。使用`timer_resolution`的一个好理由是可以在日志中获得精确的上游响应时间。
 - en: pid
+  id: totrans-30
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: pid
 - en: The `pid` directive specifies the filename for the `PID` file of the master
     process. The default value is relative to the `--prefix` configure option.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pid`指令指定主进程的`PID`文件的文件名。默认值相对于`--prefix`配置选项。'
 - en: lock_file
+  id: totrans-32
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: lock_file
 - en: 'The `lock_file` directive specifies the filename of the lock file. The default
     value is relative to the `--prefix` configure option. You can also specify this
     option during the compile time through the following configure script:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '`lock_file`指令指定锁文件的文件名。默认值相对于`--prefix`配置选项。您还可以通过以下配置脚本在编译时指定此选项：'
 - en: '[PRE0]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: worker_processes
+  id: totrans-35
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: worker_processes
 - en: The `worker_processes` directive defines the maximum number of worker processes.
     A worker process is a single-threaded process spawned by the master process. If
     you set this option to `auto`, Nginx will automatically try to determine the number
@@ -153,70 +196,98 @@
     supported starting from Versions 1.3.8 and 1.2.5\. If you want Nginx to only use
     a limited number of cores on your server, setting this value explicitly would
     be a good idea.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_processes`指令定义了最大工作进程数。工作进程是由主进程生成的单线程进程。如果将此选项设置为`auto`，Nginx将自动尝试确定CPU/核心的数量，并将此选项设置为该数量。从版本1.3.8和1.2.5开始支持`auto`参数。如果您希望Nginx仅使用服务器上有限数量的核心，明确设置此值是个好主意。'
 - en: debug_points
+  id: totrans-37
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: debug_points
 - en: The `debug_points` directive is useful to debug Nginx. If you set this directive
     to `abort`, Nginx will produce a core dump file whenever there is an internal
     error. You can use this core dump file to obtain an error trace in a system debugger
     such as `gdb`. In order to obtain the core dump file, you will also need to configure
     the `working_rlimit_core` and `working_directory` directives.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '`debug_points`指令对调试Nginx非常有用。如果将此指令设置为`abort`，Nginx将在发生内部错误时生成核心转储文件。您可以使用此核心转储文件，在系统调试器如`gdb`中获取错误追踪。为了获取核心转储文件，您还需要配置`working_rlimit_core`和`working_directory`指令。'
 - en: If this directive is set to `stop`, any internal error will lead to the stopping
     of the process.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果此指令设置为`stop`，任何内部错误将导致进程停止。
 - en: user
+  id: totrans-40
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: user
 - en: 'The `user` directive is used to specify the user and the group of the worker
     processes. If no group name is specified, the same group name as that of the user
     is used. You can override the default nobody nobody by specifying the user and
     the group with the following `configure` script:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '`user`指令用于指定工作进程的用户和组。如果没有指定组名，则使用与用户相同的组名。您可以通过以下`configure`脚本覆盖默认的nobody
+    nobody，指定用户和组：'
 - en: '[PRE1]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: worker_priority
+  id: totrans-43
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: worker_priority
 - en: The `worker_priority` directive allows you to set the nice priority of the worker
     processes. Nginx will use the `setpriority()` system call to set the priority.
     Setting the priority to a lower value can result in favorable scheduling of the
     worker processes.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_priority`指令允许您设置工作进程的优先级。Nginx将使用`setpriority()`系统调用来设置优先级。将优先级设置为较低的值可以促使工作进程更有利地进行调度。'
 - en: The actual priority range varies between kernel versions. Before 1.3.36, Linux
     had a range from –infinity to 15\. Since kernel 1.3.43, Linux has the range from
     -20 to 19\. On some systems, the range of nice values is from -20 to 20.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际的优先级范围在不同的内核版本之间有所不同。在1.3.36之前，Linux的范围是从–infinity到15。自内核1.3.43起，Linux的范围从-20到19。在某些系统中，优先级范围是从-20到20。
 - en: worker_cpu_affinity
+  id: totrans-46
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: worker_cpu_affinity
 - en: 'The `worker_cpu_affinity` directive allows you to set the affinity masks for
     the worker processes. Affinity masks are bit masks, which can bind a process to
     a certain CPU. This can lead to better performance on some systems such as Windows,
     where several system processes are restricted to the first CPU/core. Therefore,
     excluding the first CPU/core can lead to better performance. We can bind each
     worker process to a different CPU with the following code snippet:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: You can set the CPU affinity value to up to 64 CPU/core.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
 - en: worker_rlimit_nofile
+  id: totrans-50
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -224,9 +295,11 @@
     that a worker process can use. When this directive is set, the `setrlimit()` system
     call is used to set the resource limit. Any attempt to exceed this limit will
     result in an error `EFILE` (signifying too many open files).
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
 - en: worker_rlimit_core
+  id: totrans-52
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -234,9 +307,11 @@
     created by a worker process. When this option is set, the `setrlimit()` system
     call is used to set the resource limit of the file size. When this option is `0`,
     no core dump files are created.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
 - en: worker_rlimit_sigpending
+  id: totrans-54
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -247,18 +322,22 @@
     queue in the earlier implementations. When this option is set, a `setrlimit()`
     system call is used to set the resource limit `RLIMIT_SIGPENDING`. In order to
     enforce this limit, both standard and real-time signals are counted.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
 - en: working_directory
+  id: totrans-56
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The `working_directory` directive specifies the path where the core dump files
     are created. This path should be an absolute path. You must make sure that the
     user or group specified via the `user` option has a write permission in this folder.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: env
+  id: totrans-58
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -268,90 +347,117 @@
     to preserve some of the inherited variables, change their values, or create new
     environment variables. The environment variable `NGINX` is used internally by
     the server and should not be set by the user.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
 - en: If you specify an environment variable's name without specifying its value,
     the value from the parent process, that is, the shell will be retained by Nginx.
     But if you specify a value as well, this new value will be used by the server.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: In the preceding code snippet, the value of the environment variable `MALLOC_OPTIONS`
     is retained from the parent process, while the other two environment variables
     are defined or redefined and any value set by the parent process is wiped off.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
 - en: Understanding the Events module
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'The `Events` module deals with the configuration of `epoll`, `kqueue`, `select`,
     `poll`, and more. This module consists of the following directives:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
 - en: '| Name | Value | Default | Example |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- | --- |'
+  id: totrans-66
   prefs: []
   type: TYPE_TB
 - en: '| accept_mutex | on, off | on | off |'
+  id: totrans-67
   prefs: []
   type: TYPE_TB
 - en: '| accept_mutex_delay | interval (ms) | 500ms | 500ms |'
+  id: totrans-68
   prefs: []
   type: TYPE_TB
 - en: '| debug_connection | ip, cidr | none | 192.168.1.1 |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
 - en: '| devpoll_changes | number | 32 | 64 |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
 - en: '| devpoll_events | number | 32 | 64 |'
+  id: totrans-71
   prefs: []
   type: TYPE_TB
 - en: '| kqueue_changes | number | 512 | 512 |'
+  id: totrans-72
   prefs: []
   type: TYPE_TB
 - en: '| kqueue_events | number | 512 | 512 |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
 - en: '| epoll_events | number | 512 | 512 |'
+  id: totrans-74
   prefs: []
   type: TYPE_TB
 - en: '| multi_accept | on, off | off | on |'
+  id: totrans-75
   prefs: []
   type: TYPE_TB
 - en: '| rtsig_signo | signal number | SIGRTMIN+10 |   |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
 - en: '| rtsig_overflow_events | number | 16 | 24 |'
+  id: totrans-77
   prefs: []
   type: TYPE_TB
 - en: '| rtsig_overflow_test | number | 32 | 40 |'
+  id: totrans-78
   prefs: []
   type: TYPE_TB
 - en: '| rtsig_overflow_threshold | number | 10 | 3 |'
+  id: totrans-79
   prefs: []
   type: TYPE_TB
 - en: '| use | Kqueue, rtsig, epoll, /dev/poll, select | decided by the configure
     script | rtsig |'
+  id: totrans-80
   prefs: []
   type: TYPE_TB
 - en: '| worker_connections | number | 512 | 200 |'
+  id: totrans-81
   prefs: []
   type: TYPE_TB
 - en: Explaining directives
+  id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: We will now discuss the `Events` module's directives summarized in the preceding
     table, in detail.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
 - en: accept_mutex
+  id: totrans-84
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -361,9 +467,11 @@
     slight increase in the CPU usage. Depending on your OS and the event-notification
     mechanisms, the results may vary. If you are using `rtsig` as the signal-processing
     mechanism, this option needs to be enabled.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
 - en: accept_mutex_delay
+  id: totrans-86
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -371,9 +479,11 @@
     that is, one worker process does one `accept` at a time, the `accept_mutex_delay`
     directive determines how long the other worker processes will wait before they
     are ready to accept new connections while another process is already doing it.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
 - en: debug_connection
+  id: totrans-88
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -384,12 +494,16 @@
     The log level for the rest of the clients is determined through the `error_log`
     option. The debug log is written to the logfile specified in the `error_log` option
     as defined in the following code snippet:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: devpoll_changes and devpoll_events
+  id: totrans-91
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -398,9 +512,11 @@
     and `devpoll_events` parameters define the number of changes and events that can
     move to and from the kernel. Nginx only writes the `devpoll_changes` or `devpoll_events`
     number of events and changes to `/dev/poll` at a time while processing events.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
 - en: kqueue_changes and kqueue_events
+  id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -412,13 +528,16 @@
     which are less efficient, especially while polling for events on a large number
     of file descriptors. Other advanced event mechanisms such as `/dev/poll` and `epoll`
     allow you to do the same.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
 - en: These parameters control how many changes and events are passed at a time to
     the `kevent()` system call.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
 - en: epoll_events
+  id: totrans-96
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -426,9 +545,11 @@
     in Linux 2.6+. There are patches present to port this functionality to older kernels
     as well. This parameter determines the buffer size where the events are returned
     at a time before they are processed.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: multi_accept
+  id: totrans-98
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -441,9 +562,11 @@
     `multi_accept` is that if you have a constant stream of incoming connections at
     a high rate, it may overflow your `worker_connections` directive without any chance
     of processing the already-accepted connections.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
 - en: rtsig_signo
+  id: totrans-100
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -454,9 +577,11 @@
     first signal number. The second signal number is one more than the first signal
     number. By default, `rtsig_signo` is SIGRTMIN+10 (42), and the second signal number
     in this case would be 43.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: rtsig_overflow_events, rtsig_overflow_test, and rtsig_overflow_threshold
+  id: totrans-102
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -467,56 +592,80 @@
     consecutively, while `rtsig` periodically drains the queues to prevent a new overflow.
     When the overflow is handled completely, Nginx switches to the `rtsig` method
     again.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
 - en: The `rtsig_overflow_events` directive specifies the number of events to be passed
     via `poll()`.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: The `rtsig_overflow_test` directive specifies the number of events handled by
     `poll()`, after which, Nginx will drain the `rtsig` queue.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rtsig_overflow_test` 指令指定了 `poll()` 处理的事件数量，超过这个数量后，Nginx 将清空 `rtsig` 队列。'
 - en: The `rtsig_overflow_threshold` directive works in Linux 2.4.x only. Before draining
     the `rtsig` queue, Nginx looks at the extent to which the queue has been filled
     up. The default is 1/10\. `rtsig_overflow_threshold 3` means a value of 1/3.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rtsig_overflow_threshold` 指令仅在 Linux 2.4.x 中有效。在清空 `rtsig` 队列之前，Nginx 会检查队列的填充程度。默认值为
+    1/10。`rtsig_overflow_threshold 3` 意味着值为 1/3。'
 - en: use
+  id: totrans-107
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: use
 - en: The `use` directive specifies the event-notification method that should be used
     (`kqueue`, epoll, and more). This is useful for platforms where multiple options
     are available. During the configuration time, the best method for event notification
     is selected automatically, so in most cases, you don't need to set this directive.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '`use` 指令指定应使用的事件通知方法（`kqueue`、epoll 等）。对于有多个选项的平台，这非常有用。在配置时，系统会自动选择最佳的事件通知方法，因此在大多数情况下，你不需要设置此指令。'
 - en: worker_connections
+  id: totrans-109
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: worker_connections
 - en: The `worker_connections` directive specifies the maximum number of simultaneous
     connections that can be opened by a worker process.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_connections` 指令指定了工作进程可以打开的最大同时连接数。'
 - en: It should be kept in mind that this number includes all the connections and
     not just the client connections. Another consideration is that the actual number
     of simultaneous connections should not exceed the current limit on the maximum
     number of open files that can be changed by `worker_rlimit_nofile`.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要注意的是，这个数字包括所有连接，而不仅仅是客户端连接。另一个考虑因素是，实际的同时连接数不应超过当前的最大打开文件数限制，该限制可以通过 `worker_rlimit_nofile`
+    进行调整。
 - en: Summary
+  id: totrans-112
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we have looked at the configuration details of the two core
     modules of Nginx, that is, the `Main` and `Events` modules. These modules can't
     be opted out of, and you can't disable them. So, we went through each option and
     the suitable situations to use them.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章我们介绍了 Nginx 两个核心模块的配置细节，即 `Main` 模块和 `Events` 模块。这些模块是不可选择的，你无法禁用它们。因此，我们逐一讲解了每个选项及其适用的场景。
 - en: In the next chapter, we will look at installing and configuring HTTP modules
     and the configuration options related to those modules.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章，我们将讨论如何安装和配置 HTTP 模块以及与这些模块相关的配置选项。

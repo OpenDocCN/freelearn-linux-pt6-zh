@@ -1,7 +1,9 @@
 - en: Preface
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 前言
 - en: This book is for advanced users such as system administrators and developers
     who want to extend Nginx's functionality using its highly flexible add-on system.
     We look at the existing modules available and how to compile and install them,
@@ -9,143 +11,209 @@
     the configuration. It also goes beyond what is available off the shelf and teaches
     you how to write your own module, in case something is not available from the
     big Nginx open source community.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书面向高级用户，例如系统管理员和开发者，他们希望通过Nginx灵活的附加系统扩展Nginx的功能。我们将探讨现有的模块以及如何编译和安装它们，并通过实际示例来配置它们，重点是优化配置。它不仅超越了现有的开箱即用的内容，还教你如何编写自己的模块，以防某些功能在Nginx开源社区中不可用。
 - en: What this book covers
+  id: totrans-2
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书内容
 - en: '[Chapter 1](ch01.html "Chapter 1. Installing Nginx Core and Modules from Source"),
     *Installing Nginx Core and Modules from Source*, serves as a quick reference for
     downloading and installing Nginx and compilation options related to different
     modules and add-ons.'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第1章](ch01.html "第1章. 从源码安装Nginx核心及模块")，*从源码安装Nginx核心及模块*，作为快速参考，介绍了Nginx的下载与安装以及与不同模块和附加组件相关的编译选项。'
 - en: '[Chapter 2](ch02.html "Chapter 2. Configuring Core Modules"), *Configuring
     Core Modules*, is a reference to the core modules in Nginx, which cannot be disabled,
     and explores different configuration options for them.'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第2章](ch02.html "第2章. 配置核心模块")，*配置核心模块*，是关于Nginx核心模块的参考，这些模块无法禁用，探讨了不同的配置选项。'
 - en: '[Chapter 3](ch03.html "Chapter 3. Installing and Configuring HTTP Modules"),
     *Installing and Configuring HTTP Modules*, is a reference to the standard and
     optional HTTP modules, their synopsis, directives as well as practical configuration
     examples.'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第3章](ch03.html "第3章. 安装和配置HTTP模块")，*安装和配置HTTP模块*，是关于标准和可选HTTP模块的参考，介绍了它们的概述、指令以及实际配置示例。'
 - en: '[Chapter 4](ch04.html "Chapter 4. Installing Third-party Modules"), *Installing
     Third-party Modules*, introduces third-party modules, mostly available on GitHub.
     It talks about some well-known third-party modules, their installation and configuration,
     and also some guidelines on how to find different third-party modules out there.'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第4章](ch04.html "第4章. 安装第三方模块")，*安装第三方模块*，介绍了第三方模块，主要是在GitHub上提供的。它讨论了一些著名的第三方模块及其安装和配置，并提供了如何查找其他第三方模块的指南。'
 - en: '[Chapter 5](ch05.html "Chapter 5. Creating Your Own Module"), *Creating Your
     Own Module*, gives a brief introduction to creating your own modules. This chapter
     is a quick reference to the module system in Nginx. It also has a quick reference
     to the internal architecture of Nginx, which makes extension possible.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第5章](ch05.html "第5章. 创建自己的模块")，*创建自己的模块*，简要介绍了如何创建自己的模块。本章是Nginx模块系统的快速参考，也提供了关于Nginx内部架构的快速参考，这使得扩展成为可能。'
 - en: What you need for this book
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书所需内容
 - en: This book will help you understand the module-based architecture of Nginx. You
     will learn to install Nginx as well as extend it with several available modules.
     This book specially touches on the topic of creating your own Nginx modules. Most
     people have to read heaps of code to get this done. This book will make it easier
     for advanced users who are looking to extend Nginx by not only using existing
     modules, but also writing something of their own.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书将帮助你理解Nginx的模块化架构。你将学习如何安装Nginx，并通过多个可用模块扩展它。本书特别讨论了如何创建自己的Nginx模块。大多数人需要阅读大量的代码才能完成这项工作。本书将使高级用户更轻松地扩展Nginx，不仅使用现有的模块，还能编写自己的模块。
 - en: Who this book is for
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书的适用对象
 - en: This book is intended for advanced users, system administrators, and developers
     of Nginx modules.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书面向高级用户、系统管理员和Nginx模块开发者。
 - en: Conventions
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 约定
 - en: In this book, you will find a number of styles of text that distinguish between
     different kinds of information. Here are some examples of these styles, and an
     explanation of their meaning.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书中有多种文本样式，用于区分不同类型的信息。以下是一些样式示例及其含义的解释。
 - en: 'Code words in text, database table names, folder names, filenames, file extensions,
     pathnames, dummy URLs, user input, and Twitter handles are shown as follows: "You
     can reload the Nginx configuration once you edit the `nginx.conf` file."'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 文本中的代码词、数据库表名、文件夹名、文件名、文件扩展名、路径名、虚拟网址、用户输入和Twitter句柄如下所示：“一旦你编辑了`nginx.conf`文件，就可以重新加载Nginx配置。”
 - en: 'A block of code is set as follows:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 一段代码的设置如下：
 - en: '[PRE0]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'When we wish to draw your attention to a particular part of a code block, the
     relevant lines or items are set in bold:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们希望你关注代码块中的特定部分时，相关的行或项目会加粗显示：
 - en: '[PRE1]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Any command-line input or output is written as follows:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何命令行输入或输出都会以如下方式书写：
 - en: '[PRE2]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '**New terms** and **important words** are shown in bold. Words that you see
     on the screen, in menus or dialog boxes, for example, appear in the text like
     this: "For example, according to the following configuration, this module will
     make sure that it prints **Hello World**."'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '**新术语** 和 **重要单词** 以粗体显示。例如，你在屏幕上看到的词汇，出现在菜单或对话框中的单词，也会在文本中以这种方式显示：“例如，根据以下配置，这个模块将确保它打印出
+    **Hello World**。”'
 - en: Note
+  id: totrans-22
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Warnings or important notes appear in a box like this.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 警告或重要注意事项会以框框的形式显示。
 - en: Tip
+  id: totrans-24
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: Tips and tricks appear like this.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示和技巧会以这种方式显示。
 - en: Reader feedback
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 读者反馈
 - en: Feedback from our readers is always welcome. Let us know what you think about
     this book—what you liked or may have disliked. Reader feedback is important for
     us to develop titles that you really get the most out of.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们始终欢迎读者的反馈。让我们知道你对这本书的看法——你喜欢或不喜欢的地方。读者反馈对于我们开发真正能让你获得最大价值的书籍至关重要。
 - en: To send us general feedback, simply send an e-mail to `<[feedback@packtpub.com](mailto:feedback@packtpub.com)>`,
     and mention the book title via the subject of your message.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 若要发送一般反馈，只需向 `<[feedback@packtpub.com](mailto:feedback@packtpub.com)>` 发送电子邮件，并在邮件主题中提到书籍标题。
 - en: If there is a topic that you have expertise in and you are interested in either
     writing or contributing to a book, see our author guide on [www.packtpub.com/authors](http://www.packtpub.com/authors).
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在某个领域有专业知识，且有兴趣编写或参与书籍的撰写，请参考我们在 [www.packtpub.com/authors](http://www.packtpub.com/authors)
+    上的作者指南。
 - en: Customer support
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 客户支持
 - en: Now that you are the proud owner of a Packt book, we have a number of things
     to help you to get the most from your purchase.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 既然你已经成为一本Packt图书的骄傲拥有者，我们有许多内容帮助你充分利用这次购买。
 - en: Errata
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 勘误
 - en: Although we have taken every care to ensure the accuracy of our content, mistakes
     do happen. If you find a mistake in one of our books—maybe a mistake in the text
     or the code—we would be grateful if you would report this to us. By doing so,
@@ -156,33 +224,52 @@
     be accepted and the errata will be uploaded on our website, or added to any list
     of existing errata, under the Errata section of that title. Any existing errata
     can be viewed by selecting your title from [http://www.packtpub.com/support](http://www.packtpub.com/support).
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们已尽力确保内容的准确性，但错误难免发生。如果你在我们的书籍中发现错误——比如文本或代码中的错误——我们将非常感激你能向我们报告。这样，你可以帮助其他读者避免沮丧，并帮助我们改进后续版本。如果你发现任何勘误，请访问
+    [http://www.packtpub.com/submit-errata](http://www.packtpub.com/submit-errata)，选择你的书籍，点击
+    **勘误提交表单** 链接，并输入勘误的详细信息。一旦你的勘误被验证，我们将接受你的提交并将勘误上传到我们的网站，或添加到该书籍的现有勘误列表中，位于勘误部分。任何现有的勘误可以通过访问
+    [http://www.packtpub.com/support](http://www.packtpub.com/support) 来查看。
 - en: Piracy
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 盗版
 - en: Piracy of copyright material on the Internet is an ongoing problem across all
     media. At Packt, we take the protection of our copyright and licenses very seriously.
     If you come across any illegal copies of our works, in any form, on the Internet,
     please provide us with the location address or website name immediately so that
     we can pursue a remedy.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 网络上的版权材料盗版问题在所有媒体中都是一个持续存在的问题。在Packt，我们非常重视版权和许可证的保护。如果你在互联网上发现我们作品的任何非法复制形式，请立即向我们提供该位置地址或网站名称，以便我们追求解决方案。
 - en: Please contact us at `<[copyright@packtpub.com](mailto:copyright@packtpub.com)>`
     with a link to the suspected pirated material.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你发现可能的盗版材料，请通过 `<[copyright@packtpub.com](mailto:copyright@packtpub.com)>`
+    联系我们，并提供相关链接。
 - en: We appreciate your help in protecting our authors, and our ability to bring
     you valuable content.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们感谢你为保护我们的作者所做的帮助，以及我们为你带来有价值内容的能力。
 - en: Questions
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 问题
 - en: You can contact us at `<[questions@packtpub.com](mailto:questions@packtpub.com)>`
     if you are having a problem with any aspect of the book, and we will do our best
     to address it.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在使用本书的任何方面遇到问题，可以通过 `<[questions@packtpub.com](mailto:questions@packtpub.com)>`
+    与我们联系，我们会尽力解决。

@@ -1,348 +1,515 @@
 - en: Chapter 1. Installing Nginx Core and Modules from Source
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 1 章：从源代码安装 Nginx 核心和模块
 - en: This chapter serves as a quick reference to downloading and installing Nginx
     using binary and source distribution and compilation options related to different
     modules and add-ons.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章作为一个快速参考，介绍了使用二进制和源代码分发以及与不同模块和附加组件相关的编译选项来下载和安装 Nginx。
 - en: If you are reading this book, you are already familiar with Nginx (pronounced
     as engine-x). Therefore, we will not spend too much time discussing the basics.
     However, you will need a working copy of Nginx before proceeding to advanced topics.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您正在阅读这本书，您已经熟悉 Nginx（发音为 engine-x）。因此，我们不会花太多时间讨论基础知识。但是，在进行高级主题之前，您需要有一个可用的
+    Nginx 副本。
 - en: Installing binary distribution
+  id: totrans-3
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 安装二进制分发版
 - en: Most UNIX and Linux distributions have Nginx included in their package manager
     repositories. Use package manager commands on your platform to install it. For
     example, use **apt-get** on Ubuntu or Debian, and **emerge** on Gentoo. For Red
     Hat, Fedora, or CentOS, see the instructions that follow.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数 UNIX 和 Linux 发行版的包管理器仓库中都包含 Nginx。您可以使用平台上的包管理器命令来安装它。例如，在 Ubuntu 或 Debian
+    上使用 **apt-get**，在 Gentoo 上使用 **emerge**。对于 Red Hat、Fedora 或 CentOS，请参阅以下说明。
 - en: You can find binary installation instructions for different platforms such as
     Red Hat and Ubuntu on the Nginx installation wiki at [http://wiki.nginx.org/Install](http://wiki.nginx.org/Install).
     However, we will briefly describe the process here, quoting from the wiki.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以在 Nginx 安装 Wiki 上找到适用于不同平台（如 Red Hat 和 Ubuntu）的二进制安装说明，地址是 [http://wiki.nginx.org/Install](http://wiki.nginx.org/Install)。不过，我们将在这里简要描述该过程，并引用
+    Wiki 内容。
 - en: Red Hat, Fedora, and CentOS
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Red Hat、Fedora 和 CentOS
 - en: 'To add the Nginx yum repository, create a file named `/etc/yum.repos.d/nginx.repo`
     and paste one of the following configurations:'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 要添加 Nginx yum 仓库，请创建名为 `/etc/yum.repos.d/nginx.repo` 的文件，并粘贴以下配置之一：
 - en: '**For CentOS**:'
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**对于 CentOS**：'
 - en: '[PRE0]'
+  id: totrans-9
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**For RHEL**:'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**对于 RHEL**：'
 - en: '[PRE1]'
+  id: totrans-11
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: CentOS, RHEL, and Scientific Linux, each populate the `$releasever` variable
     differently. Therefore, depending on your OS version, replace `$releasever` with
     `5` (for 5.x) or `6` (for 6.x). Therefore, `baseurl` for 6.x would look like `baseurl=http://nginx.org/packages/rhel/6/$basearch/`.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: CentOS、RHEL 和 Scientific Linux 各自的 `$releasever` 变量设置不同。因此，根据您的操作系统版本，将 `$releasever`
+    替换为 `5`（对于 5.x）或 `6`（对于 6.x）。因此，6.x 的 `baseurl` 应为 `baseurl=http://nginx.org/packages/rhel/6/$basearch/`。
 - en: Official Debian/Ubuntu packages
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 官方 Debian/Ubuntu 包
 - en: 'Append the following lines to the `/etc/apt/sources.list` file, and replace
     the codename with the one appropriate for the release that you are using, for
     example, Ubuntu 13.10 is codenamed `saucy`:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 将以下行追加到 `/etc/apt/sources.list` 文件中，并将代号替换为适合您所使用版本的代号，例如，Ubuntu 13.10 的代号是
+    `saucy`：
 - en: '**For Ubuntu 12.10**:'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**对于 Ubuntu 12.10**：'
 - en: '[PRE2]'
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Please note that when you will run the apt-get update after adding the repository,
     you will get a **GPG** error of not being able to verify keys. If this happens
     and you find it hard to ignore it, do the following:'
+  id: totrans-17
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 请注意，在添加仓库后运行 apt-get update 时，您会遇到无法验证密钥的 **GPG** 错误。如果发生这种情况，且您觉得很难忽略它，请执行以下操作：
 - en: '[PRE3]'
+  id: totrans-18
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '**For Debian 6**:'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**对于 Debian 6**：'
 - en: '[PRE4]'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '**For Ubuntu PPA**: This PPA is maintained by volunteers and is not distributed
     by [nginx.org](http://nginx.org). It has some additional compiled-in modules,
     and it may be more fitting for your environment. You can get the latest stable
     version of Nginx from **Nginx PPA** on Launchpad: You will require root privileges
     to execute the following commands.'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**对于 Ubuntu PPA**：此 PPA 由志愿者维护，非 [nginx.org](http://nginx.org) 提供。它包含一些额外的编译模块，可能更适合您的环境。您可以从
+    Launchpad 上的 **Nginx PPA** 获取最新的稳定版本。执行以下命令时，您需要管理员权限。'
 - en: '**For Ubuntu 10.04 and newer**:'
+  id: totrans-22
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**对于 Ubuntu 10.04 及更新版本**：'
 - en: '[PRE5]'
+  id: totrans-23
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: If you get an error about add-apt-repository not existing, you will want to
     install python-software-properties. For other Debian/Ubuntu based distributions,
     you can try the lucid variant of the PPA that is the most likely to work on older
     package sets.
+  id: totrans-24
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果遇到关于 add-apt-repository 不存在的错误，您需要安装 python-software-properties。对于其他基于 Debian/Ubuntu
+    的发行版，您可以尝试使用适用于较旧包集的 PPA 的 lucid 变体。
 - en: '[PRE6]'
+  id: totrans-25
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: FreeBSD
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: FreeBSD
 - en: 'Update the BSD ports tree using the following command:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用以下命令更新 BSD 的 ports 树：
 - en: '[PRE7]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Install the web server using the following commands:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用以下命令安装 Web 服务器：
 - en: '[PRE8]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Type the following command to turn the Nginx server on:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 输入以下命令来启动 Nginx 服务器：
 - en: '[PRE9]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'To start Nginx, enter:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 启动 Nginx，请输入：
 - en: '[PRE10]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: OpenBSD
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: OpenBSD
 - en: OpenBSD, as of Version 5.1, includes Nginx as part of the base system. This
     means Nginx comes pre-installed along with all the library dependencies. The version
     is not always the latest and greatest one. However, this allows you to start migrating
     Apache applications over to Nginx. In the future, it is expected that the default
     httpd will be Nginx instead of Apache.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 从版本5.1开始，OpenBSD将Nginx作为基本系统的一部分。这意味着Nginx与所有库依赖一起预装。虽然版本不一定是最新的，但这使你可以开始将Apache应用程序迁移到Nginx。未来，预计默认的httpd将是Nginx，而不是Apache。
 - en: Official Win32 binaries
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 官方Win32二进制文件
 - en: As of Version 0.8.50 of Nginx, the official Windows binary is now available.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 从Nginx版本0.8.50开始，官方Windows二进制文件现已提供。
 - en: 'The Windows version is provided as binary-only due to the current build process,
     which uses WineTools at the moment. You will not be able to compile a Windows
     version from source. Once you download the Windows ZIP file, perform the following
     steps:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于当前的构建过程使用WineTools，因此Windows版本目前仅以二进制形式提供。你将无法从源代码编译Windows版本。下载Windows ZIP文件后，请执行以下步骤：
 - en: '**Installation**:'
+  id: totrans-40
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**安装**：'
 - en: '[PRE11]'
+  id: totrans-41
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '**Control**:'
+  id: totrans-42
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**控制**：'
 - en: '[PRE12]'
+  id: totrans-43
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: For problems, look in the `c:\nginx\logs\error.log` file or in `EventLog`.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于问题，请查看`c:\nginx\logs\error.log`文件或`EventLog`。
 - en: Installing source distribution
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 安装源代码分发版
 - en: Nginx binary packages are outdated and usually have an older version. If the
     binaries on your platform are not the latest and up-to-date, you can download
     the source from [http://nginx.org/en/download.html](http://nginx.org/en/download.html).
     At the time of writing this chapter, Version 1.4.3 is the stable downloadable
     version.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx二进制包通常是过时的，并且版本较旧。如果你平台上的二进制文件不是最新的，你可以从[http://nginx.org/en/download.html](http://nginx.org/en/download.html)下载源代码。在写这章时，版本1.4.3是稳定的可下载版本。
 - en: You can also checkout or clone the latest source.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以检出或克隆最新的源代码。
 - en: 'Read-only Subversion repositories:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 只读的Subversion仓库：
 - en: '`code: svn://svn.nginx.org/nginx`'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '`code: svn://svn.nginx.org/nginx`'
 - en: 'Read-only Mercurial repositories:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 只读的Mercurial仓库：
 - en: '`site: http://hg.nginx.org/nginx.org`'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '`site: http://hg.nginx.org/nginx.org`'
 - en: 'After you have downloaded the source archive, un-tar it and use the following
     standard build commands to build a standard binary:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 下载源代码包后，解压并使用以下标准构建命令来构建标准的二进制文件：
 - en: '[PRE13]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: This places the Nginx binary under `user/local`. However, you can override this
     path through configure options.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会将Nginx二进制文件放在`user/local`目录下。然而，你可以通过配置选项覆盖此路径。
 - en: Nginx library dependencies
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Nginx库依赖
 - en: 'If you want to build Nginx from source, the following libraries are needed
     at the minimum:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想从源代码构建Nginx，至少需要以下库：
 - en: GCC
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: GCC
 - en: Autotools (automake and autoconf)
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Autotools（automake和autoconf）
 - en: PCRE (Perl Compatible Regular Expressions)
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: PCRE（Perl兼容正则表达式）
 - en: zlib
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: zlib
 - en: OpenSSL
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: OpenSSL
 - en: You also have the option to disable the dependency on PCRE, zlib, and OpenSSL
     by disabling the compilation of rewrite, gzip, and ssl modules. These modules
     are enabled by default.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以选择禁用PCRE、zlib和OpenSSL的依赖，方法是禁用重写、gzip和ssl模块的编译。这些模块默认启用。
 - en: Configuring options
+  id: totrans-63
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 配置选项
 - en: Compile-time options are provided through `configure`. You can also find documentation
     related to the configure-time options online at [http://wiki.nginx.org/InstallOptions](http://wiki.nginx.org/InstallOptions).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译时选项通过`configure`提供。你还可以在线查找与配置时选项相关的文档，地址为[http://wiki.nginx.org/InstallOptions](http://wiki.nginx.org/InstallOptions)。
 - en: The `configure` command defines various aspects of the system including the
     methods that Nginx is allowed to use for connection processing. At the end, it
     creates a makefile. You can use `./configure --help` to see a full list of options
     supported by the `configure` command.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '`configure`命令定义了系统的各个方面，包括Nginx允许用于连接处理的方法。最后，它会创建一个makefile。你可以使用`./configure
+    --help`查看`configure`命令支持的所有选项。'
 - en: The following section is extracted from the Nginx online wiki.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下部分摘自Nginx在线wiki。
 - en: Files and permissions
+  id: totrans-67
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 文件和权限
 - en: '`--prefix=path`: It is set to the `/usr/local/nginx` directory by default.
     The path specified here is the root folder for keeping the server files. This
     includes the executable files, server log files, configuration files, and html
     documentation.'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--prefix=path`：默认设置为`/usr/local/nginx`目录。这里指定的路径是存放服务器文件的根文件夹，包括可执行文件、服务器日志文件、配置文件和HTML文档。'
 - en: '`--sbin-path=path`: The default Nginx executable name is `/sbin/nginx`. You
     can change the name using this configure option.'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--sbin-path=path`：默认的Nginx可执行文件名是`/sbin/nginx`。你可以通过此配置选项更改名称。'
 - en: '`--conf-path=path`: The default for this option is `prefix/conf/nginx.conf`.
     This is the default path for the Nginx configuration file. This file, as you will
     learn later, is used to configure everything about the Nginx server. The path
     also contains a number of other configuration files such as a sample `fastcgi`
     configuration file and character-set maps. You can always change this path later
     on in the configuration file.'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--conf-path=path`：此选项的默认值是 `prefix/conf/nginx.conf`。这是 Nginx 配置文件的默认路径。正如你稍后会学到的，这个文件用于配置
+    Nginx 服务器的所有内容。该路径还包含一些其他配置文件，如示例 `fastcgi` 配置文件和字符集映射。你可以随时在配置文件中更改该路径。'
 - en: '`--pid-path=path`: This option allows you to change the name of the pid file.
     The pid files are used by various utilities (including start/stop scripts) to
     determine if the server is running. Normally, it is a plain text file with the
     server process ID in it. By default, the file is named `prefix/logs/nginx.pid`.'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--pid-path=path`：此选项允许你更改 pid 文件的名称。pid 文件由各种工具（包括启动/停止脚本）使用，用来确定服务器是否在运行。通常，它是一个包含服务器进程
+    ID 的纯文本文件。默认情况下，文件名为 `prefix/logs/nginx.pid`。'
 - en: '`--error-log-path=path`: This option allows you to specify the location of
     the error log. By default, the file is named `prefix/logs/error.log`. You can
     set this value to `stderr`. It will redirect all the error messages to the standard
     error on your system. Normally, this will be your console or the screen.'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--error-log-path=path`：此选项允许你指定错误日志的位置。默认情况下，该文件名为 `prefix/logs/error.log`。你可以将该值设置为
+    `stderr`，这将把所有错误信息重定向到系统的标准错误输出。通常，这将是你的控制台或屏幕。'
 - en: '`--http-log-path=path`: This sets the name of the log file where all HTTP requests
     are logged. By default, the file is named `prefix/logs/access.log`. Like other
     options, this can be changed anytime by providing the `access_log` directive in
     the configuration file.'
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--http-log-path=path`：此选项设置记录所有 HTTP 请求的日志文件名称。默认情况下，该文件名为 `prefix/logs/access.log`。像其他选项一样，你可以通过在配置文件中提供
+    `access_log` 指令随时更改它。'
 - en: '`--user=USER`: This sets the username that will be used to run the Nginx worker
     processes. You should make sure that this is an unprivileged or non-root user.
     The default user name is `nobody`. You can change it later through the `user`
     directive in the configuration file.'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--user=USER`：此选项设置将用于运行 Nginx 工作进程的用户名。你应该确保这是一个非特权或非 root 用户。默认的用户名是 `nobody`。你可以通过配置文件中的
+    `user` 指令稍后进行更改。'
 - en: '`--group=name`: This sets the name of the group used to run the worker processes.
     The default group name is `nobody`. You can change this through the `user` directive
     in the configuration file.'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--group=name`：此选项设置用于运行工作进程的组名。默认的组名是 `nobody`。你可以通过配置文件中的 `user` 指令更改它。'
 - en: The Event loop
+  id: totrans-76
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 事件循环
 - en: 'One of the reasons for Nginx being so fast and stable is its ability to use
     event-based functions. Input/Output. The event-based coding ensures maximum performance
     within a single core by allowing it to be non-blocking. However, event-based code
@@ -350,163 +517,244 @@
     and OSX), `epoll` (Linux), and `/dev/poll` (Solaris, HPUX).In cases where these
     methods are not available, Nginx can work with more traditional `select()` and
     `poll()` methods as well. The following options affect this behavior:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 高效和稳定的原因之一是其能够使用基于事件的功能。输入/输出。基于事件的编码通过允许非阻塞操作来确保在单核中实现最佳性能。然而，基于事件的代码需要底层平台的支持，如
+    `kqueue`（FreeBSD、NetBSD、OpenBSD 和 OSX）、`epoll`（Linux）以及 `/dev/poll`（Solaris、HPUX）。如果这些方法不可用，Nginx
+    也可以使用更传统的 `select()` 和 `poll()` 方法。以下选项会影响这种行为：
 - en: '`--with-select_module`'
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-select_module`'
 - en: '`--without-select_module`'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--without-select_module`'
 - en: These enable or disable building of a module that allows the server to work
     with the `select()` method. This module is built automatically if the platform
     does not appear to support more appropriate methods such as `kqueue`, `epoll`,
     `rtsig`, or `/dev/poll`.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些选项启用或禁用构建一个模块，使服务器能够与 `select()` 方法一起工作。如果平台似乎不支持更合适的方法，如 `kqueue`、`epoll`、`rtsig`
+    或 `/dev/poll`，该模块将自动构建。
 - en: '`--with-poll_module`'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-poll_module`'
 - en: '`--without-poll_module`'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--without-poll_module`'
 - en: These enable or disable the building of a module that allows the server to work
     with the `poll()` method. This module is built automatically if the platform does
     not appear to support more appropriate methods such as `kqueue`, `epoll`, `rtsig`,
     or `/dev/poll`.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些选项启用或禁用构建一个模块，使服务器能够与 `poll()` 方法一起工作。如果平台似乎不支持更合适的方法，如 `kqueue`、`epoll`、`rtsig`
+    或 `/dev/poll`，该模块将自动构建。
 - en: Optional modules
+  id: totrans-84
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 可选模块
 - en: 'The optional modules are as follows:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 可选模块如下：
 - en: '`--without-http_gzip_module`: This option allows you to disable over-the-wire
     compression. This can be quite useful if you are sending or receiving large text
     documents over HTTP. However, if you don''t want to build this compression into
     Nginx binary, or you don''t have access to the zlib library that is required to
     enable this support, you can disable it using this option.'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--without-http_gzip_module`：此选项允许你禁用网络传输压缩。如果你正在通过 HTTP 发送或接收大型文本文件，这个选项非常有用。然而，如果你不想将此压缩功能集成到
+    Nginx 二进制文件中，或者没有访问 zlib 库（启用此支持所需的库），可以使用此选项将其禁用。'
 - en: '`--without-http_rewrite_module`: This option allows you to disable the HTTP
     rewrite module. The HTTP rewrite module allows you to redirect HTTP requests by
     modifying URIs that match a given pattern. You need the PCRE library to enable
     this module.'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--without-http_rewrite_module`：此选项允许你禁用 HTTP 重写模块。HTTP 重写模块允许你通过修改符合给定模式的
+    URI 来重定向 HTTP 请求。启用此模块需要 PCRE 库。'
 - en: '`--without-http_proxy_module`: This disables `ngx_http_proxy_module`. The proxy
     module allows you to pass the HTTP request to another server.'
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--without-http_proxy_module`：禁用 `ngx_http_proxy_module`。代理模块允许你将 HTTP 请求转发到另一个服务器。'
 - en: '`--with-http_ssl_module`: This enables the SSL support in the server. This
     is not enabled by default and you need OpenSSL in order to build SSL support in
     the Nginx binary.'
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-http_ssl_module`：启用服务器的 SSL 支持。默认情况下此功能未启用，并且你需要 OpenSSL 来在 Nginx 二进制文件中构建
+    SSL 支持。'
 - en: '`--with-pcre=path`: If you have downloaded the PCRE source on your machine,
     you can provide its path through this parameter. Nginx will automatically build
     this library before building the Nginx server. Please make sure that the version
     of PCRE source is 4.4 or higher.'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-pcre=path`：如果你在本地机器上下载了 PCRE 源代码，可以通过此参数提供其路径。Nginx 会在构建 Nginx 服务器之前自动构建此库。请确保
+    PCRE 源代码的版本为 4.4 或更高。'
 - en: '`--with-pcre-jit`: This builds the PCRE library with the "just-in-time compilation"
     support. This is significantly to improve the pattern matching or rewriting speed
     by converting the regular expressions into machine code.'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-pcre-jit`：此选项会构建带有“即时编译”（just-in-time compilation）支持的 PCRE 库。通过将正则表达式转换为机器代码，这显著提高了模式匹配或重写的速度。'
 - en: '`--with-zlib=path`: If you have already downloaded the zlib library source,
     you can provide its path here. Nginx will build the zlib library before building
     the server binary. Please make sure that the source version is 1.1.3 or higher.'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-zlib=path`：如果你已经下载了 zlib 库的源代码，可以在此处提供其路径。Nginx 会在构建服务器二进制文件之前先构建 zlib
+    库。请确保源代码的版本为 1.1.3 或更高。'
 - en: Compilation controls
+  id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 编译控制
 - en: 'The compilation controls are as follows:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译控制如下：
 - en: '`--with-cc-opt=parameters`: Additional options for the CFLAGS variable'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-cc-opt=parameters`：CFLAGS 变量的附加选项'
 - en: '`--with-ld-opt=parameters`: Additional parameters for the linker (`LD_LIBRAY_PATH`)
     that you should provide `--with-ld-opt="-L /usr/local/lib` when building on FreeBSD'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--with-ld-opt=parameters`：链接器（`LD_LIBRAY_PATH`）的附加参数，在 FreeBSD 上编译时，你需要提供
+    `--with-ld-opt="-L /usr/local/lib"`。'
 - en: Example
+  id: totrans-97
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 示例
 - en: 'Example of parameters usage (all of this needs to be typed in one line):'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 参数使用示例（所有内容需在一行内输入）：
 - en: '[PRE14]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Tip
+  id: totrans-100
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: 'When using the system PCRE library under FreeBSD, the following options should
     be specified:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 FreeBSD 上使用系统的 PCRE 库时，应指定以下选项：
 - en: --with-ld-opt="-L /usr/local/lib" \
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: --with-ld-opt="-L /usr/local/lib" \
 - en: --with-cc-opt="-I /usr/local/include"
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: --with-cc-opt="-I /usr/local/include"
 - en: 'If the number of files supported by `select()` needs to be increased, it can
     also be specified like this:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果需要增加 `select()` 支持的文件数量，可以通过以下方式指定：
 - en: --with-cc-opt="-D FD_SETSIZE=2048"
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: --with-cc-opt="-D FD_SETSIZE=2048"
 - en: The Custom module
+  id: totrans-106
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 自定义模块
 - en: One of the great strengths of Nginx is its modular design. You are able to hook
     in third-party modules or modules that you write yourself.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 的一个重要优势是它的模块化设计。你可以集成第三方模块或你自己编写的模块。
 - en: '`--add-module=path` compiles the module located at `path` into Nginx binary.
     You can find a list of third-party modules available for Nginx at [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules).'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '`--add-module=path` 会将位于 `path` 的模块编译到 Nginx 二进制文件中。你可以在 [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules)
+    找到可用的第三方 Nginx 模块列表。'
 - en: Debugging
+  id: totrans-109
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 调试
 - en: '`--with-debug` enables debug logging. This option is already enabled in the
     Windows binary. Once you compile Nginx with this option, you then have to set
     the debug level with the `error_log` directive in the configuration file, and
     so on:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '`--with-debug`启用调试日志记录。此选项在Windows二进制文件中已启用。一旦你使用该选项编译Nginx，你需要通过配置文件中的`error_log`指令来设置调试级别，等等：'
 - en: '[PRE15]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'In addition to debug logging, you can also attach a debugger to a running version
     of Nginx. If you intend to do so, enable the debugging symbols in the Nginx binary.
     Compile with `-g` or `-ggdb` and recommended compiler optimization level of `O0`
@@ -514,82 +762,120 @@
     level `O3` auto-vectorizes the code and introduces certain other optimizations
     that make debugging harder. Set the CFLAGS environment variable as follows and
     run `configure`:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了调试日志记录，你还可以将调试器附加到正在运行的Nginx版本。如果你打算这样做，请在Nginx二进制文件中启用调试符号。使用`-g`或`-ggdb`进行编译，并推荐的编译器优化级别为`O0`或`O2`（这会使调试器输出更易于理解）。优化级别`O3`会自动向量化代码，并引入某些其他优化，这会使调试变得更加困难。按如下方式设置CFLAGS环境变量并运行`configure`：
 - en: '[PRE16]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Installing on other platforms
+  id: totrans-114
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在其他平台上安装
 - en: 'Let us install Nginx on other platforms such as the following:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在以下平台上安装Nginx：
 - en: 'Gentoo: To get the latest version of Nginx, add a platform mask in your portage
     configuration file `/etc/portage/package.keywords`'
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Gentoo：要获取最新版本的Nginx，请在你的portage配置文件`/etc/portage/package.keywords`中添加平台掩码。
 - en: '[PRE17]'
+  id: totrans-117
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: X86/ 64 builds for Solaris are available on [http://joyent.com/blog/ok-nginx-is-cool](http://joyent.com/blog/ok-nginx-is-cool)
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: X86/64版本的Solaris构建可以在[http://joyent.com/blog/ok-nginx-is-cool](http://joyent.com/blog/ok-nginx-is-cool)找到。
 - en: 'MacOSX: Install Xcode or Xcode command-line tools to get all the required compilers
     and libraries'
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MacOSX：安装Xcode或Xcode命令行工具，以获取所有所需的编译器和库。
 - en: A detailed account of how to resolve dependencies like PCRE and others is described
     in detail for Solaris 10 u5 [http://wiki.nginx.org/Installing_on_Solaris_10_u5](http://wiki.nginx.org/Installing_on_Solaris_10_u5)
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解决像PCRE等依赖项的详细说明可以在Solaris 10 u5中找到，详见[http://wiki.nginx.org/Installing_on_Solaris_10_u5](http://wiki.nginx.org/Installing_on_Solaris_10_u5)。
 - en: Verifying your Nginx installation
+  id: totrans-121
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 验证你的Nginx安装
 - en: 'Following are the steps to verify that Nginx has been installed:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是验证Nginx是否已安装的步骤：
 - en: Once you have successfully compiled and built Nginx, verify it by running the
     `nginx -V` command.
+  id: totrans-123
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一旦成功编译并构建了Nginx，可以通过运行`nginx -V`命令来验证它。
 - en: As a root user, run the Nginx server using `prefix/ nginx/sbin/nginx`.
+  id: totrans-124
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 作为root用户，使用`prefix/nginx/sbin/nginx`运行Nginx服务器。
 - en: You will see the `nginx.pid` file once the server is running. The location of
     this file depends on the option that you provided while running the configure
     script. On Ubuntu, the default location is `/var/run/nginx.pid`.
+  id: totrans-125
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一旦服务器运行，你将看到`nginx.pid`文件。该文件的位置取决于你在运行配置脚本时提供的选项。在Ubuntu上，默认位置是`/var/run/nginx.pid`。
 - en: 'You can reload the Nginx configuration once you edit the `nginx.conf` file.
     To do this, send SIGNUP to the main process. The PID of this process is in the
     `nginx.pid` file. The following command will reload the configuration on Ubuntu:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在编辑完`nginx.conf`文件后，你可以重新加载Nginx配置。为此，向主进程发送SIGNUP信号。该进程的PID位于`nginx.pid`文件中。以下命令将在Ubuntu上重新加载配置：
 - en: '[PRE18]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Summary
+  id: totrans-128
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we learned how to download binary and source releases of Nginx
     and install binary releases. We have also learned how to compile and install Nginx
     from source, how to override installation paths and other properties using configure
     options, how to compile Nginx with debugging symbols, and finally, how to verify
     the installation.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们学习了如何下载Nginx的二进制和源代码版本并安装二进制版本。我们还学习了如何从源代码编译并安装Nginx，如何使用配置选项覆盖安装路径和其他属性，如何编译带有调试符号的Nginx，最后，如何验证安装。
 - en: In the next chapter, we will learn more about configuration of core Nginx modules.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将学习更多关于核心Nginx模块的配置。

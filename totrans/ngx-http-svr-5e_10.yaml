@@ -3,11 +3,13 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '10'
 - en: Case Studies
   id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 案例研究
 - en: Throughout this book, we’ve navigated the broad capabilities of NGINX, from
     delivering static content to implementing intricate load-balancing strategies.
     Your newfound knowledge extends from basic NGINX setup on servers to tailor-fit
@@ -16,6 +18,7 @@
   id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本书中，我们已探讨了NGINX的广泛功能，从交付静态内容到实施复杂的负载均衡策略。你新获得的知识不仅涵盖了服务器上的基本NGINX设置，还包括针对各种Web应用量身定制的配置，并通过一系列高级模块增强，解锁了复杂的功能。
 - en: Now, it’s time to apply what we’ve learned through a series of real-world scenarios.
     Securing communications with HTTPS will be our foundational step, ensuring all
     interactions with your web services are encrypted by default. With this security
@@ -26,57 +29,68 @@
   id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，是时候通过一系列实际场景来应用我们所学的知识了。通过HTTPS来确保通信安全将是我们的基础步骤，确保与你的Web服务的所有交互默认都是加密的。在这个安全措施到位后，我们将继续进行完整的WordPress站点设置。在这里，我们不仅关注如何使用NGINX让你的站点上线，还会利用我们建立的安全通道，整合最佳实践来优化和缓存，从而提升性能。
 - en: As we progress, the chapter will guide you in deploying a Nextcloud instance,
     illustrating how to establish a secure, private cloud storage solution.
   id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着章节的进展，本章将指导你如何部署Nextcloud实例，演示如何建立一个安全、私有的云存储解决方案。
 - en: 'This chapter covers:'
   id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章内容包括：
 - en: SSL certificates and HTTPS by default
   id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 默认的SSL证书和HTTPS
 - en: Implementing HTTP/2
   id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实施HTTP/2
 - en: Deploying WordPress, efficient content management
   id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 部署WordPress，高效的内容管理
 - en: Deploying NextCloud, a robust personal cloud service
   id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 部署NextCloud，一个强大的个人云服务
 - en: Exploring SSL Certificates and HTTPS by default
   id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索SSL证书和默认的HTTPS
 - en: Digital security is paramount, adopting a *security-first* approach is not just
     best practice—it’s essential. As such, plaintext transmission is no longer acceptable;
     SSL encryption is the new standard.
   id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 数字安全至关重要，采用*安全优先*的方式不仅是最佳实践——它是必要的。因此，明文传输已不再被接受；SSL加密是新的标准。
 - en: Recognizing this, we turn to `ssl.conf`, which will serve as a reusable component
     in all our secure site configurations. This foundation of SSL by default sets
     a robust stage for all web services we deploy.
   id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 认识到这一点后，我们转向`ssl.conf`，它将在所有安全站点配置中作为可重用组件。默认的SSL基础设置为我们部署的所有Web服务提供了坚实的基础。
 - en: Certificate Management with acme.sh
   id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用acme.sh进行证书管理
 - en: Step by step, we’ll learn how to exploit acme.sh’ integration with DNS APIs,
     simplifying the validation process for certificate issuance. By the end of this
     tutorial, you’ll have the knowledge you need to obtain your first signed wildcard
@@ -84,10 +98,12 @@
   id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 一步步地，我们将学习如何利用acme.sh与DNS API的集成，简化证书颁发的验证过程。通过本教程的学习，你将掌握获取首个签名通配符证书所需的知识。
 - en: 'Let’s begin with the installation of acme.sh:'
   id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从acme.sh的安装开始：
 - en: '[PRE0]'
   id: totrans-16
   prefs: []
@@ -97,24 +113,29 @@
   id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后将别名“`alias acme.sh=~/.acme.sh/acme.sh`”添加到文件“/root/.bashrc”
 - en: 'Verify acme.sh has been installed properly. First, make sure to close and reopen
     your terminal (or ssh session), as advised by the installation script:'
   id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 验证acme.sh是否已正确安装。首先，确保按照安装脚本的建议关闭并重新打开终端（或SSH会话）：
 - en: '![Figure 10.1: acme.sh script inviting us to close and reopen the terminal
     session.](img/B21787_10_1.jpg)'
   id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![图10.1：acme.sh脚本提示我们关闭并重新打开终端会话。](img/B21787_10_1.jpg)'
 - en: 'Figure 10.1: acme.sh script inviting us to close and reopen the terminal session.'
   id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 图10.1：acme.sh脚本提示我们关闭并重新打开终端会话。
 - en: 'Then run `acme.sh --version`:'
   id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后运行`acme.sh --version`：
 - en: '[PRE1]'
   id: totrans-22
   prefs: []
@@ -126,6 +147,7 @@
   id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，acme.sh已成功安装。我们将使用acme.sh生成一个通配符证书，但在此之前，让我们快速了解什么是通配符证书，为什么我们需要一个，以及acme.sh如何帮助我们生成它。
 - en: 'Imagine the following: we own the domain `example.com`. Using acme.sh, we’ll
     be generating one single certificate which will be valid for multiple domains.
     The first domain will be `example.com` and the second domain will be `*.example.com`.
@@ -133,6 +155,7 @@
   id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 想象以下情况：我们拥有域名`example.com`。通过使用acme.sh，我们将生成一个有效期涵盖多个域名的单一证书。第一个域名是`example.com`，第二个域名是`*.example.com`。我们想这样做有很多原因：
 - en: First, to make things easier. No need to adapt the NGINX configuration to run
     on port 80 with specific folders. Once you have the certificate for your domain,
     you know you can use it for a subdomain, and reuse the same certificate for a
@@ -269,11 +292,13 @@
   id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一个小节中，我们学习了如何获取签名证书。我们将在NGINX配置中使用这些证书。我们面临的挑战是，根据我们的设置，我们可能需要在多个位置使用证书，因为它适用于多个子域。为了避免重复，并以最简便的方式管理我们的配置，我们将编写一个配置文件，并在其他配置文件中包含它。
 - en: 'To begin, let’s write our file `ssl.conf`. This file has to be stored within
     the NGINX configuration folder, such as `/etc/nginx/` for example:'
   id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们编写文件`ssl.conf`。此文件必须存储在NGINX配置文件夹中，例如`/etc/nginx/`：
 - en: '[PRE4]'
   id: totrans-46
   prefs: []
@@ -284,15 +309,18 @@
   id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 就这样！在我们部署新项目时，我们会包含这个`ssl.conf`文件，以节省时间。
 - en: In the next section, we will introduce HTTP/2.
   id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一节中，我们将介绍HTTP/2。
 - en: Implementing HTTP/2 with SSL
   id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现带SSL的HTTP/2
 - en: '**HTTP/2** stands as a significant evolution of the HTTP protocol, designed
     to enhance web performance and efficiency. With features like multiplexing, which
     allows for multiple requests and responses over a single connection, and header
@@ -303,10 +331,12 @@
   id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '**HTTP/2**是HTTP协议的重大进化，旨在提升网页性能和效率。它具有多路复用等特性，可以通过单一连接进行多个请求和响应，并且通过头部压缩来减少开销，HTTP/2使网页浏览速度明显更快，更加高效。另一个关键特性是服务器推送，服务器可以在没有等待请求的情况下预先将资源发送到客户端，从而进一步优化加载时间。'
 - en: 'Here’s how you can enable HTTP/2 in your server block:'
   id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是如何在服务器块中启用HTTP/2的方法：
 - en: '[PRE5]'
   id: totrans-52
   prefs: []
@@ -317,22 +347,26 @@
   id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在设置SSL时务必启用HTTP/2，它在现代浏览器中得到了很好的支持，但需要一个安全的连接。
 - en: Although HTTP/3 offers promising advancements, it’s not quite ready for widespread
     production use just yet. We encourage you to keep an eye on its development as
     we believe it will be exciting to implement when it’s fully ready.
   id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管HTTP/3提供了有前景的进展，但它还没有完全准备好广泛投入生产使用。我们鼓励你关注它的发展，因为我们相信当它完全准备好时，实施它将会非常令人兴奋。
 - en: Coming next, we’ll walk through setting up a **WordPress site** with secure
     certificates and HTTP/2 enabled.
   id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将演示如何设置一个启用了安全证书和HTTP/2的**WordPress站点**。
 - en: Deploying a WordPress site
   id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 部署WordPress站点
 - en: WordPress is currently the most popular content management system on the entire
     web. According to Kinsta ([https://kinsta.com/wordpress-market-share/](https://kinsta.com/wordpress-market-share/)),
     its market share totals 42%. For a lot of web server administrators, setting up
@@ -341,22 +375,26 @@
   id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: WordPress目前是全球最流行的内容管理系统。根据Kinsta的统计数据（[https://kinsta.com/wordpress-market-share/](https://kinsta.com/wordpress-market-share/)），它的市场份额达到了42%。对于许多Web服务器管理员来说，设置WordPress站点或博客已经成为一项常见任务，无论是用于个人还是专业用途。
 - en: Preparing your server and obtaining WordPress
   id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 准备服务器并获取WordPress
 - en: In this section, we will be getting your server ready for downloading and installing
     the WordPress application. There will be a few configuration files to go through
     to make sure WordPress runs smoothly.
   id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一部分中，我们将为下载和安装WordPress应用程序做好准备。需要检查一些配置文件，以确保WordPress顺利运行。
 - en: System requirements
   id: totrans-60
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 系统要求
 - en: 'The first step you need to go through to set up a WordPress site on a fresh
     new server is to make sure you have the necessary components installed and up
     to date: it is recommended that you run at least PHP 8.1 and MySQL Server 8\.
@@ -366,6 +404,7 @@
   id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置WordPress站点的第一步是在全新的服务器上，确保你安装并更新了必要的组件：建议至少运行PHP 8.1和MySQL Server 8。如果你还没有做到这一点，运行以下命令将提供一个基本的工作环境，并包括最小的PHP扩展。在基于Debian的Linux操作系统下：
 - en: '[PRE6]'
   id: totrans-62
   prefs: []
@@ -375,6 +414,7 @@
   id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的服务器运行的是基于Red Hat的操作系统，如Fedora：
 - en: '[PRE7]'
   id: totrans-64
   prefs: []
@@ -512,6 +552,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用以下命令登录到你的本地 MySQL 服务器：
 - en: '[PRE11]'
   id: totrans-83
   prefs:
@@ -523,6 +564,7 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个新的 SQL 数据库：
 - en: '[PRE12]'
   id: totrans-85
   prefs:
@@ -535,6 +577,7 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 使用退出命令离开 MySQL 控制台，并尝试使用新创建的账户登录服务器：
 - en: '[PRE13]'
   id: totrans-87
   prefs:
@@ -552,12 +595,15 @@
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 下载并提取 WordPress
 - en: 'The last step is to download the latest version of WordPress and extract it
     at the location specified earlier; in our example: `/home/wordpress/www`. The
     latest version can always be found at [https://wordpress.org/latest.tar.gz](https://wordpress.org/latest.tar.gz):'
   id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后一步是下载最新版本的 WordPress，并在之前指定的位置提取；在我们的示例中是：`/home/wordpress/www`。最新版本总是可以在
+    [https://wordpress.org/latest.tar.gz](https://wordpress.org/latest.tar.gz) 找到：
 - en: '[PRE15]'
   id: totrans-91
   prefs: []
@@ -568,6 +614,7 @@
   id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保用户和组设置正确，并为 `wordpress` 用户提供应用文件的写权限：
 - en: '[PRE16]'
   id: totrans-93
   prefs: []
@@ -578,17 +625,20 @@
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: NGINX 配置
 - en: Before you can begin setting up WordPress via the user-friendly web installer,
     you will need to finalize your NGINX server configuration. We will go down to
     every last detail in the following subsections.
   id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 在你可以通过用户友好的 Web 安装程序开始设置 WordPress 之前，你需要完成 NGINX 服务器配置。我们将在接下来的子章节中逐一详细讲解。
 - en: HTTP block
   id: totrans-96
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: HTTP 区块
 - en: 'We will be going down the blocks starting at the top level: the HTTP blocks,
     encompassing directives that have an effect on the entire server. This implies
     that the directives placed here will affect all of the websites served by this
@@ -597,6 +647,8 @@
   id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从顶部开始逐一讲解各个区块：HTTP 区块，包括对整个服务器有影响的指令。这意味着这里放置的指令将影响所有由此 NGINX 实例提供服务的网站。打开你的
+    NGINX 主配置文件（`nginx.conf`），并插入或更新以下指令：
 - en: '[PRE17]'
   id: totrans-98
   prefs: []
@@ -607,6 +659,7 @@
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 服务器区块
 - en: 'The following step will require you to create a new file in the directory specified
     earlier. For example, create a file called `wordpress.conf` in the `/etc/nginx/sites-available/`
     folder. Define your virtual host configuration by inserting or updating the following
@@ -614,6 +667,8 @@
   id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步将要求你在之前指定的目录中创建一个新文件。例如，在 `/etc/nginx/sites-available/` 文件夹中创建一个名为 `wordpress.conf`
+    的文件。通过插入或更新以下指令来定义你的虚拟主机配置：
 - en: '[PRE18]'
   id: totrans-101
   prefs: []
@@ -625,16 +680,20 @@
   id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成后，使用以下命令在 `/etc/NGINX/sites-enabled/` 中为 `/etc/nginx/sites-available/wordpress.conf`
+    创建一个符号链接：`ln -s /etc/nginx/sites-available/wordpress.conf /etc/nginx/sites-enabled/`
 - en: Location blocks
   id: totrans-103
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 位置区块
 - en: 'Finally, set up your `location` blocks—directives that apply to specific locations
     on your site:'
   id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，设置你的 `location` 区块——这些指令应用于你网站上的特定位置：
 - en: '[PRE19]'
   id: totrans-105
   prefs: []
@@ -645,58 +704,72 @@
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: WordPress 配置
 - en: Once your NGINX configuration is finalized and saved, make sure to reload the
     NGINX configuration, either via `systemctl reload nginx` or `/usr/local/nginx/sbin/nginx
     -s reload` (or your usual NGINX binary location).
   id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你的 NGINX 配置完成并保存，确保通过 `systemctl reload nginx` 或 `/usr/local/nginx/sbin/nginx
+    -s reload`（或你常用的 NGINX 二进制位置）重新加载 NGINX 配置。
 - en: 'If all goes well, you should be able to run the web-based WordPress installer
     by visiting `https://example.com/wp-admin/install.php` (replacing `example.com`
     by your own domain name). You will be prompted for:'
   id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一切顺利，你应该能够通过访问 `https://example.com/wp-admin/install.php`（将 `example.com`
+    替换为你自己的域名）运行基于 Web 的 WordPress 安装程序。系统会提示你：
 - en: 'The name of the database you created earlier, in our example: `wordpress`'
   id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你之前创建的数据库名称，在我们的示例中是：`wordpress`
 - en: 'The SQL username you created earlier, in our example: `wordpress`'
   id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你之前创建的 SQL 用户名，在我们的示例中是：`wordpress`
 - en: 'The password associated to the user: `password`'
   id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户的密码：`password`
 - en: 'The database host: `127.0.0.1`, if your MySQL server is hosted on the same
     server'
   id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数据库主机：`127.0.0.1`，如果你的 MySQL 服务器托管在同一台服务器上
 - en: 'A prefix for all SQL tables created by WordPress: `wp_`'
   id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: WordPress 创建的所有 SQL 表的前缀：`wp_`
 - en: '![Figure 10.4: WordPress database installation page](img/B21787_10_4.jpg)'
   id: totrans-114
   prefs: []
   type: TYPE_IMG
+  zh: '![图 10.4：WordPress 数据库安装页面](img/B21787_10_4.jpg)'
 - en: 'Figure 10.4: WordPress database installation page'
   id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 10.4：WordPress 数据库安装页面
 - en: Once the installer completes, you can begin configuring and preparing your WordPress
     site. In order to enable pretty URLs, you should check the `https://example.com/post-name/`
     or `https://example.com/year/month/post-name/`.
   id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦安装程序完成，你可以开始配置并准备你的 WordPress 网站。为了启用漂亮的 URL，你应该检查 `https://example.com/post-name/`
+    或 `https://example.com/year/month/post-name/`。
 - en: …We’ve deployed Wordpress. In the next section, we’ll be deploying Nextcloud
     alongside Wordpress using Docker to properly isolate our configurations for Wordpress
     and Nextcloud.
