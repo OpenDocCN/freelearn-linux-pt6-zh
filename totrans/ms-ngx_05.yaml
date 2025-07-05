@@ -1,13 +1,17 @@
 - en: Chapter 5. Reverse Proxy Advanced Topics
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第五章 反向代理高级话题
 - en: As we saw in the previous chapter, a reverse proxy makes connections to upstream
     servers on behalf of clients. These upstream servers therefore have no direct
     connection to the client. This is for several different reasons, such as security,
     scalability, and performance.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在上一章看到的，反向代理代表客户端与上游服务器建立连接。因此，这些上游服务器与客户端之间没有直接连接。这是出于多个原因，比如安全性、可扩展性和性能。
 - en: A reverse proxy server aids security because if an attacker were to try to get
     onto the upstream server directly, he would have to first find a way to get onto
     the reverse proxy. Connections to the client can be encrypted by running them
@@ -15,14 +19,19 @@
     the upstream server cannot or should not provide this functionality itself. NGINX
     can act as an SSL terminator as well as provide additional access lists and restrictions
     based on various client attributes.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 反向代理服务器有助于提高安全性，因为如果攻击者试图直接访问上游服务器，他必须首先找到访问反向代理的方法。与客户端的连接可以通过 HTTPS 加密。SSL
+    连接可能在反向代理上终止，当上游服务器无法或不应该提供此功能时。NGINX 可以充当 SSL 终止器，并根据不同的客户端属性提供额外的访问列表和限制。
 - en: Scalability can be achieved by utilizing a reverse proxy to make parallel connections
     to multiple upstream servers, enabling them to act as if they were one. If the
     application requires more processing power, additional upstream servers can be
     added to the pool served by a single reverse proxy.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 可扩展性可以通过使用反向代理来实现，反向代理能够与多个上游服务器建立并行连接，使它们像一个服务器一样工作。如果应用程序需要更多的处理能力，可以向由单个反向代理提供服务的服务器池中添加更多的上游服务器。
 - en: Performance of an application may be enhanced through the use of a reverse proxy
     in several ways. The reverse proxy can cache and compress content before delivering
     it out to the client. NGINX as a reverse proxy can handle more concurrent client
@@ -31,83 +40,122 @@
     to the upstream server to handle. Clients can keep their connections to NGINX
     alive, while NGINX terminates the ones to the upstream servers immediately, thus
     freeing resources on those upstream servers.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过使用反向代理，应用程序的性能可以在多个方面得到提升。反向代理可以缓存和压缩内容，然后再将其传送给客户端。NGINX 作为反向代理，能够处理比典型应用服务器更多的并发客户端连接。某些架构配置
+    NGINX 从本地磁盘缓存中提供静态内容，只将动态请求传递给上游服务器处理。客户端可以保持与 NGINX 的连接，而 NGINX 则立即终止与上游服务器的连接，从而释放上游服务器的资源。
 - en: 'We will discuss these topics, as well as the remaining proxy module directives,
     in the following sections:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在接下来的章节中讨论这些话题以及其余的代理模块指令：
 - en: Security through separation
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过分离实现安全
 - en: Isolating application components for scalability
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了可扩展性隔离应用组件
 - en: Reverse proxy performance tuning
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 反向代理性能调优
 - en: Security through separation
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 通过分离实现安全
 - en: We can achieve a measure of security by separating out the point to which clients
     connect to an application. This is one of the main reasons for using a reverse
     proxy in an architecture. The client connects directly only to the machine running
     the reverse proxy. This machine should therefore be secured well enough that an
     attacker cannot find a point of entry.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过分离客户端与应用程序连接的节点来实现一定程度的安全性。这是使用反向代理架构的主要原因之一。客户端仅直接连接到运行反向代理的机器。因此，这台机器应该足够安全，防止攻击者找到入侵点。
 - en: 'Security is such a large topic that we will touch only briefly on the main
     points to observe:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全性是一个非常庞大的话题，我们将简要介绍需要注意的主要要点：
 - en: Set up a firewall in front of the reverse proxy that only allows public access
     to port 80 (and 443, if HTTPS connections should also be made)
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在反向代理前设置防火墙，只允许公共访问端口 80（如果需要 HTTPS 连接，则允许端口 443）
 - en: Ensure that NGINX is running as an unprivileged user (typically `www`, `webservd`,
     or `www-data`, depending on the operating system)
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确保 NGINX 作为非特权用户运行（通常是 `www`、`webservd` 或 `www-data`，具体取决于操作系统）
 - en: Encrypt traffic where you can to prevent eavesdropping
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在可以的地方加密流量，以防止窃听
 - en: We will spend some time on this last point in the next section.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在下一节中详细讨论这一点。
 - en: Encrypting traffic with SSL
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 SSL 加密流量
 - en: NGINX is often used to terminate SSL connections, either because the upstream
     server is not capable of using SSL or to offload the processing requirements of
     SSL connections. This requires that your `nginx` binary was compiled with SSL
     support (`--with_http_ssl_module`) and that you install an SSL certificate and
     key.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 经常用于终止 SSL 连接，原因可能是上游服务器无法使用 SSL，或者是为了减轻 SSL 连接的处理负载。这要求你的 `nginx` 二进制文件是使用
+    SSL 支持编译的（`--with_http_ssl_module`），并且你需要安装 SSL 证书和密钥。
 - en: Note
+  id: totrans-18
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: For details about how to generate your own SSL certificate, please see the *Using
     OpenSSL to generate an SSL certificate* tip in [Chapter 3](ch03.html "Chapter 3. Using
     the Mail Module"), *Using the Mail Module*.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关如何生成你自己的 SSL 证书的详细信息，请参阅 [第 3 章](ch03.html "Chapter 3. Using the Mail Module")
+    中的 *使用 OpenSSL 生成 SSL 证书* 提示，*使用邮件模块*。
 - en: 'The following is an example configuration for enabling HTTPS connections to
     `www.example.com`:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是启用 `www.example.com` 的 HTTPS 连接的配置示例：
 - en: '[PRE0]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: In the preceding example, we first activate the `ssl` module by using the `ssl`
     parameter to the `listen` directive. Then, we specify that we wish the server's
     ciphers to be chosen over the client's list, as we can configure the server to
@@ -123,164 +171,232 @@
     process may read it. We set the header `X-FORWARDED-PROTO` to the value `https`
     so that the application running on the upstream server can recognize the fact
     that the original request used HTTPS.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述示例中，我们首先通过在 `listen` 指令中使用 `ssl` 参数来激活 `ssl` 模块。然后，我们指定希望服务器优先选择密码套件而不是客户端的列表，因为我们可以配置服务器使用那些已被证明最安全的密码套件。这可以防止客户端协商已被废弃的密码套件。`ssl_session_cache`
+    指令被设置为 `shared`，这样所有工作进程都可以利用已经为每个客户端完成的昂贵的 SSL 协商。多个虚拟服务器可以使用相同的 `ssl_session_cache`
+    指令，只要它们都配置了相同的名称，或者此指令在 `http` 上下文中指定。值的第二部分和第三部分分别是缓存的名称和大小。然后，只需为该主机指定证书和密钥即可。请注意，该密钥文件的权限应设置为仅允许主进程读取。我们将头部
+    `X-FORWARDED-PROTO` 设置为值 `https`，以便上游服务器上的应用程序能够识别原始请求使用了 HTTPS。
 - en: Tip
+  id: totrans-23
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: '**SSL ciphers**'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '**SSL 密码套件**'
 - en: The preceding ciphers were chosen based on NGINX's default, which excludes those
     that offer no authentication (`aNULL`) as well as those using MD5\. The RC4 is
     placed at the beginning so that ciphers not susceptible to the BEAST attack described
     in CVE-2011-3389 are preferred. The `@STRENGTH` string at the end is present to
     sort the list of ciphers in order of the encryption algorithm key length.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面提到的密码套件是基于 NGINX 的默认配置选择的，排除了那些没有认证功能（`aNULL`）的套件以及使用 MD5 的套件。RC4 被放在最前面，以便优先选择那些不容易受到
+    CVE-2011-3389 中描述的 BEAST 攻击影响的密码套件。`@STRENGTH` 字符串出现在列表末尾，用来根据加密算法的密钥长度对密码套件进行排序。
 - en: 'We have just encrypted the traffic passing between the client and the reverse
     proxy. It is also possible to encrypt the traffic between the reverse proxy and
     the upstream server:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们刚刚加密了客户端和反向代理之间的流量。还可以加密反向代理和上游服务器之间的流量：
 - en: '[PRE1]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This is usually only reserved for those architectures in which even the internal
     network over which such a connection flows is considered insecure.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这通常仅限于那些即使是流经该连接的内部网络也被认为不安全的架构。
 - en: Authenticating clients using SSL
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 SSL 认证客户端
 - en: 'Some applications use information from the SSL certificate the client presents,
     but this information is not directly available in a reverse proxy architecture.
     To pass this information along to the application, you can instruct NGINX to set
     an additional header:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些应用程序使用客户端提供的 SSL 证书中的信息，但在反向代理架构中，这些信息并不可直接获取。为了将这些信息传递给应用程序，你可以指示 NGINX 设置一个额外的头部：
 - en: '[PRE2]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The `$ssl_client_cert` variable contains the client's SSL certificate, in PEM
     format. We pass this on to the upstream server in a header of the same name. The
     application itself is then responsible for using this information in whatever
     way is appropriate.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '`$ssl_client_cert`变量包含客户端的SSL证书，格式为PEM。我们将其以相同名称的头信息传递给上游服务器。应用程序本身则负责根据适当的方式使用这些信息。'
 - en: 'Instead of passing the whole client certificate to the upstream server, NGINX
     can do some work ahead of time to see if the client is even valid. A valid client
     SSL certificate is one which has been signed by a recognized Certificate Authority,
     has a validity date in the future, and has not been revoked:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX不会将整个客户端证书传递给上游服务器，而是提前进行一些工作，查看客户端是否有效。有效的客户端SSL证书是指由一个被认可的证书颁发机构签署的证书，且有效期在未来，并且未被撤销：
 - en: '[PRE3]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'The preceding configuration is constructed out of the following parts to achieve
     the objective of having NGINX validate client SSL certificates before passing
     the request on to the upstream server:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置由以下部分构成，以实现NGINX在将请求传递给上游服务器之前验证客户端SSL证书的目标：
 - en: The argument to the `ssl_client_certificate` directive specifies the path to
     the PEM-encoded list of root CA certificates that will be considered valid signers
     of client certificates.
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_client_certificate`指令的参数指定了PEM编码的根CA证书列表的路径，该列表将被视为有效的客户端证书签署者。'
 - en: The `ssl_crl` argument indicates the path to a certificate revocation list,
     issued by the Certificate Authority responsible for signing client certificates.
     This CRL needs to be downloaded separately and periodically refreshed.
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_crl`参数指示证书撤销列表的路径，该列表由负责签发客户端证书的证书颁发机构发布。此CRL需要单独下载并定期刷新。'
 - en: The `ssl_verify_client` directive states that we want NGINX to check the validity
     of SSL certificates presented by clients.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_verify_client`指令声明我们希望NGINX检查客户端所呈现的SSL证书的有效性。'
 - en: The `ssl_verify_depth` directive is responsible for how many signers will be
     checked before declaring the certificate invalid. SSL certificates may be signed
     by one or more intermediate CAs. Either an intermediate CA certificate or the
     root CA that signed it needs to be in our `ssl_client_certificate` path for NGINX
     to consider the client certificate valid.
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_verify_depth`指令负责检查在声明证书无效之前要检查的签署者数量。SSL证书可能由一个或多个中间CA签署。无论是中间CA证书还是签署它的根CA，都需要在我们的`ssl_client_certificate`路径中，才能使NGINX认为客户端证书是有效的。'
 - en: If some sort of error occurred during client certificate validation, NGINX will
     return the non-standard error code 495\. We have defined an `error_page` that
     matches this code and redirects the request to a named location, to be handled
     by a separate proxied server. We also include a check for the value of `$ssl_client_verify`
     within the `proxy_pass` location, so that an invalid certificate will also return
     this code.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果在客户端证书验证过程中发生某种错误，NGINX将返回非标准错误代码495。我们已定义了一个匹配此代码的`error_page`，并将请求重定向到一个命名位置，由单独的代理服务器处理。我们还在`proxy_pass`位置中包含了对`$ssl_client_verify`值的检查，因此无效证书也会返回此代码。
 - en: If a certificate is not valid, NGINX will return the non-standard error code
     496, which we capture as well with an `error_page` directive. The `error_page`
     directive that we define points to a named location, which proxies the request
     to a separate error handler.
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果证书无效，NGINX将返回非标准错误代码496，我们也通过`error_page`指令捕获该错误。我们定义的`error_page`指令指向一个命名位置，该位置将请求代理到单独的错误处理程序。
 - en: Only when the client has presented a valid SSL certificate will NGINX pass the
     request on to the upstream server, `secured`. By doing so, we have ensured that
     only authenticated users actually get to place requests to the upstream server.
     This is an important security feature of a reverse proxy.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 只有在客户端提供有效的SSL证书时，NGINX才会将请求传递给上游服务器`secured`。通过这样做，我们确保只有经过身份验证的用户才能向上游服务器发起请求。这是反向代理的重要安全功能。
 - en: Note
+  id: totrans-43
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: NGINX from Version 1.3.7 provides the capability to use OCSP responders to verify
     client SSL certificates. See the `ssl_stapling*` and `ssl_trusted_certificate`
     directives in [Appendix A](apa.html "Appendix A. Directive Reference"), *Directive
     Reference*, for a description of how to activate this functionality.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 从NGINX版本1.3.7开始，提供了使用OCSP响应器来验证客户端SSL证书的功能。有关如何激活此功能的描述，请参阅[附录A](apa.html "附录A.
+    指令参考")，*指令参考*中的`ssl_stapling*`和`ssl_trusted_certificate`指令。
 - en: 'If the application still needs some information present in the certificate,
     for example, to authorize a user, NGINX can deliver this information in a header:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果应用程序仍然需要证书中的某些信息，例如用于授权用户，NGINX可以通过头部传递这些信息：
 - en: '[PRE4]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Now, our application running on the upstream server `secured` can use the value
     of the `X-HTTP-AUTH` header to authorize the client for access to different areas.
     The variable `$ssl_client_s_dn` contains the subject `DN` of the client certificate.
     The application can use this information to match the user against a database
     or make a look up in a directory.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们在上游服务器`secured`上运行的应用程序可以使用`X-HTTP-AUTH`头部的值来授权客户端访问不同区域。变量`$ssl_client_s_dn`包含客户端证书的主题`DN`。应用程序可以利用这些信息将用户与数据库中的记录进行匹配，或在目录中查找。
 - en: Blocking traffic based on originating IP address
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 基于源IP地址阻止流量
 - en: As client connections terminate on the reverse proxy, it is possible to limit
     clients based on IP address. This is useful in cases of abuse where a number of
     invalid connections originate from a certain set of IP addresses. As in Perl,
     there is more than one way to do it. We will discuss the `GeoIP` module here as
     a possible solution.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于客户端连接终止于反向代理，因此可以基于IP地址限制客户端。这在滥用的情况下很有用，其中一些无效连接源自某些IP地址。就像在Perl中一样，解决问题的方法不止一种。我们将在这里讨论`GeoIP`模块，作为一种可能的解决方案。
 - en: 'Your `nginx` binary will need to have been compiled with the `GeoIP` module
     activated (`--with-http_geoip_module`) and the MaxMind GeoIP library installed
     on your system. Specify the location of the precompiled database file with the
     `geoip_country` directive in the `http` context. This provides the most efficient
     way to block/allow IP addresses by country code:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的`nginx`二进制文件需要在编译时激活`GeoIP`模块（`--with-http_geoip_module`），并且系统上需要安装MaxMind
+    GeoIP库。通过`http`上下文中的`geoip_country`指令指定预编译数据库文件的位置。这是按国家代码阻止/允许IP地址的最有效方式：
 - en: '[PRE5]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: If a client's connection comes from an IP address listed in this database, the
     value of the `$geoip_country_code` variable will be set to the ISO two-letter
     code for the originating country.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果客户端的连接来自该数据库中列出的IP地址，`$geoip_country_code`变量的值将设置为源国的ISO两字母代码。
 - en: We will use the data provided by the `GeoIP` module together with the closely-named
     `geo` module, as well. The `geo` module provides a very basic interface for setting
     variables based on the IP address of a client connection. It sets up a named context
@@ -288,29 +404,39 @@
     the value that match should obtain. By combining these two modules, we can block
     IP addresses based on the country of origin, while allowing access from a set
     of specific IP addresses.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用`GeoIP`模块提供的数据，并结合命名相似的`geo`模块。`geo`模块提供了一个非常基本的接口，用于根据客户端连接的IP地址设置变量。它设置了一个命名的上下文，其中第一个参数是要匹配的IP地址，第二个是匹配时应获得的值。通过将这两个模块结合使用，我们可以根据来源国家阻止IP地址，同时允许来自特定IP地址组的访问。
 - en: 'In our scenario, we are providing a service to Swiss banks. We want the public
     parts of the site to be indexed by Google, but are for now still restricting access
     to Swiss IPs. We also want a local watchdog service to be able to access the site
     to ensure it is still responding properly. We define a variable `$exclusions`,
     which will have the value `0` by default. If any of our criteria are matched,
     the value will be set to `1`, which we will use to control access to the site:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的场景中，我们为瑞士银行提供服务。我们希望网站的公共部分被Google索引，但目前仍限制只有瑞士IP可以访问。我们还希望本地监控服务能够访问网站，确保它仍然正常响应。我们定义了一个变量`$exclusions`，默认值为`0`。如果满足我们的任何条件，值将设置为`1`，我们将使用它来控制访问权限：
 - en: '[PRE6]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: This is just one way of solving the problem of blocking access to a site based
     on the client's IP address. Other solutions involve saving the IP address of the
     client in a key-value store, updating a counter for each request, and blocking
     access if there have been too many requests within a certain time period.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这只是解决基于客户端IP地址阻止访问网站问题的一种方法。其他解决方案包括将客户端的IP地址保存在键值存储中，为每次请求更新计数器，并在某个时间段内请求次数过多时阻止访问。
 - en: Isolating application components for scalability
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 隔离应用程序组件以实现可扩展性
 - en: Scaling applications can be described by moving in two dimensions, up and out.
     Scaling up refers to adding more resources to a machine, growing its pool of available
     resources to meet client demand. Scaling out means adding more machines to a pool
@@ -319,8 +445,11 @@
     or physical machines sitting in a datacenter, it is often more cost-effective
     to scale out rather than up. This is where NGINX fits in handily as a reverse
     proxy.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展应用程序可以通过两个维度来描述，向上和向外。向上扩展指的是为机器增加更多资源，扩大其可用资源池，以满足客户端需求。向外扩展则意味着向可用响应池中添加更多机器，以便没有一台机器被占用处理大部分客户端请求。无论这些机器是运行在云中的虚拟实例，还是坐落在数据中心的物理机器，通常向外扩展比向上扩展更具成本效益。此时，NGINX
+    作为反向代理发挥了重要作用。
 - en: 'Due to its very low resource usage, NGINX acts ideally as the broker in a client-application
     relationship. NGINX handles the connection to the client, able to process multiple
     requests simultaneously. Depending on the configuration, NGINX will either deliver
@@ -328,87 +457,132 @@
     processing. The upstream server can be any type of server that speaks the HTTP
     protocol. More client connections can be handled than if an upstream server were
     to respond directly:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于其极低的资源使用，NGINX 作为客户端与应用程序之间的代理非常理想。NGINX 处理与客户端的连接，能够同时处理多个请求。根据配置，NGINX 要么从本地缓存中交付文件，要么将请求传递给上游服务器进行进一步处理。上游服务器可以是任何使用
+    HTTP 协议的服务器。与上游服务器直接响应相比，NGINX 能够处理更多客户端连接：
 - en: '[PRE7]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Over time, the initial set of upstream servers may need to be expanded. The
     traffic to the site has increased so much, that the current set can't respond
     in a timely enough manner. By using NGINX as the reverse proxy, this situation
     can easily be remedied by adding more upstream servers.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着时间的推移，最初的一组上游服务器可能需要扩展。由于网站流量增加，当前的服务器无法及时响应。通过将 NGINX 用作反向代理，可以轻松通过添加更多上游服务器来解决这一问题。
 - en: '![Isolating application components for scalability](img/7447OS_05_01.jpg)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![隔离应用组件以实现可扩展性](img/7447OS_05_01.jpg)'
 - en: 'Adding more upstream servers can be done as follows:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加更多上游服务器可以通过以下方式完成：
 - en: '[PRE8]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Perhaps the time has come for the application to be rewritten, or to be migrated
     onto a server with a different application stack. Before moving the whole application
     over, one server can be brought into the active pool for testing under real load
     with real clients. This server could be given fewer requests to help minimize
     any negative reactions should problems arise.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 也许是时候重新编写应用程序，或者将其迁移到具有不同应用栈的服务器上。在将整个应用程序迁移之前，可以将一台服务器引入活动池中，在真实负载和实际客户端下进行测试。为了最小化可能出现问题时的负面反应，可以减少这台服务器的请求量。
 - en: '![Isolating application components for scalability](img/7447OS_05_02.jpg)'
+  id: totrans-66
   prefs: []
   type: TYPE_IMG
+  zh: '![隔离应用组件以实现可扩展性](img/7447OS_05_02.jpg)'
 - en: 'This is done with the following configuration:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过以下配置来完成此操作：
 - en: '[PRE9]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Alternatively, perhaps it is time for scheduled maintenance on a particular
     upstream server, so it should not receive any new requests. By marking that server
     as `down` in the configuration, we can proceed with that maintenance work:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，可能是时候对某个特定的上游服务器进行计划性维护了，因此它不应接收任何新的请求。通过在配置中将该服务器标记为`down`，我们可以继续进行维护工作：
 - en: '![Isolating application components for scalability](img/7447OS_05_03.jpg)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![隔离应用组件以实现可扩展性](img/7447OS_05_03.jpg)'
 - en: 'The following configuration describes how to mark the server `down`:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置描述了如何将服务器标记为`down`：
 - en: '[PRE10]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Unresponsive upstream servers should be handled quickly. Depending on the application,
     the timeout directives can be set aggressively low:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 无响应的上游服务器应尽快处理。根据应用程序的不同，超时指令可以设置得非常低：
 - en: '[PRE11]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Be careful, though, that the upstream servers can usually respond within the
     time set by the timeout, or NGINX may deliver a **504 Gateway Timeout Error**
     when no upstream servers respond within this time.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，请小心，上游服务器通常需要在超时设置的时间内响应，否则如果在此时间内没有上游服务器响应，NGINX 可能会返回 **504 网关超时错误**。
 - en: Reverse proxy performance tuning
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 反向代理性能调优
 - en: NGINX can be tuned in a number of ways to get the most out of the application
     for which it is acting as a reverse proxy. By buffering, caching, and compressing,
     NGINX can be configured to make the client's experience as snappy as possible.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 可以通过多种方式进行调整，以充分发挥它作为反向代理时的性能。通过缓冲、缓存和压缩，NGINX 可以被配置为尽可能优化客户端的体验。
 - en: Buffering
+  id: totrans-78
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 缓冲
 - en: 'Buffering can be described with the help of the following figure:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓冲可以通过以下图表来描述：
 - en: '![Buffering](img/7447OS_05_04.jpg)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![Buffering](img/7447OS_05_04.jpg)'
 - en: 'The most important factor to consider performance-wise when proxying is buffering.
     NGINX, by default, will try to read as much as possible from the upstream server
     as fast as possible before returning that response to the client. It will buffer
@@ -417,94 +591,138 @@
     written out to disk, performance might drop. This is a trade-off between RAM and
     disk. So it is very important to consider the following directives when configuring
     NGINX to act as a reverse proxy:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进行代理时，考虑性能时最重要的因素是缓冲。NGINX 默认会尽可能快速地从上游服务器读取尽可能多的数据，然后再将响应返回给客户端。它会将响应缓存在本地，以便一次性将其发送给客户端。如果客户端的请求或上游服务器的响应需要写入磁盘，性能可能会下降。这是
+    RAM 和磁盘之间的权衡。因此，在配置 NGINX 作为反向代理时，考虑以下指令非常重要：
 - en: 'Table: Proxy module buffering directives'
+  id: totrans-82
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：代理模块缓冲指令
 - en: '| Directive | Explanation |'
+  id: totrans-83
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `proxy_buffer_size` | The size of the buffer used for the first part of the
     response from the upstream server, in which the response headers are found. |'
+  id: totrans-85
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffer_size` | 用于上游服务器响应的第一部分的缓冲区大小，其中包含响应头信息。 |'
 - en: '| `proxy_buffering` | Activates buffering of proxied content; when switched
     off, responses are sent synchronously to the client as soon as they are received,
     provided the `proxy_max_temp_file_size` parameter is set to `0`. Setting this
     to `0` and turning `proxy_buffering` to `on` ensures that there is no disk usage
     during proxying, while still enabling buffering. |'
+  id: totrans-86
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffering` | 启用代理内容的缓冲；当关闭时，响应会在接收到后同步发送给客户端，前提是设置了 `proxy_max_temp_file_size`
+    参数为 `0`。将此值设置为 `0` 并将 `proxy_buffering` 设置为 `on` 可确保在代理过程中不使用磁盘，同时仍启用缓冲。 |'
 - en: '| `proxy_buffers` | The number and size of buffers used for responses from
     upstream servers. |'
+  id: totrans-87
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffers` | 用于来自上游服务器响应的缓冲区数量和大小。 |'
 - en: '| `proxy_busy_buffers_size` | The total size of buffer space allocated to sending
     the response to the client while still being read from the upstream server. This
     is typically set to two `proxy_buffers`. |'
+  id: totrans-88
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_busy_buffers_size` | 在从上游服务器读取时，分配给发送响应给客户端的缓冲区空间的总大小。通常设置为两个 `proxy_buffers`。
+    |'
 - en: In addition to the preceding directives, the upstream server may influence buffering
     by setting the `X-Accel-Buffering` header. The default value of this header is
     `yes`, meaning that responses will be buffered. Setting the value to `no` is useful
     for Comet and HTTP streaming applications, where it is important to not buffer
     the response.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了上述指令外，上游服务器还可以通过设置 `X-Accel-Buffering` 头部来影响缓冲。此头部的默认值为 `yes`，表示响应将被缓冲。将其值设置为
+    `no` 对于 Comet 和 HTTP 流应用程序非常有用，因为这些应用程序需要避免缓冲响应。
 - en: By measuring the average request and response sizes going through the reverse
     proxy, the proxy buffer sizes can be tuned optimally. Each buffer directive counts
     per connection, in addition to an OS-dependent per-connection overhead, so we
     can calculate how many simultaneous client connections we can support with the
     amount of memory on a system.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过测量反向代理中经过的平均请求和响应大小，可以优化代理缓冲区的大小。每个缓冲区指令都是按连接计算的，此外还有操作系统相关的每连接开销，因此我们可以根据系统的内存量计算可以支持多少个并发客户端连接。
 - en: The default values for the `proxy_buffers` directive (`8 4k` or `8 8k`, depending
     on the operating system), enable a large number of simultaneous connections. Let's
     figure out just how many connections that is. On a typical 1 GB machine, where
     only NGINX runs, most of the memory can be dedicated to its use. Some will be
     used by the operating system for the filesystem cache and other needs, so let's
     be conservative and estimate that NGINX would have up to 768 MB.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '`proxy_buffers` 指令的默认值（`8 4k` 或 `8 8k`，取决于操作系统）允许大量并发连接。我们来算算这到底能处理多少连接。在一台典型的
+    1 GB 机器上，如果仅运行 NGINX，大部分内存可以专门分配给它使用。操作系统会用一些内存来处理文件系统缓存和其他需求，所以我们保守估计 NGINX 的可用内存为
+    768 MB。'
 - en: Eight 4 KB buffers is 32,768 bytes (8 * 4 * 1024) per active connection.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 八个 4 KB 缓冲区是每个活跃连接 32,768 字节（8 * 4 * 1024）。
 - en: The 768 MB we allocated to NGINX is 805,306,368 bytes (768 * 1024 * 1024).
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们分配给 NGINX 的 768 MB 是 805,306,368 字节（768 * 1024 * 1024）。
 - en: Dividing the two, we come up with 805306368 / 32768 = 24576 active connections.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 将两者相除，我们得到 805306368 / 32768 = 24576 个活跃连接。
 - en: So, NGINX would be able to handle just under 25,000 simultaneous, active connections
     in its default configuration, assuming that these buffers will be constantly filled.
     There are a number of other factors that come into play, such as cached content
     and idle connections, but this gives us a good ballpark estimate to work with.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，NGINX 在其默认配置下能够处理不到 25,000 个并发活跃连接，假设这些缓冲区会持续被填充。还有许多其他因素也会影响结果，例如缓存内容和空闲连接，但这为我们提供了一个良好的估算值。
 - en: Now, if we take the following numbers as our average request and response sizes,
     we see that eight 4 KB buffers just aren't enough to process a typical request.
     We want NGINX to buffer as much of the response as possible so that the user receives
     it all at once, provided the user is on a fast link.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果我们把以下数字作为我们的平均请求和响应大小，我们会发现八个 4 KB 缓冲区根本不足以处理一个典型的请求。我们希望 NGINX 能尽可能缓冲更多的响应，以便用户一次性接收所有数据，前提是用户的网络连接足够快。
 - en: 'Average request size: 800 bytes'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 平均请求大小：800 字节
 - en: 'Average response size: 900 KB'
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 平均响应大小：900 KB
 - en: Note
+  id: totrans-99
   prefs:
   - PREF_IND
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: The tuning examples in the rest of this section will use more memory at the
     expense of concurrent, active connections. They are optimizations, and shouldn't
     be understood as recommendations for a general configuration. NGINX is already
@@ -512,182 +730,270 @@
     As the trend in computing is more towards mobile users, the client connection
     is considerably slower than a broadband user's connection. So, it's important
     to know your users and how they will be connecting, before embarking on any optimizations.
+  id: totrans-100
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 本节其余的调优示例将在牺牲并发活跃连接的情况下使用更多内存。它们是优化建议，不应理解为通用配置的推荐。NGINX 已经经过优化调优，可以为大量慢速客户端和少量快速上游服务器提供服务。随着计算趋势越来越偏向于移动用户，客户端连接的速度远低于宽带用户的连接速度。因此，在进行任何优化之前，了解你的用户及其连接方式是非常重要的。
 - en: 'We would adjust our buffer sizes accordingly so that the whole response would
     fit in the buffers:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将相应地调整缓冲区大小，以便整个响应能够适配到缓冲区中：
 - en: '[PRE12]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: This means, of course, that we would be able to handle far fewer concurrent
     users.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着，当然，我们将能够处理的并发用户数量要少得多。
 - en: Thirty 32 KB buffers is 983,040 bytes (30 * 32 * 1024) per connection.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 三十个 32 KB 缓冲区是每个连接 983,040 字节（30 * 32 * 1024）。
 - en: The 768 MB we allocated to NGINX is 805,306,368 bytes (768 * 1024 * 1024).
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们分配给 NGINX 的 768 MB 是 805,306,368 字节（768 * 1024 * 1024）。
 - en: Dividing the two, we come up with 805306368 / 983040 = 819.2 active connections.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 将两者相除，我们得到 805306368 / 983040 = 819.2 个活跃连接。
 - en: 'That isn''t too many concurrent connections at all. Let''s adjust the number
     of buffers down, and ensure that NGINX will start transferring something to the
     client while the rest of the response is read into the remaining `proxy_buffers`
     space:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 这并不算太多并发连接。让我们减少缓冲区的数量，并确保 NGINX 在剩余的 `proxy_buffers` 空间内读取完其余响应内容时，能够开始向客户端传输一些数据：
 - en: '[PRE13]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Four 32 KB buffers is 131,072 bytes (4 * 32 * 1024) per connection.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 四个 32 KB 缓冲区是每个连接 131,072 字节（4 * 32 * 1024）。
 - en: The 768 MB we allocated to NGINX is 805,306,368 bytes (768 * 1024 * 1024).
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们分配给 NGINX 的 768 MB 是 805,306,368 字节（768 * 1024 * 1024）。
 - en: Dividing the two, we come up with 805306368 / 131072 = 6144 active connections.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 将两者相除，我们得到 805306368 / 131072 = 6144 个活跃连接。
 - en: For a reverse-proxy machine, we may therefore want to scale up by adding more
     memory (6 GB RAM will yield us approximately 37,000 connections) or scale out
     by adding more 1 GB machines behind a load balancer, up to the number of concurrent,
     active users we can expect.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于反向代理服务器，我们可能希望通过增加更多内存（6 GB RAM 大约可以支持 37,000 个连接）来扩展，或者通过在负载均衡器后添加更多 1 GB
+    的机器来扩展，直到我们可以预期的并发活动用户数为止。
 - en: Caching
+  id: totrans-113
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 缓存
 - en: 'Caching can be described with the following figure:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓存可以通过以下图示来描述：
 - en: '![Caching](img/7447OS_05_05.jpg)'
+  id: totrans-115
   prefs: []
   type: TYPE_IMG
+  zh: '![缓存](img/7447OS_05_05.jpg)'
 - en: 'NGINX is also capable of caching the response from the upstream server, so
     that the same request asked again doesn''t have to go back to the upstream server
     to be served. The preceding figure illustrates this as follows:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 还能够缓存来自上游服务器的响应，这样相同的请求再次发出时就不必再去上游服务器获取响应。前面的图示如下所示：
 - en: '**1a**: A client makes a request'
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**1a**：客户端发起请求'
 - en: '**1b**: The request''s cache key is not currently found in the cache, so NGINX
     requests it from the upstream server'
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**1b**：请求的缓存键当前在缓存中找不到，因此 NGINX 从上游服务器请求该内容。'
 - en: '**1c**: The upstream responds and NGINX places the response corresponding to
     that request''s cache key into the cache'
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**1c**：上游服务器响应，NGINX 将对应请求的缓存键的响应放入缓存中。'
 - en: '**1d**: The response is delivered to the client'
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**1d**：响应被传递给客户端'
 - en: '**2a**: Another client makes a request that has a matching cache key'
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**2a**：另一个客户端发起具有匹配缓存键的请求'
 - en: '**2b**: NGINX is able to serve the response directly from the cache without
     needing to first get the response from the upstream server'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**2b**：NGINX 能够直接从缓存中提供响应，而无需首先从上游服务器获取响应。'
 - en: 'Table: Proxy module caching directives'
+  id: totrans-123
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：代理模块缓存指令
 - en: '| Directive | Explanation |'
+  id: totrans-124
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-125
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `proxy_cache` | Defines a shared memory zone to be used for caching. |'
+  id: totrans-126
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache` | 定义用于缓存的共享内存区域。 |'
 - en: '| `proxy_cache_bypass` | One or more string variables, which when non-empty
     or non-zero, will cause the response to be taken from the upstream server instead
     of the cache. |'
+  id: totrans-127
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_bypass` | 一个或多个字符串变量，当它们非空或非零时，将导致从上游服务器获取响应，而不是从缓存中获取。 |'
 - en: '| `proxy_cache_key` | A string used as the key for storing and retrieving cache
     values. Variables may be used, but care should be taken to avoid caching multiple
     copies of the same content. |'
+  id: totrans-128
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_key` | 用作存储和检索缓存值的键的字符串。可以使用变量，但应小心避免缓存相同内容的多个副本。 |'
 - en: '| `proxy_cache_lock` | Enabling this directive will prevent multiple requests
     to the upstream server(s) during a cache miss. The requests will wait for the
     first to return and make an entry into the cache key. This lock is per worker.
     |'
+  id: totrans-129
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_lock` | 启用此指令将防止在缓存未命中的情况下向上游服务器发出多个请求。这些请求将等待第一个请求返回并在缓存键中创建条目。此锁定按工作进程划分。
+    |'
 - en: '| `proxy_cache_lock_timeout` | The length of time a request will wait for an
     entry to appear in the cache or for the `proxy_cache_lock` to be released. |'
+  id: totrans-130
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_lock_timeout` | 请求等待缓存中条目出现或`proxy_cache_lock`释放的时间长度。 |'
 - en: '| `proxy_cache_min_uses` | The number of requests for a certain key needed
     before a response is cached. |'
+  id: totrans-131
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_min_uses` | 需要多少次请求才能缓存某个键的响应。 |'
 - en: '| `proxy_cache_path` | A directory in which to place the cached responses and
     a shared memory zone (`keys_zone=name:size`) to store active keys and response
     metadata. Optional parameters are:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `proxy_cache_path` | 存放缓存响应的目录以及存储活跃键和响应元数据的共享内存区域（`keys_zone=name:size`）。可选参数有：'
 - en: '`levels`: Colon-separated length of subdirectory name at each level (1 or 2),
     maximum of three levels deep'
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`levels`：每级子目录名称的冒号分隔长度（1 或 2），最多三层深度'
 - en: '`inactive`: The maximum length of time an inactive response stays in the cache
     before being ejected'
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`inactive`：未活跃响应在缓存中保留的最长时间，超过此时间会被移除。'
 - en: '`max_size`: The maximum size of the cache; when the size exceeds this value,
     a cache manager process removes the least recently used items'
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max_size`：缓存的最大大小；当超过此值时，缓存管理进程会删除最近最少使用的条目。'
 - en: '`loader_files`: The maximum number of cached files whose metadata are loaded
     per iteration of the cache loader process'
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`loader_files`：缓存加载器进程每次迭代中加载的缓存文件元数据的最大数量'
 - en: '`loader_sleep`: The number of milliseconds paused between each iteration of
     the cache loader process'
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`loader_sleep`：缓存加载器进程每次迭代之间暂停的毫秒数'
 - en: '`loader_threshold`: The maximum length of time a cache loader iteration may
     take'
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`loader_threshold`：缓存加载器迭代可能花费的最长时间'
 - en: '|'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `proxy_cache_use_stale` | The cases under which it is acceptable to serve
     stale cached data when an error occurs while accessing the upstream server. The
     `updating` parameter indicates the case when fresh data are being loaded. |'
+  id: totrans-140
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_use_stale` | 在访问上游服务器时发生错误，接受提供过期缓存数据的情况。`updating` 参数表示正在加载新数据的情况。
+    |'
 - en: '| `proxy_cache_valid` | Indicates the length of time for which a cached response
     with response code 200, 301, or 302 is valid. If an optional response code is
     given before the time parameter, that time is only for that response code. The
     special parameter `any` indicates that any response code should be cached for
     that length of time. |'
+  id: totrans-141
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_cache_valid` | 指定带有响应码 200、301 或 302 的缓存响应有效的时间。如果在时间参数之前给出了可选的响应码，则该时间仅适用于该响应码。特殊参数
+    `any` 表示任何响应码都应缓存该时长。 |'
 - en: The following configuration is designed to cache all responses for six hours,
     up to a total cache size of 1 GB. Any items that stay fresh, that is, are called
     within the six hour timeout, are valid for up to one day. After this time, the
@@ -696,102 +1002,148 @@
     item is being updated, a stale cache element may be used. The shared memory zone,
     **CACHE**, is defined to be 10 MB large and is referenced within the `location`
     where the cache keys need to be set and looked-up.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置旨在缓存所有响应六小时，直到总缓存大小达到 1 GB。任何保持新鲜的项目，即在六小时超时内被调用的项目，有效期最长为一天。超过此时间后，将再次调用上游服务器提供响应。如果由于错误、超时、无效头部，或者缓存项正在更新，导致上游服务器无法响应，则可能使用过期缓存元素。共享内存区
+    **CACHE** 被定义为 10 MB 大，并在需要设置和查找缓存键的 `location` 中引用。
 - en: '[PRE14]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Using this configuration, NGINX will set up a series of directories under `/var/spool/nginx`
     that will first differentiate on the last character of the MD5 hash of the URI,
     followed by the next two characters from the last. For example, the response for
     "/this-is-a-typical-url" will be stored as:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用此配置，NGINX 将在 `/var/spool/nginx` 下设置一系列目录，首先根据 URI 的 MD5 哈希值的最后一个字符进行区分，接着是倒数第二个字符。例如，"/this-is-a-typical-url"
+    的响应将存储为：
 - en: '[PRE15]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: In addition to the `proxy_cache_valid` directive, a number of headers control
     how NGINX caches responses. The header values take precedence over the directive.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了 `proxy_cache_valid` 指令外，许多头部控制着 NGINX 如何缓存响应。头部的值优先于指令。
 - en: 'The `X-Accel-Expires` header can be set by the upstream server to control cache
     behavior:'
+  id: totrans-147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`X-Accel-Expires` 头可以由上游服务器设置来控制缓存行为：'
 - en: An integer value indicates the time in seconds for which a response may be cached
+  id: totrans-148
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 整数值表示响应可以缓存的时间，单位为秒。
 - en: If the value of this header is `0`, caching for that response is disabled completely
+  id: totrans-149
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果此头的值为 `0`，则该响应的缓存将完全禁用。
 - en: A value beginning with `@` indicates the time in seconds since the epoch. The
     response is valid only up to this absolute time.
+  id: totrans-150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 以 `@` 开头的值表示自纪元以来的秒数。响应仅在此绝对时间之前有效。
 - en: The `Expires` and `Cache-Control` headers have the same precedence level.
+  id: totrans-151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Expires` 和 `Cache-Control` 头具有相同的优先级。'
 - en: If the value of the `Expires` header is in the future, the response will be
     cached until then.
+  id: totrans-152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 `Expires` 头的值在未来，响应将一直被缓存直到该时间。
 - en: 'The `Cache-Control` header can have multiple values:'
+  id: totrans-153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Cache-Control` 头可以有多个值：'
 - en: '`no-cache`'
+  id: totrans-154
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no-cache`'
 - en: '`no-store`'
+  id: totrans-155
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no-store`'
 - en: '`private`'
+  id: totrans-156
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`private`'
 - en: '`max-age`'
+  id: totrans-157
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max-age`'
 - en: The only value for which the response is actually cached is a `max-age`, which
     is numeric and non-zero, that is, `max-age=x` where `x` > 0.
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 唯一会实际缓存响应的值是 `max-age`，它是一个数字且大于零，也就是说，`max-age=x` 其中 `x` > 0。
 - en: If the `Set-Cookie` header is present, the response is not cached.
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 `Set-Cookie` 头存在，则响应不会被缓存。
 - en: 'This may be overridden, though, by using the `proxy_ignore_headers` directive:'
+  id: totrans-160
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 然而，这可以通过使用 `proxy_ignore_headers` 指令来覆盖：
 - en: '[PRE16]'
+  id: totrans-161
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'But if doing so, be sure to make the cookie value part of the `proxy_cache_key`:'
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 但是如果这样做，请确保将 cookie 值作为 `proxy_cache_key` 的一部分：
 - en: '[PRE17]'
+  id: totrans-163
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'Care should be taken when doing this, though, to prevent multiple response
     bodies from being cached for the same URI. This can happen when public content
     inadvertently has the `Set-Cookie` header set for it, and this then becomes part
@@ -799,15 +1151,22 @@
     location is one way to ensure that the cache is being used effectively. For example,
     serving images from an `/img` location where a different `proxy_cache_key` is
     defined:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 不过在进行此操作时需要小心，以防止多个响应主体被缓存到相同的 URI。这种情况可能发生在公共内容意外地为其设置了 `Set-Cookie` 头部，导致该头部成为访问该数据的键的一部分。将公共内容分离到不同的位置是一种确保缓存有效使用的方法。例如，可以从
+    `/img` 位置提供图片，并在该位置定义不同的 `proxy_cache_key`：
 - en: '[PRE18]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Storing
+  id: totrans-166
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 存储
 - en: Related to the concept of a cache is a **store**. If you are serving large,
     static files that will never change, that is, there is no reason to expire the
     entries, then NGINX offers something called a store to help serve these files
@@ -816,14 +1175,22 @@
     them again. If any of these files should change upstream, they need to be deleted
     by some external process, or NGINX will continue serving them, so for smaller,
     static files, using the cache is more appropriate.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 与缓存概念相关的是 **存储**。如果你正在提供不会改变的大型静态文件，即没有必要使条目过期，那么 NGINX 提供了一种叫做存储的功能，帮助更快地提供这些文件。NGINX
+    会存储任何你配置它去获取的文件的本地副本。这些文件将保留在磁盘上，并且不会再次请求上游服务器。如果这些文件在上游发生变化，它们需要通过某种外部过程被删除，否则
+    NGINX 将继续提供这些文件，因此对于较小的静态文件，使用缓存更为合适。
 - en: 'The following configuration summarizes the directives used to store these files:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置总结了用于存储这些文件的指令：
 - en: '[PRE19]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: In this configuration, we define a `server` with a `root` under the same filesystem
     as the `proxy_temp_path`. The `location` directive `/img` will inherit this `root`,
     serving files of the same name as the URI path under `/var/www/data`. If a file
@@ -833,126 +1200,191 @@
     `user:rw` is understood, while `group` or `all` are specified in `proxy_store_access`).
     That's all it takes for NGINX to store a local copy of static files served by
     the upstream server.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此配置中，我们定义了一个 `server`，其 `root` 位于与 `proxy_temp_path` 相同的文件系统下。`location` 指令
+    `/img` 将继承此 `root`，并提供与 URI 路径相同名称的文件，这些文件位于 `/var/www/data` 下。如果文件未找到（错误代码 404），则会调用命名的
+    `location` 指令 `@store`，从上游获取该文件。`proxy_store` 指令表示我们希望将文件存储在继承的 `root` 下，权限为 `0644`（`user:rw`
+    是默认的，而 `group` 或 `all` 则在 `proxy_store_access` 中指定）。这就是 NGINX 存储上游服务器提供的静态文件本地副本所需要的全部配置。
 - en: Compressing
+  id: totrans-171
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 压缩
 - en: 'Compressing can be described with the following figure:'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 压缩可以通过以下图示来描述：
 - en: '![Compressing](img/7447OS_05_06.jpg)'
+  id: totrans-173
   prefs: []
   type: TYPE_IMG
+  zh: '![压缩](img/7447OS_05_06.jpg)'
 - en: 'Optimizing for bandwidth can help reduce a response''s transfer time. NGINX
     has the capability of compressing a response it receives from an upstream server
     before passing it on to the client. The `gzip` module, enabled by default, is
     often used on a reverse proxy to compress content where it makes sense. Some file
     types do not compress well. Some clients do not respond well to compressed content.
     We can take both cases into account in our configuration:'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 针对带宽优化可以帮助减少响应的传输时间。NGINX 具有在将响应从上游服务器转发给客户端之前对其进行压缩的能力。默认启用的 `gzip` 模块通常用于反向代理，以在合适的情况下压缩内容。某些文件类型压缩效果不好，某些客户端对压缩内容反应不佳。我们可以在配置中同时考虑这两种情况：
 - en: '[PRE20]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Here we've specified that we want files of the preceding MIME types to be compressed
     at a gzip compression level of 2 if the request has come over at least HTTP/1.0,
     except if the user agent reports being an older version of Internet Explorer.
     We've placed this configuration in the `http` context so that it will be valid
     for all servers we define.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们指定了如果请求至少通过 HTTP/1.0 进行，并且用户代理报告不是旧版的 Internet Explorer，我们希望对前述 MIME 类型的文件进行
+    gzip 压缩，压缩级别为 2。我们将此配置放在 `http` 上下文中，以使其适用于我们定义的所有服务器。
 - en: 'The following table lists the directives available with the `gzip` module:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下表格列出了 `gzip` 模块中可用的指令：
 - en: 'Table: Gzip module directives'
+  id: totrans-178
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：Gzip 模块指令
 - en: '| Directive | Explanation |'
+  id: totrans-179
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-180
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `gzip` | Enables or disables the compression of responses. |'
+  id: totrans-181
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip` | 启用或禁用响应的压缩。 |'
 - en: '| `gzip_buffers` | Specifies the number and size of buffers used for compressing
     a response. |'
+  id: totrans-182
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_buffers` | 指定用于压缩响应的缓冲区数量和大小。|'
 - en: '| `gzip_comp_level` | The gzip compression level (1-9). |'
+  id: totrans-183
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_comp_level` | gzip压缩级别（1-9）。|'
 - en: '| `gzip_disable` | A regular expression of `User-Agents` that shouldn''t receive
     a compressed response. The special value `msie6` is a shortcut for `MSIE [4-6]\.`
     excluding `MSIE 6.0; ... SV1`. |'
+  id: totrans-184
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_disable` | 一个正则表达式，表示不应接收压缩响应的`User-Agents`。特殊值`msie6`是`MSIE [4-6]\.`的快捷方式，但排除`MSIE
+    6.0; ... SV1`。|'
 - en: '| `gzip_min_length` | The minimum length of a response before compression is
     considered, determined by the `Content-Length` header. |'
+  id: totrans-185
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_min_length` | 在考虑压缩之前响应的最小长度，由`Content-Length`头部确定。|'
 - en: '| `gzip_http_version` | The minimum HTTP version of a request before compression
     is considered. |'
+  id: totrans-186
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_http_version` | 请求的最低HTTP版本，压缩才会被考虑。|'
 - en: '| `gzip_proxied` | Enables or disables compression if the request has already
     come through a proxy. Takes one or more of the following parameters:'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `gzip_proxied` | 如果请求已经通过代理，则启用或禁用压缩。接受以下一个或多个参数：'
 - en: '`off`: Disables compression'
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`: 禁用压缩'
 - en: '`expired`: Enables compression if the response should not be cached, as determined
     by the `Expires` header'
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`expired`: 当响应不应被缓存时（由`Expires`头部确定），启用压缩'
 - en: '`no-cache`: Enables compression if the `Cache-Control` header is equal to `no-cache`'
+  id: totrans-190
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no-cache`: 当`Cache-Control`头部为`no-cache`时启用压缩'
 - en: '`no-store`: Enables compression if the `Cache-Control` header is equal to `no-store`'
+  id: totrans-191
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no-store`: 当`Cache-Control`头部为`no-store`时启用压缩'
 - en: '`private`: Enables compression if the `Cache-Control` header is equal to `private`'
+  id: totrans-192
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`private`: 当`Cache-Control`头部为`private`时启用压缩'
 - en: '`no_last_modified`: Enables compression if the response doesn''t have a `Last-Modified`
     header'
+  id: totrans-193
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no_last_modified`: 当响应没有`Last-Modified`头部时启用压缩'
 - en: '`no_etag`: Enables compression if the response doesn''t have an `ETag` header'
+  id: totrans-194
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no_etag`: 当响应没有`ETag`头部时启用压缩'
 - en: '`auth`: Enables compression if the request contains an `Authorization` header'
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`auth`: 当请求包含`Authorization`头部时启用压缩'
 - en: '`any`: Enables compression for any response whose request includes the `Via`
     header'
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`any`: 对于任何包含`Via`头部的响应启用压缩'
 - en: '|'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `gzip_types` | The MIME types that should be compressed, in addition to the
     default value `text/html`. |'
+  id: totrans-198
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_types` | 除默认值`text/html`之外，应该压缩的MIME类型。|'
 - en: '| `gzip_vary` | Enables or disables the response header `Vary: Accept-Encoding`
     if gzip is active. |'
+  id: totrans-199
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_vary` | 如果gzip处于活动状态，则启用或禁用响应头`Vary: Accept-Encoding`。|'
 - en: When gzip compression is enabled and you find large files being truncated, the
     likely culprit is `gzip_buffers`. The default value of `32 4k` or `16 8k` buffers
     (depending on the platform) leads to a total buffer size of 128 KB. This means
@@ -960,54 +1392,78 @@
     an unzipped large JavaScript library, you may find yourself over this limit. If
     that is the case, just increase the number of buffers so that the total buffer
     size is large enough to fit the whole file.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 当启用gzip压缩并且发现大文件被截断时，可能的原因是`gzip_buffers`。默认值为`32 4k`或`16 8k`缓冲区（具体取决于平台），总缓冲区大小为128
+    KB。这意味着NGINX要压缩的文件不能大于128 KB。如果你使用的是未压缩的大型JavaScript库，可能会超过这个限制。如果是这种情况，只需增加缓冲区数量，使得总缓冲区大小足够容纳整个文件。
 - en: '[PRE21]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: For example, the preceding configuration will enable compression of any file
     up to 40 * 4 * 1024 = 163840 bytes (or 160 KB) large. We also use the `gzip_min_length`
     directive to tell NGINX to only compress a file if it is larger than 1 KB. A `gzip_comp_level`
     of 4 or 5 is usually a good trade-off between speed and compressed file size.
     Measuring on your hardware is the best way to find the right value for your configuration.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，上述配置将启用对任何最大为40 * 4 * 1024 = 163840字节（或160 KB）的大文件进行压缩。我们还使用`gzip_min_length`指令来告诉NGINX仅在文件大于1
+    KB时才进行压缩。通常，`gzip_comp_level`设为4或5是速度与压缩文件大小之间的良好折衷。根据你的硬件进行测试是找到合适配置值的最佳方式。
 - en: 'Besides on-the-fly compression of responses, NGINX is capable of delivering
     precompressed files, using the `gzip_static` module. This module is not compiled
     by default, but can be enabled with the `--with-http_gzip_static_module` compile-time
     switch. The module itself has one directive, `gzip_static`, but also uses the
     following directives of the `gzip` module in order to determine when to check
     for precompressed files:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了对响应进行实时压缩外，NGINX还可以通过`gzip_static`模块提供预压缩文件。该模块默认未编译，但可以通过`--with-http_gzip_static_module`编译时开关启用。该模块本身只有一个指令`gzip_static`，但还使用`gzip`模块的以下指令，以确定何时检查预压缩文件：
 - en: '`gzip_http_version`'
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`gzip_http_version`'
 - en: '`gzip_proxied`'
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`gzip_proxied`'
 - en: '`gzip_disable`'
+  id: totrans-206
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`gzip_disable`'
 - en: '`gzip_vary`'
+  id: totrans-207
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`gzip_vary`'
 - en: 'In the following configuration, we enable delivery of precompressed files if
     the request contains an `Authorization` header and if the response contains one
     of the `Expires` or `Cache-Control` headers disabling caching:'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下配置中，当请求包含`Authorization`头且响应包含禁用缓存的`Expires`或`Cache-Control`头时，我们启用预压缩文件的传送：
 - en: '[PRE22]'
+  id: totrans-209
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Summary
+  id: totrans-210
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 概述
 - en: We have seen in this chapter how NGINX can be used effectively as a reverse
     proxy. It can act in three roles, either individually or in some combination,
     which are to enhance security, to enable scalability, and/or to enhance performance.
@@ -1016,10 +1472,14 @@
     performance of an application relates directly to how responsive it is to a user's
     request. We explored different mechanisms to achieve a more responsive application.
     Faster response times mean happier users.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们已经看到NGINX如何有效地作为反向代理使用。它可以单独或以某种组合方式扮演三种角色：增强安全性、实现可扩展性和/或提升性能。通过将应用与最终用户分离来实现安全性。NGINX可以与多个上游服务器结合使用以实现可扩展性。应用的性能直接关系到它对用户请求的响应速度。我们探索了不同的机制来实现一个更具响应性的应用。更快的响应时间意味着用户更满意。
 - en: Up next is an exploration of NGINX as an HTTP server. We have so far only discussed
     how NGINX can act as a reverse proxy, but there is so much more that NGINX is
     capable of.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来将探讨NGINX作为HTTP服务器的应用。到目前为止，我们只讨论了NGINX如何作为反向代理，但NGINX的能力远不止这些。
