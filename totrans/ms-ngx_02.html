@@ -1,0 +1,832 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;2.&#xA0;A Configuration Guide"><div class="titlepage"><div><div><h1 class="title"><a id="ch02"/>Chapter 2. A Configuration Guide</h1></div></div></div><p>The NGINX configuration file<a id="id187" class="indexterm"/> follows a very logical format. Learning this format and how to use each section is one of the building blocks that will help you to create a configuration file by hand. This chapter will help you reach that goal by explaining the following topics:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Basic configuration format</li><li class="listitem" style="list-style-type: disc">NGINX global configuration parameters</li><li class="listitem" style="list-style-type: disc">Using <code class="literal">include</code> files</li><li class="listitem" style="list-style-type: disc">The HTTP server section</li><li class="listitem" style="list-style-type: disc">The virtual server section</li><li class="listitem" style="list-style-type: disc">Locations – where, when, and how</li><li class="listitem" style="list-style-type: disc">The mail server section</li><li class="listitem" style="list-style-type: disc">Full sample configuration</li></ul></div><div class="section" title="The basic configuration format"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec15"/>The basic configuration format</h1></div></div></div><p>The basic <a id="id188" class="indexterm"/>
+<a id="id189" class="indexterm"/>NGINX configuration file is set up in a number of sections. Each section is delineated in the following way:</p><div class="informalexample"><pre class="programlisting">&lt;section&gt; {
+
+    &lt;directive&gt; &lt;parameters&gt;;
+
+}</pre></div><p>It is important to note that each directive line ends with a semicolon (<code class="literal">;</code>). This marks the end-of-line. The curly braces (<code class="literal">{}</code>) actually denote a new configuration context, but we will read these as "sections" for the most part.</p></div></div>
+<div class="section" title="NGINX global configuration parameters"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec16"/>NGINX global configuration parameters</h1></div></div></div><p>The global <a id="id190" class="indexterm"/>section is used to configure the parameters that affect the entire server, and is an exception to the format shown in the preceding section. The global section may include configuration directives, such as <code class="literal">user</code> and <code class="literal">worker_processes</code>, as well as sections, such as events. There are no open and closing braces (<code class="literal">{}</code>) surrounding the global section.</p><p>The most important configuration directives in the global context are shown in the following table. These will be the ones that you will be dealing with for the most part.</p><div class="section" title="Table: Global configuration directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl6sec07"/>Table: Global configuration directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">user</code>
+<a id="id191" class="indexterm"/>
+<a id="id192" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The user and group under which the worker processes run is configured using this parameter. If the group is omitted, a group name equal to that of the user is used.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">worker_processes</code>
+<a id="id193" class="indexterm"/>
+<a id="id194" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This is the number of worker processes that will be started. These will handle all connections made by the clients. Choosing the right number depends on the server environment, the disk subsystem, and the network infrastructure. A good rule of thumb is to set this equal to the number of processor cores for CPU-bound loads and to multiply this number by <code class="literal">1.5</code> to <code class="literal">2</code> for I/O bound loads.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">error_log</code>
+<a id="id195" class="indexterm"/>
+<a id="id196" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>
+<code class="literal">error_log</code> is where all errors are written. If no other <code class="literal">error_log</code> is given in a separate context, this log file will be used for all errors, globally. A second parameter to this directive indicates the level at which (<code class="literal">debug</code>, <code class="literal">info</code>, <code class="literal">notice</code>, <code class="literal">warn</code>, <code class="literal">error</code>, <code class="literal">crit</code>, <code class="literal">alert</code>, and <code class="literal">emerg</code>) errors are written to the log. Note that debug-level errors are only available if the --with-debug configuration switch is given at compilation time.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">pid</code>
+<a id="id197" class="indexterm"/>
+<a id="id198" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This is the file where the process ID of the main process is written, overwriting the compiled-in default.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">use</code>
+<a id="id199" class="indexterm"/>
+<a id="id200" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">use</code> directive indicates which connection processing method should be used. This will overwrite the compiled-in default, and must be contained in an <code class="literal">events</code> context, if used. It will not normally need to be overridden, except when the compiled-in default is found to produce errors over time.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">worker_connections</code>
+<a id="id201" class="indexterm"/>
+<a id="id202" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive configures the maximum number of simultaneous connections that a worker process may have open. This includes, but is not limited to, client connections and connections to upstream servers. This is especially important on reverse proxy servers – some additional tuning may be required at the operating system level in order to reach this number of simultaneous connections.</p>
+</td></tr></tbody></table></div><p>Here is a short <a id="id203" class="indexterm"/>example using each of these directives:</p><div class="informalexample"><pre class="programlisting"># we want nginx to run as user 'www'
+user www;
+
+# the load is CPU-bound and we have 12 cores
+worker_processes  12;
+
+# explicitly specifying the path to the mandatory error log
+error_log  /var/log/nginx/error.log;
+
+# also explicitly specifying the path to the pid file
+pid        /var/run/nginx.pid;
+
+# sets up a new configuration context for the 'events' module
+events {
+
+    # we're on a Solaris-based system and have determined that nginx
+    # will stop responding to new requests over time with the default
+    # connection-processing mechanism, so we switch to the second-best
+    use /dev/poll;
+    # the product of this number and the number of worker_processes
+    # indicates how many simultaneous connections per IP:port pair are
+    # accepted
+    worker_connections  2048;
+
+}</pre></div><p>This section <a id="id204" class="indexterm"/>would be placed at the top of the<a id="id205" class="indexterm"/> <code class="literal">nginx.conf</code> configuration file.</p></div></div>
+<div class="section" title="Using include files"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec17"/>Using include files</h1></div></div></div><p>Include files<a id="id206" class="indexterm"/> can be used anywhere in your configuration file, to help it be more readable and to enable you to re-use parts of your configuration. To use them, make sure that the files themselves contain the syntactically correct NGINX configuration directives and blocks; then specify a path to those files:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>include /opt/local/etc/nginx/mime.types;</strong></span>
+</pre></div><p>A wildcard may <a id="id207" class="indexterm"/>appear in the path to match multiple files:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>include /opt/local/etc/nginx/vhost/*.conf;</strong></span>
+</pre></div><p>If the full path is not given, NGINX will search relative to its main configuration file.</p><p>A configuration file can be easily tested by calling NGINX as follows:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>nginx -t -c &lt;path-to-nginx.conf&gt;</strong></span>
+</pre></div><p>This will test the configuration including all the files separated out into include files, for syntax errors.</p></div>
+<div class="section" title="The HTTP server section"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec18"/>The HTTP server section</h1></div></div></div><p>The <a id="id208" class="indexterm"/>HTTP server section, or HTTP configuration context, is available unless you have built NGINX without the HTTP module (<code class="literal">--without-http</code>). This section controls all the aspects of working with the HTTP module, and will probably be the one that you will use the most.</p><p>The configuration directives found in this section deal with handling HTTP connections. As such, there are quite a number of directives defined by this module  We will divide these directives up by type, to be able to talk about them more easily.</p><div class="section" title="Client directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec16"/>Client directives</h2></div></div></div><p>This set of <a id="id209" class="indexterm"/>directives deals with the aspects of the client connection itself, as well as with different types of clients.</p><div class="section" title="Table: HTTP client directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl6sec08"/>Table: HTTP client directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">chunked_transfer_encoding</code>
+<a id="id210" class="indexterm"/>
+<a id="id211" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Allows disabling the standard HTTP/1.1 chunked transfer encoding in responses to clients.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_body_buffer_size</code>
+<a id="id212" class="indexterm"/>
+<a id="id213" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Used to set a buffer size for the client request body larger than the default two memory pages, in order to prevent temporary files from being written to the disk.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_body_in_file_only</code>
+<a id="id214" class="indexterm"/>
+<a id="id215" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Used for debugging or further processing of the client request body. This directive can be set to <code class="literal">on</code> to force save the client request body to a file.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_body_in_single_buffer</code>
+<a id="id216" class="indexterm"/>
+<a id="id217" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive forces NGINX to save the entire client request body in a single buffer, to reduce copy operations.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_body_temp_path</code>
+<a id="id218" class="indexterm"/>
+<a id="id219" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines a<a id="id220" class="indexterm"/> directory path for saving the client request body.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_body_timeout</code>
+<a id="id221" class="indexterm"/>
+<a id="id222" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the length of time between successive read operations of the client body.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_header_buffer_size</code>
+<a id="id223" class="indexterm"/>
+<a id="id224" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Used for specifying a buffer size for the client request header, when this needs to be larger than the default 1 KB.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_header_timeout</code>
+<a id="id225" class="indexterm"/>
+<a id="id226" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This timeout is the length of time for reading the entire client header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">client_max_body_size</code>
+<a id="id227" class="indexterm"/>
+<a id="id228" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines the largest allowable client request body, before a <code class="literal">413 (Request Entity Too Large)</code> error is returned to the browser.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">keepalive_disable</code>
+<a id="id229" class="indexterm"/>
+<a id="id230" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Disables the keep-alive requests for certain browser types. </p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">keepalive_requests</code>
+<a id="id231" class="indexterm"/>
+<a id="id232" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines how many requests may be made over one keep-alive connection before it is closed.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">keepalive_timeout</code>
+<a id="id233" class="indexterm"/>
+<a id="id234" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies how long a keep-alive connection will stay open. A second parameter may be given, to set a "Keep-Alive" header in the response.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">large_client_header_buffers</code>
+<a id="id235" class="indexterm"/>
+<a id="id236" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines<a id="id237" class="indexterm"/> the maximum number and size of a large client request header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">msie_padding</code>
+<a id="id238" class="indexterm"/>
+<a id="id239" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables the disabling of adding comments to responses with a status greater than 400 for MSIE clients, in order to pad the response size to 512 bytes.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">msie_refresh</code>
+<a id="id240" class="indexterm"/>
+<a id="id241" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables the sending of a refresh instead of a redirect for MSIE clients.</p>
+</td></tr></tbody></table></div></div></div><div class="section" title="File I/O directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec17"/>File I/O directives</h2></div></div></div><p>These directives control how <a id="id242" class="indexterm"/>NGINX delivers static files and/or how it manages file descriptors.</p><div class="section" title="Table: HTTP file I/O directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl6sec09"/>Table: HTTP file I/O directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">aio</code>
+<a id="id243" class="indexterm"/>
+<a id="id244" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables the use of asynchronous file I/O. It is available on all the modern versions of FreeBSD and distributions of Linux. On FreeBSD, <code class="literal">aio</code> may be used to preload data for <code class="literal">sendfile</code>. Under Linux, <code class="literal">directio</code> is required, which automatically disables <code class="literal">sendfile</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">directio</code>
+<a id="id245" class="indexterm"/>
+<a id="id246" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables the operating system specific flag or function for serving files larger than the given parameter. It's required when using <code class="literal">aio</code> on Linux.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">directio_alignment</code>
+<a id="id247" class="indexterm"/>
+<a id="id248" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the alignment for <code class="literal">directio</code>. The default of <code class="literal">512</code> is usually enough, although it's recommended to increase this to 4 K when using XFS on Linux.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">open_file_cache</code>
+<a id="id249" class="indexterm"/>
+<a id="id250" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Configures a cache that can store open file descriptors, directory lookups, and file lookup errors.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">open_file_cache_errors</code>
+<a id="id251" class="indexterm"/>
+<a id="id252" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables the caching of file lookup errors by <code class="literal">open_file_cache</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">open_file_cache_min_uses</code>
+<a id="id253" class="indexterm"/>
+<a id="id254" class="indexterm"/>
+<a id="id255" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Configures the minimum number of uses for a file within the inactive parameter to <code class="literal">open_file_cache</code> for the  file descriptor to remain open in the cache.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">open_file_cache_valid</code>
+<a id="id256" class="indexterm"/>
+<a id="id257" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the time interval between validity checks for items in <code class="literal">open_file_cache</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">postpone_output</code>
+<a id="id258" class="indexterm"/>
+<a id="id259" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the minimum size of data for NGINX to send to the client. If possible, no data will be sent until this value is reached.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">read_ahead</code>
+<a id="id260" class="indexterm"/>
+<a id="id261" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If possible, the kernel will preread files up to the <code class="literal">size</code> parameter. It's supported on current FreeBSD and Linux (the <code class="literal">size</code> parameter is ignored on Linux).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">sendfile</code>
+<a id="id262" class="indexterm"/>
+<a id="id263" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables using <code class="literal">sendfile(2)</code> to directly copy the data from one file descriptor to another.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">sendfile_max_chunk</code>
+<a id="id264" class="indexterm"/>
+<a id="id265" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the maximum size of data to copy in one <code class="literal">sendfile(2) </code>call, to prevent a worker from seizing.</p>
+</td></tr></tbody></table></div></div></div><div class="section" title="Hash directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec18"/>Hash directives</h2></div></div></div><p>The set of hash <a id="id266" class="indexterm"/>directives controls how large a range of static memory NGINX allocates to certain variables. NGINX will calculate the minimum size needed on startup and reconfiguration. You will most likely only need to adjust one of the <code class="literal">*_hash_max_size</code> parameters by setting the appropriate directive when NGINX emits a warning to that effect. The <code class="literal">*_hash_bucket_size</code> variables are set by default to a multiple of the processor's cache line size to minimize lookups needed to retrieve the entry, and therefore should not normally be changed. See <a class="ulink" href="http://nginx.org/en/docs/hash.html">http://nginx.org/en/docs/hash.html</a> for additional details.</p><div class="section" title="Table: HTTP hash directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl6sec10"/>Table: HTTP hash directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">server_names_hash_bucket_size</code>
+<a id="id267" class="indexterm"/>
+<a id="id268" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the bucket size used to hold the <code class="literal">server_name</code> hash tables.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">server_names_hash_max_size</code>
+<a id="id269" class="indexterm"/>
+<a id="id270" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the maximum size of the <code class="literal">server_name</code> hash tables.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">types_hash_bucket_size</code>
+<a id="id271" class="indexterm"/>
+<a id="id272" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the bucket size used to hold the <code class="literal">types</code> hash tables.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">types_hash_max_size</code>
+<a id="id273" class="indexterm"/>
+<a id="id274" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the maximum size of the <code class="literal">types</code> hash tables.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">variables_hash_bucket_size</code>
+<a id="id275" class="indexterm"/>
+<a id="id276" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the bucket size used to hold the remaining variables.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">variables_hash_max_size</code>
+<a id="id277" class="indexterm"/>
+<a id="id278" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the maximum size of the hash that holds the remaining variables.</p>
+</td></tr></tbody></table></div></div></div><div class="section" title="Socket directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec19"/>Socket directives</h2></div></div></div><p>These directives<a id="id279" class="indexterm"/> describe how NGINX can set various options on the TCP sockets it creates.</p><div class="section" title="Table: HTTP socket directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl6sec11"/>Table: HTTP socket directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">lingering_close</code>
+<a id="id280" class="indexterm"/>
+<a id="id281" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies how a client connection will be kept open for more data.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">lingering_time</code>
+<a id="id282" class="indexterm"/>
+<a id="id283" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>In connection with the <code class="literal">lingering_close</code> directive, this directive will specify how long a client connection will be kept open for processing more data.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">lingering_timeout</code>
+<a id="id284" class="indexterm"/>
+<a id="id285" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Also in conjunction with <code class="literal">lingering_close</code>, this directive indicates how long NGINX will wait for additional data before closing the client connection.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">reset_timedout_connection</code>
+<a id="id286" class="indexterm"/>
+<a id="id287" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>With this directive enabled, connections that have been timed out will immediately be reset, freeing all associated memory. The default is to leave the socket in the <code class="literal">FIN_WAIT1</code> state, which will always be the case for keep-alive connections.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">send_lowat</code>
+<a id="id288" class="indexterm"/>
+<a id="id289" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If non-zero, NGINX will try to minimize the number of send operations on client sockets. It is ignored on Linux, Solaris, and Windows.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">send_timeout</code>
+<a id="id290" class="indexterm"/>
+<a id="id291" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets a timeout between two successive write operations for a client receiving a response.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">tcp_nodelay</code>
+<a id="id292" class="indexterm"/>
+<a id="id293" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables or disables the <code class="literal">TCP_NODELAY</code> option for keep-alive connections.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">tcp_nopush</code>
+<a id="id294" class="indexterm"/>
+<a id="id295" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Relevant only when <code class="literal">sendfile</code> is used. It enables NGINX to attempt to send response headers in one packet, as well as sending a file in full packets.</p>
+</td></tr></tbody></table></div></div></div><div class="section" title="Sample configuration"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec20"/>Sample configuration</h2></div></div></div><p>The following is an example of an HTTP <a id="id296" class="indexterm"/>configuration section:</p><div class="informalexample"><pre class="programlisting">http {
+
+    include       /opt/local/etc/nginx/mime.types;
+
+    default_type  application/octet-stream;
+
+    sendfile on;
+
+    tcp_nopush on;
+
+    tcp_nodelay on;
+
+    keepalive_timeout  65;
+
+    server_names_hash_max_size 1024;
+
+}</pre></div><p>This context block would go after any global configuration directives in the <code class="literal">nginx.conf</code> file.</p></div></div>
+<div class="section" title="The virtual server section"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec19"/>The virtual server section</h1></div></div></div><p>Any context<a id="id297" class="indexterm"/> beginning with the keyword <code class="literal">server</code> is considered a "virtual server" section. It describes a logical separation of a set of resources that will be delivered under a different <code class="literal">server_name</code> directive. These virtual servers respond to HTTP requests, and so are contained within the <code class="literal">http</code> section.</p><p>A virtual server is defined by a combination of the <code class="literal">listen</code> and <code class="literal">server_name</code> directives. <code class="literal">listen</code> defines an IP address/port combination or path to a UNIX-domain socket:</p><div class="informalexample"><pre class="programlisting">listen address[:port];
+listen port;
+listen unix:path;</pre></div><p>The <code class="literal">listen</code> directive<a id="id298" class="indexterm"/> uniquely identifies a socket binding under NGINX. There are also a number of optional parameters that <code class="literal">listen</code> can take:</p><div class="section" title="Table: listen parameters"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl6sec12"/>Table: listen parameters</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Parameter</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Comment</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">default_server</code>
+<a id="id299" class="indexterm"/>
+<a id="id300" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines <code class="literal">this address:port</code> combination as being the default for the requests bound here.</p>
+</td><td style="text-align: left" valign="top"> </td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">setfib</code>
+<a id="id301" class="indexterm"/>
+<a id="id302" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the corresponding FIB for the listening socket.</p>
+</td><td style="text-align: left" valign="top">
+<p>Only supported on FreeBSD. Not for UNIX-domain sockets.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">backlog</code>
+<a id="id303" class="indexterm"/>
+<a id="id304" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the backlog parameter in the <code class="literal">listen()</code> call.</p>
+</td><td style="text-align: left" valign="top">
+<p>Defaults to <code class="literal">-1</code> on FreeBSD and <code class="literal">511</code> on all other platforms.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">rcvbuf</code>
+<a id="id305" class="indexterm"/>
+<a id="id306" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the <code class="literal">SO_RCVBUF</code> parameter on the listening socket.</p>
+</td><td style="text-align: left" valign="top"> </td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">sndbuf</code>
+<a id="id307" class="indexterm"/>
+<a id="id308" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the <code class="literal">SO_SNDBUF</code> parameter on the listening socket.</p>
+</td><td style="text-align: left" valign="top"> </td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">accept_filter</code>
+<a id="id309" class="indexterm"/>
+<a id="id310" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the name of the accept filter to either <code class="literal">dataready</code> or <code class="literal">httpready</code>.</p>
+</td><td style="text-align: left" valign="top">
+<p>Only supported on FreeBSD.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">deferred</code>
+<a id="id311" class="indexterm"/>
+<a id="id312" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the <code class="literal">TCP_DEFER_ACCEPT</code> option to use a deferred <code class="literal">accept()</code> call.</p>
+</td><td style="text-align: left" valign="top">
+<p>Only supported on Linux.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">bind</code>
+<a id="id313" class="indexterm"/>
+<a id="id314" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Make<a id="id315" class="indexterm"/> a separate <code class="literal">bind()</code> call for this <code class="literal">address:port</code> pair.</p>
+</td><td style="text-align: left" valign="top">
+<p>A separate <code class="literal">bind()</code> call will be made implicitly if any of the other socket-specific parameters are used.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ipv6only</code>
+<a id="id316" class="indexterm"/>
+<a id="id317" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the value of the <code class="literal">IPV6_V6ONLY</code> parameter.</p>
+</td><td style="text-align: left" valign="top">
+<p>Can only be set on a fresh start.  Not for UNIX-domain sockets.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl</code>
+<a id="id318" class="indexterm"/>
+<a id="id319" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates that only HTTPS connections will be made on this port.</p>
+</td><td style="text-align: left" valign="top">
+<p>Allows for a more compact configuration.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">so_keepalive</code>
+<a id="id320" class="indexterm"/>
+<a id="id321" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Configures the TCP <code class="literal">keepalive</code> for the listening socket.</p>
+</td><td style="text-align: left" valign="top"> </td></tr></tbody></table></div><p>The <code class="literal">server_name</code> directive<a id="id322" class="indexterm"/> is fairly straightforward, but can be used to solve a number of configuration problems. Its default value is <code class="literal">""</code>, which means that a server section without a <code class="literal">server_name</code> directive will match a request that has no <code class="literal">Host</code> <a id="id323" class="indexterm"/>header field set. This can be used, for example, to drop requests that lack this header:</p><div class="informalexample"><pre class="programlisting">server {
+
+    listen 80;
+
+    return 444;
+
+}</pre></div><p>The non-standard HTTP code, <code class="literal">444</code>, used in this example will cause NGINX to immediately close the connection.</p><p>Besides a normal string, NGINX will accept a wildcard as a parameter to the <code class="literal">server_name</code> directive:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">The wildcard can replace the subdomain part: <code class="literal">*.example.com</code></li><li class="listitem" style="list-style-type: disc">The wildcard can replace the top-level-domain part: <code class="literal">www.example.*</code></li><li class="listitem" style="list-style-type: disc">A special form will match the subdomain or the domain itself: <code class="literal">.example.com</code> (matches <code class="literal">*.example.com</code> as well as <code class="literal">example.com</code>)</li></ul></div><p>A regular expression can also be used as a parameter to <code class="literal">server_name</code> by prepending the name with a tilde (<code class="literal">~</code>):</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>server_name ~^www\.example\.com$;</strong></span>
+<span class="strong"><strong>server_name ~^www(\d+).example\.(com)$;</strong></span>
+</pre></div><p>The latter form is an example using captures, which can later be referenced (as <code class="literal">$1</code>, <code class="literal">$2</code>, and so on) in further configuration directives.</p><p>NGINX uses the following logic when determining which virtual server should serve a specific request:</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem">Match the IP address and port to the <code class="literal">listen</code> directive.</li><li class="listitem">Match the <code class="literal">Host</code> header field against the <code class="literal">server_name</code> directive as a string.</li><li class="listitem">Match the <code class="literal">Host</code> header field against the <code class="literal">server_name</code> directive with a wildcard at the beginning of the string.</li><li class="listitem">Match the <code class="literal">Host</code> header field against the <code class="literal">server_name</code> directive with a wildcard at the end of the string.</li><li class="listitem">Match the <code class="literal">Host</code> header field against the <code class="literal">server_name</code> directive as a regular expression.</li><li class="listitem">If all the <code class="literal">Host</code> headers match <code class="literal">fail</code>, then direct to the <code class="literal">listen</code> directive marked as <code class="literal">default_server</code>.</li><li class="listitem">If all the <code class="literal">Host</code> headers match <code class="literal">fail</code> and there is no <code class="literal">default_server</code>, direct to the first server with a <code class="literal">listen</code> directive that satisfies step 1.</li></ol></div><p>This logic is expressed<a id="id324" class="indexterm"/> in the following flowchart:</p><div class="mediaobject"><img src="graphics/7447OS_02_01.jpg" alt="Table: listen parameters"/></div><p>
+<code class="literal">default_server</code> can <a id="id325" class="indexterm"/>
+<a id="id326" class="indexterm"/>be used to handle requests that would otherwise go unhandled. It is therefore recommended to always set <code class="literal">default_server</code> explicitly, so that these unhandled requests will be handled in a defined manner.</p><p>Besides this <a id="id327" class="indexterm"/>usage, <code class="literal">default_server</code> may also be helpful in <a id="id328" class="indexterm"/>configuring a number of virtual servers with the same <code class="literal">listen</code> directive. Any directives set here will be the same for all matching server blocks.</p></div></div>
+<div class="section" title="Locations &#x2013; where, when, and how"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec20"/>Locations – where, when, and how</h1></div></div></div><p>The <code class="literal">location</code> directive<a id="id329" class="indexterm"/> may be used within a virtual server section and indicates a URI that comes either from the client or from an internal redirect. Locations may be nested with a few exceptions. They are used for processing requests with as specific a configuration as possible.</p><p>A location is defined as follows:</p><div class="informalexample"><pre class="programlisting">location [modifier] uri {...}</pre></div><p>Or for a named location:</p><div class="informalexample"><pre class="programlisting">location @name {…}</pre></div><p>A named location is only reachable from an internal redirect. It preserves the URI as it was before entering the location block. It may only be defined at the server context level.</p><p>The modifiers affect processing of a location in the following way:</p><div class="section" title="Table: Location modifiers"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl6sec13"/>Table: Location modifiers</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Modifier</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Handling</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">=</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Use exact match and terminate search.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">~</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Case-sensitive regular expression matching.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">~*</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Case-insensitive regular expression matching.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">^~</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Stops processing before regular expressions are checked for a match of this location's string, if it's the most specific match. Note that this is not a regular expression match – its purpose is to preempt regular expression matching.</p>
+</td></tr></tbody></table></div><p>When a request comes in, the URI is checked against the most specific location as follows:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Locations without a regular expression are searched for the most-specific match, independent of the order in which they are defined.</li><li class="listitem" style="list-style-type: disc">Regular expressions are matched in the order in which they are found in the configuration file. The regular expression search is terminated on the first match. The most-specific location match is then used for request processing.</li></ul></div><p>The comparison match described here is against decoded URIs; for example, a <code class="literal">"%20"</code> in a URI will match against a <code class="literal">" "</code> (space) specified in a location.</p><p>A named location <a id="id330" class="indexterm"/>may only be used by internally redirected requests.</p><p>The following directives are found only within a location:</p></div><div class="section" title="Table: Location-only directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl6sec14"/>Table: Location-only directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">alias</code>
+<a id="id331" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines another name for the location, as found on the filesystem. If the location is specified with a regular expression, <code class="literal">alias</code> should reference captures defined in that regular expression. <code class="literal">alias</code> replaces the part of the URI matched by the location, such that the rest of the URI not matched will be searched for in that filesystem location. Using the <code class="literal">alias</code> directive is fragile when moving bits of the configuration around, so using the <code class="literal">root</code> directive is preferred, unless the URI needs to be modified in order to find the file.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">internal</code>
+<a id="id332" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies a location that can only be used for internal requests (redirects defined in other directives, rewrite requests, error pages, and so on.)</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_except</code>
+<a id="id333" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Limits a location to the specified HTTP verb(s) (<code class="literal">GET</code> also includes <code class="literal">HEAD</code>).</p>
+</td></tr></tbody></table></div><p>Additionally, a number of directives found in the <code class="literal">http</code> section may also be specified in a location. See <a class="link" href="apa.html" title="Appendix A. Directive Reference">Appendix A</a>, <span class="emphasis"><em>Directive Reference</em></span>, for a complete list.</p><p>The <code class="literal">try_files</code> directive<a id="id334" class="indexterm"/> deserves a special mention here. It may also be used in a server context, but will most often be found in a location. <code class="literal">try_files</code> will do just that—try files in the order given as parameters; the first match wins. It is often used to match potential files from a variable, then pass processing to a named location, as shown in the following example:</p><div class="informalexample"><pre class="programlisting">location / {
+
+    try_files $uri $uri/ @mongrel;
+
+}
+location @mongrel {
+    proxy_pass http://appserver;
+
+}</pre></div><p>Here, an implicit directory index is tried if the given URI is not found as a file, then processing is passed on to <code class="literal">appserver</code> via a proxy. We will explore how best to use <code class="literal">location</code>, <code class="literal">try_files</code>, and <code class="literal">proxy_pass</code> to solve specific problems throughout the rest of the book.</p><p>Locations may be nested except when:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">The prefix is "<code class="literal">=</code>"</li><li class="listitem" style="list-style-type: disc">The location is a named location</li></ul></div><p>Best practice <a id="id335" class="indexterm"/>dictates that regular expression locations be nested inside string-based locations. An example of this is as follows:</p><div class="informalexample"><pre class="programlisting"># first, we enter through the root
+location / {
+
+    # then we find a most-specific substring
+    # note that this is not a regular expression
+    location ^~ /css {
+
+        # here is the regular expression that then gets matched
+        location ~* /css/.*\.css$ {
+
+        }
+
+    }
+
+}</pre></div></div></div>
+<div class="section" title="The mail server section"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec21"/>The mail server section</h1></div></div></div><p>The <a id="id336" class="indexterm"/>mail server section, or mail configuration context, is available only if you've built NGINX with the mail module (<code class="literal">--with-mail</code>). This section controls all aspects of working with the mail module.</p><p>The mail module allows for configuration directives that affect all aspects of proxying mail connections, as well as for specifying them per server. The server context also accepts the <code class="literal">listen</code> and <code class="literal">server_name</code> directives that we saw under the <code class="literal">http</code> server section.</p><p>NGINX can <a id="id337" class="indexterm"/>proxy the IMAP, POP3, and SMTP protocols. The following table lists the directives that are available to this module:</p><div class="section" title="Table: Mail module directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl6sec15"/>Table: Mail module directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">auth_http</code>
+<a id="id338" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the server used for authenticating the POP3/IMAP user. The functionality of this server will be discussed in detail in <a class="link" href="ch03.html" title="Chapter 3. Using the Mail Module">Chapter 3</a>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">imap_capabilities</code>
+<a id="id339" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates which IMAP4 capabilities are supported by the backend server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">pop3_capabilities</code>
+<a id="id340" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates which POP3 capabilities are supported by the backend server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">protocol</code>
+<a id="id341" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates which protocol is supported by this virtual server context.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy</code>
+<a id="id342" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive will simply enable or disable mail proxying.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_buffer</code>
+<a id="id343" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive allows setting the size of the buffer used for the proxy connection beyond the default of one page.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_pass_error_message</code>
+<a id="id344" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Useful in situations where the backend authentication process emits a useful error message to the client.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_timeout</code>
+<a id="id345" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If a timeout beyond the default of 24 hours is required, this directive can be used.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">xclient</code>
+<a id="id346" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The SMTP protocol allows checking based on <code class="literal">IP</code>/<code class="literal">HELO</code>/<code class="literal">LOGIN</code> parameters, which are passed via the <code class="literal">XCLIENT</code> command. This directive enables NGINX to communicate this information.</p>
+</td></tr></tbody></table></div><p>If NGINX was compiled with SSL support (<code class="literal">--with-mail_ssl_module</code>), the following directives will be available in addition to the previous ones:</p></div><div class="section" title="Table: Mail SSL directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl6sec16"/>Table: Mail SSL directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl</code>
+<a id="id347" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates if this context should support SSL transactions.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl_certificate</code>
+<a id="id348" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the path to the PEM-encoded SSL certificate(s) for this virtual server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl_certificate_key</code>
+<a id="id349" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the path to the PEM-encoded SSL secret key for this virtual server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl_ciphers</code>
+<a id="id350" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It specifies the ciphers that should be supported in this virtual server context (OpenSSL format).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl_prefer_server_ciphers</code>
+<a id="id351" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates that SSLv3 and TLSv1 server ciphers are preferred over the client's ciphers.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl_protocols</code>
+<a id="id352" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates which SSL protocols should be enabled.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl_session_cache</code>
+<a id="id353" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies an SSL cache, and whether or not it should be shared among all worker processes.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ssl_session_timeout</code>
+<a id="id354" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>How long the client can use the same SSL parameters, provided they are stored in the cache.</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Full sample configuration"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec22"/>Full sample configuration</h1></div></div></div><p>What follows is a sample <a id="id355" class="indexterm"/>configuration file including the different sections discussed in this chapter. Please note that this should not be copy-pasted and used as is. It will most likely not fit your needs. It is shown here only to give an idea of the structure of a complete configuration file.</p><div class="informalexample"><pre class="programlisting">user www;
+
+worker_processes 12;
+
+error_log /var/log/nginx/error.log;
+
+pid /var/run/nginx.pid;
+
+events {
+
+    use /dev/poll;
+
+    worker_connections  2048;
+
+}
+http {
+
+    include       /opt/local/etc/nginx/mime.types;
+
+    default_type  application/octet-stream;
+
+    sendfile on;
+
+    tcp_nopush on;
+
+    tcp_nodelay on;
+
+    keepalive_timeout  65;
+
+    server_names_hash_max_size 1024;
+
+    server {
+
+        listen 80;
+
+        return 444;
+
+    }
+
+    server {
+
+        listen 80;
+
+        server_name www.example.com;
+
+        location / {
+
+            try_files $uri $uri/ @mongrel;
+
+        }
+
+        location @mongrel {
+
+            proxy_pass http://127.0.0.1:8080;
+
+        }
+
+    }
+
+}</pre></div></div>
+<div class="section" title="Summary"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec23"/>Summary</h1></div></div></div><p>In this chapter, we have seen how the NGINX configuration file is built. Its modular nature is a reflection, in part, of the modularity of NGINX itself. A global configuration block is responsible for all aspects that affect the running of NGINX as a whole. There is a separate configuration section for each protocol that NGINX is responsible for handling. We may further define how each request is to be handled by specifying servers within those protocol configuration contexts (either <code class="literal">http</code> or <code class="literal">mail</code>), so that requests are routed to a specific IP address/port. Within the <code class="literal">http</code> context, locations are then used to match the URI of the request. These locations may be nested or otherwise ordered to ensure that requests get routed to the right areas of the filesystem or application server.</p><p>What we did not cover in this chapter are the configuration options provided by the various modules that may be compiled into your <code class="literal">nginx</code> binary. These additional directives will be touched upon throughout the book, as that particular module is used to solve a problem. Also absent was an explanation of the variables that NGINX makes available for its configuration. These too will be discussed later in this book. This chapter's focus was on the basics of configuring NGINX.</p><p>In the next chapter, we will explore configuring NGINX's mail module, to enable mail proxying.</p></div></body></html>

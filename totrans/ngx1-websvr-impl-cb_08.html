@@ -1,0 +1,532 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;8.&#xA0;Improving Performance and SEO Using Nginx"><div class="titlepage"><div><div><h1 class="title"><a id="ch08"/>Chapter 8. Improving Performance and SEO Using Nginx</h1></div></div></div><p>In this chapter, we will cover:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Setting up TCP options correctly for optimizing performance</li><li class="listitem" style="list-style-type: disc">Reducing the keep-alives to free up Nginx workers</li><li class="listitem" style="list-style-type: disc">Using Memcached as the cache backend</li><li class="listitem" style="list-style-type: disc">Configuring the right event model and file limits</li><li class="listitem" style="list-style-type: disc">Setting max-age expiry headers for client-side caching</li><li class="listitem" style="list-style-type: disc">Blocking scrapers, bots, and spiders to save bandwidth</li><li class="listitem" style="list-style-type: disc">Redirection of www to non-www domain for SEO</li><li class="listitem" style="list-style-type: disc">Removing all white space from response</li><li class="listitem" style="list-style-type: disc">Setting up server status for monitoring</li><li class="listitem" style="list-style-type: disc">Setting up Munin for 24x7 Nginx monitoring</li><li class="listitem" style="list-style-type: disc">Enabling gzip pre-compression</li><li class="listitem" style="list-style-type: disc">Preventing hotlinking using Nginx</li><li class="listitem" style="list-style-type: disc">Using embedded Perl to minify JavaScript files</li><li class="listitem" style="list-style-type: disc">Using embedded Perl to minify CSS files</li><li class="listitem" style="list-style-type: disc">Using embedded Perl to serve sitemaps (SEO)</li><li class="listitem" style="list-style-type: disc"><a class="indexterm" id="id190"/>Setting up Boost module on Drupal with Nginx</li><li class="listitem" style="list-style-type: disc">Setting up streaming for Flash files</li><li class="listitem" style="list-style-type: disc">Utilizing the 1x1 gif serving module to do offline processing</li></ul></div><div class="section" title="Introduction"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec01"/>Introduction</h1></div></div></div><p>This chapter is all about how you can make your site load faster and possibly get more traffic on your site. We will cover the basics of optimizing your Nginx setup and some SEO tricks. These techniques will not only be useful for your SEO, but also for the overall health of your site and applications.</p></div></div>
+<div class="section" title="Setting up TCP options correctly for optimizing performance"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec03"/>Setting up TCP options correctly for optimizing performance</h1></div></div></div><p>Nginx allows some easy ways to tweak TCP options which will be based upon your server operating system that will allow faster loading of your sites. We will have a look at the possible options and their impact.<a class="indexterm" id="id191"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec01"/>How to do it...</h2></div></div></div><p>The following configuration will optimize your setup for Linux:<a class="indexterm" id="id192"/>
+</p><div class="informalexample"><pre class="programlisting">user www-data;
+worker_processes 1;
+error_log /var/log/nginx/error.log;
+pid /var/run/nginx.pid;
+events {
+worker_connections 1024;
+}
+http {
+include /etc/nginx/mime.types;
+default_type application/octet-stream;
+access_log /var/log/nginx/access.log;
+sendfile on;
+tcp_nodelay on;
+tcp_nopush off;
+…
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec02"/>How it works...</h2></div></div></div><p>We use the following directives, and in the following table we can see what they are actually utilized for:<a class="indexterm" id="id193"/>
+</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="0.950000000000001"/><col style="text-align: left" width="4.51027777777778"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Usage</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">tcp_nodelay</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive allows or forbids the use of the socket option<code class="literal"> TCP_NODELAY</code>.</p>
+<p>By definition,<code class="literal"> TCP_NODELAY</code> is for a specific purpose; to disable the Nagle buffering algorithm. It should only be set for applications that send frequent small bursts of information without getting an immediate response; where timely delivery of data is required (the canonical example is mouse movements).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">tcp_nopush</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive permits or forbids the use of the socket options<code class="literal"> TCP_NOPUSH</code> on FreeBSD or<code class="literal"> TCP_CORK</code> on Linux. This option is only available when using sendfile.</p>
+<p>Setting this option causes Nginx to attempt to send it's HTTP response headers in one packet on Linux and FreeBSD 4.x</p>
+<p>On Linux, Nginx can use the<code class="literal"> TCP_CORK</code> socket option. From the tcp(7) manual:</p>
+<p>
+<code class="literal">TCP_CORK</code>
+</p>
+<p>If set, don't send out partial frames. All queued partial frames are sent when the option is cleared again. This is useful for prepending headers before calling sendfile(2), or for throughput optimization. As currently implemented, there is a 200 millisecond ceiling on the time for which output is corked by<code class="literal"> TCP_CORK</code>. If this ceiling is reached, then queued data is automatically transmitted. This option can be combined with<code class="literal"> TCP_NODELAY</code> only since Linux 2.5.71. This option should not be used in code intended to be portable.</p>
+<p>On FreeBSD Nginx can use the<code class="literal"> TCP_NOPUSH</code> socket option, which enables T/TCP transactions. This does much the same as the above, but is known to be slow and somewhat buggy on many versions of FreeBSD.</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Reducing the keep-alives to free up Nginx workers"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec05"/>Reducing the keep-alives to free up Nginx workers</h1></div></div></div><p>Are you starting to feel that a lot of your Nginx seems to be tied up without actually having a lot of traffic on you site? This simple tweak will let you efficiently utilize your Nginx setup when you feel that your users are spending a lot of time on a particular page before moving to the next page on your site.<a class="indexterm" id="id194"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec03"/>How to do it...</h2></div></div></div><p>This is, again, a fairly simple change in the configuration file as shown in the following code:</p><div class="informalexample"><pre class="programlisting">user www-data;
+worker_processes 1;
+error_log /var/log/nginx/error.log;
+pid /var/run/nginx.pid;
+events {
+worker_connections 1024;
+}
+http {
+include /etc/nginx/mime.types;
+default_type application/octet-stream;
+access_log /var/log/nginx/access.log;
+. . .
+#keepalive_timeout 65;
+keepalive_timeout 3;
+. . .
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec04"/>How it works...</h2></div></div></div><p>This simple directive actually sets the value of the time the connection with the client is kept alive after a request. For example, in the preceding setting the connection will wait for three seconds after serving a client request waiting for the next request from them (and in the process ignoring other clients).<a class="indexterm" id="id195"/>
+</p><p>The idea is finding the right amount of time after which if you close the connection, Nginx does not end up ignoring many requests unnecessarily. This will improve the efficiency of how connections are managed by Nginx.</p></div></div>
+<div class="section" title="Using Memcached as the cache backend"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec06"/>Using Memcached as the cache backend</h1></div></div></div><p>Over the last couple of years, Memcached has been one of the most utilized caching layers used by nearly every large portal. It is interesting to notice how every platform has evolved to support this as a default caching mechanism. Nginx is not far behind and can utilize all the power of Memcached as a caching backend.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec05"/>How to do it...</h2></div></div></div><p>The Memcached module is by default compiled into Nginx. In this we will assume that a local Memcached instance is running on the 11211 port. The following configuration will allow you to run a simple caching setup:<a class="indexterm" id="id196"/>
+</p><div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+location / {
+set $memcached_key $uri;
+memcached_pass 127.0.0.1:11211;
+default_type text/html;
+error_page 404 @fallback;
+}
+location @fallback {
+proxy_pass http://backend;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec06"/>How it works...</h2></div></div></div><p>This is a fairly simple setup, where the complete site is cached in Memcached. The idea is that when Nginx is queried for a given URL, it is checked if Nginx has the corresponding page in memory or not. If it has, then it is served directly from there. Otherwise, we call the dynamic backend of the site.<a class="indexterm" id="id197"/>
+</p><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="note03"/>Note</h3><p>The catch, however, is that you will need to save the outputs of the pages in memory for Nginx to be able to query it from Memcached. The following diagram is an example of how this works in practice with a framework such as Django (Python).</p></div></div><div class="mediaobject"><img alt="How it works..." src="graphics/4965OS_08_01.jpg" width="193"/></div></div></div>
+<div class="section" title="Configuring the right event model and file limits"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec08"/>Configuring the right event model and file limits</h1></div></div></div><p>Nginx is an event-driven web server and it always tries to use the underlying event model in the parent operating system to efficiently function. We will see the various choices on offer depending on the operating systems we operate in. In addition to that we will also have a look at how to modify the limits on file descriptor in the configuration.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec07"/>How to do it...</h2></div></div></div><p>This simple set of changes within the configuration is all that is needed to make changes in the event model and file limits. You will, however, need to also modify<code class="literal"> sysctl.conf</code> on Linux and its equivalent on other operating systems to enhance the underlying file limits in place or the following setting will be ignored:<a class="indexterm" id="id198"/>
+</p><div class="informalexample"><pre class="programlisting">user www-data;
+worker_processes 1;
+worker_rlimit_nofile 206011;
+error_log /var/log/nginx/error.log;
+pid /var/run/nginx.pid;
+events {
+event select;
+worker_connections 1024;
+}
+http {
+...
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec08"/>How it works...</h2></div></div></div><p>In this current setup, we have set a fairly high limit on the number of open file descriptors that a worker process can have. We have also gone ahead and explicitly selected the select event model which comes built in by default in Nginx. You can also choose the poll event model or an alternative based upon the operating system you are on. The following table outlines the various options one has in selecting the event models.<a class="indexterm" id="id199"/>
+</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.015"/><col style="text-align: left" width="1.88583333333333"/><col style="text-align: left" width="2.50361111111111"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Select method</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Operating system</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Notes</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">select</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>All</p>
+</td><td style="text-align: left" valign="top">
+<p>Standard method compiled in by default</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">poll</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>All</p>
+</td><td style="text-align: left" valign="top">
+<p>Standard method compiled in by default</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">kqueue</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>FreeBSD 4.1+, OpenBSD 2.9+, NetBSD 2.0 and MacOS X</p>
+</td><td style="text-align: left" valign="top">
+<p>With dual-processor machines running MacOS X using kqueue can lead to kernel panic</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">epoll</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Linux 2.6+</p>
+</td><td style="text-align: left" valign="top">
+<p>In some distributions, like SuSE 8.2, there are patches for supporting epoll by kernel version 2.4</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">rtsig</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Linux 2.2.19+</p>
+</td><td style="text-align: left" valign="top">
+<p>By default no more than 1024 POSIX realtime (queued) signals can be outstanding in the entire system</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">/dev/poll</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Solaris 7 11/99+, HP/UX 11.22+ (eventport), IRIX 6.5.15+ and Tru64 UNIX 5.1A+</p>
+</td><td style="text-align: left" valign="top"> </td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">eventport</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Solaris 10</p>
+</td><td style="text-align: left" valign="top">
+<p>To avoid kernel panic, it is necessary to install this security patch</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Setting max-age expiry headers for client-side caching"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec10"/>Setting max-age expiry headers for client-side caching</h1></div></div></div><p>In a reverse proxy setup, one of the most crucial tasks of a frontend web server like Nginx is to serve the static files. This is one of the most effective optimizations in the arsenal of a web administrator. In this, we set the client side cache expiry on static files to a significantly high value far in the future. This ensures that if the site is frequently used by the user, the static files like the images, CSS, and JavaScript files are not downloaded once again. This leads to a significantly better interaction with the site.</p><p>If you tend to use development plugins such as Firebug (which you can check out at<a class="ulink" href="http://getfirebug.com)"> http://getfirebug.com)</a>, they show you the headers of the files downloaded when you load a page, as shown in the following screenshot. This shows an example of the CSS files downloaded on the Yahoo! site:<a class="indexterm" id="id200"/>
+</p><div class="mediaobject"><img alt="Setting max-age expiry headers for client-side caching" height="211" src="graphics/4965_08_02.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec09"/>How to do it...</h2></div></div></div><p>This is a simple configuration change that needs to be made to the location directive that serves the static files:<a class="indexterm" id="id201"/>
+</p><div class="informalexample"><pre class="programlisting">location ~* \.(jpg|jpeg|gif|css|png|js|ico|html)$ {
+expires max;
+}
+location / {
+...
+proxy_pass http://backend;
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec10"/>How it works...</h2></div></div></div><p>This is a fairly simple directive where if the file is a static file like a CSS, JS, or any image file, we simply send the file back with the<code class="literal"> Expires</code> header set far in the future. This will ensure that the file stays in the cache of the client browser and is not reloaded unnecessarily when the user comes back to the same page in the future.<a class="indexterm" id="id202"/>
+</p><p>Static files like these do not change on most sites, while the HTML which defines the structure of the content may be very much dynamic. This also prevents significant unnecessary bandwidth usage for the site owners.</p><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="note04"/>Note</h3><p>You must keep in mind that a lot of time you will need to modify static files, so in those cases you will need to append a random/different query string variable to force the client to download the fresh version of the static file.</p></div></div></div></div>
+<div class="section" title="Blocking scrapers, bots, and spiders to save bandwidth"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec12"/>Blocking scrapers, bots, and spiders to save bandwidth</h1></div></div></div><p>If you have ever gone through your access log you will see a whole load of rather weird looking User-Agents visiting your site. Except for the larger search engines such as Google, Microsoft Bing, and Yahoo! every other bot is pretty much unnecessary in the larger scheme of the global SEO scenario today. In this recipe we will end up blocking out a whole lot of other content leechers and in the process save you valuable bandwidth.</p><p>This will also block a whole load of commenting bots that end up pushing ugly and unnecessary comments to screw up your site.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec11"/>How to do it...</h2></div></div></div><p>You will need to add the following in the location directive to keep away a fairly large list of scrapers, bots, and spiders. We will start with a smaller set of user agents to block, and can add others once we are sure of how it works.<a class="indexterm" id="id203"/>
+</p><div class="informalexample"><pre class="programlisting">location / {
+...
+if ($http_user_agent ~* aesop_com_spiderman|alexibot|backweb|bandit|batchftp|bigfoot|black.?hole|blackwidow|blowfish|botalot|buddy|builtbottough|bullseye|cheesebot|cherrypicker|chinaclaw|collector|copier|copyrightcheck|cosmos|crescent|curl|custo|da|diibot|disco|dittospyder|dragonfly|drip|easydl|ebingbong|ecatch|eirgrabber) {
+rewrite ^/ http://www.example1.com/robots.txt;
+}
+proxy_pass http://backend;
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec12"/>How it works...</h2></div></div></div><p>This set of rules effectively look at the HTTP user agent and compare it to a list "of know rouge" user agent list and reject the request by redirecting them to the<code class="literal"> robots.txt</code> file. This also ensures that you are never wasting computation time and bandwidth on bots which can be utilized in providing a better quality of service for your users.<a class="indexterm" id="id204"/>
+</p><p>By stopping spam comments on your site, you are also effectively ensuring that your SEO does not get affected by pornographic or explicit content injected by them.</p></div></div>
+<div class="section" title="Redirection of www to non-www domain for SEO"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec14"/>Redirection of www to non-www domain for SEO</h1></div></div></div><p>Most people do not realize that<a class="ulink" href="http://www.example1.com"> www.example1.com</a> is not the same as<code class="literal"> example1.com</code> for the search engines. Technically, they are completely separate entities. All search engines have algorithms to detect copied content to rank out the people who plagiarize content. In such a situation it is imperative that people actually use either<a class="ulink" href="http://www.example1.com"> www.example1.com</a> or<a class="ulink" href="http://example1.com"> example1.com</a> as the operative domain name for their site.</p><p>The verdict on what is better depends on the use case; the puritans argue that www version represents the correct sub-domain for all the Internet users. It can be argued that in an age where we use acronyms for nearly every word, the extra characters are unnecessary and may even affect your site's popularity. In this recipe, we will stick with non-www as the primary domain and force all www pages to redirect to the non-www pages.<a class="indexterm" id="id205"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec13"/>How to do it...</h2></div></div></div><p>We will insert the following configuration in the http directive to redirect all<code class="literal"> http://example1.com</code> requests to<code class="literal"> http://www.example1.com:</code>
+</p><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name example1.com;
+location / {
+...
+}
+}
+server {
+listen 80;
+server_name www.example1.com;
+rewrite ^ http://example1.com$uri permanent;
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec14"/>How it works...</h2></div></div></div><p>This is a simple rewrite rule for all www based requests, where they are redirected to the non-www URL. This makes sure that there is only one version of a page visible on the Internet for the search engines to crawl.<a class="indexterm" id="id206"/>
+</p></div></div>
+<div class="section" title="Removing all white space from response"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec15"/>Removing all white space from response</h1></div></div></div><p>This may sound a bit absurd, but white spaces form a major chunk of the files being transferred on a site. It can be said that if you are using GZIP compression then it is not an issue, but if you are looking at getting the most out of your setup then every little thing matters. This recipe will help you strip out all the unnecessary white space without wasting precious development time doing the same.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec15"/>How to do it...</h2></div></div></div><p>This simple directive will allow you to strip the HTML served of white spaces. You will first need to install the<code class="literal"> mod_strip</code> module.<a class="indexterm" id="id207"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will first need to download the module and untar it:<div class="informalexample"><pre class="programlisting">wget http://wiki.nginx.org/File:Mod_strip-0.1.tar.gz
+tar xvzf Mod_strip-0.1.tar.gz
+</pre></div></li><li class="listitem"> We then compile into Nginx the module, using the following configure statement:<div class="informalexample"><pre class="programlisting">./configure add-module=../Mod_strip-0.1
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> We then put the following directive in the location part of the site that we want to strip spaces for:<div class="informalexample"><pre class="programlisting">location / {
+strip on;
+. . .
+proxy_pass http://backend;
+}
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch08lvl2sec16"/>How it works...</h3></div></div></div><p>This is an extremely fast module and it efficiently removes all whitespaces (spaces, tabs, and newlines) from the HTML served by Nginx. This in combination with the GZIP compression provides quite a drastic improvement in page loading times.<a class="indexterm" id="id208"/>
+</p></div></div></div>
+<div class="section" title="Setting up server status for monitoring"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec16"/>Setting up server status for monitoring</h1></div></div></div><p>Sometimes in an active production environment, it is not possible to process logs to see web server statistics on the fly. In such situations, Nginx provides you with a simple server status page. This page will give you enough information to understand the current load on the server.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec17"/>How to do it...</h2></div></div></div><p>This module does not come compiled in by default, so we will initially compile in the module and then configure the server status stub.<a class="indexterm" id="id209"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to recompile Nginx and add the following flag to the configure option:<div class="informalexample"><pre class="programlisting">./configure --with-http_stub_status_module
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Then we will go ahead and use the configuration to add a new status end-point:<div class="informalexample"><pre class="programlisting">location /nginx_status {
+stub_status on;
+access_log off;
+}
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch08lvl2sec18"/>How it works...</h3></div></div></div><p>This simple configuration will create a page<a class="ulink" href="http://www.example1.com/nginx_status"> http://www.example1.com/nginx_status</a>, which will give you statistics on how much load is there on your web server. The following is an example of what you may get to see on the page.<a class="indexterm" id="id210"/>
+</p><p>We can also set up access control for this page by looking at the<span class="emphasis"><em> Setting up HTTP auth for access control</em></span> recipe in<a class="link" href="ch05.html" title="Chapter 5. Let's be Secure: Security Modules"> Chapter 5</a>,<span class="emphasis"><em> Let's Be Secure: Security Modules</em></span> which will let you set up HTTP authentication.</p><div class="informalexample"><pre class="programlisting">Active connections: 291
+server accepts handled requests
+16630948 16630948 31070465
+Reading: 6 Writing: 179 Waiting: 106
+</pre></div><p>The following table explains the meaning of the server status output.</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.235"/><col style="text-align: left" width="4.07166666666667"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Statistic</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Meaning</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>Active connections</p>
+</td><td style="text-align: left" valign="top">
+<p>Number of open connections to the backend</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>Server accepts handled requests</p>
+</td><td style="text-align: left" valign="top">
+<p>Nginx accepted 16630948 connections, went ahead and handled 16630948 connections and served 31070465 requests</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>Reading</p>
+</td><td style="text-align: left" valign="top">
+<p>The number of requests Nginx is reading</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>Writing</p>
+</td><td style="text-align: left" valign="top">
+<p>The requests that are being processed or being written back to the clients</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>Waiting</p>
+</td><td style="text-align: left" valign="top">
+<p>Connections that are kept alive with the clients (KeepAlives)</p>
+</td></tr></tbody></table></div></div></div></div>
+<div class="section" title="Setting up Munin for 24x7 Nginx monitoring"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec17"/>Setting up Munin for 24x7 Nginx monitoring</h1></div></div></div><p>In a production level environment where you may have multiple servers running, it becomes necessary to have top level monitoring tools such as Munin. The tools let you collate information and figure out load levels on the fly thus keeping you in the loop 24 hours, seven days a week. This recipe aims at being useful for the new Nginx user as well as highly experienced system administrators. The following screenshot is a sample of the kind of visualizations Munin generates:<a class="indexterm" id="id211"/>
+</p><div class="mediaobject"><img alt="Setting up Munin for 24x7 Nginx monitoring" src="graphics/4965_08_03.jpg" width="277"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec19"/>How to do it...</h2></div></div></div><p>There are two parts to this recipe; the first is in setting up Nginx with the server stub module.<a class="indexterm" id="id212"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to recompile Nginx and add the following flag to the configure option:<div class="informalexample"><pre class="programlisting">./configure --with-http_stub_status_module
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Then we will go ahead and use the configuration to add a new status end-point:<div class="informalexample"><pre class="programlisting">location /nginx_status {
+stub_status on;
+access_log off;
+}
+</pre></div></li></ol></div><p>Now we will go ahead and install the Munin plugins. Do note that we are assuming that you have already set up Munin on your system.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will first download the plugins:<div class="informalexample"><pre class="programlisting">cd /usr/share/munin/plugins
+sudo wget -O nginx_request http://exchange.munin-monitoring.org/plugins/nginx_request/version/2/download
+sudo wget -O nginx_status http://exchange.munin-monitoring.org/plugins/nginx_status/version/3/download
+sudo wget -O nginx_memory http://exchange.munin-monitoring.org/plugins/nginx_memory/version/1/download
+sudo chmod +x nginx_request
+sudo chmod +x nginx_status
+sudo chmod +x nginx_memory
+</pre></div></li><li class="listitem"> Now we will link the plugins to the correct directories:<a class="indexterm" id="id213"/><div class="informalexample"><pre class="programlisting">sudo ln -s /usr/share/munin/plugins/nginx_request /etc/munin/plugins/nginx_request
+sudo ln -s /usr/share/munin/plugins/nginx_status /etc/munin/plugins/nginx_status
+sudo ln -s /usr/share/munin/plugins/nginx_memory /etc/munin/plugins/nginx_memory
+</pre></div></li><li class="listitem"> Add the Nginx server stub URL to the Munin configuration (/etc/munin/plugin-conf.d/munin-node).<div class="informalexample"><pre class="programlisting">[nginx*]
+env.url http://localhost/nginx_status
+</pre></div></li><li class="listitem"> Restart the munin-node:</li></ol></div><div class="informalexample"><pre class="programlisting">sudo /etc/init.d/munin-node restart
+</pre></div><p>Now you should be able to view something like the following screenshot on your Munin installation:</p><div class="mediaobject"><img alt="How to do it..." src="graphics/4965_08_04.jpg" width="393"/></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec20"/>How it works...</h2></div></div></div><p>This two part setup first installs the server status stub module for Nginx which is used by Munin to keep track of the server loads. In the second part, we install the various Munin plugins that are needed to effectively monitor Nginx. Munin will keep polling the server status and parse it to gather the relevant information to generate the graphs. These simple visualizations can help the system administrator optimize the system further and potentially plan future hardware needs based on projections.<a class="indexterm" id="id214"/>
+</p></div></div>
+<div class="section" title="Enabling GZIP pre-compression"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec18"/>Enabling GZIP pre-compression</h1></div></div></div><p>We have had a look at how GZIP compression can lower the site's loading time drastically. We can further extend that thinking by pre-compressing the static sites that we want to serve and effectively reduce the computation power we waste to compress the file each and every time. This recipe will automagically help you serve a pre-compressed gzipped version of your static file.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec21"/>How to do it...</h2></div></div></div><p>You will need to carry out the following steps to enable gzip pre-compression module and use it effectively.<a class="indexterm" id="id215"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to recompile Nginx and add the following flag to the configure option:<div class="informalexample"><pre class="programlisting">./configure --with-http_gzip_static_module
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Now, you will need to compress the various static files (using the gzip command line utility, if on UNIX) that you have so that Nginx can serve those pre-compressed ones whenever possible. Make sure that the compressed files are placed in the same directory as the original files.</li><li class="listitem"> Make the following changes to the Nginx configuration file:<div class="informalexample"><pre class="programlisting">http {
+. . .
+gzip_static on;
+gzip_http_version 1.1;
+gzip_proxied expired no-cache no-store private auth;
+gzip_disable "MSIE [1-6]\.";
+gzip_vary on;
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch08lvl2sec22"/>How it works...</h3></div></div></div><p>When this module is turned on, Nginx will always look for a pre-compressed file whenever a file is being served from the disk. The idea is to simply avoid spending more CPU time compressing the content every time.</p></div></div></div>
+<div class="section" title="Preventing hotlinking using Nginx"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec19"/>Preventing hotlinking using Nginx</h1></div></div></div><p>A lot of multimedia driven sites have the problem of people linking and embedding their content without their explicit permission. This not only leads to copyright issues at times, but also ends up in lost bandwidth for the site minus the traffic. This is clearly not a good scenario for any site. This recipe helps you prevent this situation on your site.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec23"/>How to do it...</h2></div></div></div><p>This simple rule will stop other sites from linking to your content:<a class="indexterm" id="id216"/>
+</p><div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+location ~* ^.+\.(jpg|jpeg|gif)$ {
+valid_referers none blocked example1.com www.example1.com;
+if ($invalid_referer) {
+return 444;
+}
+}
+...
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec24"/>How it works...</h2></div></div></div><p>The idea behind this is to set a list of correct referrer values which are permissible. The rest are rejected. In case there is no match with this list the variable,<code class="literal"> $invalid_referer</code> is set to 1. The lists of parameters in the<code class="literal"> valid_referers</code> mean the following:</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="0.795"/><col style="text-align: left" width="4.57777777777778"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>parameter</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Meaning</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>None</p>
+</td><td style="text-align: left" valign="top">
+<p>This value implies that it is a match when the "refers" line is not a part of the request header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>blocked</p>
+</td><td style="text-align: left" valign="top">
+<p>This means masked refer headers by firewall. For example "Referer : XXXXXX".</p>
+</td></tr></tbody></table></div><p>Do note that this method is not an absolute fix for hot-linking as it is fairly easy to spoof the header.</p></div></div>
+<div class="section" title="Using embedded Perl to minify JavaScript files"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec21"/>Using embedded Perl to minify JavaScript files</h1></div></div></div><p>This recipe will have a look at how to get embedded Perl working in Nginx and use it to minify JavaScript files. The basic concept of minifying JavaScript files is to reduce the size of the file by removing unnecessary whitespaces and shortening variable names. Of course, any compression of the JavaScript file should not be affecting the actual functionality of the site.<a class="indexterm" id="id217"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec25"/>How to do it...</h2></div></div></div><p>We will start by installing the embedded Perl module and then go ahead and configure the setup to minify the JavaScript files.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to recompile Nginx and add the following flag to the configure option:<div class="informalexample"><pre class="programlisting">./configure -with-http_perl_module
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> You will need to add the following into your Nginx configuration to get started with using embedded Perl. This assumes that you have installed the JavaScript minifier library from CPAN:<div class="informalexample"><pre class="programlisting">http {
+perl_modules perl;
+perl_require Javascript/Minifier.pm;
+perl_require Minify.pm;
+root /var/www;
+server {
+server_name www.example1.com;
+location / {
+index index.html index.htm;
+}
+location ~ \.js$ {
+perl Minify::handler;
+}
+}
+}
+</pre></div></li><li class="listitem"> You will then need to create the Minify handler which will reside in the<code class="literal"> Minify.pm</code> file. This is the actual function that will minify the JavaScript code and cache, and serve the generated file.<div class="informalexample"><pre class="programlisting">package Minify;
+use nginx;
+use JavaScript::Minifier qw(minify);
+sub handler {
+my $r=shift;
+my $cache_dir="/tmp"; # Cache directory where minified files will be kept
+my $cache_file=$r-&gt;uri;
+$cache_file=~s!/!_!g;
+$cache_file=join("/", $cache_dir, $cache_file);
+my $uri=$r-&gt;uri;
+my $filename=$r-&gt;filename;
+return DECLINED unless -f $filename;
+if (! -f $cache_file) {
+JavaScript filesminifying, with embedded Perlopen(INFILE, $filename) or die "Error reading file: $!";
+open(OUTFILE, '&gt;' . $cache_file ) or die "Error writting file: $!";
+minify(input =&gt; *INFILE, outfile =&gt; *OUTFILE);
+close(INFILE);
+close(OUTFILE);
+}
+$r-&gt;sendfile($cache_file);
+return OK;
+}
+1;
+__END__
+</pre></div></li><li class="listitem"> Now you can simply go ahead and restart Nginx. You will begin to notice minified JavaScript files appearing in your<code class="literal"> /tmp</code> directory.</li></ol></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec26"/>How it works...</h2></div></div></div><p>This is a fairly interesting and simple setup, where we basically use embedded Perl as a way of minifying the JavaScript files and caching them. The Perl script is intelligent in the way that it ensures that the minifying happens only once initially, and then after every request the file is served from the hard drive.</p><p>A comparison of the various Yahoo UI JavaScript files when minified can be seen in the following screenshot:<a class="indexterm" id="id219"/>
+</p><div class="mediaobject"><img alt="How it works..." height="184" src="graphics/4965_08_05.jpg"/></div></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec27"/>There's more...</h2></div></div></div><p>This same approach can be used to do a whole lot of other utility activities inside the web server. We will have a look at how to minify CSS in the next recipe using a very similar approach.</p></div></div>
+<div class="section" title="Using embedded Perl to minify CSS files"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec22"/>Using embedded Perl to minify CSS files</h1></div></div></div><p>We will have a look at how we can minify CSS files using embedded Perl within Nginx. This simple recipe will ensure that you do not waste time thinking about such optimizations when deploying a production site. Minifying CSS can result in significantly smaller asset files which need to be downloaded by the end user.<a class="indexterm" id="id220"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec28"/>How to do it...</h2></div></div></div><p>We will start by installing the embedded Perl module and then going ahead to configure the setup to minify the JavaScript files.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to recompile Nginx and add the following flag to the configure option:<div class="informalexample"><pre class="programlisting">./configure --with-http_perl_module
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> You will need to add the following into your Nginx configuration to get started with using embedded Perl. This assumes that you have installed the CSS minifier library from CPAN:<div class="informalexample"><pre class="programlisting">http {
+perl_modules perl;
+perl_require CSS/Minifier.pm;
+perl_require Minify.pm;
+root /var/www;
+server {
+location / {
+embedded PerlCSS files, minifying withindex index.html index.htm;
+}
+location ~ \.css$ {
+perl Minify::handler;
+}
+}
+}
+</pre></div></li><li class="listitem"> You will then need to create the Minify handler, which will reside in the<code class="literal"> Minify.pm</code> file. This is the actual function that will minify the code and cache, and serve the generated CSS file:<div class="informalexample"><pre class="programlisting">package Minify;
+use nginx;
+use CSS::Minifier qw(minify);
+sub handler {
+my $r=shift;
+my $cache_dir="/tmp"; # Cache directory where minified files will be kept
+my $cache_file=$r-&gt;uri;
+$cache_file=~s!/!_!g;
+$cache_file=join("/", $cache_dir, $cache_file);
+my $uri=$r-&gt;uri;
+my $filename=$r-&gt;filename;
+return DECLINED unless -f $filename;
+if (! -f $cache_file) {
+open(INFILE, $filename) or die "Error reading file: $!";
+open(OUTFILE, '&gt;' . $cache_file ) or die "Error writting file: $!";
+minify(input =&gt; *INFILE, outfile =&gt; *OUTFILE);
+close(INFILE);
+close(OUTFILE);
+}
+$r-&gt;sendfile($cache_file);
+return OK;
+}
+1;
+__END__
+</pre></div></li><li class="listitem"> Now you can simply go ahead and restart Nginx. You will start to notice minified CSS files appearing in your<code class="literal"> /tmp</code> directory.<a class="indexterm" id="id222"/></li></ol></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec29"/>How it works...</h2></div></div></div><p>In this recipe, we first ensure that you install the embedded Perl module. Then we configure Nginx to run a piece of Perl code when a CSS file is queried for. The Perl script effectively minifies the CSS file on the first call made, and it serves the minified file from the caching location for subsequent calls.</p></div></div>
+<div class="section" title="Using embedded Perl to serve sitemaps (SEO)"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec24"/>Using embedded Perl to serve sitemaps (SEO)</h1></div></div></div><p>Since the advent of search engines, SEO has played a crucial role in the Internet economy. Businesses want to attract more visitors to their sites, thus creating more awareness and opportunities to sell their products/services. One of the most basic concepts that have served as standard for search engines when they index a site for information is the sitemap. A sitemap is nothing but a directory of all the potential links on the site. It also assigns weights to how often a particular page changes, ensuring that a search engine can come back and look at the page at regular intervals.<a class="indexterm" id="id223"/>
+</p><p>We will look at how to take your sitemaps and serve them correctly using Nginx. You can then use these sitemaps on the various webmaster tools provided by Google, Bing, and other search engines.<a class="indexterm" id="id224"/>
+</p><div class="mediaobject"><img alt="Using embedded Perl to serve sitemaps (SEO)" src="graphics/4965OS_08_06.jpg" width="322"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec30"/>How to do it...</h2></div></div></div><p>In this recipe we will first set up a sitemap generator and then integrate it with our Nginx setup to generate and serve sitemaps correctly.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> In this we will assume that you are able to set up the python sitemap generator: (<a class="ulink" href="http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html">http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html</a>).</li><li class="listitem"> You can now go ahead and put the following configuration into your Nginx setup to enable the sitemap generation:<div class="informalexample"><pre class="programlisting">http {
+include mime.types;
+default_type application/octet-stream;
+perl_modules perl;
+perl_require Sitemap.pm;
+keepalive_timeout 65;
+server {
+listen 80;
+server_name www.example1.com;
+location / {
+root html;
+index index.html index.htm;
+}
+location /sitemap.xml {
+perl Sitemap::handler;
+}
+}
+}
+</pre></div></li><li class="listitem"> Now we need to place the Perl handler, which will allow you to serve the generated sitemaps:<a class="indexterm" id="id225"/><div class="informalexample"><pre class="programlisting">package Sitemap;
+use nginx;
+use LWP::Simple;
+our $basedir="/var/www/www.example1.com";
+sub handler {
+my $r=shift;
+my $cache_dir="/tmp"; # Cache directory where minified files will be kept
+my $cache_file=$r-&gt;uri;
+$cache_file=~s!/!_!g;
+$cache_file=join("/", $cache_dir, $cache_file);
+my $uri=$r-&gt;uri;
+my $filename=$r-&gt;filename;
+return DECLINED unless -f $filename;
+if (! -f $cache_file) {
+`python sitemap_gen.py` # Assumes that google sitemap generator is in the same directory
+}
+$r-&gt;sendfile($cache_file);
+return OK;
+}
+1;
+__END__
+</pre></div></li><li class="listitem"> Now all you need is to restart Nginx and visit<a class="ulink" href="http://www.example1.com/sitemap.xml"> http://www.example1.com/sitemap.xml</a>.</li></ol></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec31"/>How it works...</h2></div></div></div><p>This is a fairly interesting setup that basically sets up the Google sitemap generator and then utilizes it when the sitemap is queried for by the search engines. The Perl code is fairly simple as it is only called when the sitemap is not found. It basically makes a call to the python code, which will generate the sitemap and go ahead and serve the files.<a class="indexterm" id="id226"/>
+</p></div></div>
+<div class="section" title="Setting up Boost module on Drupal with Nginx"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec26"/>Setting up Boost module on Drupal with Nginx</h1></div></div></div><p>Drupal is one of the leading open source CMS applications out there. It has proved to be extremely capable in handling a variation of content driven portals out on the Internet today and will continue to be a dominant player in this market. As with any high performance platform, a particular module called Boost has emerged as a strong tool in the hands of system administrators who want to scale up and optimize their Drupal setup. In this recipe, we will look at how we can take a Drupal setup which has Boost, and use Nginx's strength of serving static files for a fairly significant optimization.<a class="indexterm" id="id227"/>
+</p><div class="mediaobject"><img alt="Setting up Boost module on Drupal with Nginx" src="graphics/4965OS_08_07.jpg" width="206"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec32"/>How to do it...</h2></div></div></div><p>It is assumed that you have already installed and configured Boost for Drupal. It is a fairly simple and well-documented setup which can be found online (<a class="ulink" href="http://drupal.org/project/boost">http://drupal.org/project/boost</a>).<a class="indexterm" id="id228"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Now that you have already installed Boost and Nginx is running as your frontend web server and using PHP-FCGI, you will need to place the following configuration in your Nginx sites-enabled directory:<div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name example1.com;
+access_log /var/log/nginx/example1.com.access.log;
+error_log /var/log/nginx/example1.com.error.log;
+root /var/www/example1.com;
+index index.php;
+location / {
+rewrite ^/(.*)/$ /$1 permanent; # remove trailing slashes
+try_files $uri @cache;
+}
+location @cache {
+if ( $request_method !~ GET ) {
+return 405;
+}
+if ($http_cookie ~ "DRUPAL_UID") {
+return 405;
+}
+error_page 405 = @drupal;
+expires epoch;
+add_header Cache-Control "must-revalidate, post-check=0, pre-check=0";
+Nginxboost module, setting up on Drupal withcharset utf-8;
+try_files /cache/$host${uri}_$args.html @drupal;
+}
+location @drupal {
+rewrite ^/(.*)$ /index.php?q=$1 last;
+}
+location ~* (/\..*|settings\.php$|\.(htaccess|engine|inc|info|install|module|profile|pl|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)$|^(Entries.*|Repository|Root|Tag|Template))$ {
+deny all;
+}
+location ~ \.php$ {
+try_files $uri @drupal;
+fastcgi_pass 127.0.0.1:9000;
+fastcgi_index index.php;
+fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+include /etc/nginx/fastcgi_params;
+}
+location ~ \.css$ {
+if ( $request_method !~ GET ) {
+return 405;
+}
+if ($http_cookie ~ "DRUPAL_UID") {
+return 405;
+}
+error_page 405 = @uncached;
+access_log off;
+Nginxboost module, setting up on Drupal withexpires max; #if using aggregator
+try_files /cache/$host${uri}_.css $uri =404;
+}
+location ~ \.js$ {
+if ( $request_method !~ GET ) {
+return 405;
+}
+if ($http_cookie ~ "DRUPAL_UID") {
+return 405;
+}
+error_page 405 = @uncached;
+access_log off;
+expires max; # if using aggregator
+try_files /cache/$host${uri}_.js $uri =404;
+}
+location @uncached {
+access_log off;
+expires max;
+}
+location ~* ^.+\.(jpg|jpeg|gif|png|ico)$ {
+if ($http_referer !~ ^(http://example1.com) ) { # prevent image hijacking
+return 444;
+}
+access_log off;
+expires 45d;
+try_files $uri =404;
+}
+}
+</pre></div></li><li class="listitem"> All you need to do now is restart Nginx.</li></ol></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec33"/>How it works...</h2></div></div></div><p>This particular configuration can be looked at in the following steps. First, when the request comes in, the Boost physical cache it is checked. If it is found in the cache, it is served back to the client. If not, it basically rewrites the clean URL into the Drupal<code class="literal"> index.php</code> argument form and makes the PHP call.<a class="indexterm" id="id231"/>
+</p><p>This is a highly optimized setup, as it ensures that you serve the static files using Nginx whenever possible. As generating similar pages consistently is clearly a waste of precious server resources, this will let you focus on optimizing more frontend aspects of your web application.</p></div></div>
+<div class="section" title="Setting up streaming for Flash files"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec27"/>Setting up streaming for Flash files</h1></div></div></div><p>Video has become quite the dominant format on the net. It is also fair to say that Flash has been the driving force behind this over the last couple of years. YouTube (<a class="ulink" href="http://youtube.com">http://youtube.com</a>) is a good example of FLV streaming video sites. In this recipe, we will look at how simple it is to set up Flash video streaming.<a class="indexterm" id="id232"/>
+</p><div class="mediaobject"><img alt="Setting up streaming for Flash files" height="233" src="graphics/4965_08_08.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec34"/>How to do it...</h2></div></div></div><p>In this simple recipe, you will initially need to re-compile Nginx with the FLV module and then configure the directories that will serve the FLV files.<a class="indexterm" id="id233"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to recompile Nginx and add the following flag to the configure option:<div class="informalexample"><pre class="programlisting">./configure --with-http_flv_module
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> You will then need to add the following configuration to the directory location where you are streaming it from:<div class="informalexample"><pre class="programlisting">location ~ \.flv$ {
+flv;
+}
+</pre></div></li><li class="listitem"> You will then need to restart Nginx.</li></ol></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec35"/>How it works...</h2></div></div></div><p>This is a fairly simple setup where you will not need to do a lot to get FLV streaming working in no time. This module allows you to seek within FLV files using time-based offsets. This means that the user is able to start the video from somewhere in the middle and perform other similar video timeline operations.<a class="indexterm" id="id234"/>
+</p></div></div>
+<div class="section" title="Utilizing the 1x1 GIF serving module to do offline processing"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec29"/>Utilizing the 1x1 GIF serving module to do offline processing</h1></div></div></div><p>Sometimes we encounter situations where the backend processing takes a bit more time than necessary and the client has to unnecessarily wait for a response. This recipe looks into a way of making a non-block call to a URL, potentially allowing you to send a response back to the user's browser that much faster, and yet ensuring that the background processing occurs.</p><p>It is also used for delivering an empty GIF which can be used for spacing in table-based HTML design.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec36"/>How to do it...</h2></div></div></div><p>All you need to implement a simple example is to use the following configuration:<a class="indexterm" id="id235"/>
+</p><div class="informalexample"><pre class="programlisting">upstream backend {
+. . .
+}
+server {
+server_name www.example1.com;
+. . .
+location / {
+empty_gif;
+post_action /post;
+}
+location = /post {
+internal;
+proxy_pass http://backend;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec37"/>How it works...</h2></div></div></div><p>This is a simple example where a 1x1 GIF is returned immediately when someone visits the site<a class="ulink" href="http://www.example1.com"> http://www.example1.com</a>. That, in turn, actually fires up a POST call on<a class="ulink" href="http://www.example1.com/post"> http://www.example1.com/post</a>, which is an internal only call. This web server call will perform whatever background activity is required, while the client would have already received his 200OK response.<a class="indexterm" id="id236"/>
+</p><div class="mediaobject"><img alt="How it works..." height="84" src="graphics/4965OS_08_09.jpg"/></div></div></div></body></html>

@@ -1,0 +1,1721 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;6.&#xA0;The NGINX HTTP Server"><div class="titlepage"><div><div><h1 class="title"><a id="ch06"/>Chapter 6. The NGINX HTTP Server</h1></div></div></div><p>An HTTP server<a id="id661" class="indexterm"/> is primarily a piece of software that will deliver web pages to clients when requested. These web pages can be anything from a simple HTML file on disk to a multicomponent framework delivering user-specific content, dynamically updated through AJAX or WebSocket. NGINX is modular, and is designed to handle any kind of HTTP serving necessary.</p><p>In this chapter, we will investigate the various modules that work together to make NGINX such a scalable HTTP server. The following topics are included in this chapter:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">NGINX's architecture</li><li class="listitem" style="list-style-type: disc">The HTTP core module</li><li class="listitem" style="list-style-type: disc">Using limits to prevent abuse</li><li class="listitem" style="list-style-type: disc">Restricting access</li><li class="listitem" style="list-style-type: disc">Streaming media files</li><li class="listitem" style="list-style-type: disc">Predefined variables</li><li class="listitem" style="list-style-type: disc">Using NGINX with PHP-FPM</li><li class="listitem" style="list-style-type: disc">Wiring NGINX and uWSGI together</li></ul></div><div class="section" title="NGINX's architecture"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec40"/>NGINX's architecture</h1></div></div></div><p>NGINX consists of a single<a id="id662" class="indexterm"/> master process and multiple worker processes. Each of these is single-threaded and designed to handle thousands of connections simultaneously. The worker process is where most of the action takes place, as this is the component that handles client requests. NGINX makes use of the operating system's event mechanism to respond quickly to these requests.</p><p>The NGINX <span class="strong"><strong>master process</strong></span>
+<a id="id663" class="indexterm"/> is responsible for reading the configuration, handling sockets, spawning workers, opening log files, and compiling embedded Perl scripts. The master process is the one that responds to administrative requests via signals.</p><p>The NGINX <span class="strong"><strong>worker process</strong></span>
+<a id="id664" class="indexterm"/> runs in a tight event loop to handle incoming connections. Each NGINX module is built into the worker, so that any request processing, filtering, handling of proxy connections, and much more is done within the worker process. Due to this worker model, the operating system can handle each process separately and schedule the processes to run optimally on each processor core. If there are any processes that would block a worker, such as disk I/O, more workers than cores can be configured to handle the load.</p><p>There are also a small number of helper processes that the NGINX master process spawns to handle dedicated tasks. Among these are the <span class="strong"><strong>cache loader</strong></span>
+<a id="id665" class="indexterm"/> and <span class="strong"><strong>cache manager</strong></span> <a id="id666" class="indexterm"/>processes. The cache loader is responsible for preparing the metadata for worker processes to use the cache. The cache manager process is responsible for checking cache items and expiring invalid ones.</p><p>NGINX is built in a<a id="id667" class="indexterm"/> modular fashion. The master process provides the foundation upon which each module may perform its function. Each protocol and handler is implemented as its own module. The individual modules are chained together into a pipeline to handle connections and process requests. After a request is handled, it is then passed on to a series of filters, in which the response is processed. One of these filters is responsible for processing subrequests, one of NGINX's most powerful features.</p><p>Subrequests are <a id="id668" class="indexterm"/>how NGINX can return the results of a request that differs from the URI that the client sent. Depending on the configuration, they may be multiply nested and call other subrequests. Filters can collect the responses from multiple subrequests and combine them into one response to the client. The response is then finalized and sent to the client. Along the way, multiple modules come into play. See <a class="ulink" href="http://www.aosabook.org/en/nginx.html">http://www.aosabook.org/en/nginx.html</a> for a detailed explanation of NGINX internals.</p><p>We will be exploring the <code class="literal">http</code> module and a few helper modules in the remainder of this chapter.</p></div></div>
+<div class="section" title="The HTTP core module"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec41"/>The HTTP core module</h1></div></div></div><p>The <code class="literal">http</code> module<a id="id669" class="indexterm"/> is NGINX's central module, which handles all interactions with clients over HTTP. We have already discussed the following aspects of this module in <a class="link" href="ch02.html" title="Chapter 2. A Configuration Guide">Chapter 2</a>, <span class="emphasis"><em>A Configuration Guide</em></span>:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Client directives</li><li class="listitem" style="list-style-type: disc">File I/O directives</li><li class="listitem" style="list-style-type: disc">Hash directives</li><li class="listitem" style="list-style-type: disc">Socket directives</li><li class="listitem" style="list-style-type: disc">The<a id="id670" class="indexterm"/> <code class="literal">listen</code> directive</li><li class="listitem" style="list-style-type: disc">Matching a request to a <code class="literal">server_name</code> and <code class="literal">location</code> directive</li></ul></div><p>We will have a look at the remaining directives in the rest of this section, again divided by type.</p><div class="section" title="The server"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec40"/>The server</h2></div></div></div><p>The <code class="literal">server</code> directive<a id="id671" class="indexterm"/> starts a new context. We have already seen examples of its <a id="id672" class="indexterm"/>usage throughout the book so far. One aspect that has not yet been examined in-depth is the concept of a<a id="id673" class="indexterm"/> <span class="strong"><strong>default server</strong></span>.</p><p>A default server in NGINX means that it is the first server defined in a particular configuration with the same <code class="literal">listen</code> IP address and port as another server. A default server may also be denoted by the <code class="literal">default_server</code> parameter<a id="id674" class="indexterm"/> to the<a id="id675" class="indexterm"/> <code class="literal">listen</code> directive.</p><p>The default server is useful to define a set of common directives that will then be reused for subsequent servers listening on the same IP address and port:</p><div class="informalexample"><pre class="programlisting">server {
+
+    listen 127.0.0.1:80;
+
+    server_name default.example.com;
+
+    server_name_in_redirect on;
+
+}
+
+server {
+
+    listen 127.0.0.1:80;
+
+    server_name www.example.com;
+
+}</pre></div><p>In this example, the <code class="literal">www.example.com</code> server will have the <code class="literal">server_name_in_redirect</code> directive<a id="id676" class="indexterm"/> set to <code class="literal">on</code> as well as the <code class="literal">default.example.com</code> server. Note that this would also work if both servers had no <code class="literal">listen</code> directive, since they would still both match the same IP address and port number (that of the default value for listen, which is <code class="literal">*:80</code>). Inheritance, though, is not guaranteed. There are only a few directives that are inherited, and which ones are changes over time.</p><p>A better use for the default server is to handle any request that comes in on that IP address and port, and does not have a <code class="literal">Host</code> header. If you do not want the default server to handle requests without a <code class="literal">Host</code> header, it is possible to define an empty <code class="literal">server_name</code> directive. This server will then match those requests.</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name "";
+
+}</pre></div><p>The following table summarizes the directives relating to <code class="literal">server</code>:</p><div class="section" title="Table: HTTP server directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch06lvl6sec22"/>Table: HTTP server directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">port_in_redirect</code>
+<a id="id677" class="indexterm"/>
+<a id="id678" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Determines whether or not the port will be specified in a redirect issued by NGINX.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">server</code>
+<a id="id679" class="indexterm"/>
+<a id="id680" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Creates a new configuration context, defining a virtual host. The <code class="literal">listen</code> directive specifies the IP address(es) and port(s); the <code class="literal">server_name</code> directive lists the <code class="literal">Host</code> header values that this context matches.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">server_name</code>
+<a id="id681" class="indexterm"/>
+<a id="id682" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Configures the names that a virtual host may respond to.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">server_name_in_redirect</code>
+<a id="id683" class="indexterm"/>
+<a id="id684" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Activates using the first value of the <code class="literal">server_name</code> directive in any redirect issued by NGINX within this context.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">server_tokens</code>
+<a id="id685" class="indexterm"/>
+<a id="id686" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Disables sending the NGINX version string in error messages and the <code class="literal">Server</code> response header (default value is <code class="literal">on</code>).</p>
+</td></tr></tbody></table></div></div></div><div class="section" title="Logging"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec41"/>Logging</h2></div></div></div><p>NGINX has a very flexible<a id="id687" class="indexterm"/> logging model<a id="id688" class="indexterm"/>. Each level of configuration may have an access log. In addition, more than one access log may be specified per level, each with a different <code class="literal">log_format</code>. The <code class="literal">log_format</code> directive<a id="id689" class="indexterm"/> allows you to specify exactly what will be logged, and needs to be defined within the <code class="literal">http</code> section.</p><p>The path to the log file itself may contain variables, so that you can build a dynamic configuration. The following example describes how this can be put into practice:</p><div class="informalexample"><pre class="programlisting">http {
+
+    log_format vhost '$host $remote_addr - $remote_user [$time_local] ' 
+                    '"$request" $status $body_bytes_sent ' 
+                    '"$http_referer" "$http_user_agent"';
+
+    log_format downloads '$time_iso8601 $host $remote_addr '
+                    '"$request" $status $body_bytes_sent $request_time';
+
+    open_log_file_cache max=1000 inactive=60s;
+
+    access_log logs/access.log;
+
+    server {
+
+        server_name ~^(www\.)?(.+)$;
+
+        access_log logs/combined.log vhost;
+
+        access_log logs/$2/access.log;
+
+        location /downloads {
+
+            access_log logs/downloads.log downloads;
+
+        }
+
+    }
+
+}</pre></div><p>The following table <a id="id690" class="indexterm"/>describes the <a id="id691" class="indexterm"/>directives used in the preceding code:</p><div class="section" title="Table: HTTP logging directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch06lvl6sec23"/>Table: HTTP logging directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">access_log</code>
+<a id="id692" class="indexterm"/>
+<a id="id693" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Describes where and how access logs are to be written. The first parameter is a path to the file where the logs are to be stored. Variables may be used in constructing the path. The special value <code class="literal">off</code> disables the access log. An optional second parameter indicates <code class="literal">log_format</code> that will be used to write the logs. If no second parameter is configured, the predefined combined format is used. An optional third parameter indicates the size of the buffer if write buffering should be used to record the logs. If write buffering is used, this size cannot exceed the size of the atomic disk write for that filesystem. If this third parameter is <code class="literal">gzip</code>, then the buffered logs will be compressed on-the-fly, provided that the <code class="literal">nginx</code> binary was built with the <code class="literal">zlib</code> library. A final <code class="literal">flush</code> parameter indicates the maximum length of time buffered log data may remain in memory before being flushed to disk.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">log_format</code>
+<a id="id694" class="indexterm"/>
+<a id="id695" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies which fields should appear in the log file and what format they should take. See the next table for a description of the log-specific variables.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">log_not_found</code>
+<a id="id696" class="indexterm"/>
+<a id="id697" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Disables reporting of 404 errors in the error log (default value is <code class="literal">on</code>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">log_subrequest</code>
+<a id="id698" class="indexterm"/>
+<a id="id699" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables logging of subrequests in the access log (default value is <code class="literal">off</code>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">open_log_file_cache</code>
+<a id="id700" class="indexterm"/>
+<a id="id701" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Stores a cache of open file descriptors used in <code class="literal">access_logs</code> with a variable in the path. The parameters used are:</p>
+<div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">max</code>: The maximum number of file descriptors present in the cache</li><li class="listitem" style="list-style-type: disc"><code class="literal">inactive</code>: NGINX will wait this amount of time for something to be written to this log before its file descriptor is closed</li><li class="listitem" style="list-style-type: disc"><code class="literal">min_uses</code>: The file descriptor has to be used this amount of times within the <code class="literal">inactive</code> period in order to remain open</li><li class="listitem" style="list-style-type: disc"><code class="literal">valid</code>: NGINX will check this often to see if the file descriptor still matches a file with the same name</li><li class="listitem" style="list-style-type: disc"><code class="literal">off</code>: Disables the cache</li></ul></div>
+</td></tr></tbody></table></div><p>In the following example, log entries will be compressed at a gzip level of 4. The buffer size is the default of 64 KB and will be flushed to disk at least every minute.</p><div class="informalexample"><pre class="programlisting">access_log /var/log/nginx/access.log.gz combined gzip=4 flush=1m;</pre></div><p>Note that when specifying <code class="literal">gzip</code> the <code class="literal">log_format</code> parameter is not optional.</p><p>The default combined <code class="literal">log_format</code> is constructed like this:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>log_format combined '$remote_addr - $remote_user [$time_local] ' </strong></span>
+<span class="strong"><strong>                    '"$request" $status $body_bytes_sent ' </strong></span>
+<span class="strong"><strong>                    '"$http_referer" "$http_user_agent"';</strong></span>
+</pre></div><p>As you can see, line breaks may be used to improve readability. They do not affect the <code class="literal">log_format</code> itself. Any variables may be used in the <code class="literal">log_format</code> directive. The variables in the following table which are marked with an asterisk (<code class="literal">*</code>) are specific to logging and may only be used in the<a id="id702" class="indexterm"/> <code class="literal">log_format</code> directive. The others may be used elsewhere in the configuration, as well.</p></div><div class="section" title="Table: Log format variables"><div class="titlepage"><div><div><h3 class="title"><a id="ch06lvl6sec24"/>Table: Log format variables</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Variable Name</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Value</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$body_bytes_sent</code>
+<a id="id703" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The number of bytes sent to the client, excluding the response header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$bytes_sent</code>
+<a id="id704" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The number of bytes sent to the client.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$connection</code>
+<a id="id705" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>A serial number, used to identify unique connections.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$connection_requests</code>
+<a id="id706" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The number of requests made through a particular connection.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$msec</code>
+<a id="id707" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The time in seconds, with millisecond resolution.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$pipe *</code>
+<a id="id708" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates if the request was pipelined (<code class="literal">p</code>) or not (<code class="literal">.</code>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_length *</code>
+<a id="id709" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The length of the request, including the HTTP method, URI, HTTP protocol, header, and request body.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_time</code>
+<a id="id710" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The request processing time, with millisecond resolution, from the first byte received from the client to the last byte sent to the client.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$status</code>
+<a id="id711" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The response status.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$time_iso8601 *</code>
+<a id="id712" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Local time in ISO8601 format.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$time_local *</code>
+<a id="id713" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Local time in common log format (<code class="literal">%d/%b/%Y:%H:%M:%S %z</code>).</p>
+</td></tr></tbody></table></div><p>In this section, we have focused solely on <code class="literal">access_log</code> and how that can be configured. You can also configure NGINX to log errors. The <code class="literal">error_log</code> directive is described in <a class="link" href="ch08.html" title="Chapter 8. Troubleshooting Techniques">Chapter 8</a>, <span class="emphasis"><em>Troubleshooting</em></span>.</p></div></div><div class="section" title="Finding files"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec42"/>Finding files</h2></div></div></div><p>In order for <a id="id714" class="indexterm"/>NGINX to <a id="id715" class="indexterm"/>respond to a request, it passes it to a content handler, determined by the configuration of the <code class="literal">location</code> directive. The unconditional content handlers are tried first: <code class="literal">perl</code>, <code class="literal">proxy_pass</code>, <code class="literal">flv</code>, <code class="literal">mp4</code>, and so on. If none of these is a match, the request is passed to one of the following, in order: <code class="literal">random index</code>, <code class="literal">index</code>, <code class="literal">autoindex</code>, <code class="literal">gzip_static</code>, <code class="literal">static</code>. Requests with a trailing slash are handled by one of the index handlers. If gzip is not activated, then the static module handles the request. How these modules find the appropriate file or directory on the filesystem is determined by a combination of certain directives. The <code class="literal">root</code> directive is best defined in a default <code class="literal">server</code> directive, or at least outside of a specific <code class="literal">location</code> directive, so that it will be valid for the whole server:</p><div class="informalexample"><pre class="programlisting">server {
+
+    root /home/customer/html;
+
+    location / {
+
+        index index.html index.htm;
+
+    }
+    location /downloads {
+
+        autoindex on;
+
+    }
+
+}</pre></div><p>In the preceding example any files to be served are found under the root <code class="literal">/home/customer/html</code>. If the client entered just the domain name, NGINX will try to serve <code class="literal">index.html</code>. If that file does not exist, then NGINX will serve <code class="literal">index.htm</code>. When a user enters the <code class="literal">/downloads</code> URI in their browser, they will be presented with a directory listing in HTML format. This makes it easy for users to access sites hosting software that they would like to download. NGINX will automatically rewrite the URI of a directory so that the trailing slash is present, and then issue an HTTP redirect. NGINX appends the URI to the <code class="literal">root</code> to find the file to deliver to the client. If this file does not exist, the client receives a <span class="strong"><strong>404 Not Found</strong></span> error message. If you don't want the error message to be returned to the client, one alternative is to try to deliver a file from different filesystem locations, falling back to a generic page, if none of those options are available. The <code class="literal">try_files</code> directive<a id="id716" class="indexterm"/> can be used as follows:</p><div class="informalexample"><pre class="programlisting">location / {
+
+    try_files $uri $uri/ backups/$uri /generic-not-found.html;
+
+}</pre></div><p>As a security <a id="id717" class="indexterm"/>precaution, NGINX can <a id="id718" class="indexterm"/>check the path to a file it's about to deliver, and if part of the path to the file contains a symbolic link, it returns an error message to the client:</p><div class="informalexample"><pre class="programlisting">server {
+
+    root /home/customer/html;
+
+    disable_symlinks if_not_owner from=$document_root;
+
+}</pre></div><p>In the preceding example, NGINX will return a "Permission Denied" error if a symlink is found after <code class="literal">/home/customer/html</code>, and that symlink and the file it points to do not both belong to the same user ID.</p><p>The following table summarizes these directives:</p><div class="section" title="Table: HTTP file-path directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch06lvl6sec25"/>Table: HTTP file-path directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">disable_symlinks</code>
+<a id="id719" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Determines if NGINX should perform a symbolic link check on the path to a file before delivering it to the client. The following parameters are recognized:</p>
+<div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">off</code>: Disables checking for symlinks (default)</li><li class="listitem" style="list-style-type: disc"><code class="literal">on</code>: If any part of a path is a symlink, access is denied</li><li class="listitem" style="list-style-type: disc"><code class="literal">if_not_owner</code>: If any part of a path contains a symlink in which the link and the referent have different owners, access to the file is denied</li><li class="listitem" style="list-style-type: disc"><code class="literal">from=part</code>: When specified, the path up to <code class="literal">part</code> is not checked for symlinks, everything afterward is according to either the <code class="literal">on</code> or <code class="literal">if_not_owner</code> parameter</li></ul></div>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">root</code>
+<a id="id720" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the path to the document root. Files are found by appending the URI to the value of this directive.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">try_files</code>
+<a id="id721" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Tests the existence of files given as parameters. If none of the previous files are found, the last entry is used as a fallback, so ensure that this path or named <code class="literal">location</code> exists, or is set to return a status code indicated by <code class="literal">=&lt;status code&gt;</code>.</p>
+</td></tr></tbody></table></div></div></div><div class="section" title="Name resolution"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec43"/>Name resolution</h2></div></div></div><p>If logical <a id="id722" class="indexterm"/>names instead of IP addresses are used in an <code class="literal">upstream</code> or <code class="literal">*_pass</code> directive, NGINX will by default use the operating system's resolver to get the IP address, which is what it really needs to connect to that server. This will happen only once, the first time <code class="literal">upstream</code> is requested, and won't work at all if a variable is used in the <code class="literal">*_pass</code> directive. It is possible, though, to configure a separate resolver for NGINX to use. By doing this, you can override the TTL returned by DNS, as well as use variables in the <code class="literal">*_pass</code> directives.</p><div class="informalexample"><pre class="programlisting">server {
+
+    resolver 192.168.100.2 valid=300s;
+
+}</pre></div><div class="section" title="Table: Name resolution directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch06lvl6sec26"/>Table: Name resolution directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">resolver</code>
+<a id="id723" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Configures one or more name servers to be used to resolve upstream server names into IP addresses. An optional <code class="literal">valid</code> parameter overrides the TTL of the domain name record.</p>
+</td></tr></tbody></table></div><p>In order to get NGINX to resolve an IP address anew, place the logical name into a variable. When NGINX resolves that variable, it implicitly makes a DNS look-up to find the IP address. For this to work, a <code class="literal">resolver</code> directive must be configured:</p><div class="informalexample"><pre class="programlisting">server {
+
+    resolver 192.168.100.2;
+
+    location / {
+
+        set $backend upstream.example.com;
+
+        proxy_pass http://$backend;
+
+    }
+
+}</pre></div><p>Of course, by relying on DNS to find an upstream, you are dependent on the resolver always being available. When the resolver is not reachable, a gateway error occurs. In order to make the client wait time as short as possible, the <code class="literal">resolver_timeout</code> parameter should be set low. The gateway error can then be handled by an <code class="literal">error_page</code> designed for that purpose.</p><div class="informalexample"><pre class="programlisting">server {
+
+    resolver 192.168.100.2;
+
+    resolver_timeout 3s;
+
+    error_page 504 /gateway-timeout.html;
+    location / {
+
+        proxy_pass http://upstream.example.com;
+
+    }
+
+}</pre></div></div></div><div class="section" title="Client interaction"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec44"/>Client interaction</h2></div></div></div><p>There are a number of ways in <a id="id724" class="indexterm"/>which NGINX can interact with clients. This can range from attributes of the connection itself (IP address, timeouts, keepalive, and so on) to content negotiation headers. The directives listed in the following table describe how to set various headers and response codes to get the clients to request the correct page or serve up that page from its own cache:</p><div class="section" title="Table: HTTP client interaction directives"><div class="titlepage"><div><div><h3 class="title"><a id="ch06lvl6sec27"/>Table: HTTP client interaction directives</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">default_type</code>
+<a id="id725" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the default MIME type of a response. This comes into play if the MIME type of the file cannot be matched to one of those specified by the <code class="literal">types</code> directive.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">error_page</code>
+<a id="id726" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines a URI to be served when an error level response code is encountered. Adding an <code class="literal">=</code> parameter allows the response code to be changed. If the argument to this parameter is left empty, the response code will be taken from the URI, which must in this case be served by an upstream server of some sort.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">etag</code>
+<a id="id727" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Disables automatically generating the <code class="literal">ETag</code> response header for static resources (default is <code class="literal">on</code>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">if_modified_since</code>
+<a id="id728" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Controls how the modification time of a response is compared to the value of the <code class="literal">If-Modified-Since</code> request header:</p>
+<div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">off</code>: The <code class="literal">If-Modified-Since</code> header is ignored</li><li class="listitem" style="list-style-type: disc"><code class="literal">exact</code>: An exact match is made (default)</li><li class="listitem" style="list-style-type: disc"><code class="literal">before</code>: The modification time of the response is less than or equal to the value of the <code class="literal">If-Modified-Since</code> header</li></ul></div>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">ignore_invalid_headers</code>
+<a id="id729" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Disables ignoring headers with invalid names (default is <code class="literal">on</code>). A valid name is composed of ASCII letters, numbers, the hyphen, and possibly the underscore (controlled by the <code class="literal">underscores_in_headers</code> directive).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">merge_slashes</code>
+<a id="id730" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Disables<a id="id731" class="indexterm"/> the removal of multiple slashes. The default value of <code class="literal">on</code> means that NGINX will compress two or more <code class="literal">/</code> characters into one.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">recursive_error_pages</code>
+<a id="id732" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables doing more than one redirect using the <code class="literal">error_page</code> directive (default is <code class="literal">off</code>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">types</code>
+<a id="id733" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets up a map of MIME types to file name extensions. NGINX ships with a <code class="literal">conf</code>/<code class="literal">mime.types</code> file that contains most MIME type mappings. Using <code class="literal">include</code> to load this file should be sufficient for most purposes.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">underscores_in_headers</code>
+<a id="id734" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables the use of the underscore character in client request headers. If left at the default value <code class="literal">off</code>, evaluation of such headers is subject to the value of the <code class="literal">ignore_invalid_headers</code> directive.</p>
+</td></tr></tbody></table></div><p>The <code class="literal">error_page</code> directive<a id="id735" class="indexterm"/> is one of NGINX's most flexible. Using this directive, we may serve any page when an error condition presents. This page could be on the <a id="id736" class="indexterm"/>local machine, but could also be a dynamic page produced by an application server, and could even be a page on a completely different site.</p><div class="informalexample"><pre class="programlisting">http {
+
+    # a generic error page to handle any server-level errors
+    error_page 500 501 502 503 504 share/examples/nginx/50x.html;
+
+    server {
+
+        server_name www.example.com;
+
+        root /home/customer/html;
+
+        # for any files not found, the page located at 
+        #  /home/customer/html/404.html will be delivered
+        error_page 404 /404.html;
+        location / {
+
+            # any server-level errors for this host will be directed
+            # to a custom application handler
+            error_page 500 501 502 503 504 = @error_handler;
+
+        }
+
+        location /microsite {
+
+            # for any non-existent files under the /microsite URI,
+            #  the client will be shown a foreign page
+            error_page 404 http://microsite.example.com/404.html;
+
+        }
+
+        # the named location containing the custom error handler
+        location @error_handler {
+
+            # we set the default type here to ensure the browser
+            # displays the error page correctly
+            default_type text/html;
+
+            proxy_pass http://127.0.0.1:8080;
+
+        }
+
+    }
+
+}</pre></div></div></div></div>
+<div class="section" title="Using limits to prevent abuse"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec42"/>Using limits to prevent abuse</h1></div></div></div><p>We build and <a id="id737" class="indexterm"/>host websites because we want users to visit them. We want our websites to always be available for legitimate access. This means that we may have to take measures to limit access to abusive users. We may define "abusive" to mean anything from one request per second to a number of connections from the same IP address. Abuse can also take the form of a <a id="id738" class="indexterm"/>
+<span class="strong"><strong>DDOS</strong></span> (<span class="strong"><strong>distributed denial-of-service</strong></span>) attack, where bots running on multiple machines around the world all try to access the site as many times as possible at the same time. In this section, we will explore methods to counter each type of abuse to ensure that our websites are available.</p><p>First, let's take a look at the different configuration directives that will help us achieve our goal:</p><div class="section" title="Table: HTTP limits directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl6sec28"/>Table: HTTP limits directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_conn</code>
+<a id="id739" class="indexterm"/>
+<a id="id740" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies a shared memory zone (configured with <code class="literal">limit_conn_zone</code>) and the maximum number of connections that are allowed per key value.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_conn_log_level</code>
+<a id="id741" class="indexterm"/>
+<a id="id742" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When NGINX limits a connection due to the <code class="literal">limit_conn</code> directive, this directive specifies at which log level that limitation is reported.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_conn_zone</code>
+<a id="id743" class="indexterm"/>
+<a id="id744" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the key to be limited in <code class="literal">limit_conn</code> as the first parameter. The second parameter, zone, indicates the name of the shared memory zone used to store the key and current number of connections per key and the size of that zone (<code class="literal">name:size</code>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_rate</code>
+<a id="id745" class="indexterm"/>
+<a id="id746" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Limits the rate (in bytes per second) at which clients can download content. The rate limit works on a connection level, meaning that a single client could increase their throughput by opening multiple connections.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_rate_after</code>
+<a id="id747" class="indexterm"/>
+<a id="id748" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Starts the <code class="literal">limit_rate</code> after this number of bytes have been transferred.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_req</code>
+<a id="id749" class="indexterm"/>
+<a id="id750" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets a limit with bursting capability on the number of requests for a specific key in a shared memory store (configured with <code class="literal">limit_req_zone</code>). The burst can be specified with the second parameter. If there shouldn't be a delay in between requests up to the burst, a third parameter <code class="literal">nodelay</code> needs to be configured.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_req_log_level</code>
+<a id="id751" class="indexterm"/>
+<a id="id752" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When <a id="id753" class="indexterm"/>NGINX limits the number of requests due to the <code class="literal">limit_req</code> directive, this directive specifies at which log level that limitation is reported. A delay is logged at a level one less than the one indicated here.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">limit_req_zone</code>
+<a id="id754" class="indexterm"/>
+<a id="id755" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the key to be limited in <code class="literal">limit_req</code> as the first parameter. The second parameter, zone, indicates the name of the shared memory zone used to store the key and current number of requests per key and the size of that zone (<code class="literal">name:size</code>). The third parameter, <code class="literal">rate</code>, configures the number of requests per second (r/s) or per minute (r/m) before the limit is imposed.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">max_ranges</code>
+<a id="id756" class="indexterm"/>
+<a id="id757" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the maximum number of ranges allowed in a byte-range request. Specifying <code class="literal">0</code> disables byte-range support.</p>
+</td></tr></tbody></table></div><p>Here we limit access to 10 connections per unique IP address. This should be enough for normal browsing, as modern browsers open two to three connections per host. Keep in mind, though, that any users behind a proxy will all appear to come from the same address. So observe the logs for error code 503 (Service Unavailable), meaning that this limit has come into effect:</p><div class="informalexample"><pre class="programlisting">http {
+
+    limit_conn_zone $binary_remote_addr zone=connections:10m;
+
+    limit_conn_log_level notice;
+
+    server {
+
+        limit_conn connections 10;
+
+    }
+
+}</pre></div><p>Limiting <a id="id758" class="indexterm"/>access based on a rate looks almost the same, but works a bit differently.  When limiting how many pages per unit of time a user may request, NGINX will insert a delay after the first page request, up to a burst.  This may or may not be what you want, so NGINX offers the possibility to remove this delay with the <code class="literal">nodelay</code> parameter:</p><div class="informalexample"><pre class="programlisting">http {
+
+    limit_req_zone $binary_remote_addr zone=requests:10m rate=1r/s;
+
+    limit_req_log_level warn;
+
+    server {
+
+        limit_req zone=requests burst=10 nodelay;
+
+    }
+
+}</pre></div><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="tip13"/>Tip</h3><p>
+<span class="strong"><strong>Using $binary_remote_addr</strong></span>
+</p><p>We use the <code class="literal">$binary_remote_addr</code> variable<a id="id759" class="indexterm"/> in the preceding example to know exactly how much space storing an IP address will take. This variable takes 32 bytes on 32-bit platforms and 64 bytes on 64-bit platforms. So the <code class="literal">10m</code> zone we configured previously is capable of holding up to 320,000 states on 32-bit platforms or 160,000 states on 64-bit platforms.</p></div></div><p>We can <a id="id760" class="indexterm"/>also limit the bandwidth per client. This way we can ensure that a few clients don't take up all the available bandwidth. One caveat, though: the <code class="literal">limit_rate</code> directive<a id="id761" class="indexterm"/> works on a connection basis. A single client that is allowed to open multiple connections will still be able to get around this limit:</p><div class="informalexample"><pre class="programlisting">location /downloads {
+
+    limit_rate 500k;
+
+}</pre></div><p>Alternatively, we can allow a kind of bursting to freely download smaller files, but make sure that larger ones are limited:</p><div class="informalexample"><pre class="programlisting">location /downloads {
+
+    limit_rate_after 1m;
+
+    limit_rate 500k;
+
+}</pre></div><p>Combining these different rate limitations enables us to create a configuration that is very flexible as to how and where clients are limited:</p><div class="informalexample"><pre class="programlisting">http {
+
+    limit_conn_zone $binary_remote_addr zone=ips:10m;
+
+    limit_conn_zone $server_name zone=servers:10m;
+
+    limit_req_zone $binary_remote_addr zone=requests:10m rate=1r/s;
+
+    limit_conn_log_level notice;
+
+    limit_req_log_level warn;
+
+    reset_timedout_connection on;
+
+    server {
+
+        # these limits apply to the whole virtual server
+        limit_conn ips 10;
+        # only 1000 simultaneous connections to the same server_name
+        limit_conn servers 1000;
+
+        location /search {
+
+            # here we want only the /search URL to be rate-limited
+            limit_req zone=requests burst=3 nodelay;
+
+        }
+
+        location /downloads {
+
+            # using limit_conn to ensure that each client is # bandwidth-limited
+            #  with no getting around it
+            limit_conn connections 1;
+
+            limit_rate_after 1m;
+
+            limit_rate 500k;
+
+        }
+
+    }
+
+}</pre></div></div></div>
+<div class="section" title="Restricting access"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec43"/>Restricting access</h1></div></div></div><p>In the previous section, we <a id="id762" class="indexterm"/>explored ways to limit abusive access to websites running under NGINX. Now we will take a look at ways to restrict access to a whole website or certain parts of it. Access restriction can take two forms here: restricting to a certain set of IP addresses, or restricting to a certain set of users. These two methods can also be combined to satisfy requirements that some users can access the website either from a certain set of IP addresses or if they are able to authenticate with a valid username and password.</p><p>The following directives will help us achieve these goals:</p><div class="section" title="Table: HTTP access module directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl6sec29"/>Table: HTTP access module directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">allow</code>
+<a id="id763" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Allows access from this IP address, network, or <code class="literal">all</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">auth_basic</code>
+<a id="id764" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables authentication using HTTP Basic Authentication. The parameter string is used as the realm name. If the special value <code class="literal">off</code> is used, this indicates that the <code class="literal">auth_basic</code> value of the parent configuration level is negated.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">auth_basic_user_file</code>
+<a id="id765" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates the location of a file of <code class="literal">username:password:comment</code> tuples used to authenticate users. The <code class="literal">password</code> field needs to be encrypted with the crypt algorithm. The <code class="literal">comment</code> field is optional.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">deny</code>
+<a id="id766" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Denies access from this IP address, network, or <code class="literal">all</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">satisfy</code>
+<a id="id767" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Allows access if <code class="literal">all</code> or <code class="literal">any</code> of the preceding directives grant access. The default value <code class="literal">all</code> indicates that a user must come from a specific network address and enter the correct password.</p>
+</td></tr></tbody></table></div><p>To <a id="id768" class="indexterm"/>restrict access to clients coming from a certain set of IP addresses, the <code class="literal">allow</code> and <code class="literal">deny</code> directives can be used as follows:</p><div class="informalexample"><pre class="programlisting">location /stats {
+
+    allow 127.0.0.1;
+    deny all;
+
+}</pre></div><p>This configuration will allow access to the <code class="literal">/stats</code> URI from the localhost only.</p><p>To restrict access to authenticated users, the <code class="literal">auth_basic</code> and <code class="literal">auth_basic_user_</code>
+<code class="literal">file</code> directives are used as follows:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name restricted.example.com;
+
+    auth_basic "restricted";
+
+    auth_basic_user_file conf/htpasswd;
+
+}</pre></div><p>Any user wanting to access <code class="literal">restricted.example.com</code> would need to provide credentials matching those in the <code class="literal">htpasswd</code> file located in the <code class="literal">conf</code> directory of NGINX's root. The entries in the <code class="literal">htpasswd</code> file can be generated using any available tool that uses the <a id="id769" class="indexterm"/>standard UNIX<a id="id770" class="indexterm"/> <code class="literal">crypt()</code> function. For example, the following Ruby script will generate a file of the appropriate format:</p><div class="informalexample"><pre class="programlisting">#!/usr/bin/env ruby
+
+# setup the command-line options
+require 'optparse'
+
+OptionParser.new do |o|
+
+  o.on('-f FILE') { |file| $file = file }
+
+  o.on('-u', "--username USER") { |u| $user = u }
+
+  o.on('-p', "--password PASS") { |p| $pass = p }
+
+  o.on('-c', "--comment COMM (optional)") { |c| $comm = c }
+
+  o.on('-h') { puts o; exit }
+
+  o.parse!
+
+  if $user.nil? or $pass.nil?
+    puts o; exit
+
+  end
+
+end
+
+# initialize an array of ASCII characters to be used for the salt
+ascii = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + [ ".", "/" ]
+
+$lines = []
+
+begin
+
+  # read in the current http auth file
+  File.open($file) do |f|
+
+    f.lines.each { |l| $lines &lt;&lt; l }
+
+  end
+
+rescue Errno::ENOENT
+
+  # if the file doesn't exist (first use), initialize the array
+  $lines = ["#{$user}:#{$pass}\n"]
+
+end
+
+# remove the user from the current list, since this is the one we're editing
+$lines.map! do |line|
+
+  unless line =~ /#{$user}:/
+
+    line
+
+  end
+
+end
+
+# generate a crypt()ed password
+pass = $pass.crypt(ascii[rand(64)] + ascii[rand(64)])
+# if there's a comment, insert it
+if $comm
+
+  $lines &lt;&lt; "#{$user}:#{pass}:#{$comm}\n"
+
+else
+
+  $lines &lt;&lt; "#{$user}:#{pass}\n"
+
+end
+
+# write out the new file, creating it if necessary
+
+File.open($file, File::RDWR|File::CREAT) do |f|
+
+  $lines.each { |l| f &lt;&lt; l}
+
+end</pre></div><p>Save this file as <code class="literal">http_auth_basic.rb</code> and give it a filename (<code class="literal">-f</code>), a user (<code class="literal">-u</code>), and a password (<code class="literal">-p</code>), and it will generate entries appropriate to use in NGINX's<a id="id771" class="indexterm"/> <code class="literal">auth_basic_user_file</code> directive:</p><div class="informalexample"><pre class="programlisting">$ ./http_auth_basic.rb -f htpasswd -u testuser -p 123456</pre></div><p>To handle scenarios where a username and password should only be entered if not coming from a certain set of IP addresses, NGINX has the <code class="literal">satisfy</code> directive. The <code class="literal">any</code> parameter is used here for this either/or scenario:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name intranet.example.com;
+
+    location / {
+
+        auth_basic "intranet: please login";
+
+        auth_basic_user_file conf/htpasswd-intranet;
+
+        allow 192.168.40.0/24;
+
+        allow 192.168.50.0/24;
+
+        deny all;
+          satisfy any;
+
+    }</pre></div><p>If, instead, the<a id="id772" class="indexterm"/> requirements are for a configuration in which the user must come from a certain IP address and provide authentication, the <code class="literal">all</code> parameter is the default. So, we omit the <code class="literal">satisfy</code> directive itself and include only <code class="literal">allow</code>, <code class="literal">deny</code>, <code class="literal">auth_basic</code>, and <code class="literal">auth_basic_user_file</code>:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name stage.example.com;
+
+    location / {
+
+        auth_basic "staging server";
+
+        auth_basic_user_file conf/htpasswd-stage;
+
+        allow 192.168.40.0/24;
+
+        allow 192.168.50.0/24;
+
+        deny all;
+
+    }</pre></div></div></div>
+<div class="section" title="Streaming media files"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec44"/>Streaming media files</h1></div></div></div><p>NGINX is capable of <a id="id773" class="indexterm"/>serving certain video media types. The <code class="literal">flv</code> and <code class="literal">mp4</code> modules, included in the base distribution, can perform what is called <a id="id774" class="indexterm"/>
+<span class="strong"><strong>pseudo-streaming</strong></span>. This means that NGINX will seek to a certain location in the video file, as indicated by the <code class="literal">start</code> request parameter.</p><p>In order to use the pseudo-streaming capabilities, the corresponding module needs to be included at compile time: <code class="literal">--with-http_flv_module</code> for Flash Video (FLV) files and/or <code class="literal">--with-http_mp4_module</code> for H.264/AAC files. The following directives will then become available for configuration:</p><div class="section" title="Table: HTTP streaming directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl6sec30"/>Table: HTTP streaming directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">flv</code>
+<a id="id775" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Activates the <code class="literal">flv</code> module for this location.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">mp4</code>
+<a id="id776" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Activates the <code class="literal">mp4</code> module for this location.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">mp4_buffer_size</code>
+<a id="id777" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the initial buffer size for delivering MP4 files.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">mp4_max_buffer_size</code>
+<a id="id778" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the maximum size of the buffer used to process MP4 metadata.</p>
+</td></tr></tbody></table></div><p>Activating FLV pseudo-streaming for a location is as simple as just including the <code class="literal">flv</code> keyword:</p><div class="informalexample"><pre class="programlisting">location /videos {
+
+    flv;
+
+}</pre></div><p>There are more options for MP4 pseudo-streaming, as the H.264 format includes metadata that needs to be parsed. Seeking is available once the "moov atom" has been parsed by the player. So to optimize performance, ensure that the metadata is at the beginning of the file. If an error message such as the following shows up in the logs, the <code class="literal">mp4_max_buffer_size</code> needs to be increased:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>mp4 moov atom is too large</strong></span>
+</pre></div><p>
+<code class="literal">mp4_max_buffer_size</code> can be increased as follows:</p><div class="informalexample"><pre class="programlisting">location /videos {
+
+    mp4;
+
+    mp4_buffer_size 1m;
+
+    mp4_max_buffer_size 20m;
+
+}</pre></div></div></div>
+<div class="section" title="Predefined variables"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec45"/>Predefined variables</h1></div></div></div><p>NGINX makes <a id="id779" class="indexterm"/>constructing configurations based on the values of variables easy. Not only can you instantiate your own variables by using the <code class="literal">set</code> or <code class="literal">map</code> directives, but there are also predefined variables used within NGINX. They are optimized for quick evaluation and the values are cached for the lifetime of a request. You can use any of them as a key in an<a id="id780" class="indexterm"/> <code class="literal">if</code> statement, or pass them on to a proxy. A number of them may prove useful if you define your own log file format. If you try to redefine any of them, though, you will get an error message as follows:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [emerg] &lt;master pid&gt;#0: the duplicate "&lt;variable_name&gt;" variable in &lt;path-to-configuration-file&gt;:&lt;line-number&gt;</strong></span>
+</pre></div><p>They are also not made for macro expansion in the configuration—they are mostly used at run time.</p><p>The following are the variables and their values defined in the <code class="literal">http</code> module:</p><div class="section" title="Table: HTTP variables"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl6sec31"/>Table: HTTP variables</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Variable Name</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Value</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$arg_name</code>
+<a id="id781" class="indexterm"/>
+<a id="id782" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">name</code> argument present in the request parameters.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$args</code>
+<a id="id783" class="indexterm"/>
+<a id="id784" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>All of the request parameters.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$binary_remote_addr</code>
+<a id="id785" class="indexterm"/>
+<a id="id786" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The client's IP address in binary form (always 4 bytes long).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$content_length</code>
+<a id="id787" class="indexterm"/>
+<a id="id788" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the <code class="literal">Content-Length</code> request header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$content_type</code>
+<a id="id789" class="indexterm"/>
+<a id="id790" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the <code class="literal">Content-Type</code> request header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$cookie_name</code>
+<a id="id791" class="indexterm"/>
+<a id="id792" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The cookie labeled <code class="literal">name</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$document_root</code>
+<a id="id793" class="indexterm"/>
+<a id="id794" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the <code class="literal">root</code> or <code class="literal">alias</code> directive for the current request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$document_uri</code>
+<a id="id795" class="indexterm"/>
+<a id="id796" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>An alias for <code class="literal">$uri</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$host</code>
+<a id="id797" class="indexterm"/>
+<a id="id798" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the <code class="literal">Host</code> request header, if present. If this header is not present, the value is equal to the <code class="literal">server_name</code> matching the request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$hostname</code>
+<a id="id799" class="indexterm"/>
+<a id="id800" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The name of the host where NGINX is running.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$http_name</code>
+<a id="id801" class="indexterm"/>
+<a id="id802" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <a id="id803" class="indexterm"/>value of the <code class="literal">name</code> request header. If this header has dashes, they are converted to underscores; capital letters to lower case.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$https</code>
+<a id="id804" class="indexterm"/>
+<a id="id805" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If the connection was made over SSL, the value of this variable is <code class="literal">on</code>. Otherwise, it's an empty string.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$is_args</code>
+<a id="id806" class="indexterm"/>
+<a id="id807" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If the request has arguments, the value of this variable is <code class="literal">?</code>. Otherwise, it's an empty string.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$limit_rate</code>
+<a id="id808" class="indexterm"/>
+<a id="id809" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the <code class="literal">limit_rate</code> directive. If not set, allows rate limitation to be set using this variable.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$nginx_version</code>
+<a id="id810" class="indexterm"/>
+<a id="id811" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The version of the running <code class="literal">nginx</code> binary.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$pid</code>
+<a id="id812" class="indexterm"/>
+<a id="id813" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The process ID of the worker process.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$query_string</code>
+<a id="id814" class="indexterm"/>
+<a id="id815" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>An alias for <code class="literal">$args</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$realpath_root</code>
+<a id="id816" class="indexterm"/>
+<a id="id817" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the <code class="literal">root</code> or <code class="literal">alias</code> directive for the current request, with all symbolic links resolved.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$remote_addr</code>
+<a id="id818" class="indexterm"/>
+<a id="id819" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The client's IP address.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$remote_port</code>
+<a id="id820" class="indexterm"/>
+<a id="id821" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The client's port.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$remote_user</code>
+<a id="id822" class="indexterm"/>
+<a id="id823" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When using HTTP basic authentication, this variable is set to the username.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request</code>
+<a id="id824" class="indexterm"/>
+<a id="id825" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The complete request, as received from the client, including the HTTP method, URI, HTTP protocol, header, and request body.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_body</code>
+<a id="id826" class="indexterm"/>
+<a id="id827" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The<a id="id828" class="indexterm"/> body of the request, for use in locations processed by a <code class="literal">*_pass directive</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_body_file</code>
+<a id="id829" class="indexterm"/>
+<a id="id830" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The path to the temporary file where the request's body is saved. For this file to be saved, the <code class="literal">client_body_in_file_only</code> directive needs to be set to <code class="literal">on</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_completion</code>
+<a id="id831" class="indexterm"/>
+<a id="id832" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If the request has completed, the value of this variable is <code class="literal">OK</code>. Otherwise, it's an empty string.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_filename</code>
+<a id="id833" class="indexterm"/>
+<a id="id834" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The path to the file for the current request, based on the value of the <code class="literal">root</code> or <code class="literal">alias</code> directive plus the URI.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_method</code>
+<a id="id835" class="indexterm"/>
+<a id="id836" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The HTTP method used in the current request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_uri</code>
+<a id="id837" class="indexterm"/>
+<a id="id838" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The complete request URI, as received from the client, including arguments.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$scheme</code>
+<a id="id839" class="indexterm"/>
+<a id="id840" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The scheme for the current request, either HTTP or HTTPS.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$sent_http_name</code>
+<a id="id841" class="indexterm"/>
+<a id="id842" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the <code class="literal">name</code> response header. If this header has dashes, they are converted to underscores; capital letters to lower case.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_addr</code>
+<a id="id843" class="indexterm"/>
+<a id="id844" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <a id="id845" class="indexterm"/>value of the server's address that accepted the request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_name</code>
+<a id="id846" class="indexterm"/>
+<a id="id847" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">server_name</code> of the virtual host that accepted the request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_port</code>
+<a id="id848" class="indexterm"/>
+<a id="id849" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the server's port that accepted the request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_protocol</code>
+<a id="id850" class="indexterm"/>
+<a id="id851" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The HTTP protocol used in the current request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$status</code>
+<a id="id852" class="indexterm"/>
+<a id="id853" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The response's status.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$tcpinfo_rtt</code>
+<a id="id854" class="indexterm"/>
+<a id="id855" class="indexterm"/>
+</p>
+<p>
+<code class="literal">$tcpinfo_rttvar</code>
+<a id="id856" class="indexterm"/>
+<a id="id857" class="indexterm"/>
+</p>
+<p>
+<code class="literal">$tcpinfo_snd_cwnd</code>
+<a id="id858" class="indexterm"/>
+<a id="id859" class="indexterm"/>
+</p>
+<p>
+<code class="literal">$tcpinfo_rcv_space</code>
+<a id="id860" class="indexterm"/>
+<a id="id861" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If a system supports the <code class="literal">TCP_INFO</code> socket option, these variables will be filled with the relevant information.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$uri</code>
+<a id="id862" class="indexterm"/>
+<a id="id863" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The normalized URI of the current request.</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Using NGINX with PHP-FPM"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec46"/>Using NGINX with PHP-FPM</h1></div></div></div><p>Apache has long been considered the <a id="id864" class="indexterm"/>only option for serving PHP websites <a id="id865" class="indexterm"/>because the <code class="literal">mod_php</code> Apache module makes integrating PHP directly into the web server an easy task. With <span class="strong"><strong>PHP-FPM</strong></span>
+<a id="id866" class="indexterm"/> being accepted into PHP's core, there is now an alternative bundled with the PHP distribution. PHP-FPM is a way of running PHP under a FastCGI server. The PHP-FPM master process takes care of spawning workers, adapting to site usage, and restarting sub processes when necessary. It communicates with other services using the FastCGI protocol. You can learn more about PHP-FPM itself<a id="id867" class="indexterm"/> at <a class="ulink" href="http://php.net/manual/en/install.fpm.php">http://php.net/manual/en/install.fpm.php</a>.</p><p>NGINX has a <code class="literal">fastcgi</code> module<a id="id868" class="indexterm"/>, which is capable of communicating not only with PHP-FPM, but also with any FastCGI-compliant server. It is enabled by default, so no special consideration needs to be made to start using NGINX with FastCGI servers.</p><div class="section" title="Table: FastCGI directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl6sec32"/>Table: FastCGI directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_buffer_size</code>
+<a id="id869" class="indexterm"/>
+<a id="id870" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The size of the buffer used for the first part of the response from the FastCGI server, in which the response headers are found.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_buffers</code>
+<a id="id871" class="indexterm"/>
+<a id="id872" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The number and size of buffers used for the response from a FastCGI server, for a single connection.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_busy_buffers_size</code>
+<a id="id873" class="indexterm"/>
+<a id="id874" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The total size of buffer space allocated to sending the response to the client while still being read from the FastCGI server. This is typically set to two <code class="literal">fastcgi_buffers</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache</code>
+<a id="id875" class="indexterm"/>
+<a id="id876" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines a shared memory zone to be used for caching.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_bypass</code>
+<a id="id877" class="indexterm"/>
+<a id="id878" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>One or more string variables, which when non-empty or non-zero, will cause the response to be taken from the FastCGI server instead of the cache.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_key</code>
+<a id="id879" class="indexterm"/>
+<a id="id880" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>A string used as the key for storing and retrieving cache values.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_lock</code>
+<a id="id881" class="indexterm"/>
+<a id="id882" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enabling this directive will prevent multiple requests from making an entry into the same cache key.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_lock_timeout</code>
+<a id="id883" class="indexterm"/>
+<a id="id884" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The length of time a request will wait for an entry to <a id="id885" class="indexterm"/>appear in the cache or for the <code class="literal">fastcgi_cache_lock</code> to be released.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_min_uses</code>
+<a id="id886" class="indexterm"/>
+<a id="id887" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The number <a id="id888" class="indexterm"/>of requests for a certain key needed before a response is cached.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_path</code>
+<a id="id889" class="indexterm"/>
+<a id="id890" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>A directory in which to place the cached responses and a shared memory zone (<code class="literal">keys_zone = name:size</code>) to store active keys and response metadata. Optional parameters are:</p>
+<div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">levels</code>: Colon-separated length of subdirectory name at each level (one or two), maximum of three levels deep</li><li class="listitem" style="list-style-type: disc"><code class="literal">inactive</code>: The maximum length of time an inactive response stays in the cache before being ejected</li><li class="listitem" style="list-style-type: disc"><code class="literal">max_size</code>: The maximum size of the cache; when the size exceeds this value, a cache manager process removes the least recently used items</li><li class="listitem" style="list-style-type: disc"><code class="literal">loader_files</code>: The maximum number of cached files whose metadata are loaded per iteration of the cache loader process</li><li class="listitem" style="list-style-type: disc"><code class="literal">loader_sleep</code>: The number of milliseconds paused between each iteration of the cache loader process</li><li class="listitem" style="list-style-type: disc"><code class="literal">loader_threshold</code>: The maximum length of time a cache loader iteration may take</li></ul></div>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_use_stale</code>
+<a id="id891" class="indexterm"/>
+<a id="id892" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The cases under which it is acceptable to serve stale cached data if an error occurs when accessing the FastCGI server. The <code class="literal">updating</code> parameter indicates the case when fresh data are being loaded.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_cache_valid</code>
+<a id="id893" class="indexterm"/>
+<a id="id894" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates the<a id="id895" class="indexterm"/> length of time for which a cached response with response code 200, 301, or 302 is valid. If an optional response code is given before the time parameter, that time is only for that response code. The special parameter <code class="literal">any</code> indicates that any response code should be cached for that length of time.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_connect_timeout</code>
+<a id="id896" class="indexterm"/>
+<a id="id897" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The maximum amount of time NGINX will wait for its connection to be accepted when making a request to a FastCGI server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_hide_header</code>
+<a id="id898" class="indexterm"/>
+<a id="id899" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>A list of header fields that should not be passed on to the client.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_ignore_client_abort</code>
+<a id="id900" class="indexterm"/>
+<a id="id901" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If set to <code class="literal">on</code>, NGINX will not abort the connection to a FastCGI server if the client aborts the connection.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_ignore_headers</code>
+<a id="id902" class="indexterm"/>
+<a id="id903" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets <a id="id904" class="indexterm"/>which headers may be disregarded when processing the response from the FastCGI server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_index</code>
+<a id="id905" class="indexterm"/>
+<a id="id906" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets the name of a file to be appended to <code class="literal">$fastcgi_script_name</code> that ends with a slash.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_intercept_errors</code>
+<a id="id907" class="indexterm"/>
+<a id="id908" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If enabled, NGINX will display a configured <code class="literal">error_page</code> instead of the response directly from the FastCGI server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_keep_conn</code>
+<a id="id909" class="indexterm"/>
+<a id="id910" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables <code class="literal">keepalive</code> connections to FastCGI servers by instructing the server not to immediately close the connection.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_max_temp_file_size</code>
+<a id="id911" class="indexterm"/>
+<a id="id912" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The maximum size of the overflow file, written when the response doesn't fit into memory buffers.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_next_upstream</code>
+<a id="id913" class="indexterm"/>
+<a id="id914" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Indicates<a id="id915" class="indexterm"/> the conditions under which the next FastCGI server will be selected for the response. This won't be used if the client has already been sent something. The <a id="id916" class="indexterm"/>conditions are specified using the following parameters:</p>
+<div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">error</code>: An error occurred while communicating with the FastCGI server</li><li class="listitem" style="list-style-type: disc"><code class="literal">timeout</code>: A timeout occurred while communicating with the FastCGI server</li><li class="listitem" style="list-style-type: disc"><code class="literal">invalid_header</code>: The FastCGI server returned an empty or otherwise invalid response</li><li class="listitem" style="list-style-type: disc"><code class="literal">http_500</code>: The FastCGI server responded with a 500 error code</li><li class="listitem" style="list-style-type: disc"><code class="literal">http_503</code>: The FastCGI server responded with a 503 error code</li><li class="listitem" style="list-style-type: disc"><code class="literal">http_404</code>: The FastCGI server responded with a 404 error code</li><li class="listitem" style="list-style-type: disc"><code class="literal">off</code>: Disables passing the request to the next FastCGI server when an error occurs</li></ul></div>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_no_cache</code>
+<a id="id917" class="indexterm"/>
+<a id="id918" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>One or more string variables, which when non-empty or non-zero, will instruct NGINX to not save the response from the FastCGI server in the cache.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_param</code>
+<a id="id919" class="indexterm"/>
+<a id="id920" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets a parameter and its value to be passed to the FastCGI server. If the parameter should only be passed when the value is non-empty, the <code class="literal">if_not_empty</code> additional parameter should be set.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_pass</code>
+<a id="id921" class="indexterm"/>
+<a id="id922" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the FastCGI server to which the request is passed, either as an <code class="literal">address:port</code> combination or as <code class="literal">unix:path</code> for a UNIX-domain socket.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_pass_header</code>
+<a id="id923" class="indexterm"/>
+<a id="id924" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Overrides the disabled headers set in <code class="literal">fastcgi_hide_header</code>, allowing them to be sent to the client.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_read_timeout</code>
+<a id="id925" class="indexterm"/>
+<a id="id926" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Specifies the length of time that needs to elapse between two successive read operations from a FastCGI server before the connection is closed.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_send_timeout</code>
+<a id="id927" class="indexterm"/>
+<a id="id928" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The length of time that needs to elapse between two successive write operations to a FastCGI server before the connection is closed.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_split_path_info</code>
+<a id="id929" class="indexterm"/>
+<a id="id930" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Defines<a id="id931" class="indexterm"/> a regular <a id="id932" class="indexterm"/>expression with two captures.  The first capture will be the value of the <code class="literal">$fastcgi_script_name</code> variable. The second capture becomes the value of the <code class="literal">$fastcgi_path_info</code> variable. Only necessary for applications that rely upon <code class="literal">PATH_INFO</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_store</code>
+<a id="id933" class="indexterm"/>
+<a id="id934" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables storing responses retrieved from a FastCGI server as files on disk. The <code class="literal">on</code> parameter will use the <code class="literal">alias</code> or <code class="literal">root</code> directive as the base path under which to store the file. A string may instead be given, to indicate an alternative location to store the files.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_store_access</code>
+<a id="id935" class="indexterm"/>
+<a id="id936" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets file access permissions for newly-created <code class="literal">fastcgi_store</code> files.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_temp_file_write_size</code>
+<a id="id937" class="indexterm"/>
+<a id="id938" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Limits the amount of data buffered to a temporary file at one time, so that NGINX will not block too long on a single request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">fastcgi_temp_path</code>
+<a id="id939" class="indexterm"/>
+<a id="id940" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>A directory where temporary files may be buffered as they are proxied from the FastCGI server, optionally multilevel deep.</p>
+</td></tr></tbody></table></div></div><div class="section" title="An example Drupal configuration"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec50"/>An example Drupal configuration</h2></div></div></div><p>Drupal (<a class="ulink" href="http://drupal.org">http://drupal.org</a>) <a id="id941" class="indexterm"/>is <a id="id942" class="indexterm"/>a popular open source content management platform. There is a large installed user base, and many popular websites are run on Drupal. As with most PHP web frameworks, Drupal is typically run under Apache using <code class="literal">mod_php</code>. We are going to explore how to configure NGINX to run Drupal.</p><p>There is a very comprehensive <a id="id943" class="indexterm"/>Drupal configuration guide for NGINX found at <a class="ulink" href="https://github.com/perusio/drupal-with-nginx">https://github.com/perusio/drupal-with-nginx</a>. It goes more in-depth than we are able to do here, but we will point out some features mentioned, and go through some of the differences between Drupal 6 and Drupal 7:</p><div class="informalexample"><pre class="programlisting">## Defines the $no_slash_uri variable for drupal 6.
+map $uri $no_slash_uri {
+
+    ~^/(?&lt;no_slash&gt;.*)$ $no_slash;
+}
+
+server { 
+
+    server_name www.example.com; 
+
+    root /home/customer/html; 
+ 
+    index index.php;
+
+    # keep alive to the FastCGI upstream (used in conjunction with
+    #  the "keepalive" directive in the upstream section)
+    fastcgi_keep_conn on;
+
+    # The 'default' location.
+    location / {
+        ## (Drupal 6) Use index.html whenever there's no index.php.
+        location = / {
+            error_page 404 =200 /index.html;
+        }
+        # Regular private file serving (i.e. handled by Drupal).
+        location ^~ /system/files/ {
+
+            include fastcgi_private_files.conf;
+
+            fastcgi_pass 127.0.0.1:9000;
+            # For not signaling a 404 in the error log whenever the
+            # system/files directory is accessed add the line below.
+            # Note that the 404 is the intended behavior.
+            log_not_found off;
+
+        }
+
+        # Trying to access private files directly returns a 404.
+        location ^~ /sites/default/files/private/ {
+            internal;
+        }
+
+        ## (Drupal 6) If accessing an image generated by imagecache,
+        ## serve it directly if available, if not relay the request to# Drupal
+        ## to (re)generate the image.
+        location ~* /imagecache/ {
+
+            access_log off;
+
+            expires 30d;
+
+            try_files $uri /index.php?q=$no_slash_uri&amp;$args;
+
+        }
+
+        # Drupal 7 image handling, i.e., imagecache in core
+        location ~* /files/styles/ {
+
+            access_log off;
+
+            expires 30d;
+
+            try_files $uri @drupal;
+
+        }</pre></div><p>The Advanced <a id="id944" class="indexterm"/>Aggregation module configuration coming up next differs only in the <code class="literal">location</code> used. The Advanced Aggregation module configuration for CSS is as follows:</p><div class="informalexample"><pre class="programlisting">        # Advanced Aggregation module CSS support.
+        location ^~ /sites/default/files/advagg_css/ {
+            location ~* /sites/default/files/advagg_css/css_[[:alnum:]]+\.css$ {</pre></div><p>And for JavaScript is as follows:</p><div class="informalexample"><pre class="programlisting">        # Advanced Aggregation module JS
+        location ^~ /sites/default/files/advagg_js/ {
+            location ~* /sites/default/files/advagg_js/js_[[:alnum:]]+\.js$ {</pre></div><p>The common lines to both sections are as follows:</p><div class="informalexample"><pre class="programlisting">                access_log off;
+
+                add_header Pragma '';
+
+                add_header Cache-Control 'public, max-age=946080000';
+
+                add_header Accept-Ranges '';
+
+                # This is for Drupal 7
+                try_files $uri @drupal;
+
+                ## This is for Drupal 6 (use only one)
+                try_files $uri /index.php?q=$no_slash_uri&amp;$args;
+
+            }
+
+        }
+
+
+        # All static files will be served directly.
+        location ~* ^.+\.(?:css|cur|js|jpe?g|gif|htc|ico|png|html|xml)$ {
+
+            access_log off;
+
+            expires 30d;
+
+            # Send everything all at once.
+            tcp_nodelay off;
+
+            # Set the OS file cache.
+            open_file_cache max=3000 inactive=120s;
+            open_file_cache_valid 45s;
+
+            open_file_cache_min_uses 2;
+
+            open_file_cache_errors off;
+
+        }
+
+        # PDFs and powerpoint files handling.
+        location ~* ^.+\.(?:pdf|pptx?)$ {
+
+            expires 30d;
+
+            # Send everything all at once.
+            tcp_nodelay off;
+
+        }</pre></div><p>Serving audio<a id="id945" class="indexterm"/> files exemplifies the use of AIO. The MP3 <code class="literal">location</code> is as follows:</p><div class="informalexample"><pre class="programlisting">        # MP3 files are served using AIO where supported by the OS.
+        location ^~ /sites/default/files/audio/mp3 {
+
+            location ~* ^/sites/default/files/audio/mp3/.*\.mp3$ {</pre></div><p>And Ogg/Vorbis <code class="literal">location</code> is as follows:</p><div class="informalexample"><pre class="programlisting">        # Ogg/Vorbis files are served using AIO where supported by theOS.
+        location ^~ /sites/default/files/audio/ogg {
+
+            location ~* ^/sites/default/files/audio/ogg/.*\.ogg$ {</pre></div><p>These have the following lines in common:</p><div class="informalexample"><pre class="programlisting">                directio 4k; # for XFS
+
+                tcp_nopush off;
+                aio on;
+                output_buffers 1 2M;
+            }
+
+        }
+        # Pseudo-streaming of FLV files
+        location ^~ /sites/default/files/video/flv {
+
+            location ~* ^/sites/default/files/video/flv/.*\.flv$ {
+
+                flv;
+
+            }
+
+        }</pre></div><p>The next two pseudo-streaming sections are also similar. The pseudo-streaming for H264 file is specified in the following code:</p><div class="informalexample"><pre class="programlisting">        # Pseudo-streaming of H264 files.
+        location ^~ /sites/default/files/video/mp4 {
+
+            location ~* ^/sites/default/files/video/mp4/.*\.(?:mp4|mov)$ {</pre></div><p>And pseudo-streaming for AAC files is specified in the following code:</p><div class="informalexample"><pre class="programlisting">        # Pseudo-streaming of AAC files.
+        location ^~ /sites/default/files/video/m4a {
+
+            location ~* ^/sites/default/files/video/m4a/.*\.m4a$ {</pre></div><p>These have the <a id="id946" class="indexterm"/>following common between them:</p><div class="informalexample"><pre class="programlisting">                mp4;
+
+                mp4_buffer_size         1M;
+
+                mp4_max_buffer_size 5M;
+
+            }
+
+        }
+
+        # Advanced Help module makes each module-provided
+        # README available.
+        location ^~ /help/ {
+
+            location ~* ^/help/[^/]*/README\.txt$ {
+                include fastcgi_private_files.conf;
+
+                fastcgi_pass 127.0.0.1:9000;
+
+            }
+        }
+
+        # Replicate the Apache &lt;FilesMatch&gt; directive of Drupal # standard
+        # .htaccess. Disable access to any code files. Return a 404 to# curtail
+        # information disclosure. Also hide the text files.
+        location ~* ^(?:.+\.(?:htaccess|make|txt|engine|inc|info|install|module|profile|po|sh|.*sql|test|theme|tpl(?:\.php)?|xtmpl)|code-style\.pl|/Entries.*|/Repository|/Root|/Tag|/Template)$ {
+
+            return 404;
+
+        }
+
+        #First we try the URI and relay to the /index.php?q=$uri&amp;$argsif not found.
+        try_files $uri @drupal;
+
+        ## (Drupal 6) First we try the URI and relay to the /index.php?q=$no_slash_uri&amp;$args if not found. (use only one)
+        try_files $uri /index.php?q=$no_slash_uri&amp;$args;
+
+    } # default location ends here
+
+    # Restrict access to the strictly necessary PHP files. Reducingthe
+    # scope for exploits. Handling of PHP code and the Drupal eventloop.
+    location @drupal {
+
+        # Include the FastCGI config.
+        include fastcgi_drupal.conf;
+
+        fastcgi_pass 127.0.0.1:9000;
+
+    }
+
+    location @drupal-no-args {
+        include fastcgi_private_files.conf;
+
+        fastcgi_pass 127.0.0.1:9000;
+
+    }
+
+    ## (Drupal 6)
+    ## Restrict access to the strictly necessary PHP files. Reducing# the
+    ## scope for exploits. Handling of PHP code and the Drupal event # loop.
+    ## (use only one)
+    location = /index.php {
+
+        # This is marked internal as a pro-active security practice.
+        # No direct access to index.php is allowed; all accesses are# made
+        #  by NGINX from other locations or internal redirects.
+        internal;
+
+        fastcgi_pass 127.0.0.1:9000;
+
+    }</pre></div><p>The <a id="id947" class="indexterm"/>following <code class="literal">locations</code> all have <code class="literal">return 404</code> in order to deny access:</p><div class="informalexample"><pre class="programlisting">    # Disallow access to .git directory: return 404 as not to disclose
+    # information.
+    location ^~ /.git { return 404; }
+    # Disallow access to patches directory.
+    location ^~ /patches { return 404; }
+    # Disallow access to drush backup directory.
+    location ^~ /backup { return 404; }
+    # Disable access logs for robots.txt.
+    location = /robots.txt {
+
+        access_log off;
+
+    }
+
+    # RSS feed support.
+    location = /rss.xml {
+
+        try_files $uri @drupal-no-args;
+        ## (Drupal 6: use only one)
+        try_files $uri /index.php?q=$uri;
+
+    }
+
+    # XML Sitemap support.
+    location = /sitemap.xml {
+        try_files $uri @drupal-no-args;
+
+        ## (Drupal 6: use only one)
+        try_files $uri /index.php?q=$uri;
+    }
+
+    # Support for favicon. Return an 1x1 transparent GIF if it doesn't
+    # exist.
+    location = /favicon.ico {
+
+        expires 30d;
+
+        try_files /favicon.ico @empty;
+
+    }
+
+    # Return an in-memory 1x1 transparent GIF.
+    location @empty {
+
+        expires 30d;
+
+        empty_gif;
+
+    }
+
+    # Any other attempt to access PHP files returns a 404.
+    location ~* ^.+\.php$ {
+
+        return 404;
+
+    }
+
+} # server context ends here</pre></div><p>The <code class="literal">include</code> files <a id="id948" class="indexterm"/>mentioned above are not reproduced here, for brevity's sake. They can be found in perusio's GitHub repository mentioned at the beginning of this section.</p></div></div>
+<div class="section" title="Wiring NGINX and uWSGI together"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec47"/>Wiring NGINX and uWSGI together</h1></div></div></div><p>The Python <span class="strong"><strong>WSGI</strong></span>
+<a id="id949" class="indexterm"/> (<span class="strong"><strong>Web Server Gateway Interface</strong></span>) is an interface specification formalized as <a id="id950" class="indexterm"/>PEP-3333 (<a class="ulink" href="http://www.python.org/dev/peps/pep-3333/">http://www.python.org/dev/peps/pep-3333/</a>). Its purpose is to provide a "standard interface<a id="id951" class="indexterm"/> between web servers and Python web <a id="id952" class="indexterm"/>applications or frameworks to promote web application portability across a variety of web servers". Due to its popularity in the Python community, a number of other languages have implementations that conform to the WSGI specification. The uWSGI server, although not written exclusively for Python, provides a way of running applications that conform to this specification. The native protocol used to communicate with the uWSGI server is called uwsgi. More details about the uWSGI server, including installation instructions, example configurations, and other supported languages can be found at <a class="ulink" href="http://projects.unbit.it/uwsgi/">http://projects.unbit.it/uwsgi/</a> and <a class="ulink" href="https://github.com/unbit/uwsgi-docs">https://github.com/unbit/uwsgi-docs</a>.</p><p>NGINX's <code class="literal">uwsgi</code> module<a id="id953" class="indexterm"/> can be configured to talk to this server using directives similar to the <code class="literal">fastcgi_*</code> directives discussed in the previous section. Most directives have the same meaning as their FastCGI counterparts, with the obvious difference being that they begin with <code class="literal">uwsgi_</code> instead of <code class="literal">fastcgi_</code>. There are a few exceptions however—<code class="literal">uwsgi_modifier1</code> and <code class="literal">uwsgi_modifier2</code>, as well as <code class="literal">uwsgi_string</code>. The first two directives set either the first or second modifier, respectively, of the uwsgi packet header. <code class="literal">uwsgi_string</code> enables NGINX to pass an arbitrary string to uWSGI, or any other uwsgi server that supports the eval modifier. These modifiers are specific to the uwsgi protocol. A table of valid values and their meanings can be found at <a class="ulink" href="http://uwsgi-docs.readthedocs.org/en/latest/Protocol.html">http://uwsgi-docs.readthedocs.org/en/latest/Protocol.html</a>.</p><div class="section" title="An example Django configuration"><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec51"/>An example Django configuration</h2></div></div></div><p>Django<a id="id954" class="indexterm"/> (<a class="ulink" href="https://www.djangoproject.com/">https://www.djangoproject.com/</a>) is a Python web framework in which developers can quickly create high-performing web applications. It has become a popular framework in which many different kinds of web applications are written.</p><p>The following<a id="id955" class="indexterm"/> configuration is an example of how to connect NGINX to multiple Django applications running under an Emperor mode uWSGI server with FastRouter activated. See the URLs embedded in the comments in the following code for <a id="id956" class="indexterm"/>more information about running uWSGI like this:</p><div class="informalexample"><pre class="programlisting">http {
+    # spawn a uWSGI server to connect to
+    # uwsgi --master --emperor /etc/djangoapps --fastrouter 127.0.0.1:3017 --fastrouter-subscription-server 127.0.0.1:3032
+    # see http://uwsgi-docs.readthedocs.org/en/latest/Emperor.html
+    # and http://projects.unbit.it/uwsgi/wiki/Example
+    upstream emperor {
+        server 127.0.0.1:3017;
+    }
+
+    server {
+        # the document root is set with a variable so that multiple # sites
+        # may be served - note that all static application files are
+        # expected to be found under a subdirectory "static" and all# user
+        # uploaded files under a subdirectory "media"
+        # see https://docs.djangoproject.com/en/dev/howto/static-files/
+        root /home/www/sites/$host;
+
+        location / {
+            # CSS files are found under the "styles" subdirectory
+            location ~* ^.+\.$ {
+                root /home/www/sites/$host/static/styles;
+                expires 30d;
+            }
+            # any paths not found under the document root get passed # to
+            #  the Django running under uWSGI
+            try_files $uri @django;
+        }
+
+        location @django {
+            # $document_root needs to point to the application code
+            root /home/www/apps/$host;
+            # the uwsgi_params file from the nginx distribution
+            include uwsgi_params;
+            # referencing the upstream we defined earlier, a uWSGI # server
+            #  running in Emperor mode with FastRouter
+            uwsgi_param UWSGI_FASTROUTER_KEY $host;
+            uwsgi_pass emperor;
+        }
+
+        # the robots.txt file is found under the "static" subdirectory
+        # an exact match speeds up the processing
+
+        location = /robots.txt {
+            root /home/www/sites/$host/static;
+            access_log off;
+        }
+
+        # again an exact match
+        location = /favicon.ico {
+            error_page 404 = @empty;
+            root /home/www/sites/$host/static;
+            access_log off;
+            expires 30d;
+        }
+
+        # generates the empty image referenced above
+        location @empty {
+            empty_gif;
+        }
+
+        # if anyone tries to access a '.py' file directly,
+        #  return a File Not Found code
+        location ~* ^.+\.py$ {
+            return 404;
+        }
+    }
+}</pre></div><p>This enables <a id="id957" class="indexterm"/>multiple sites to be dynamically hosted without changing the NGINX configuration.</p></div></div>
+<div class="section" title="Summary"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec48"/>Summary</h1></div></div></div><p>In this chapter, we have explored a number of directives used to make NGINX serve files over HTTP. Not only does the <code class="literal">http</code> module provide this functionality, but there are also a number of helper modules that are essential to the normal operation of NGINX. These helper modules are enabled by default. Combining the directives of these various modules enables us to build a configuration that meets our needs. We explored how NGINX finds files based on the URI requested. We examined how different directives control how the HTTP server interacts with the client, and how the <code class="literal">error_page</code> directive can be used to serve a number of needs. Limiting access based on bandwidth usage, request rate, and number of connections is all possible.</p><p>We saw, too, how we can restrict access based on either IP address or through requiring authentication. We explored how to use NGINX's logging capabilities to capture just the information we want. Pseudo-streaming was examined briefly, as well. NGINX provides us with a number of variables that we can use to construct our configurations. We also explored the possibility of using the <code class="literal">fastcgi</code> module to connect to the PHP-FPM applications and the <code class="literal">uwsgi</code> module to communicate with a uWSGI server. The example configurations combined the directives discussed in this chapter, as well as some discussed in other chapters.</p><p>The next chapter will introduce some modules that will help you as a developer integrate NGINX into your application.</p></div></body></html>

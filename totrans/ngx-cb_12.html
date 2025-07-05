@@ -1,0 +1,746 @@
+<html><head></head><body>
+        <section>
+
+                            <header>
+                    <h1 class="header-title">OpenResty</h1>
+                </header>
+            
+            <article>
+                
+<p>       In this chapter, we will cover the following topics:</p>
+<ul>
+<li>Installing OpenResty</li>
+<li>Getting started with OpenResty Lua</li>
+<li>Lua microservices with OpenResty</li>
+<li>A simple hit counter with a Redis backend</li>
+<li>Powering API gateways with OpenResty</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Introduction</h1>
+                </header>
+            
+            <article>
+                
+<p>If you've ever wondered whether you can make a few changes to NGINX dynamically or wanted a bit more flexibility, then you're going to love OpenResty.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/2f639334-f4ef-41c0-a7f5-2edabbf6488c.png"/></div>
+<p>Think of OpenResty as NGINX with the kitchen sink thrown in; it's a combination of NGINX, along with Lua scripting, and several additional third-party modules all packaged up and ready to use. The inclusion of Lua scripting and additional modules allows NGINX to be extended to be a full web application rather than simply a web server.</p>
+<p>Some may fear that this additional functionality comes with a performance hit, but this simply isn't the case. Large platforms, such as <strong>Cloudflare</strong>, use a combination of NGINX and Lua to achieve what they do at scale, and it's due to the power of OpenResty. In fact, the original creator, Yichun Zhang worked for Cloudflare on OpenResty and has now formed a separate OpenResty foundation to steward the platform going forward.</p>
+<p>This power allows complicated scenarios such as <strong>Web Application Firewalls</strong> (<strong>WAFs</strong>) to be tightly integrated at the website level, allowing the combination of per-site flexibility with the high-speed aspects NGINX is known for. In fact, many are even starting to use OpenResty for their full framework and it can be especially effective for a simple microservice-driven system.</p>
+<p>This is just one of the many examples. In this chapter, you'll see that OpenResty is a great fit for many scenarios where you want to use NGINX but also wish to add a bit of dynamic flair.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Installing OpenResty</h1>
+                </header>
+            
+            <article>
+                
+<p>OpenResty is packaged for the easy installation of most Linux distributions, but there are binary packages for both Windows and OS X available as well. As most production deployments will predominantly be Linux-based, we'll concentrate on Linux for our recipe.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>If you have NGINX already installed, you'll need to uninstall it first to remove any other conflicts.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Official repositories exist for most major Linux installations, but we'll focus on just CentOS 7 and Ubuntu 16.04 LTS to cover the two most common scenarios.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">CentOS</h1>
+                </header>
+            
+            <article>
+                
+<p>To add the repository, the first thing we need is the <kbd>yum-utils</kbd> package. This makes the creation of repositories as simple as a one-line installation:</p>
+<pre><strong>yum install -y yum-utils</strong>  </pre>
+<p>With <kbd>yum-utils</kbd> installed, we can now create the <kbd>openresty</kbd> repository on our server:</p>
+<pre><strong>yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo</strong>  </pre>
+<p>This will automatically fetch the remote repository file and place it in the correct location for you.</p>
+<p>With the repository installed and enabled, we can now install OpenResty:</p>
+<pre><strong>yum install -y openresty</strong>  </pre>
+<p>This will install the latest OpenResty package, as well as all the required dependencies.</p>
+<p>To enable the service to start on boot, we can enable it via <kbd>systemd</kbd>:</p>
+<pre><strong>systemctl enable openresty</strong>  </pre>
+<p>You can start the service via <kbd>systemd</kbd> as well:</p>
+<pre><strong>systemctl start openresty</strong>  </pre>
+<p>This will start NGINX, which will be preconfigured with all the OpenResty additions. As it comes with a simple configuration (as NGINX does out-of-the-box), you can quickly open a browser and see the output via the IP to confirm it's working:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="189" src="assets/58cbc56d-aff3-4944-8ba8-4b876af7d1d1.png" width="437"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Ubuntu</h1>
+                </header>
+            
+            <article>
+                
+<p>To install OpenResty on an Ubuntu-based system, first we need to import the <strong>GPG</strong> key used for signing the packages:</p>
+<pre><strong>wget -qO - https://openresty.org/package/pubkey.gpg | apt-key add -</strong></pre>
+<p>Like the CentOS installation, we can use a helper package to make the installation of the repository easy. To install it, use the following command:</p>
+<pre><strong>apt install -y software-properties-common</strong>  </pre>
+<p>We can now install the repository for OpenResty and then refresh the <kbd>package</kbd> indexes:</p>
+<pre><strong>add-apt-repository -y "deb http://openresty.org/package/ubuntu $(lsb_release -sc) main"</strong>
+<strong>apt update</strong>  </pre>
+<p>With the repository installed, we can now install the OpenResty package:</p>
+<pre><strong>apt install -y openresty</strong>  </pre>
+<p>Once all the dependencies and OpenResty packages are installed, you can now set the service to start on boot and then start it so that you can test the service. You can do this via <kbd>systemd</kbd>:</p>
+<pre><strong>systemctl enable openresty</strong>
+<strong>systemctl start openresty</strong></pre>
+<p>If you don't see any errors, you will then be able browse to the IP address of your server (or virtual machine) and see the OpenResty test page, as shown in the previous CentOS installation instructions.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>The locations of the configuration files and system libraries are slightly different to a standard NGINX installation, so it's important to remember the location. By default, OpenResty installs to <kbd>/usr/local/openresty</kbd>. For example, if you look for the NGINX configuration files, they'll be stored in <kbd>/usr/local/openresty/nginx/conf</kbd>.</p>
+<p>If you look at the standard NGINX configuration file, you won't see any real difference between it and the standard package. Because OpenResty is essentially just NGINX with additional modules compiled, you can easily take an existing NGINX configuration (like any of the ones covered in this book) and extend the functionality with the additional OpenResty modules.</p>
+<p>We can confirm these modules are available by running the following command:</p>
+<pre><strong>/usr/local/openresty/bin/openresty -V</strong>  </pre>
+<p>This should give you an output similar to the following:</p>
+<pre><strong>nginx version: openresty/1.11.2.3</strong>
+<strong>built with OpenSSL 1.0.2k  26 Jan 2017</strong>
+<strong>TLS SNI support enabled</strong>
+<strong>configure arguments: --prefix=/usr/local/openresty/nginx --with-cc-opt='-O2 -I/usr/local/openresty/zlib/include -I/usr/local/openresty/pcre/include -I/usr/local/openresty/openssl/include' --add-module=../ngx_devel_kit-0.3.0 --add-module=../echo-nginx-module-0.60 --add-module=../xss-nginx-module-0.05 --add-module=../ngx_coolkit-0.2rc3 --add-module=../set-misc-nginx-module-0.31 --add-module=../form-input-nginx-module-0.12 --add-module=../encrypted-session-nginx-module-0.06 --add-module=../srcache-nginx-module-0.31 --add-module=../ngx_lua-0.10.8 --add-module=../ngx_lua_upstream-0.06 --add-module=../headers-more-nginx-module-0.32 --add-module=../array-var-nginx-module-0.05 --add-module=../memc-nginx-module-0.18 --add-module=../redis2-nginx-module-0.14 --add-module=../redis-nginx-module-0.3.7 --with-ld-opt='-Wl,-rpath,/usr/local/openresty/luajit/lib -L/usr/local/openresty/zlib/lib -L/usr/local/openresty/pcre/lib -L/usr/local/openresty/openssl/lib -Wl,-rpath,/usr/local/openresty/zlib/lib:/usr/local/openresty/pcre/lib:/usr/local/openresty/openssl/lib' --with-pcre-jit --with-ipv6 --with-stream --with-stream_ssl_module --with-http_v2_module --without-mail_pop3_module --without-mail_imap_module --without-mail_smtp_module --with-http_stub_status_module --with-http_realip_module --with-http_addition_module --with-http_auth_request_module --with-http_secure_link_module --with-http_random_index_module --with-http_gzip_static_module --with-http_sub_module --with-http_dav_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-threads --with-file-aio --with-dtrace-probes --with-http_ssl_module</strong>
+  </pre>
+<p>We can confirm that there are additional modules installed, such as <kbd>lua_upstream</kbd> and <kbd>luajit</kbd>, which form the core of the OpenResty capabilities.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>For official installation instructions, refer to <a href="6863d7d3-d70d-4aa7-a96d-a799f0bb8667.xhtml" target="_blank">https://openresty.org/en/installation.html</a>.﻿</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting started with OpenResty Lua</h1>
+                </header>
+            
+            <article>
+                
+<p>One of the key powers of OpenResty is the built-in Lua scripting language. For those not familiar with Lua, it's a high-performance, yet lightweight scripting language. This is why, when it's combined with the NGINX event engine, it results in a very powerful combination.</p>
+<p>Being a dynamically typed and interpreted language makes Lua similar to other scripting languages, such as JavaScript, but there are some subtle differences (especially syntax-wise). If you're new to Lua, then it's worthwhile reading through a few basic tutorials to familiarize yourself with the syntax and differences.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>For this recipe, we'll use the standard OpenResty modules, so no further changes are required to get started.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>We'll start with using one of the most basic functions in OpenResty and Lua, which is the <kbd>content_by_lua_block</kbd> block directive. This allows us to insert Lua code directly in line with our NGINX configuration, providing rapid and dynamic changes. The first recipe returns a basic string:</p>
+<pre>location /simpletest { 
+    default_type 'text/plain'; 
+    content_by_lua_block { 
+        ngx.say('This is a simple test!') 
+  } 
+} </pre>
+<p>If you browse to the URL (or use cURL to make the request), you should simply get <kbd>This is a simple test</kbd> as the HTTP response. Running a simple Apache Benchmark against this URL (just to show a baseline performance) shows that it can serve this URL over 20,000 times a second on a modestly resourced VM. While the code isn't overly complex, it does show that the overheads for adding Lua have a very minimal effect on performance.</p>
+<p>If you need to return the data as JSON, then this is quite simple to do as well. Using the basic example, as we used previously, we can leverage the Lua CJSON library (compiled with OpenResty by default) to encode the output:</p>
+<pre>location /simplejsontest { 
+        default_type 'application/json'; 
+        content_by_lua_block { 
+            local cjson = require "cjson.safe" 
+            ngx.say(cjson.encode({test="Encoded with CJSON",enabled=true})) 
+      } 
+    } </pre>
+<p>If we call the <kbd>/simplejsontest</kbd> URL, you should see the following output:</p>
+<pre><strong>{"test":"Encoded with CJSON","enabled":true}</strong>
+  </pre>
+<p>This, of course, barely scratches the surface of what can be achieved with Lua, but this should at least get you started.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>In both recipes, we utilized Lua modules to provide (albeit simplistic) output based on Lua code. While the code is in line with the NGINX configuration, it runs directly within each worker process. This gives it massive concurrency out-of-the-box, which, combined with the native speed of Lua, means it's incredibly powerful.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>For more details on the Lua module, refer to <span class="URLPACKT"><a href="https://github.com/openresty/lua-nginx-module#readme" target="_blank">https://github.com/openresty/lua-nginx-module#readme</a>.</span></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Lua microservices with OpenResty</h1>
+                </header>
+            
+            <article>
+                
+<p>One of the quickest, natural extensions of OpenResty is to create and run a microservice directly, rather than having to proxy it to another external service. For those not familiar with microservices, this is a methodology of breaking down a software platform into small, independent services rather than a single, monolithic system. Here's a basic diagram of how the services may look for a web application:</p>
+<p class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="358" src="assets/74ba2c1f-c837-4089-be2a-07ee4a28ff01.png" width="480"/></p>
+<p>This means that each microservice can be independently upgraded, changed, and scaled as required; keeping it to one task means the code should remain easier to manage.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>In this recipe, we're going to focus on just one microservice. In a real-world deployment, these microservices could be as high as 150 for a complex platform, and many typically hover between the range of 10-30.</p>
+<p>For this microservice, we're going to take advantage of the built-in Lua DNS module (<kbd>lua-resty-dns</kbd>) to provide a resolution tool and return the result as JSON. As a real-world example, we're going to look up the <strong>Mail Exchanger</strong> (<strong>MX</strong>) record. This could be part of a platform for email migration, anti-spam validation, or similar and would traditionally require NGINX to proxy the connection to an external application.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To create our microservice, we're going to create a <kbd>location</kbd> block directive with the following:</p>
+<pre>location /getmxrecords { 
+    default_type 'application/json'; 
+    content_by_lua_block { 
+        local cjson = require "cjson.safe" 
+        local resolver = require "resty.dns.resolver" 
+        local r, err = resolver:new{ 
+            nameservers = {"8.8.8.8"} 
+        } 
+        if not r then 
+            ngx.say(cjson.encode({result="failed", <br/>                    message="Failed to initiate the resolver. <br/>                    Reason: "..err})) 
+            return 
+        end 
+ 
+        local domain = ngx.var.arg_domain 
+        if not domain or not string.match(domain, "[%w]*[%.]?[%w]*") then 
+            ngx.say(cjson.encode({result="failed", <br/>                    message="Invalid domain entered"})) 
+             return 
+        end 
+          local result, err = r:query(domain, { qtype = r.TYPE_MX }) 
+         if not result then 
+            ngx.say(cjson.encode({result="failed", <br/>                    message="Failed to return a result.<br/>                    Reason: "..err})) 
+            return 
+         end 
+           ngx.say(cjson.encode({result="success", records=result})) 
+     } 
+ } </pre>
+<p>If you browse to the IP or the name of the server and pass the domain as a get variable with the name to test, you should receive a copy of the MX records back in JSON format for that domain. For example, if we call <kbd><span class="URLPACKT">http://openresty.nginxcookbook.com/getmxrecord/?domain=instagram.com</span></kbd>, you should see the following:</p>
+<pre>    <strong>{"records":[{"exchange":"mxa-00082601.gslb.pphosted.com","preference":10,"class":1,"ttl":299,"name":"instagram.com","section":1,"type":15},{"exchange":"mxb-00082601.gslb.pphosted.com","preference":10,"class":1,"ttl":299,"name":"instagram.com","section":1,"type":15}],"result":"success"}</strong> </pre>
+<p>There can be more than one MX record; this is why you see an array returned within the JSON data for the records.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>We start by loading the CJSON and Lua OpenResty DNS modules and initiating the DNS module by setting the nameservers to <kbd>8.8.8.8</kbd> (Google's free open resolver).</p>
+<p>Then, we parse the <kbd>GET</kbd> argument, named domain. Through the NGINX API, Lua can call this directly via the <kbd>domain</kbd> name. If the get variable you wanted was named shop, you could have called it via <kbd>ngx.var.arg_shop</kbd>.</p>
+<p>This is then validated by ensuring the variable is set (for example, the <kbd>GET</kbd> argument was passed) and then checking for a basic domain. The formats of the regular expressions within Lua are slightly different to the more common <strong>Perl-Compatible Regular Expressions</strong> (<strong>PCRE</strong>), but the concept remains the same. We ensure that the domains start with alphanumeric characters (using <kbd>%w</kbd>); they should contain at least one dot (<kbd>.</kbd>) and alphanumeric characters. While it's not a perfect validator, the advent of all the new <strong>Top-Level Domains</strong> (<strong>TLDs</strong>) has made this considerably harder to do.</p>
+<p>After ensuring the domain is valid, we run a query, specifying the query type to be MX. If we receive a result, this is encoded via the CJSON module to return the results as JSON code.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>In a production environment, you can use the standard NGINX rate-limiting features (as covered in <a href="c879c343-0d45-42e7-9f86-2217fd837e4d.xhtml" target="_blank"><span class="ChapterrefPACKT">Chapter 9</span></a>, <em>Advanced Features</em>) to limit the abuse of a service like this, especially if it's exposed directly to the internet. The advantage of OpenResty is that you still have the full power of NGINX to use outside of the enhancements it provides.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>For more information on Lua-resty-dns module, refer to <a href="https://github.com/openresty/lua-resty-dns" target="_blank"><span class="URLPACKT">https://github.com/openresty/lua-resty-dns</span></a></li>
+<li>For more information on Lua NGINX API variables, refer to <a href="https://github.com/openresty/lua-nginx-module#ngxvarvariable" target="_blank"><span class="URLPACKT">https://github.com/openresty/lua-nginx-module#ngxvarvariable</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Simple hit counter with a Redis backend</h1>
+                </header>
+            
+            <article>
+                
+<p>One simple example to show the ease of extendibility of OpenResty is with a basic hit counter. Taking it a step further, we're going to use a Redis backend so that the counter is both persistent and could also be part of a clustered deployment to give a combined hit counter. This will also introduce you to the basics of how OpenResty can directly talk to many other services outside of the basic proxying of connections or via FPM.</p>
+<p>In a deployment where every bit of optimization possible is critical, this could also be used to retrieve cached data direct from Redis, allowing the application servers to simply write cache data to Redis in an asynchronized manner.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>We'll need access to a Redis daemon or cluster from this server. This could be in the form of a full cluster or you can simply have Redis installed alongside OpenResty on the same server.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To implement our simple hit counter, we're going to add a basic location block directive to our main <kbd>nginx.conf</kbd> configuration file. Here's the block directive to add:</p>
+<pre>location /redistest { 
+    default_type 'text/plain'; 
+    content_by_lua_block { 
+        local redis = require "resty.redis" 
+        local red = redis:new() 
+        local ok, err = red:connect("127.0.0.1", 6379) 
+        if not ok then 
+            ngx.say("Failed to connect to the redis server, the error was: ", err) 
+        end 
+        local counter = red:get("counter") 
+        if tonumber(counter) == nil then 
+            counter = 0 
+        end 
+        counter = counter + 1 
+        local ok, err = red:set("counter", counter) 
+        ngx.say(counter) 
+    } 
+} </pre>
+<p>If we call the <kbd>/redistest</kbd> URL, we should see the counter increase each time the page is refreshed.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>We again used <kbd>content_by_lua_block</kbd> to return content, and this contains our basic counter code. It starts by making a connection to Redis on the localhost (<kbd>127.0.0.1</kbd>) and returns an error if the connection fails.</p>
+<p>If the connection is successful, we attempt to fetch a value from Redis with a key named <kbd>counter</kbd>. In the event that there's no data or an invalid number, we set the counter to <kbd>0</kbd> (zero). Then, we increment the Lua variable to indicate there's been a hit to this URL. This is then stored back in Redis (via the <kbd>set</kbd> command), and the value of the counter is returned as plain text with a status of <kbd>200</kbd> (the default for <kbd>ngx.say</kbd>).</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>For more information on the <kbd>lua-resty-redis</kbd> module, refer to <a href="https://github.com/openresty/lua-resty-redis" target="_blank"><span class="URLPACKT">https://github.com/openresty/lua-resty-redis.</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Powering API Gateways with OpenResty</h1>
+                </header>
+            
+            <article>
+                
+<p>In our previous recipe, we explored a basic microservice to look up DNS records. While this can be limited per service to prevent abuse, ideally, we want to configure a centralized point to manage this. Otherwise, any limits across multiple services will not be considered as a whole and will need to be individually implemented per service. The following figure explains the differences:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="401" src="assets/f68f3d6a-adbd-4928-9d31-b7f82b84578d.png" width="563"/></div>
+<p>To build a centralized API gateway, we need to consider the following points:</p>
+<ul>
+<li>Authentication</li>
+<li>Request routing</li>
+<li>Rate limiting</li>
+<li>Load balancing</li>
+<li>Security</li>
+<li>Logging</li>
+</ul>
+<p>This recipe will cover a basic implementation of an API gateway to get you started with some of the core concepts. Because of the ease of implementation, it provides a rapid way to get started with the management of a few, small microservices.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>Because we'll be centralizing some of the information, we need access to a <strong>Redis</strong> daemon accessible from the server. This could be in the form of a full cluster or should simply have Redis installed alongside OpenResty on the same server.</p>
+<p>In order to have a test URL, you can set it via <kbd>redis-cli</kbd>, using the following command:</p>
+<pre><strong>redis-cli SET /api/v1/test http://localhost/simpletest</strong>  </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Our API gateway is going to be a simplified version of a production system to ensure it is easy to follow. Being OpenResty-based, it means it's easily extendible to suit your needs.</p>
+<p>In our <kbd>nginx.conf</kbd> file (located in <kbd>/usr/local/openresty/nginx/conf</kbd>), add the following script:</p>
+<pre>location /proxy/ { 
+    rewrite /proxy/(.*) /$1  break; 
+    allow 127.0.0.1; 
+    deny all; 
+    proxy_pass $1; 
+} 
+ 
+location /api { 
+    default_type 'application/json'; 
+    access_by_lua_file apigateway/auth.lua; 
+    content_by_lua_file apigateway/route.lua; 
+} </pre>
+<p>Unlike the previous recipes, where we added the details within a <kbd>lua</kbd> block directive, this time we've separated the code into individual files for ease of management. Within the <kbd>nginx</kbd> directory (within the main <kbd>OpenResty</kbd> directory), we've created an <kbd>apigateway</kbd> directory to store the files for ease of management. Here's the code for the <kbd>auth.lua</kbd> file:</p>
+<pre>local cjson = require "cjson.safe" 
+local allowedkeys = {"abc123", "def456", "hij789"} 
+local function badAuth() 
+    ngx.status = 401 
+    ngx.say(cjson.encode({status="error",<br/>             errmessage="Authentication Failed"})) 
+    ngx.exit(401) 
+end 
+ 
+local function isAuthorised (key) 
+    for index, value in ipairs(allowedkeys) do 
+        if value == key then 
+            return true 
+        end 
+    end 
+    return false 
+end 
+ 
+local authKey = ngx.req.get_headers()["X-API-KEY"] 
+if authKey == nil then 
+    badAuth() 
+elseif not isAuthorised(authKey) then 
+    badAuth() 
+end </pre>
+<p>Next, we'll create a file to store the routing application code, named <kbd>route.lua</kbd>:</p>
+<pre>local cjson = require "cjson.safe" 
+local redis = require "resty.redis" 
+ 
+local red = redis:new() 
+local ok, err = red:connect("127.0.0.1", 6379) 
+if not ok then 
+    ngx.say(cjson.encode({status="ok", errormessage=<br/>         "Failed to connect to the redis server, the error was: "..err})) 
+    ngx.exit(500) 
+end 
+ 
+local apiroute = red:get(ngx.var.uri) 
+if apiroute == ngx.null then 
+    ngx.say(cjson.encode({status="error", errormessage=<br/>            "no service at this path"})) 
+    ngx.exit(404) 
+end 
+res = ngx.location.capture("/proxy/"..apiroute) 
+if res then 
+    ngx.say(cjson.encode({status="ok", result=res.body})) 
+else 
+    ngx.say(cjson.encode({status="error", <br/>            errormessage="service failed to return a result"})) 
+    ngx.exit(500) 
+end </pre>
+<p>We can test the authentication by running a call with and without the <kbd>X-API-KEY</kbd> header. Without the header, we can either browse to the URL or use cURL to send a <kbd>GET</kbd> request to <kbd>/api/v1</kbd>, and it should display the following:</p>
+<pre><strong>{"status":"error","errmessage":"Authentication Failed"}</strong>  </pre>
+<p>Conversely, with the correct header set, we should see the expected result returned. To test this, we can run the following:</p>
+<pre><strong>curl -H "X-API-KEY: abc123" http://openresty.nginxcookbook.com/api/v1/test</strong>  </pre>
+<p>The returned value should be as follows:</p>
+<pre><strong>{"status":"ok","result":"This is a simple test!\n"}</strong>  </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>There's quite a bit going on in this recipe, so we'll go through it section by section. Firstly, the core NGINX configuration has two main sections. The first is the proxy location block directive, which is what we use to make external requests. This is because within <kbd>route.lua</kbd>, the <kbd>location.capture</kbd> function only works for internal requests. While, in this recipe, we've only made an internal request, having this <kbd>proxy_pass</kbd> directive allows us to easily incorporate external calls. It simply takes the remote request as part of the URI to pass through. We've also locked it down (using <kbd>allow</kbd> / <kbd>deny</kbd>) to the localhost to prevent any external misuse.</p>
+<p>Next, we define our API location block directive. To keep the code within the main configuration file neat and precise, we store the configuration in an external file so that the code management is easier.</p>
+<p>Our <kbd>auth.lua</kbd> file contains our authentication code. For the sake of keeping this recipe simple to follow, I've created a basic table type (which is an associative array) to store a few test API keys in; for a production system, these would be pulled from an external data source.</p>
+<p>We then define a <kbd>badAuth</kbd> function, which gives us an easy way to return an <kbd>HTTP 401</kbd> error to let the client connection know the connection wasn't authorized.</p>
+<p>The next function we've defined is <kbd>isAuthorised</kbd>. This simply iterates through our table of allowed API keys to determine whether there is a match or not.</p>
+<p>Lastly, we extract the <kbd>X-API-KEY</kbd> header to interrogate the value. If it's nil, that is, the header hasn't been set, we use <kbd>badAuth</kbd> to return <kbd>401</kbd>. If it's not nil, we use the <kbd>isAuthorised</kbd> function to determine whether there is a match or not. If there's a match, there's simply nothing further for our code to do and OpenResty will start processing the content components.</p>
+<p>This brings us to our routing code contained within the <kbd>route.lua</kbd> file. Like our previous recipe, we make a connection to our Redis server. This is used to provide dynamic routing. This means, to change our endpoints or even to provide new API functions, there's no requirement to restart our API gateway to detect these changes.</p>
+<p>To get the endpoint URI to call, we use <kbd>ngx.var.uri</kbd> as the key. In our example, this has been configured as <kbd>/api/v1/test</kbd>. If this exists, we use <kbd>ngx.location.capture</kbd> to proxy this through and retrieve the data. A successful return of data is then sent back to the client, parsed as JSON using the <kbd>CJSON</kbd> module. In the case of an error, we simply return an error message and set the HTTP status to <kbd>500</kbd>.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>What's missing from this recipe is any form of <strong>rate limiting</strong>. We could again incorporate either the standard NGINX module or use the <kbd>lua-resty-limit-traffic</kbd> module to provide extended functionality; alternatively, you can go for a fully featured API system, such as Kong:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="64" src="assets/9c98cab7-4369-40f2-8c51-a242ace9aa7b.png" width="189"/></div>
+<p>Based on OpenResty, Kong offers a very highly configurable API gateway and microservice management system with features such as a REST-based administration, easy horizontal scaling, and a modular plugin system for easy extension. Authentication features, such as OAuth, JWT, LDAP, and more, are all available out-of-the-box and it has security features such as ACLs and CORs to provide high levels of protection.</p>
+<p>If you move beyond a few basic services or want to provide your API to the public, it's well worth considering Kong as your starting point.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>For more information on <strong>Lua NGINX API variables</strong>, refer to <a href="https://github.com/openresty/lua-nginx-module#ngxvarvariable" target="_blank"><span class="URLPACKT">https://github.com/openresty/lua-nginx-module#ngxvarvariable</span></a></li>
+<li>For more information on <strong>OpenResty FAQ</strong>, refer to <a href="https://openresty.org/en/faq.html" target="_blank"><span class="URLPACKT">https://openresty.org/en/faq.html</span></a></li>
+<li>You can visit the official website of <strong>Kong</strong> at <a href="https://getkong.org/" target="_blank"><span class="URLPACKT">https://getkong.org/﻿</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    </body></html>

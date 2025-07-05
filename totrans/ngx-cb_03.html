@@ -1,0 +1,794 @@
+<html><head></head><body>
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Common Frameworks</h1>
+                </header>
+            
+            <article>
+                
+<p>In this chapter, we will cover the following recipes:</p>
+<ul>
+<li>Setting up Django with NGINX</li>
+<li>Setting up NGINX with Express</li>
+<li>Running Ruby on Rails with NGINX</li>
+<li>Easy Flask with NGINX</li>
+<li>Laravel via NGINX</li>
+<li>Meteor applications with NGINX</li>
+<li>High speed Beego with NGINX</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Introduction</h1>
+                </header>
+            
+            <article>
+                
+<p>The boom of web-based services and websites beyond just static content has spawned a number of web frameworks to tackle some of these more complex scenarios. Some have started from the newspaper world, where there are very tight deadlines, while others have focused on performance as their reasoning.</p>
+<p>In this chapter, we'll go through the configurations of NGINX to work with each of these various frameworks in order to have an easy-to-follow configuration. Like the previous chapter, I won't be going through the steps of setting up the frameworks themselves, but focusing on the NGINX side only.</p>
+<p>Let's get started.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Setting up Django with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>Django rose to fame when a small US newspaper firm open sourced their application back in 2005. From there, Django has grown into the most widely used Python-based web framework. Still used by companies such as Instagram and Pinterest, the relevancy of Django is still as strong as ever.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="64" src="assets/b05a4bbe-e64f-4ff8-91f2-feb7f627a843.png" width="183"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>Django interfaces to NGINX through a <strong>Web Server Gateway Interface</strong> (<strong>WSGI</strong>). For Django, one of the most commonly used WSGI interfaces is uWSGI.</p>
+<p>If you haven't installed uWSGI yet, the best way is to install the latest version via <kbd>pip</kbd>:</p>
+<pre><strong>apt-get install python-pip python-dev<br/></strong><strong>pip install uwsgi</strong></pre>
+<p>We're going to simply use a base install of the latest version of Django, which at the time of writing this book was 1.10.5.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="133" src="assets/7dbf0e50-5724-429d-97e1-80bf19330b0e.png" width="549"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>We'll now configure uWSGI to point to our Django project, which for this example I have located at <kbd>/var/www/djangodemo</kbd>. Here's the <kbd>uwsgi.ini</kbd> file:</p>
+<pre>[uwsgi] 
+socket = 127.0.0.1:8000 
+uid=www-data 
+gid=www-data 
+chdir=/var/www/djangodemo 
+module=djangodemo.wsgi 
+master=True 
+pidfile=/tmp/uwsgi-djangodemo.pid 
+vacuum=True 
+max-requests=5000 
+daemonize=/var/log/uwsgi/djangodemo.log </pre>
+<p>For this example, we're also using TCP sockets rather than Unix sockets. Although they're slightly more efficient, having a proper socket makes it much easier for the initial testing phase. If you're hitting limitations (many thousands of concurrent connections), then I'd suggest that you use Unix sockets.</p>
+<p>Now for the NGINX configuration, we'll use a separate configuration file (<kbd>/etc/nginx/conf.d/django.conf</kbd>) to keep things neat and tidy:</p>
+<pre>server { 
+    listen       80; 
+    server_name  djangodemo.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/djangodemo-access.log  combined; 
+ 
+    location = /favicon.ico { access_log off; log_not_found off; } 
+ 
+    location /static|/media { 
+        root /var/www/djangodemo/; 
+    } 
+ 
+    location / { 
+        include         uwsgi_params; 
+        uwsgi_pass      127.0.0.1:8000; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works....</h1>
+                </header>
+            
+            <article>
+                
+<p>The first configuration item we tweak is the <kbd>favicon</kbd>:</p>
+<pre>location = /favicon.ico { access_log off; log_not_found off; } </pre>
+<p>There's a very famous story of Instagram's first deployment (where they had 10,000 users in the first day) and the load that a missing <kbd>favicon</kbd> generated (since Django had to produce the <kbd>404</kbd> error) caused significant scaling issues.</p>
+<p>Next, we serve any of the uploaded and static media directly via NGINX:</p>
+<pre>location /static|/media { 
+    root /var/www/djangodemo/; 
+} </pre>
+<p>These directories are mapped via the <kbd>STATIC_ROOT</kbd> and <kbd>MEDIA_ROOT</kbd> configuration lines within the <kbd>settings.py</kbd> file for Django. NGINX is very efficient at serving static media, so serving it directly produces as little overhead as possible.</p>
+<p>We then map app's all other URL calls via the <kbd>uwsgi</kbd> protocol:</p>
+<pre>location / { 
+    include         uwsgi_params; 
+    uwsgi_pass      127.0.0.1:8000; 
+} </pre>
+<p>The uWSGI project has a native protocol (called <kbd>uwsgi</kbd> and in lower case), which is built into NGINX by default. It's a binary protocol designed to be highly efficient and scalable.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>For more information on the issues and best practices refer to the following link:</p>
+<p><a href="http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html" target="_blank"><span class="URLPACKT">http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Setting up NGINX with Express</h1>
+                </header>
+            
+            <article>
+                
+<p>Rather than being overly opinionated, Express is a very minimalistic and flexible framework suited for web and mobile application deployments based on Node.js. It's also one of the most popular bases for some of the more complex and feature-packed Node.js frameworks too, which is why it makes a great learning block for Node.js web deployments.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="81" src="assets/28fda183-a79d-4c1c-8458-30922fd16c1f.png" width="233"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>Express is so minimalistic that it doesn't come with any boilerplate code to get you started. There are a number of generators out there which can set up a structure for you, however, I'm going to stick to a simple web page and a WebSocket for testing. Here's my Express file:</p>
+<pre>var express = require('express'); 
+var app = express(); 
+var expressWs = require('express-ws')(app); 
+ 
+app.get('/', function (req, res) { 
+    res.send('Nginx demo!!!'); 
+}); 
+ 
+app.ws('/echo', function(ws, req) { 
+    ws.on('message', function(msg) { 
+        ws.send(msg); 
+    }); 
+}); 
+ 
+app.listen(3000); </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Now that we have a very simple Express application, we'll place NGINX in front of it. Although Node.js is extremely fast, NGINX is not only faster but offers far more configurability. Even with WebSockets, we're still able to proxy this through NGINX. Let's take a look at the configuration:</p>
+<pre>server { 
+    listen       80; 
+    server_name  express.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/express-access.log  combined; 
+ 
+    location / { 
+         proxy_pass http://127.0.0.1:3000; 
+         proxy_http_version 1.1; 
+         proxy_set_header Upgrade $http_upgrade; 
+         proxy_set_header Connection "upgrade"; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works....</h1>
+                </header>
+            
+            <article>
+                
+<p>There's only one main block directive to get our simple test working, with a few key areas.</p>
+<pre>proxy_pass http://127.0.0.1:3000; </pre>
+<p>The proxy will forward the connection back to our Express-driven test application, which we configured to listen on port <kbd>3000</kbd> of the localhost.</p>
+<pre>proxy_http_version 1.1; </pre>
+<p>By default, proxied connections back to the Node.js application will be HTTP/1.0 only. Setting this to HTTP/1.1 allows the use of keep-alive, which means the connection between NGINX and the application remains open rather than establishing a new connection every time. On a heavily loaded system, this is much more efficient.</p>
+<pre>proxy_set_header Upgrade $http_upgrade; 
+proxy_set_header Connection "upgrade"; </pre>
+<p>The WebSocket protocol uses the <kbd>Upgrade</kbd> and <kbd>Connection</kbd> headers as part of the handshake process. We need to set this at the NGINX level in order to allow the handshake process to work as expected. As it's compatible with HTTP/1.1, it won't interfere with the standard connections either.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>For more information on WebSocket and the HTTP/1.1 Upgrade header refer to following links:</p>
+<ul>
+<li><a href="https://www.nginx.com/blog/websocket-nginx/" target="_blank"><span class="URLPACKT">https://www.nginx.com/blog/websocket-nginx/</span></a></li>
+<li><a href="https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header" target="_blank"><span class="URLPACKT">https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Running Ruby on Rails with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>Ruby on Rails is a full web application framework, based on the Ruby programming language. As with a more traditional framework such as Django, Rails is based around a standard <strong>Model View Controller</strong> (<strong>MVC</strong>) pattern. This makes it well suited to rapid development which is also highly performant and feature packed.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/f38f4bba-dfa4-4c24-b829-ecd87bc45f92.png"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>Although there are a number of different application servers for Rails, one of the more popular is Passenger. With the highest performance and great documentation, Passenger's popularity is well deserved. This recipe has been tested with Ruby 2.3, Rails 4.2, and Passenger 5.0.</p>
+<p>We can install Passenger via <kbd>gem</kbd>:</p>
+<pre><strong>gem install passenger</strong></pre>
+<p>To integrate with NGINX, this requires a special module to be enabled. We'll compile NGINX from scratch as per our installation in <a href="69685f00-24c3-428c-b607-01a4e9a2784d.xhtml" target="_blank"><span class="ChapterrefPACKT">Chapter 1</span></a>, <em>Let's Get Started</em> and compile Passenger support as a static module.</p>
+<div class="packt_infobox">Make sure you have the mainline repository from <a href="http://nginx.org" target="_blank"><span class="URLPACKT">nginx.org</span></a> installed.</div>
+<p>For a Debian- / Ubuntu-based system, you'll need to create the build environment:</p>
+<pre><strong>apt-get build-dep Nginx<br/></strong><strong>mkdir ~/nginxbuild<br/></strong><strong>cd ~/nginxbuild<br/></strong><strong>apt-get source nginx</strong></pre>
+<p>Then, in the NGINX source directory, edit the <kbd>debian/rules</kbd> file to add:</p>
+<pre><strong>--add-module=/var/lib/gems/2.3.0/gems/passenger-5.0.27/src/nginx_module \</strong></pre>
+<p>You can confirm the <kbd>passenger</kbd> directory with the following command:</p>
+<pre><strong>passenger-config --nginx-addon-dir</strong></pre>
+<p>To make the package name unique, you can edit the changelog and add additional lines to the changelog. Consider this example:</p>
+<pre>nginx (1.9.14-1-passenger) wily; urgency=low 
+ 
+  * Added Passenger as a dynamic module </pre>
+<p>You can now compile the package with the following command:</p>
+<pre><strong>fakeroot debian/rules binary</strong></pre>
+<p>This will take a few minutes to complete. Once we have the updated package, we can now install it:</p>
+<pre><strong>dpkg -i ../nginx_1.9.14-1-passenger_amd64.deb</strong></pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Passenger comes with a basic tool to help create your NGINX configuration for you. To use it, run the following:</p>
+<pre><strong>passenger start --debug-nginx</strong></pre>
+<p>I have simplified the generated configuration, simply because many of the directives were setting it to the defaults anyway.</p>
+<p>In the main NGINX configuration (generally, <kbd>/etc/nginx/nginx.conf</kbd>), we need to add the following within the <kbd>http</kbd> directive block:</p>
+<pre>include '/var/lib/gems/2.3.0/gems/passenger-5.0.27/resources/mime.types'; 
+passenger_root '/var/lib/gems/2.3.0/gems/passenger-5.0.27'; 
+passenger_abort_on_startup_error on; 
+passenger_ctl cleanup_pidfiles L3RtcC9wYXNzZW5nZXItc3RhbmRhbG9uZS41aDBnZG0vdGVtcF9kaXJfdG91Y2hlci5waWQ=; 
+passenger_ctl integration_mode standalone; 
+passenger_ctl standalone_engine nginx; 
+passenger_user_switching off; 
+passenger_ruby /usr/bin/ruby2.3; 
+passenger_user www-data; 
+passenger_default_user www-data; 
+passenger_analytics_log_user www-data; 
+passenger_log_level 3; </pre>
+<p>We then add a server configuration specific to our demo site, for example, <kbd>/etc/nginx/conf.d/rails.conf</kbd>:</p>
+<pre>server { 
+    server_name  railsdemo.nginxcookbook.com; 
+    listen 80; 
+    access_log  /var/log/nginx/rails-access.log  combined; 
+    root /var/www/railsdemo/public; 
+    passenger_app_root /var/www/railsdemo; 
+    passenger_enabled on; 
+ 
+    location ~ ^/assets/ { 
+    } 
+} 
+passenger_pre_start http://0.0.0.0:3000/; </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>There are a number of directives which aren't seen elsewhere because this recipe uses a specific Passenger module. In the core NGINX configuration file, we set the generic Passenger variables to use the correct Ruby version as well as the user which will run the Passenger server.</p>
+<p>In our <kbd>server</kbd> block directive, we point Passenger to our demo Rails instance and enable Passenger for the server instance. There's also a basic <em>assets</em> location block directive, so that NGINX will process the static media natively.</p>
+<p>Lastly, we call <kbd>passenger_pre_start</kbd> to automatically start the Passenger application server when NGINX starts. This saves you having to start it separately, as is the case for most other application servers.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>For more information on the configuration and optimization of Passenger server, refer to following link:</p>
+<p><a href="https://www.phusionpassenger.com/library/config/nginx/reference/" target="_blank"><span class="URLPACKT">https://www.phusionpassenger.com/library/config/nginx/reference/</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Easy Flask with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>As one of the more popular Python frameworks, Flask is an extremely lightweight yet powerful system for web applications. Seen as more of a <em>micro</em> framework, a functional Flask application can be as simple as 20 lines of code.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="83" src="assets/7a9cb2e8-ffe7-4c9d-81d1-8c65d70a3c5b.png" width="212"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe is based on a very simple, single file Flask application. To show the simplicity, here's the example (<kbd>demoapp.py</kbd>) we'll use:</p>
+<pre>from flask import Flask 
+application = Flask(__name__) 
+ 
+@application.route("/") 
+def hello(): 
+    return "&lt;h1&gt;Demo via Nginx with uWSGI!&lt;/h1&gt;" 
+ 
+if __name__ == "__main__": 
+    application.run(host='127.0.0.1', port=9001) </pre>
+<p>Like the Django recipe, we're going to use uWSGI for the application server in this scenario as well. If you haven't installed uWSGI yet, the best way is to install the latest version via <kbd>pip</kbd>:</p>
+<pre><strong>apt-get install python-pip python-dev<br/></strong><strong>pip install uwsgi</strong></pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<ol>
+<li>First up, we set up our <kbd>uwsgi.ini</kbd> file, which should be located in the root of your Flask application. Here's the file:</li>
+</ol>
+<pre class="mce-root">      [uwsgi]<br/>      socket = 127.0.0.1:8000<br/>      uid = www-data gid = www-data<br/>      chdir = /var/www/flaskdemo<br/>      module = demoapp<br/>      callable = application<br/>      master = True<br/>      pidfile = /tmp/uwsgi-flaskdemo.pid<br/>      max-requests = 5000<br/>      daemonize = /var/log/uwsgi/flaskdemo.log</pre>
+<p style="padding-left: 60px">For this demo, we have a single Flask file located in <kbd>/var/www/flaskdemo/demoapp.py</kbd>.</p>
+<p style="padding-left: 60px">You can quickly launch your uWSGI service by running the following command:</p>
+<pre>      uwsgi --ini uwsgi.ini</pre>
+<p> </p>
+<ol start="2">
+<li>We now need to configure the NGINX <kbd>server</kbd> block directive and again I've included this in a separate file <kbd>(/etc/nginx/conf.d/flask.conf</kbd>):</li>
+</ol>
+<pre class="mce-root">      server { <br/>          listen 80; <br/>          server_name flaskdemo.nginxcookbook.com;<br/>          access_log /var/log/nginx/flaskdemo-access.log combined;<br/>          location = /favicon.ico { access_log off; log_not_found off; } <br/>          location / {<br/>              include uwsgi_params;<br/>              uwsgi_pass 127.0.0.1:8000;<br/>              uwsgi_param SCRIPT_NAME '';<br/>          }<br/>      }</pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>The Flask applications are so simple that they don't come with all of the boilerplate WSGI configurations such as Django and other frameworks. The good news is that the flexibility of uWSGI means it's very easy to configure.</p>
+<p>In order for uWSGI to know what file to call, which we do via the <kbd>module</kbd> configuration entry, set it to <kbd>demoapp</kbd>. Those familiar with Python will know that this translates into loading <kbd>demoapp.py</kbd>.</p>
+<p>Secondly, the <kbd>callable</kbd> configuration specifies the default WSGI callable name, which in our <kbd>demoapp.py</kbd> is set to <kbd>application</kbd>.</p>
+<p>Lastly, we have a very simple NGINX <kbd>server</kbd> block directive. This simply pushes all calls to our Flask application using the uWSGI socket.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Laravel via NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>Inspired by the CodeIgniter framework, Laravel is a modern PHP framework based on the MVC pattern. Focusing on elegant code and modular packaging, Laravel is an increasingly popular choice for PHP developers who want to develop custom web applications.</p>
+<p>In this recipe, we'll go through the code required to publish your Laravel application using NGINX.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="89" src="assets/5e3477ad-8fe3-4ff8-a7f5-528ee0684c9d.png" width="255"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe assumes you already have a working Laravel installation as well as a working PHP-FPM installation. The following configuration has been tested with Laravel 5.2.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>As Laravel is PHP based, we'll be using PHP-FPM to compile the PHP code and present to NGINX. If this is new to you, it's worth reading through <a href="a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml" target="_blank"><span class="ChapterrefPACKT">Chapter 2</span></a>, <em>Common PHP Scenarios</em> which covers some of the other PHP scenarios and the PHP-FPM configuration.</p>
+<p>To get going, we'll create a separate virtual configuration file for Laravel:</p>
+<pre>server { 
+    listen       80; 
+    server_name  laravel.nginxcookbook.com; 
+    access_log  /var/log/nginx/laravel.access.log  combined; 
+    index index.php; 
+ 
+    root   /var/www/vhosts/laraveldemo/public; 
+ 
+    location / { 
+        try_files $uri $uri/ /index.php?$args; 
+    } 
+ 
+    location ~ \.php$ { 
+        fastcgi_pass unix:/var/run/php7.0-fpm.sock; 
+        fastcgi_index index.php; 
+        fastcgi_param SCRIPT_FILENAME <br/>         $document_root$fastcgi_script_name; 
+        include fastcgi_params; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Laravel stores the files accessible by PHP-FPM and NGINX in the public folder, not the root of the Laravel project. Make sure you point the root to the correct directory, otherwise you could expose your configuration files.</p>
+<p>We set a <kbd>location</kbd> block (<kbd>location ~ \.php$</kbd>) so that only PHP files are compiled by our PHP-FPM configuration. This means that all other files (for example, CSS stylesheets) are served directly by NGINX for the greatest efficiency.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>Official Laravel site: <a href="https://laravel.com/" target="_blank"><span class="URLPACKT">https://laravel.com/</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Meteor applications with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>Meteor is a full-stack, JavaScript driven framework designed to rapidly build cross-platform applications. It is integrated with the in-house designed <strong>Distributed Data Protocol</strong> (<strong>DDP</strong>) and allows for seamless data synchronization to clients; it also includes an inbuilt MongoDB data store.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="62" src="assets/625b7381-309d-4fb3-aec7-be9c0e0780b2.png" width="258"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe is based on Meteor 1.3 using a basic application with the Blaze templating engine.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>As Meteor has an inbuilt server, we need to ensure this is running first:</p>
+<pre><strong>meteor run</strong></pre>
+<p>This will start the Meteor proxy, start MongoDB, and then build the application. By default, it'll listen on port <kbd>3000</kbd> of your localhost. For a production system, you'll want to implement a proper init script to start this when the server boots. Third-party packages such as Meteor-Up can make this easy to do.</p>
+<p>Like the previous recipes, we're using a separate NGINX server configuration file, for example, <kbd>/etc/nginx/conf.d/meteor.conf</kbd>:</p>
+<pre>server { 
+    listen       80; 
+    server_name  meteorapp.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/meteor-access.log  combined; 
+ 
+    location / { 
+         proxy_pass http://127.0.0.1:3000; 
+         proxy_http_version 1.1; 
+         proxy_set_header Upgrade $http_upgrade; 
+         proxy_set_header Connection "upgrade"; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Like the Express example, we use a proxy to the application and then set the headers (<kbd>Connection</kbd> / <kbd>Upgrade</kbd>) to ensure WebSockets are passed through correctly.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">High speed Beego with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>Although Go is a relatively new programming language, its popularity has been rapidly increasing as the demand for higher performance and greater scalability increases. Go is derived from Google's desire to scale rapidly, yet safely, and already has a number of web frameworks available.</p>
+<p>One of the most popular frameworks is Beego, an easy to use MVC-based web framework with integrated REST and code hot compile. By harnessing the performance of Go, Beego can outperform other frameworks (using a different programming language) by more than ten times in many instances.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="49" src="assets/be8527ad-8631-413e-8e1b-883eb4079a79.png" width="157"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>In this recipe we're going to use the example <kbd>todo</kbd> code. This is available at <span class="URLPACKT"><a href="https://github.com/beego/samples/tree/master/todo" target="_blank">https://github.com/beego/samples/tree/master/todo</a>.</span></p>
+<p>It's important to build this rather than just using <kbd>go run</kbd>, otherwise you'll have issues. Consider the following example:</p>
+<pre><strong>cd $GOPATH/src/github.com/beego/samples/todo<br/></strong><strong>go build<br/></strong><strong>./main</strong></pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>We'll create a separate NGINX configuration file with the <kbd>server</kbd> block in it, as follows:</p>
+<pre>server { 
+    listen       80; 
+    server_name  beegodemo.nginxcookbook.com; 
+    access_log  /var/log/nginx/beegodemo-access.log  combined; 
+    location = /favicon.ico { access_log off; log_not_found off; } 
+    location / { 
+         proxy_pass http://127.0.0.1:8080; 
+         proxy_http_version 1.1; 
+         proxy_set_header Upgrade $http_upgrade; 
+         proxy_set_header Connection "upgrade"; 
+    } 
+} </pre>
+<p>By default, a Beego application will listen on the localhost to port <kbd>8080</kbd>. We simply proxy all connections though. Like the Express recipe, we also set the proxy headers to allow WebSockets to pass through as well.</p>
+
+
+            </article>
+
+            
+        </section>
+    </body></html>

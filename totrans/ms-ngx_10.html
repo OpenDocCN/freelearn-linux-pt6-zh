@@ -1,0 +1,269 @@
+<html><head></head><body><div class="appendix" title="Appendix&#xA0;B.&#xA0;Rewrite Rule Guide"><div class="titlepage"><div><div><h1 class="title"><a id="appB"/>Appendix B. Rewrite Rule Guide</h1></div></div></div><p>This appendix is meant to introduce the <code class="literal">rewrite</code> module <a id="id1551" class="indexterm"/>in NGINX and serve as a guide for creating new rules as well as translating legacy Apache rewrite rules into NGINX's format. In this appendix, we will discuss the following:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Introducing the rewrite module</li><li class="listitem" style="list-style-type: disc">Creating new rewrite rules</li><li class="listitem" style="list-style-type: disc">Translating from Apache</li></ul></div><div class="section" title="Introducing the rewrite module"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec66"/>Introducing the rewrite module</h1></div></div></div><p>NGINX's rewrite module is a simple regular expression matcher <a id="id1552" class="indexterm"/>combined with a virtual stack <a id="id1553" class="indexterm"/>machine. The first part of any rewrite rule is a regular expression. As such, it is possible to use parentheses to define certain parts as "captures", which can later be referenced by positional variables. A positional variable is one in which its value depends on the order of the capture in the regular expression. They are labeled by number, so positional variable <a id="id1554" class="indexterm"/>
+<code class="literal">$1</code> references what is matched by the first set of parentheses, <code class="literal">$2</code> the second set, and so on. For example, refer to the following regular expression:</p><div class="informalexample"><pre class="programlisting">^/images/([a-z]{2})/([a-z0-9]{5})/(.*)\.(png|jpg|gif)$</pre></div><p>The first positional variable, <code class="literal">$1</code>, references a two-letter string which comes immediately after the string <code class="literal">/images/</code> at the beginning of the URI. The second positional variable, <code class="literal">$2</code>, <a id="id1555" class="indexterm"/>refers to a five character string composed of lowercase letters and the numbers from 0 to 9. The third positional variable, <a id="id1556" class="indexterm"/>
+<code class="literal">$3</code>, is presumably the name of a file. And the last variable to be extracted from this regular expression, <a id="id1557" class="indexterm"/>
+<code class="literal">$4</code>, is one of <code class="literal">png</code>, <code class="literal">jpg</code>, or <code class="literal">gif</code>, which appears at the very end of the URI.</p><p>The second part of a <code class="literal">rewrite</code> rule is the URI to which the request is rewritten. The URI may contain any positional variable captured in the regular expression indicated by the first argument, or any other variable valid at this level of NGINX's configuration:</p><div class="informalexample"><pre class="programlisting">/data?file=$3.$4</pre></div><p>If this URI does not match any of the other locations in the NGINX configuration, then it is returned to the client in the <code class="literal">Location</code> header with either a 301 (Moved Permanently) or a 302 (Found) HTTP status code indicating the type of redirect that is to be performed. This status code may be specified explicitly if <code class="literal">permanent</code> or <code class="literal">redirect</code> is the third parameter.</p><p>This third parameter to the rewrite rule may also be either <code class="literal">last</code> or <code class="literal">break</code>, indicating that no further <code class="literal">rewrite</code> module directives will be processed. Using the <a id="id1558" class="indexterm"/>
+<code class="literal">last</code> flag will cause NGINX to search for another <code class="literal">location</code> matching the rewritten URI.</p><div class="informalexample"><pre class="programlisting">rewrite '^/images/([a-z]{2})/([a-z0-9]{5})/(.*)\.(png|jpg|gif)$' /data?file=$3.$4 last;</pre></div><p>The <a id="id1559" class="indexterm"/>
+<code class="literal">break</code> parameter may also be used as a directive on its own, to stop <code class="literal">rewrite</code> module directive processing within an <a id="id1560" class="indexterm"/>
+<code class="literal">if</code> block or other context in which the <code class="literal">rewrite</code> module is active. The following snippet presumes that some external method is used to set the <a id="id1561" class="indexterm"/>
+<code class="literal">$bwhog</code> variable to a non-empty and non-zero value when a <a id="id1562" class="indexterm"/>client has used too much bandwidth. The <a id="id1563" class="indexterm"/>
+<code class="literal">limit_rate</code> directive will then enforce a lower transfer rate. <code class="literal">break</code> is used here because we entered the <a id="id1564" class="indexterm"/>
+<code class="literal">rewrite</code> module with <code class="literal">if</code>, and we don't want to process any further such directives:</p><div class="informalexample"><pre class="programlisting">if ($bwhog) {
+
+    limit_rate 300k;
+
+    break;
+
+}</pre></div><p>Another way to stop the processing of the <code class="literal">rewrite</code> module directives is to <code class="literal">return</code> control to the main <a id="id1565" class="indexterm"/>
+<code class="literal">http</code> module processing the request. This may mean that NGINX returns information directly to the client, but <code class="literal">return</code> is often combined with an <a id="id1566" class="indexterm"/>
+<code class="literal">error_page</code> to either present a formatted HTML page to the client or activate a different module to finish processing the request. The <a id="id1567" class="indexterm"/>
+<code class="literal">return</code> directive may indicate a status code, a status code with some text, or a status code with a URI. If a bare URI is the sole parameter, then the status code is understood to be a 302. When the text is placed after the status code, that text becomes the body of the response. If a URI is used instead, then that URI becomes the value of the <code class="literal">Location</code> header, to which the client will then be redirected.</p><p>As an example, we want to set a short text as the output for a file not found error in a particular location. We specify the location with an equals sign (=) to exactly match just this URI:</p><div class="informalexample"><pre class="programlisting">location = /image404.html {
+
+    return 404 "image not found\n";
+
+}</pre></div><p>Any call to this URI would then be answered with an HTTP code of 404, and the text <span class="strong"><strong>image not found\n</strong></span>. So, we can use <code class="literal">/image404.html</code> at the end of a <code class="literal">try_files</code> directive or as an error page for image files.</p><p>In addition to directives relating to the act of rewriting a URI, the <code class="literal">rewrite</code> module also includes the <code class="literal">set</code> directive to create new variables and set their values. This is useful in a number of ways, from creating flags when certain conditions are present, to passing named arguments on to other <code class="literal">locations</code> and logging what was done.</p><p>The following example demonstrates some of these concepts <a id="id1568" class="indexterm"/>and the usage of the corresponding directives:</p><div class="informalexample"><pre class="programlisting">http {
+
+    # a special log format referencing variables we'll define later
+    log_format imagelog '[$time_local] ' $image_file ' ' $image_type ' ' $body_bytes_sent ' ' $status;
+
+    # we want to enable rewrite-rule debugging to see if our rule does
+    #  what we intend
+    rewrite_log on;
+
+    server {
+
+        root /home/www;
+
+        location / {
+
+            # we specify which logfile should receive the rewrite-ruledebug
+            #  messages
+            error_log logs/rewrite.log notice;
+
+            # our rewrite rule, utilizing captures and positional variables
+            #  note the quotes around the regular expression - theseare
+            #  required because we used {} within the expression itself
+            rewrite '^/images/([a-z]{2})/([a-z0-9]{5})/(.*)\.(png|jpg|gif)$' /data?file=$3.$4;
+
+            # note that we didn't use the 'last' parameter above; if we had,
+            #  the variables below would not be set because NGINX would
+            #  have ended rewrite module processing
+
+            # here we set the variables that are used in the custom log
+            #   format 'imagelog'
+            set $image_file $3;
+
+            set $image_type $4;
+
+        }
+
+        location /data {
+
+            # we want to log all images to this specially-formatted logfile
+            #  to make parsing the type and size easier
+            access_log logs/images.log imagelog;
+
+            root /data/images;
+
+            # we could also have used the $image-variables we defined
+            #  earlier, but referencing the argument is more readable
+            try_files /$arg_file /image404.html;
+
+        }
+
+        location = /image404.html {
+
+            # our special error message for images that don't exist
+            return 404 "image not found\n";
+
+        }
+
+}</pre></div><p>The following table summarizes the <code class="literal">rewrite</code> module directives we discussed in this section:</p><div class="section" title="Table: Rewrite module directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl6sec44"/>Table: Rewrite module directives</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">break</code>
+<a id="id1569" class="indexterm"/>
+<a id="id1570" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Ends the processing of the <code class="literal">rewrite</code> module directives <a id="id1571" class="indexterm"/>found within the same context.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">if</code>
+<a id="id1572" class="indexterm"/>
+<a id="id1573" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Evaluates a condition, and if true follows the <code class="literal">rewrite</code> module directives specified within the context set up using the following format:</p>
+<p>
+</p><div class="informalexample"><pre class="programlisting">if (condition) { … }</pre></div><p>
+</p>
+<p>The condition may be any of the following:</p>
+<div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">a variable name: <code class="literal">false</code> if empty or any string starting with <code class="literal">0</code></li><li class="listitem" style="list-style-type: disc">string comparison: using the <code class="literal">=</code> and <code class="literal">!=</code> operators</li><li class="listitem" style="list-style-type: disc">regular expression matching: using the <code class="literal">~</code> (case-sensitive) and the <code class="literal">~*</code> (case-insensitive) positive operators and their negative counterparts <code class="literal">!~</code> and <code class="literal">!~*</code></li><li class="listitem" style="list-style-type: disc">file existence: using the <code class="literal">-f</code> and <code class="literal">! -f</code> operators</li><li class="listitem" style="list-style-type: disc">directory existence: using the <code class="literal">-d</code> and <code class="literal">! -d</code> operators</li><li class="listitem" style="list-style-type: disc">file, directory, or symbolic link existence: using the <code class="literal">-e</code> and <code class="literal">! -e</code> operators</li><li class="listitem" style="list-style-type: disc">file executability: using the <code class="literal">-x</code> and <code class="literal">! -x</code> operators</li></ul></div>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">return</code>
+<a id="id1574" class="indexterm"/>
+<a id="id1575" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Stops processing and returns the specified code to the client. The non-standard code 444 will close the connection without sending any response headers. If a code additionally has text accompanying it, the text will be placed in the response body. If instead, a URL is given after the code, that URL will be the value of the <code class="literal">Location</code> header. A URL without a code is treated as a code 302.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">rewrite</code>
+<a id="id1576" class="indexterm"/>
+<a id="id1577" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Changes the URI from one matched by the regular expression in the first parameter to the string in the second parameter. If a third parameter is given, it is one of the following flags:</p>
+<div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">last</code>: <a id="id1578" class="indexterm"/>stops processing the <code class="literal">rewrite</code> module directives and searches for a location matched by the changed URI</li><li class="listitem" style="list-style-type: disc"><code class="literal">break</code>: stops <a id="id1579" class="indexterm"/>processing the <code class="literal">rewrite</code> module directives</li><li class="listitem" style="list-style-type: disc"><code class="literal">redirect</code>: <a id="id1580" class="indexterm"/>returns a temporary redirect (code 302), used when the URI does not begin with a scheme</li><li class="listitem" style="list-style-type: disc"><code class="literal">permanent</code>: returns a <a id="id1581" class="indexterm"/>permanent redirect (code 301)</li></ul></div>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">rewrite_log</code>
+<a id="id1582" class="indexterm"/>
+<a id="id1583" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Activates the <code class="literal">notice</code> level logging of <code class="literal">rewrite</code> to <code class="literal">error_log</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">set</code>
+<a id="id1584" class="indexterm"/>
+<a id="id1585" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Sets a given variable to a specific value.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">unitialized_variable_warn</code>
+<a id="id1586" class="indexterm"/>
+<a id="id1587" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Controls whether or not warnings about uninitialized variables are logged.</p>
+</td></tr></tbody></table></div></div></div></div>
+<div class="section" title="Creating new rewrite rules"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec67"/>Creating new rewrite rules</h1></div></div></div><p>When creating new rules from scratch, just as with any <a id="id1588" class="indexterm"/>configuration block, plan out exactly what needs to be done. Some questions to ask yourself are as follows:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">What pattern(s) do I have in my URLs?</li><li class="listitem" style="list-style-type: disc">Is there more than one way to reach a particular page?</li><li class="listitem" style="list-style-type: disc">Do I want to capture any parts of the URL into variables?</li><li class="listitem" style="list-style-type: disc">Am I redirecting to a site not on this server, or could my rule be seen again?</li><li class="listitem" style="list-style-type: disc">Do I want to replace the query string arguments?</li></ul></div><p>In examining the layout of your website or application, it should be clear what patterns you have in your URLs. If there is more than one way to reach a certain page, create a rewrite rule to send a permanent redirect back to the client. Using this knowledge, you can construct a canonical representation of your website or application. This not only makes for cleaner URLs, but also helps your site to be found more easily.</p><p>For example, if you have a <code class="literal">home</code> controller to handle default traffic, but can also reach that controller through an index page, you could have users <a id="id1589" class="indexterm"/>getting to the same information using the following URIs:</p><div class="informalexample"><pre class="programlisting">/
+/home
+/home/
+/home/index
+/home/index/
+/index
+/index.php
+/index.php/</pre></div><p>It would be more efficient to direct requests containing the name of the controller and/or the index page back to the root:</p><div class="informalexample"><pre class="programlisting">rewrite ^/(home(/index)?|index(\.php)?)/?$ $scheme://$host/ permanent;</pre></div><p>We specified the <code class="literal">$scheme</code> and <code class="literal">$host</code> variables because we're making a permanent redirect (code 301) and want NGINX to construct the URL using the same parameters that reached this configuration line in the first place.</p><p>If you would like to be able to log individual parts of the URL separately, you can use captures on the URI in the regular expression. Then, assign the positional variables to named variables, which are then part of a <code class="literal">log_format</code> definition. We saw an example of this in the previous section. The components are essentially as follows:</p><div class="informalexample"><pre class="programlisting">log_format imagelog '[$time_local] ' $image_file ' ' $image_type ' ' $body_bytes_sent ' ' $status;
+
+rewrite '^/images/([a-z]{2})/([a-z0-9]{5})/(.*)\.(png|jpg|gif)$' /data?file=$3.$4;
+
+set $image_file $3;
+
+set $image_type $4;
+
+access_log logs/images.log imagelog;</pre></div><p>When your rewrite rule leads to an internal redirect or instructs the client to call a location in which the rule itself is defined, special care must be taken to avoid a rewrite loop. For example, a rule may be defined in the server context with the <code class="literal">last</code> flag, but must use the <code class="literal">break</code> flag when defined within the location it references.</p><div class="informalexample"><pre class="programlisting">server {
+
+    rewrite ^(/images)/(.*)\.(png|jpg|gif)$ $1/$3/$2.$3 last;
+    location /images/ {
+
+        rewrite ^(/images)/(.*)\.(png|jpg|gif)$ $1/$3/$2.$3 break;
+
+    }
+
+}</pre></div><p>Passing new query string arguments as part of a rewrite rule is one of the objectives of using rewrite rules. However, when the initial query string <a id="id1590" class="indexterm"/>arguments should be discarded, and only the ones defined in the rule should be used, a <code class="literal">?</code> character needs to be placed at the end of the list of new arguments.</p><div class="informalexample"><pre class="programlisting">rewrite ^/images/(.*)_(\d+)x(\d+)\.(png|jpg|gif)$ /resizer/$1.$4?width=$2&amp;height=$3? last;</pre></div></div>
+<div class="section" title="Translating from Apache"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec68"/>Translating from Apache</h1></div></div></div><p>There is a long history of writing rewrite rules for Apache's <a id="id1591" class="indexterm"/>powerful <code class="literal">mod_rewrite</code> module, <a id="id1592" class="indexterm"/>and most resources on the Internet are focused on these. When encountering rewrite rules in Apache's format, they can be translated into a form that NGINX can parse by following a few simple rules.</p><div class="section" title="Rule #1: Replace directory and file existence checks with try_files"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec73"/>Rule #1: Replace directory and file existence checks with try_files</h2></div></div></div><p>When encountering an Apache rewrite <a id="id1593" class="indexterm"/>
+<a id="id1594" class="indexterm"/>rule of the following form:</p><div class="informalexample"><pre class="programlisting">RewriteCond %{REQUEST_FILENAME} !-f
+
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^(.*)$ index.php?q=$1 [L]</pre></div><p>This can best be translated into an NGINX configuration as follows:</p><div class="informalexample"><pre class="programlisting">try_files $uri $uri/ /index.php?q=$uri;</pre></div><p>These rules state that when the filename specified in the URI is neither a file nor a directory on disk, the request should be passed to the <code class="literal">index.php</code> file lying in the current context's root and given the argument <code class="literal">q</code> with a value matching the original URI.</p><p>Before NGINX had the <a id="id1595" class="indexterm"/>
+<code class="literal">try_files</code> directive, there would be no choice but to use <code class="literal">if</code> to test for the existence of the URI:</p><div class="informalexample"><pre class="programlisting">if (!-e $request_filename) {
+
+    rewrite ^/(.*)$ /index.php?q=$1 last;
+
+}</pre></div><p>Don't do this. You may see configurations on the Internet that recommend you do exactly this, but they are outdated or are copies of an outdated configuration. While not strictly a rewrite rule, because <a id="id1596" class="indexterm"/>
+<code class="literal">try_files</code> belongs to the core <code class="literal">http</code> module, the <code class="literal">try_files</code> directive is much more efficient at performing this <a id="id1597" class="indexterm"/>
+<a id="id1598" class="indexterm"/>task and this is exactly what it was created for.</p></div><div class="section" title="Rule #2: Replace matches against REQUEST_URI with a location"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec74"/>Rule #2: Replace matches against REQUEST_URI with a location</h2></div></div></div><p>Many Apache rewrite rules are made to be placed into <code class="literal">.htaccess</code> files because, historically, users would most likely have access to these files themselves. A typical shared hoster would not enable their users direct access to the virtual <a id="id1599" class="indexterm"/>host configuration context responsible for their website, but would instead offer the ability to place nearly any kind of configuration into an <a id="id1600" class="indexterm"/>
+<code class="literal">.htaccess</code> file. This led to the situation we have today, with a proliferation of .htaccess-file-specific rewrite rules.</p><p>While Apache also has a <a id="id1601" class="indexterm"/>
+<code class="literal">Location</code> directive, it is rarely used to solve the problem of matching against the URI because it may only be used in either the main server configuration or the configuration of a virtual host. So, instead we will see a proliferation of rewrite rules that match against <code class="literal">REQUEST_URI</code>:</p><div class="informalexample"><pre class="programlisting">RewriteCond %{REQUEST_URI} ^/niceurl
+
+RewriteRule ^(.*)$ /index.php?q=$1 [L]</pre></div><p>This is best handled in NGINX by using a location:</p><div class="informalexample"><pre class="programlisting">location /niceurl {
+
+    include fastcgi_params;
+
+    fastcgi_index index.php;
+
+    fastcgi_pass 127.0.0.1:9000;
+
+}</pre></div><p>Of course, what is inside the <code class="literal">location</code> context is dependent upon your setup, but the principle remains the same; matches against the URI are best served by a <code class="literal">location</code>.</p><p>This principle also applies to <a id="id1602" class="indexterm"/>
+<code class="literal">RewriteRules</code> that have an implicit <code class="literal">REQUEST_URI</code>. These are typically bare <code class="literal">RewriteRules</code> that transform the URI from an older format to a newer one. In the following example, we see that the <code class="literal">show.do</code> is no longer necessary:</p><div class="informalexample"><pre class="programlisting">RewriteRule ^/controller/show.do$ http://example.com/controller [L,R=301]</pre></div><p>This translates to an NGINX configuration as follows:</p><div class="informalexample"><pre class="programlisting">location = /controller/show.do {
+
+    rewrite ^ http://example.com/controller permanent;
+
+}</pre></div><p>Not to get too carried away with creating locations <a id="id1603" class="indexterm"/>whenever we see a <code class="literal">RewriteRule</code>, we should keep in mind that regular expressions translate directly.</p></div><div class="section" title="Rule #3: Replace matches against HTTP_HOST with a server"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec75"/>Rule #3: Replace matches against HTTP_HOST with a server</h2></div></div></div><p>Related closely to <span class="emphasis"><em>Rule #2</em></span>, this rule takes configurations into account that try to either remove or add a <code class="literal">www</code> onto a domain name. These types of rewrite rules <a id="id1604" class="indexterm"/>are often found in <code class="literal">.htaccess</code> files or in virtual hosts with overloaded <code class="literal">ServerAliases</code>:</p><div class="informalexample"><pre class="programlisting">RewriteCond %{HTTP_HOST} !^www
+
+RewriteRule ^(.*)$ http://www.example.com/$1 [L,R=301]</pre></div><p>Here, we translate the case where no <code class="literal">www</code> is found at the beginning of the <code class="literal">Host</code> part of the URL to the variant with a <code class="literal">www</code> there:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name example.com;
+
+    rewrite ^ http://www.example.com$request_uri permanent;
+
+}</pre></div><p>In the opposite case, where no <code class="literal">www</code> is desired, we enter the following rule:</p><div class="informalexample"><pre class="programlisting">RewriteCond %{HTTP_HOST} ^www
+
+RewriteRule ^(.*)$ http://example.com/$1 [L,R=301]</pre></div><p>This translates to the following NGINX configuration:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name www.example.com;
+
+    rewrite ^ http://example.com$request_uri permanent;
+
+}</pre></div><p>What is not shown is the <code class="literal">server</code> context for the variant that has been redirected. This has been left out because it's not relevant to the rewriting itself.</p><p>This same principle applies to more than just matching a <code class="literal">www</code> or lack of one. It can be used in dealing with any <code class="literal">RewriteCond</code> that uses <code class="literal">%{HTTP_HOST}</code>. These rewrites are best done in NGINX by using multiple <code class="literal">server</code> contexts, one each to <a id="id1605" class="indexterm"/>match the desired condition.</p><p>For example, we have the following multisite configuration in Apache:</p><div class="informalexample"><pre class="programlisting">RewriteCond %{HTTP_HOST} ^site1
+
+RewriteRule ^(.*)$ /site1/$1 [L]
+
+RewriteCond %{HTTP_HOST} ^site2
+
+RewriteRule ^(.*)$ /site2/$1 [L]
+
+RewriteCond %{HTTP_HOST} ^site3
+
+RewriteRule ^(.*)$ /site3/$1 [L]</pre></div><p>This basically translates to a configuration that matches on hostname and has a different <code class="literal">root</code> configuration per host.</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name site1.example.com;
+    root /home/www/site1;
+
+}
+
+server {
+
+    server_name site2.example.com;
+
+    root /home/www/site2;
+
+}
+
+server {
+
+    server_name site3.example.com;
+
+    root /home/www/site3;
+
+}</pre></div><p>These are essentially different virtual hosts, so it is best to treat them as <a id="id1606" class="indexterm"/>such in the configuration as well.</p></div><div class="section" title="Rule #4: Replace RewriteCond with if for variable checks"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec76"/>Rule #4: Replace RewriteCond with if for variable checks</h2></div></div></div><p>This rule applies only after having applied rules 1 to 3. If there are any remaining conditions not covered by those rules, then <code class="literal">if</code> may be applied to test the values of variables. Any HTTP variable may be used by prefixing the lowercased name of the variable with <a id="id1607" class="indexterm"/>
+<code class="literal">$http_</code>. If there are hyphens (-) in the name, <a id="id1608" class="indexterm"/>these are translated into underscores (_).</p><p>The following example (taken from Apache's documentation on the <code class="literal">mod_rewrite</code> module at <a class="ulink" href="http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html">http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html</a>) is used to decide which page should be delivered to a client <a id="id1609" class="indexterm"/>based on the <code class="literal">User-Agent</code> header:</p><div class="informalexample"><pre class="programlisting">RewriteCond  %{HTTP_USER_AGENT}  ^Mozilla 
+
+RewriteRule  ^/$                 /homepage.max.html  [L] 
+
+RewriteCond  %{HTTP_USER_AGENT}  ^Lynx 
+RewriteRule  ^/$                 /homepage.min.html  [L] 
+
+RewriteRule  ^/$                 /homepage.std.html  [L]</pre></div><p>This can be translated to an NGINX configuration as follows:</p><div class="informalexample"><pre class="programlisting">if ($http_user_agent ~* ^Mozilla) { 
+
+    rewrite ^/$ /homepage.max.html break; 
+
+}
+
+if ($http_user_agent ~* ^Lynx) { 
+
+    rewrite ^/$ /homepage.min.html break; 
+
+}
+
+index homepage.std.html;</pre></div><p>If there are any special variables that are available only under <a id="id1610" class="indexterm"/>Apache's <code class="literal">mod_rewrite</code>, then these of course can't be checked in NGINX.</p></div></div>
+<div class="section" title="Summary"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec69"/>Summary</h1></div></div></div><p>We explored NGINX's <code class="literal">rewrite</code> module in this appendix. There are only a few directives associated with the module, but these can be used to create some complex configurations. Taking the process of creating new rewrite rules step-by-step has hopefully demonstrated how rewrite rules can be made easily. An understanding of regular expressions, how to read and construct them, is needed before creating rewrite rules of any complexity. We rounded this appendix off by examining how to translate Apache-style rewrite rules into a configuration that NGINX can parse. In doing so, we discovered that quite a few Apache rewrite rule scenarios can be solved differently in NGINX.</p></div></body></html>

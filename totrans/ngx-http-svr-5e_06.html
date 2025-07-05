@@ -1,0 +1,694 @@
+<html><head></head><body>
+<div id="_idContainer034">
+<h1 class="chapter-number" id="_idParaDest-130"><a id="_idTextAnchor621"/><span class="koboSpan" id="kobo.1.1">6</span></h1>
+<h1 id="_idParaDest-131"><a id="_idTextAnchor622"/><span class="koboSpan" id="kobo.2.1">NGINX as a Reverse Proxy</span></h1>
+<p><span class="koboSpan" id="kobo.3.1">The web has traditionally consisted of, relatively speaking, simple websites. </span><span class="koboSpan" id="kobo.3.2">The past few years have seen that change, though. </span><span class="koboSpan" id="kobo.3.3">The modern web comprises as many complex SaaS applications as it does personal blogs, news sites, and so on. </span><span class="koboSpan" id="kobo.3.4">As the web evolves, so does the list of technologies used to power these applications. </span><span class="koboSpan" id="kobo.3.5">No longer is it enough to just be a fast static file server with a FastCGI interface. </span><span class="koboSpan" id="kobo.3.6">These days, we need to consider technologies such as web sockets, as well as the expanded complexity of web application architectures and the demands they put on the front line of our </span><span class="No-Break"><span class="koboSpan" id="kobo.4.1">web stack.</span></span></p>
+<p><span class="koboSpan" id="kobo.5.1">Thankfully, NGINX was originally built not only as a fast static file server but also as a reverse proxy. </span><span class="koboSpan" id="kobo.5.2">This means that NGINX was always intended to sit in front of other backend servers, farm out requests to different servers on the internal network, and serve up the response to the end user. </span><span class="koboSpan" id="kobo.5.3">In this chapter, we will take a look at the basics of how to do this with NGINX, and also at some of the more advanced things NGINX can do to make our </span><span class="No-Break"><span class="koboSpan" id="kobo.6.1">life easier.</span></span></p>
+<p><span class="koboSpan" id="kobo.7.1">As such, we will cover the following main topics in </span><span class="No-Break"><span class="koboSpan" id="kobo.8.1">the chapter:</span></span></p>
+<ul>
+<li><span class="koboSpan" id="kobo.9.1">The reverse </span><span class="No-Break"><span class="koboSpan" id="kobo.10.1">proxy mechanism</span></span></li>
+<li><span class="koboSpan" id="kobo.11.1">The NGINX </span><span class="No-Break"><span class="koboSpan" id="kobo.12.1">proxy module</span></span></li>
+<li><span class="koboSpan" id="kobo.13.1">NGINX </span><span class="No-Break"><span class="koboSpan" id="kobo.14.1">and microservices</span></span><a id="_idTextAnchor623"/></li>
+</ul>
+<h1 id="_idParaDest-132"><a id="_idTextAnchor624"/><span class="koboSpan" id="kobo.15.1">Exploring the reverse proxy mechanism</span></h1>
+<p><span class="koboSpan" id="kobo.16.1">Running NGINX as an </span><a id="_idIndexMarker405"/><span class="koboSpan" id="kobo.17.1">application server is somewhat like the </span><strong class="bold"><span class="koboSpan" id="kobo.18.1">FastCGI architecture</span></strong><span class="koboSpan" id="kobo.19.1"> described </span><a id="_idIndexMarker406"/><span class="koboSpan" id="kobo.20.1">in the previous chapter; we are going to be running NGINX as a frontend server, and for the most part, reverse proxy requests to our </span><span class="No-Break"><span class="koboSpan" id="kobo.21.1">backend servers.</span></span></p>
+<p><span class="koboSpan" id="kobo.22.1">In other words, it will be in direct communication with the outside world whereas our backend servers, whether Node.js, Apache, and so on, will only exchange data </span><span class="No-Break"><span class="koboSpan" id="kobo.23.1">with NGINX:</span></span></p>
+<div>
+<div class="IMG---Figure" id="_idContainer033">
+<span class="koboSpan" id="kobo.24.1"><img alt="Figure 6.1: An example of using Nginx as a proxy server" src="image/B21787_06_1.jpg"/></span>
+</div>
+</div>
+<p class="IMG---Caption" lang="en-US" xml:lang="en-US"><span class="koboSpan" id="kobo.25.1">Figure 6.1: An example of using Nginx as a proxy server</span></p>
+<p><span class="koboSpan" id="kobo.26.1">There are now two web servers running and </span><span class="No-Break"><span class="koboSpan" id="kobo.27.1">processing requests.</span></span></p>
+<p><span class="koboSpan" id="kobo.28.1">NGINX, positioned as a frontend server (in other words, as a reverse proxy), receives all the requests coming from the outside world. </span><span class="koboSpan" id="kobo.28.2">It filters them, either serving static files directly to the client or forwarding dynamic content requests to our </span><span class="No-Break"><span class="koboSpan" id="kobo.29.1">backend server.</span></span></p>
+<p><span class="koboSpan" id="kobo.30.1">Our backend server only communicates with NGINX. </span><span class="koboSpan" id="kobo.30.2">It may be hosted on the same computer as the frontend, in which case the listening ports must be edited to leave ports </span><strong class="source-inline"><span class="koboSpan" id="kobo.31.1">80</span></strong><span class="koboSpan" id="kobo.32.1"> and </span><strong class="source-inline"><span class="koboSpan" id="kobo.33.1">443</span></strong><span class="koboSpan" id="kobo.34.1"> available to NGINX. </span><span class="koboSpan" id="kobo.34.2">Alternatively, you can employ multiple backend servers on different machines</span><a id="_idIndexMarker407"/><span class="koboSpan" id="kobo.35.1"> and load balance </span><span class="No-Break"><span class="koboSpan" id="kobo.36.1">between them.</span></span></p>
+<p><span class="koboSpan" id="kobo.37.1">To communicate and interact with each other, neither process will be using FastCGI. </span><span class="koboSpan" id="kobo.37.2">Instead, as the name suggests, NGINX acts as a simple proxy server; it receives HTTP requests from the client (acting as the HTTP server) and forwards them to the backend server (acting as the HTTP client). </span><span class="koboSpan" id="kobo.37.3">There is thus no new protocol or software involved. </span><span class="koboSpan" id="kobo.37.4">The mechanism is handled by the proxy module of NGINX, as detailed later in </span><span class="No-Break"><span class="koboSpan" id="kobo.38.1">this chapte</span><a id="_idTextAnchor625"/><span class="koboSpan" id="kobo.39.1">r</span><a id="_idTextAnchor626"/><span class="koboSpan" id="kobo.40.1">.</span></span></p>
+<h1 id="_idParaDest-133"><a id="_idTextAnchor627"/><span class="koboSpan" id="kobo.41.1">Exploring the NGINX proxy module</span></h1>
+<p><span class="koboSpan" id="kobo.42.1">Similar to the previous </span><a id="_idIndexMarker408"/><span class="koboSpan" id="kobo.43.1">chapter, the first step toward establishing the new architecture will be to discover the appropriate module. </span><span class="koboSpan" id="kobo.43.2">The default NGINX build comes with the proxy module, which allows the forwarding of HTTP requests from the client to a backend server. </span><span class="koboSpan" id="kobo.43.3">We will be configuring multiple aspects of </span><span class="No-Break"><span class="koboSpan" id="kobo.44.1">the module:</span></span></p>
+<ul>
+<li><span class="koboSpan" id="kobo.45.1">Basic address and port information of the </span><span class="No-Break"><span class="koboSpan" id="kobo.46.1">backend server</span></span></li>
+<li><span class="koboSpan" id="kobo.47.1">Caching, buffering, and temporary </span><span class="No-Break"><span class="koboSpan" id="kobo.48.1">file options</span></span></li>
+<li><span class="koboSpan" id="kobo.49.1">Limits, timeout, and </span><span class="No-Break"><span class="koboSpan" id="kobo.50.1">error behavior</span></span></li>
+<li><span class="koboSpan" id="kobo.51.1">Other </span><span class="No-Break"><span class="koboSpan" id="kobo.52.1">miscellaneous options</span></span></li>
+</ul>
+<p><span class="koboSpan" id="kobo.53.1">All these options </span><a id="_idIndexMarker409"/><span class="koboSpan" id="kobo.54.1">are available via directives that we will learn to configure throughout </span><span class="No-Break"><span class="koboSpan" id="kobo.55.1">this secti</span><a id="_idTextAnchor628"/><span class="koboSpan" id="kobo.56.1">o</span><a id="_idTextAnchor629"/><span class="koboSpan" id="kobo.57.1">n.</span></span></p>
+<h2 id="_idParaDest-134"><a id="_idTextAnchor630"/><span class="koboSpan" id="kobo.58.1">Main directives</span></h2>
+<p><span class="koboSpan" id="kobo.59.1">The first set of </span><a id="_idIndexMarker410"/><span class="koboSpan" id="kobo.60.1">directives will allow you to establish a basic configuration such as the location of the backend server, information to be passed, and how it should </span><span class="No-Break"><span class="koboSpan" id="kobo.61.1">be passed:</span></span></p>
+<table class="No-Table-Style _idGenTablePara-1" id="table001-6">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<thead>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.62.1">Directive</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.63.1">Description</span></strong></span></p>
+</td>
+</tr>
+</thead>
+<tbody>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.64.1">proxy_pass</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.65.1">Context: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.66.1">location</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.67.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.68.1">if</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.69.1">This specifies that the request should be forwarded to the backend server by indicating </span><span class="No-Break"><span class="koboSpan" id="kobo.70.1">its location:</span></span></p>
+<ul>
+<li><span class="koboSpan" id="kobo.71.1">For regular HTTP forwarding, the syntax is </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.72.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.73.1">http://hostname:port;</span></span><span class="No-Break"><span class="koboSpan" id="kobo.74.1">.</span></span></li>
+<li><span class="koboSpan" id="kobo.75.1">For Unix domain sockets, the syntax is </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.76.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.77.1">http://unix:/path/to/file.socket;</span></span><span class="No-Break"><span class="koboSpan" id="kobo.78.1">.</span></span></li>
+<li><span class="koboSpan" id="kobo.79.1">You may also refer to upstream blocks </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.80.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.81.1">http://myblock;</span></span><span class="No-Break"><span class="koboSpan" id="kobo.82.1">.</span></span></li>
+<li><span class="koboSpan" id="kobo.83.1">Instead of http://, you can use </span><strong class="source-inline"><span class="koboSpan" id="kobo.84.1">https://</span></strong><span class="koboSpan" id="kobo.85.1"> for secure traffic. </span><span class="koboSpan" id="kobo.85.2">Additional URI parts as well as the use of variables </span><span class="No-Break"><span class="koboSpan" id="kobo.86.1">are allowed.</span></span></li>
+</ul>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.87.1">Examples:</span></span></p>
+<ul>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.88.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.89.1">http://localhost:8080;</span></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.90.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.91.1">http://127.0.0.1:8080;</span></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.92.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.93.1">http://unix:/tmp/nginx.sock;</span></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.94.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.95.1">https://192.168.0.1;</span></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.96.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.97.1">http://localhost:8080/uri/;</span></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.98.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.99.1">http://unix:/tmp/nginx.sock:/uri/;</span></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.100.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.101.1">http://$server_name:8080;</span></span></li>
+</ul>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.102.1">proxy_pass</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.103.1">Context: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.104.1">location</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.105.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.106.1">if</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.107.1">Using</span><a id="_idIndexMarker411"/><span class="koboSpan" id="kobo.108.1"> an </span><span class="No-Break"><span class="koboSpan" id="kobo.109.1">upstream block:</span></span></p>
+<p><strong class="source-inline"><span class="koboSpan" id="kobo.110.1">upstream </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.111.1">backend {</span></strong></span></p>
+<p><strong class="source-inline"> </strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.112.1">server 127.0.0.1:8080;</span></strong></span></p>
+<p><strong class="source-inline"> </strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.113.1">server 127.0.0.1:8081;</span></strong></span></p>
+<p><strong class="source-inline"><span class="koboSpan" id="kobo.114.1">}</span></strong></p>
+<p><strong class="source-inline"><span class="koboSpan" id="kobo.115.1">location ~* .</span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.116.1">php$</span></strong></span></p>
+<p><strong class="source-inline"><span class="koboSpan" id="kobo.117.1">{</span></strong></p>
+<p><strong class="source-inline"> </strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.118.1">proxy_pass </span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.119.1">http://backend;</span></span></p>
+<p><strong class="source-inline"><span class="koboSpan" id="kobo.120.1">}</span></strong></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.121.1">proxy_method</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.122.1">Context: http, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.123.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.124.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.125.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.126.1">This</span><a id="_idIndexMarker412"/><span class="koboSpan" id="kobo.127.1"> allows the overriding of the HTTP method of the request to be forwarded to the backend server. </span><span class="koboSpan" id="kobo.127.2">If you specify </span><strong class="source-inline"><span class="koboSpan" id="kobo.128.1">POST</span></strong><span class="koboSpan" id="kobo.129.1">, for example, all requests forwarded to the backend server will be </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.130.1">POST</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.131.1"> requests.</span></span></p>
+<p><span class="koboSpan" id="kobo.132.1">Syntax: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.133.1">proxy_method method;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.134.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.135.1">proxy_method POST;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.136.1">proxy_hide_header</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.137.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.138.1">http</span></strong><span class="koboSpan" id="kobo.139.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.140.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.141.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.142.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.143.1">By default, as NGINX prepares the response received from the backend server to be forwarded back to the client, it ignores some of the headers, such as </span><strong class="source-inline"><span class="koboSpan" id="kobo.144.1">Date</span></strong><span class="koboSpan" id="kobo.145.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.146.1">Server</span></strong><span class="koboSpan" id="kobo.147.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.148.1">X-Pad</span></strong><span class="koboSpan" id="kobo.149.1">, and </span><strong class="source-inline"><span class="koboSpan" id="kobo.150.1">X-Accel-*</span></strong><span class="koboSpan" id="kobo.151.1">. </span><span class="koboSpan" id="kobo.151.2">With this directive, you can specify an additional header line to be hidden from the client. </span><span class="koboSpan" id="kobo.151.3">You may insert this directive multiple times with one header name </span><span class="No-Break"><span class="koboSpan" id="kobo.152.1">for each.</span></span></p>
+<p><span class="koboSpan" id="kobo.153.1">Syntax: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.154.1">proxy_hide_header header_name;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.155.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.156.1">proxy_hide_header Cache-Control;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.157.1">proxy_pass_header</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.158.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.159.1">http</span></strong><span class="koboSpan" id="kobo.160.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.161.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.162.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.163.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.164.1">Related to the previous directive, this directive forces some of the ignored headers to be passed on to </span><span class="No-Break"><span class="koboSpan" id="kobo.165.1">the client.</span></span></p>
+<p><span class="koboSpan" id="kobo.166.1">Syntax: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.167.1">proxy_pass_header headername;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.168.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.169.1">proxy_pass_header Date;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.170.1">proxy_pass_request_body</span></strong></span></p>
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.171.1">proxy_pass_request_headers</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.172.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.173.1">http</span></strong><span class="koboSpan" id="kobo.174.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.175.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.176.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.177.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.178.1">This defines whether or not, respectively, the request body and extra request headers should be passed on to the </span><span class="No-Break"><span class="koboSpan" id="kobo.179.1">backend server.</span></span></p>
+<p><span class="koboSpan" id="kobo.180.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.181.1">on</span></strong> <span class="No-Break"><span class="koboSpan" id="kobo.182.1">or </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.183.1">off</span></strong></span></p>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.184.1">Default: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.185.1">on</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.186.1">proxy_redirect</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.187.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.188.1">http</span></strong><span class="koboSpan" id="kobo.189.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.190.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.191.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.192.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.193.1">This </span><a id="_idIndexMarker413"/><span class="koboSpan" id="kobo.194.1">allows you to rewrite the URL appearing in the Location HTTP header on redirections triggered by the </span><span class="No-Break"><span class="koboSpan" id="kobo.195.1">backend server.</span></span></p>
+<p><span class="koboSpan" id="kobo.196.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.197.1">off</span></strong><span class="koboSpan" id="kobo.198.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.199.1">default</span></strong><span class="koboSpan" id="kobo.200.1">, or the URL of </span><span class="No-Break"><span class="koboSpan" id="kobo.201.1">your choice.</span></span></p>
+<p><strong class="source-inline"><span class="koboSpan" id="kobo.202.1">off</span></strong><span class="koboSpan" id="kobo.203.1">: Redirections are forwarded </span><em class="italic"><span class="koboSpan" id="kobo.204.1">as </span></em><span class="No-Break"><em class="italic"><span class="koboSpan" id="kobo.205.1">it is</span></em></span><span class="No-Break"><span class="koboSpan" id="kobo.206.1">.</span></span></p>
+<p><strong class="source-inline"><span class="koboSpan" id="kobo.207.1">default</span></strong><span class="koboSpan" id="kobo.208.1">: The value of the </span><strong class="source-inline"><span class="koboSpan" id="kobo.209.1">proxy_pass</span></strong><span class="koboSpan" id="kobo.210.1"> directive is used as the hostname and the current path of the document is appended. </span><span class="koboSpan" id="kobo.210.2">Note that the </span><strong class="source-inline"><span class="koboSpan" id="kobo.211.1">proxy_redirect</span></strong><span class="koboSpan" id="kobo.212.1"> directive must be inserted after the </span><strong class="source-inline"><span class="koboSpan" id="kobo.213.1">proxy_pass</span></strong><span class="koboSpan" id="kobo.214.1"> directive as the configuration is </span><span class="No-Break"><span class="koboSpan" id="kobo.215.1">parsed sequentially.</span></span></p>
+<p><span class="koboSpan" id="kobo.216.1">URL: Replace a part of the URL </span><span class="No-Break"><span class="koboSpan" id="kobo.217.1">with another.</span></span></p>
+<p><span class="koboSpan" id="kobo.218.1">Additionally, you may use variables in the </span><span class="No-Break"><span class="koboSpan" id="kobo.219.1">rewritten URL.</span></span></p>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.220.1">Examples:</span></span></p>
+<ul>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.221.1">proxy_redirect off;</span></strong></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.222.1">proxy_redirect default;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.223.1">proxy_redirect </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.224.1">http://localhost:8080/ http://example.com/;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.225.1">proxy_redirect </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.226.1">http://localhost:8080/wiki/ /w/;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.227.1">proxy_redirect </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.228.1">http://localhost:8080/ http://$host/;</span></strong></span></li>
+</ul>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.229.1">proxy_next_upstream</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.230.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.231.1">http</span></strong><span class="koboSpan" id="kobo.232.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.233.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.234.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.235.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.236.1">When </span><strong class="source-inline"><span class="koboSpan" id="kobo.237.1">proxy_pass</span></strong><span class="koboSpan" id="kobo.238.1"> is connected to an upstream block, this </span><a id="_idIndexMarker414"/><span class="koboSpan" id="kobo.239.1">directive defines the cases where requests should be abandoned and resent to the next upstream server of the block. </span><span class="koboSpan" id="kobo.239.2">The directive accepts a combination of values among </span><span class="No-Break"><span class="koboSpan" id="kobo.240.1">the following:</span></span></p>
+<ul>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.241.1">error</span></strong><span class="koboSpan" id="kobo.242.1">: An error occurred while communicating or attempting to communicate with </span><span class="No-Break"><span class="koboSpan" id="kobo.243.1">the server</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.244.1">timeout</span></strong><span class="koboSpan" id="kobo.245.1">: A timeout occurred during transfers or </span><span class="No-Break"><span class="koboSpan" id="kobo.246.1">connection attempts</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.247.1">invalid_header</span></strong><span class="koboSpan" id="kobo.248.1">: The backend server returned an empty or </span><span class="No-Break"><span class="koboSpan" id="kobo.249.1">invalid response</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.250.1">http_500</span></strong><span class="koboSpan" id="kobo.251.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.252.1">http_502</span></strong><span class="koboSpan" id="kobo.253.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.254.1">http_503</span></strong><span class="koboSpan" id="kobo.255.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.256.1">http_504</span></strong><span class="koboSpan" id="kobo.257.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.258.1">http_40</span></strong><span class="koboSpan" id="kobo.259.1">: In case such HTTP errors occur, NGINX switches to the </span><span class="No-Break"><span class="koboSpan" id="kobo.260.1">next upstream</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.261.1">off</span></strong><span class="koboSpan" id="kobo.262.1">: Forbids you from using the next </span><span class="No-Break"><span class="koboSpan" id="kobo.263.1">upstream server</span></span></li>
+</ul>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.264.1">Examples:</span></span></p>
+<ul>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.265.1">proxy_next_upstream error </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.266.1">timeout http_504;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.267.1">proxy_next_upstream </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.268.1">timeout invalid_header;</span></strong></span></li>
+</ul>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.269.1">proxy_next_upstream_timeout</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.270.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.271.1">http</span></strong><span class="koboSpan" id="kobo.272.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.273.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.274.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.275.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.276.1">This defines the timeout to be used in conjunction with </span><strong class="source-inline"><span class="koboSpan" id="kobo.277.1">proxy_next_upstream</span></strong><span class="koboSpan" id="kobo.278.1">. </span><span class="koboSpan" id="kobo.278.2">Setting this directive to </span><strong class="source-inline"><span class="koboSpan" id="kobo.279.1">0</span></strong> <span class="No-Break"><span class="koboSpan" id="kobo.280.1">disables it.</span></span></p>
+<p><span class="koboSpan" id="kobo.281.1">Syntax: Time value (</span><span class="No-Break"><span class="koboSpan" id="kobo.282.1">in seconds)</span></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.283.1">proxy_next_upstream_tries</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.284.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.285.1">http</span></strong><span class="koboSpan" id="kobo.286.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.287.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.288.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.289.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.290.1">This</span><a id="_idIndexMarker415"/><span class="koboSpan" id="kobo.291.1"> defines the maximum number of upstream servers tried before returning an error message, to be used in conjunction </span><span class="No-Break"><span class="koboSpan" id="kobo.292.1">with </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.293.1">proxy_next_upstream</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.294.1">.</span></span></p>
+<p><span class="koboSpan" id="kobo.295.1">Syntax: Numeric value (</span><span class="No-Break"><span class="koboSpan" id="kobo.296.1">default: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.297.1">0</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.298.1">)</span></span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="IMG---Caption" lang="en-US" xml:lang="en-US"><a id="_idTextAnchor631"/><span class="koboSpan" id="kobo.299.1">Table 6.1: The main directives for the proxy module</span></p>
+<h2 id="_idParaDest-135"><a id="_idTextAnchor632"/><span class="koboSpan" id="kobo.300.1">Caching, buffering, and temporary files</span></h2>
+<p><span class="koboSpan" id="kobo.301.1">Ideally, as much as possible, you should reduce the number of requests being forwarded to the backend server. </span><span class="koboSpan" id="kobo.301.2">The following directives will help you build a caching system, as well as control buffering options and the way NGINX handles </span><span class="No-Break"><span class="koboSpan" id="kobo.302.1">temporary files:</span></span></p>
+<table class="No-Table-Style _idGenTablePara-1" id="table002-4">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<thead>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.303.1">Directive</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.304.1">Description</span></strong></span></p>
+</td>
+</tr>
+</thead>
+<tbody>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.305.1">proxy_buffer_size</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.306.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.307.1">http</span></strong><span class="koboSpan" id="kobo.308.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.309.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.310.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.311.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.312.1">This </span><a id="_idIndexMarker416"/><span class="koboSpan" id="kobo.313.1">sets the size of the buffer for reading the beginning of the response from the backend server, which usually contains simple </span><span class="No-Break"><span class="koboSpan" id="kobo.314.1">header data.</span></span></p>
+<p><span class="koboSpan" id="kobo.315.1">The default value corresponds to the size of </span><strong class="source-inline"><span class="koboSpan" id="kobo.316.1">1</span></strong><span class="koboSpan" id="kobo.317.1"> buffer, as defined by the previous </span><span class="No-Break"><span class="koboSpan" id="kobo.318.1">directive (</span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.319.1">proxy_buffers</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.320.1">).</span></span></p>
+<p><span class="koboSpan" id="kobo.321.1">Syntax: Numeric </span><span class="No-Break"><span class="koboSpan" id="kobo.322.1">value (size)</span></span></p>
+<p><span class="koboSpan" id="kobo.323.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.324.1">proxy_buffer_size 4k;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.325.1">proxy_buffering, proxy_request_buffering</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.326.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.327.1">http</span></strong><span class="koboSpan" id="kobo.328.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.329.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.330.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.331.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.332.1">This </span><a id="_idIndexMarker417"/><span class="koboSpan" id="kobo.333.1">defines whether or not the response from the backend server should be buffered (or client requests, in the case of </span><strong class="source-inline"><span class="koboSpan" id="kobo.334.1">proxy_request_buffering</span></strong><span class="koboSpan" id="kobo.335.1">). </span><span class="koboSpan" id="kobo.335.2">If set to </span><strong class="source-inline"><span class="koboSpan" id="kobo.336.1">on</span></strong><span class="koboSpan" id="kobo.337.1">, NGINX will store the response data in memory using the memory space offered by the buffers. </span><span class="koboSpan" id="kobo.337.2">If the buffers are full, the response data will be stored as a temporary file. </span><span class="koboSpan" id="kobo.337.3">If the directive is set to </span><strong class="source-inline"><span class="koboSpan" id="kobo.338.1">off</span></strong><span class="koboSpan" id="kobo.339.1">, the response is directly forwarded to </span><span class="No-Break"><span class="koboSpan" id="kobo.340.1">the client.</span></span></p>
+<p><span class="koboSpan" id="kobo.341.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.342.1">on</span></strong> <span class="No-Break"><span class="koboSpan" id="kobo.343.1">or </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.344.1">off</span></strong></span></p>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.345.1">Default: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.346.1">on</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.347.1">proxy_buffers</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.348.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.349.1">http</span></strong><span class="koboSpan" id="kobo.350.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.351.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.352.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.353.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.354.1">This</span><a id="_idIndexMarker418"/><span class="koboSpan" id="kobo.355.1"> sets the amount and size of buffers that will be used for reading the response data from the </span><span class="No-Break"><span class="koboSpan" id="kobo.356.1">backend server.</span></span></p>
+<p><span class="koboSpan" id="kobo.357.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.358.1">proxy_buffers </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.359.1">amount size;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.360.1">Default: 8 buffers, </span><strong class="source-inline"><span class="koboSpan" id="kobo.361.1">4k</span></strong><span class="koboSpan" id="kobo.362.1"> or </span><strong class="source-inline"><span class="koboSpan" id="kobo.363.1">8k</span></strong><span class="koboSpan" id="kobo.364.1"> each, depending on </span><span class="No-Break"><span class="koboSpan" id="kobo.365.1">the platform</span></span></p>
+<p><span class="koboSpan" id="kobo.366.1">Example: </span><strong class="source-inline"><span class="koboSpan" id="kobo.367.1">fastcgi_buffers </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.368.1">8 4k;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.369.1">proxy_busy_buffers_size</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.370.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.371.1">http</span></strong><span class="koboSpan" id="kobo.372.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.373.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.374.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.375.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.376.1">When </span><a id="_idIndexMarker419"/><span class="koboSpan" id="kobo.377.1">the backend-received data accumulated in buffers exceeds the specified value, buffers are flushed and data is sent to </span><span class="No-Break"><span class="koboSpan" id="kobo.378.1">the client.</span></span></p>
+<p><span class="koboSpan" id="kobo.379.1">Syntax: Numeric </span><span class="No-Break"><span class="koboSpan" id="kobo.380.1">value (size)</span></span></p>
+<p><span class="koboSpan" id="kobo.381.1">Default: </span><strong class="source-inline"><span class="koboSpan" id="kobo.382.1">2 * </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.383.1">proxy_buffer_size</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.384.1">proxy_cache</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.385.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.386.1">http</span></strong><span class="koboSpan" id="kobo.387.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.388.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.389.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.390.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.391.1">This </span><a id="_idIndexMarker420"/><span class="koboSpan" id="kobo.392.1">defines a cache zone. </span><span class="koboSpan" id="kobo.392.2">The identifier given to the zone is to be reused in </span><span class="No-Break"><span class="koboSpan" id="kobo.393.1">further directives.</span></span></p>
+<p><span class="koboSpan" id="kobo.394.1">Syntax: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.395.1">proxy_cache zonename;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.396.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.397.1">proxy_cache cache1;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.398.1">proxy_cache_key</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.399.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.400.1">http</span></strong><span class="koboSpan" id="kobo.401.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.402.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.403.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.404.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.405.1">This directive defines the cache key; in other words, it differentiates one cache entry from another. </span><span class="koboSpan" id="kobo.405.2">If the cache key is set to </span><strong class="source-inline"><span class="koboSpan" id="kobo.406.1">$uri</span></strong><span class="koboSpan" id="kobo.407.1">, as a result, all requests with </span><strong class="source-inline"><span class="koboSpan" id="kobo.408.1">$uri</span></strong><span class="koboSpan" id="kobo.409.1"> will work as a single cache entry. </span><span class="koboSpan" id="kobo.409.2">But that’s not enough for most dynamic websites. </span><span class="koboSpan" id="kobo.409.3">You also need to include the query string arguments in the cache key so that </span><strong class="source-inline"><span class="koboSpan" id="kobo.410.1">/index.php</span></strong><span class="koboSpan" id="kobo.411.1"> and </span><strong class="source-inline"><span class="koboSpan" id="kobo.412.1">/index.php?page=contact</span></strong><span class="koboSpan" id="kobo.413.1"> do not point to the same </span><span class="No-Break"><span class="koboSpan" id="kobo.414.1">cache entry.</span></span></p>
+<p><span class="koboSpan" id="kobo.415.1">Syntax: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.416.1">proxy_cache_key key;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.417.1">Example: </span><strong class="source-inline"><span class="koboSpan" id="kobo.418.1">proxy_cache_key "$</span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.419.1">scheme$host$request_uri $cookie_user";</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.420.1">proxy_cache_path</span></strong></span></p>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.421.1">Context: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.422.1">http</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.423.1">This indicates </span><a id="_idIndexMarker421"/><span class="koboSpan" id="kobo.424.1">the directory for storing cached files, as well as </span><span class="No-Break"><span class="koboSpan" id="kobo.425.1">other parameters.</span></span></p>
+<p><span class="koboSpan" id="kobo.426.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.427.1">proxy_cache_path path [use_temp_path=on|off] [levels=numbers keys_zone=name:size </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.428.1">inactive=time max_size=size];</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.429.1">The additional parameters are </span><span class="No-Break"><span class="koboSpan" id="kobo.430.1">as follows:</span></span></p>
+<ul>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.431.1">use_temp_path</span></strong><span class="koboSpan" id="kobo.432.1">: Set this flag to </span><strong class="source-inline"><span class="koboSpan" id="kobo.433.1">on</span></strong><span class="koboSpan" id="kobo.434.1"> if you want to use the path defined via the </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.435.1">proxy_temp_path</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.436.1"> directive</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.437.1">levels</span></strong><span class="koboSpan" id="kobo.438.1">: This indicates the depth level of subdirectories (usually </span><em class="italic"><span class="koboSpan" id="kobo.439.1">1:2</span></em> <span class="No-Break"><span class="koboSpan" id="kobo.440.1">is enough)</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.441.1">keys_zone</span></strong><span class="koboSpan" id="kobo.442.1">: This lets you make use of the zone you previously declared with the </span><strong class="source-inline"><span class="koboSpan" id="kobo.443.1">proxy_cache</span></strong><span class="koboSpan" id="kobo.444.1"> directive and indicates the size to occupy </span><span class="No-Break"><span class="koboSpan" id="kobo.445.1">in </span></span><span class="No-Break"><span class="koboSpan" id="kobo.446.1">memory</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.447.1">inactive</span></strong><span class="koboSpan" id="kobo.448.1">: If a cached response is not used within the specified timeframe, it is removed from </span><span class="No-Break"><span class="koboSpan" id="kobo.449.1">the cache</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.450.1">max_size</span></strong><span class="koboSpan" id="kobo.451.1">: This defines the maximum size of the </span><span class="No-Break"><span class="koboSpan" id="kobo.452.1">entire cache</span></span></li>
+</ul>
+<p><span class="koboSpan" id="kobo.453.1">Example: </span><strong class="source-inline"><span class="koboSpan" id="kobo.454.1">proxy_cache_path /tmp/nginx_cache levels=1:2 zone=zone1:10m </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.455.1">inactive=10m max_size=200M;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.456.1">proxy_cache_methods</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.457.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.458.1">http</span></strong><span class="koboSpan" id="kobo.459.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.460.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.461.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.462.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.463.1">This defines the HTTP methods eligible for caching. </span><strong class="source-inline"><span class="koboSpan" id="kobo.464.1">GET</span></strong><span class="koboSpan" id="kobo.465.1"> and </span><strong class="source-inline"><span class="koboSpan" id="kobo.466.1">HEAD</span></strong><span class="koboSpan" id="kobo.467.1"> are included by default and cannot </span><span class="No-Break"><span class="koboSpan" id="kobo.468.1">be disabled.</span></span></p>
+<p><span class="koboSpan" id="kobo.469.1">Syntax: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.470.1">proxy_cache_methods METHOD;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.471.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.472.1">proxy_cache_methods OPTIONS;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.473.1">proxy_cache_min_uses</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.474.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.475.1">http</span></strong><span class="koboSpan" id="kobo.476.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.477.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.478.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.479.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.480.1">This defines the</span><a id="_idIndexMarker422"/><span class="koboSpan" id="kobo.481.1"> minimum number of hits before a request is eligible for caching. </span><span class="koboSpan" id="kobo.481.2">By default, the response of a request is cached after one hit (next requests with the same cache key will receive the </span><span class="No-Break"><span class="koboSpan" id="kobo.482.1">cached response).</span></span></p>
+<p><span class="koboSpan" id="kobo.483.1">Syntax: </span><span class="No-Break"><span class="koboSpan" id="kobo.484.1">Numeric value</span></span></p>
+<p><span class="koboSpan" id="kobo.485.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.486.1">proxy_cache_min_uses 1;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.487.1">proxy_cache_valid</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.488.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.489.1">http</span></strong><span class="koboSpan" id="kobo.490.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.491.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.492.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.493.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.494.1">This directive allows you to customize the caching time for different kinds of response codes. </span><span class="koboSpan" id="kobo.494.2">You may cache responses associated with </span><strong class="source-inline"><span class="koboSpan" id="kobo.495.1">404</span></strong><span class="koboSpan" id="kobo.496.1"> error codes for </span><strong class="source-inline"><span class="koboSpan" id="kobo.497.1">1</span></strong><span class="koboSpan" id="kobo.498.1"> minute, and on the opposite cache, </span><strong class="source-inline"><span class="koboSpan" id="kobo.499.1">200 OK</span></strong><span class="koboSpan" id="kobo.500.1"> responses for </span><strong class="source-inline"><span class="koboSpan" id="kobo.501.1">10</span></strong><span class="koboSpan" id="kobo.502.1"> minutes or more. </span><span class="koboSpan" id="kobo.502.2">This directive can be inserted more </span><span class="No-Break"><span class="koboSpan" id="kobo.503.1">than once:</span></span></p>
+<ul>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.504.1">proxy_cache_valid </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.505.1">404 1m;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.506.1">proxy_cache_valid 500</span></strong> <strong class="source-inline"><span class="koboSpan" id="kobo.507.1">502</span></strong> <span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.508.1">504 5m;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.509.1">proxy_cache_valid </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.510.1">200 10;</span></strong></span></li>
+</ul>
+<p><span class="koboSpan" id="kobo.511.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.512.1">proxy_cache_valid code1 [</span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.513.1">code2...] time;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.514.1">proxy_cache_use_stale</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.515.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.516.1">http</span></strong><span class="koboSpan" id="kobo.517.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.518.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.519.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.520.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.521.1">This defines </span><a id="_idIndexMarker423"/><span class="koboSpan" id="kobo.522.1">whether or not NGINX should serve stale cached data in certain circumstances (in regard to the gateway). </span><span class="koboSpan" id="kobo.522.2">If you use </span><strong class="source-inline"><span class="koboSpan" id="kobo.523.1">proxy_cache_use_stale timeout</span></strong><span class="koboSpan" id="kobo.524.1">, and if the gateway times out, then NGINX will serve </span><span class="No-Break"><span class="koboSpan" id="kobo.525.1">cached data.</span></span></p>
+<p><span class="koboSpan" id="kobo.526.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.527.1">proxy_cache_use_stale [updating] [error] [timeout] [</span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.528.1">invalid_header] [http_500];</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.529.1">Example: </span><strong class="source-inline"><span class="koboSpan" id="kobo.530.1">proxy_cache_use_stale </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.531.1">error timeout;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.532.1">proxy_max_temp_file_size</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.533.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.534.1">http</span></strong><span class="koboSpan" id="kobo.535.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.536.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.537.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.538.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.539.1">Set this </span><a id="_idIndexMarker424"/><span class="koboSpan" id="kobo.540.1">directive to </span><strong class="source-inline"><span class="koboSpan" id="kobo.541.1">0</span></strong><span class="koboSpan" id="kobo.542.1"> to disable the use of temporary files for requests eligible for proxy forwarding or specify a maximum </span><span class="No-Break"><span class="koboSpan" id="kobo.543.1">file size.</span></span></p>
+<p><span class="koboSpan" id="kobo.544.1">Syntax: </span><span class="No-Break"><span class="koboSpan" id="kobo.545.1">Size value</span></span></p>
+<p><span class="koboSpan" id="kobo.546.1">Default value: </span><span class="No-Break"><span class="koboSpan" id="kobo.547.1">1 GB</span></span></p>
+<p><span class="koboSpan" id="kobo.548.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.549.1">proxy_max_temp_file_size 5m;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.550.1">proxy_temp_file_write_size</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.551.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.552.1">http</span></strong><span class="koboSpan" id="kobo.553.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.554.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.555.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.556.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.557.1">This sets the write buffer size when saving temporary files to the </span><span class="No-Break"><span class="koboSpan" id="kobo.558.1">storage device.</span></span></p>
+<p><span class="koboSpan" id="kobo.559.1">Syntax: </span><span class="No-Break"><span class="koboSpan" id="kobo.560.1">Size value</span></span></p>
+<p><span class="koboSpan" id="kobo.561.1">Default value: </span><strong class="source-inline"><span class="koboSpan" id="kobo.562.1">2 * </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.563.1">proxy_buffer_size</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.564.1">proxy_temp_path</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.565.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.566.1">http</span></strong><span class="koboSpan" id="kobo.567.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.568.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.569.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.570.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.571.1">This sets the</span><a id="_idIndexMarker425"/><span class="koboSpan" id="kobo.572.1"> path of temporary and cache </span><span class="No-Break"><span class="koboSpan" id="kobo.573.1">store files.</span></span></p>
+<p><span class="koboSpan" id="kobo.574.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.575.1">proxy_temp_path path [</span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.576.1">level1 [level2...]]</span></strong></span></p>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.577.1">Examples:</span></span></p>
+<ul>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.578.1">proxy_temp_path /tmp/nginx_proxy;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.579.1">proxy_temp_path /tmp/cache </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.580.1">1 2;</span></strong></span></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="IMG---Caption" lang="en-US" xml:lang="en-US"><a id="_idTextAnchor633"/><span class="koboSpan" id="kobo.581.1">Table 6.2: The caching, buffering, and temporary file directives for the proxy module</span></p>
+<h2 id="_idParaDest-136"><a id="_idTextAnchor634"/><span class="koboSpan" id="kobo.582.1">Limits, timeouts, and errors</span></h2>
+<p><span class="koboSpan" id="kobo.583.1">The following directives will help you define timeout behavior, as well as various limitations regarding communications with the </span><span class="No-Break"><span class="koboSpan" id="kobo.584.1">backend server:</span></span></p>
+<table class="No-Table-Style _idGenTablePara-1" id="table003-3">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.585.1">Directive</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.586.1">Description</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.587.1">proxy_connect_timeout</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.588.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.589.1">http</span></strong><span class="koboSpan" id="kobo.590.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.591.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.592.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.593.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.594.1">This</span><a id="_idIndexMarker426"/><span class="koboSpan" id="kobo.595.1"> defines the backend server connection timeout. </span><span class="koboSpan" id="kobo.595.2">This is different from the read/send timeout. </span><span class="koboSpan" id="kobo.595.3">If NGINX is already connected to the backend server, the </span><strong class="source-inline"><span class="koboSpan" id="kobo.596.1">proxy_connect_timeout</span></strong><span class="koboSpan" id="kobo.597.1"> is </span><span class="No-Break"><span class="koboSpan" id="kobo.598.1">not applicable.</span></span></p>
+<p><span class="koboSpan" id="kobo.599.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.600.1">Time value</span></strong><span class="koboSpan" id="kobo.601.1"> (</span><span class="No-Break"><span class="koboSpan" id="kobo.602.1">in seconds)</span></span></p>
+<p><span class="koboSpan" id="kobo.603.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.604.1">proxy_connect_timeout 15;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.605.1">proxy_read_timeout</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.606.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.607.1">http</span></strong><span class="koboSpan" id="kobo.608.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.609.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.610.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.611.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.612.1">This is the timeout for reading data from the backend server. </span><span class="koboSpan" id="kobo.612.2">This timeout isn’t applied to the entire response delay but between two read </span><span class="No-Break"><span class="koboSpan" id="kobo.613.1">operations instead.</span></span></p>
+<p><span class="koboSpan" id="kobo.614.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.615.1">Time value</span></strong><span class="koboSpan" id="kobo.616.1"> (</span><span class="No-Break"><span class="koboSpan" id="kobo.617.1">in seconds)</span></span></p>
+<p><span class="koboSpan" id="kobo.618.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.619.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.620.1">60</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.621.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.622.1">proxy_read_timeout 60;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.623.1">proxy_send_timeout</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.624.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.625.1">http</span></strong><span class="koboSpan" id="kobo.626.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.627.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.628.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.629.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.630.1">This</span><a id="_idIndexMarker427"/><span class="koboSpan" id="kobo.631.1"> timeout is for sending data to the backend server. </span><span class="koboSpan" id="kobo.631.2">The timeout isn’t applied to the entire response delay but between two write </span><span class="No-Break"><span class="koboSpan" id="kobo.632.1">operations instead.</span></span></p>
+<p><span class="koboSpan" id="kobo.633.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.634.1">Time value</span></strong><span class="koboSpan" id="kobo.635.1"> (</span><span class="No-Break"><span class="koboSpan" id="kobo.636.1">in seconds)</span></span></p>
+<p><span class="koboSpan" id="kobo.637.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.638.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.639.1">60</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.640.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.641.1">proxy_send_timeout 60;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.642.1">proxy_ignore_client_abort</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.643.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.644.1">http</span></strong><span class="koboSpan" id="kobo.645.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.646.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.647.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.648.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.649.1">If set to </span><strong class="source-inline"><span class="koboSpan" id="kobo.650.1">on</span></strong><span class="koboSpan" id="kobo.651.1">, NGINX will continue processing the proxy request, even if the client aborts its request. </span><span class="koboSpan" id="kobo.651.2">In the other case (</span><strong class="source-inline"><span class="koboSpan" id="kobo.652.1">off</span></strong><span class="koboSpan" id="kobo.653.1">), when the client aborts its request, NGINX also aborts its request to the </span><span class="No-Break"><span class="koboSpan" id="kobo.654.1">backend server.</span></span></p>
+<p><span class="koboSpan" id="kobo.655.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.656.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.657.1">off</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.658.1">proxy_intercept_errors</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.659.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.660.1">http</span></strong><span class="koboSpan" id="kobo.661.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.662.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.663.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.664.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.665.1">By</span><a id="_idIndexMarker428"/><span class="koboSpan" id="kobo.666.1"> default, NGINX returns all error pages (HTTP status code </span><strong class="source-inline"><span class="koboSpan" id="kobo.667.1">400</span></strong><span class="koboSpan" id="kobo.668.1"> and higher) sent by the backend server directly to the client. </span><span class="koboSpan" id="kobo.668.2">If you set this directive to </span><strong class="source-inline"><span class="koboSpan" id="kobo.669.1">on</span></strong><span class="koboSpan" id="kobo.670.1">, the error code is parsed and can be matched against the values specified in the </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.671.1">error_page</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.672.1"> directive.</span></span></p>
+<p><span class="koboSpan" id="kobo.673.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.674.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.675.1">off</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.676.1">proxy_send_lowat</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.677.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.678.1">http</span></strong><span class="koboSpan" id="kobo.679.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.680.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.681.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.682.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.683.1">This option allows you to make use of the </span><strong class="source-inline"><span class="koboSpan" id="kobo.684.1">SO_SNDLOWAT</span></strong><span class="koboSpan" id="kobo.685.1"> flag for TCP sockets under BSD-based operating systems only. </span><span class="koboSpan" id="kobo.685.2">This value defines the minimum number of bytes in the buffer for </span><span class="No-Break"><span class="koboSpan" id="kobo.686.1">output operations.</span></span></p>
+<p><span class="koboSpan" id="kobo.687.1">Syntax: Numeric </span><span class="No-Break"><span class="koboSpan" id="kobo.688.1">value (size)</span></span></p>
+<p><span class="koboSpan" id="kobo.689.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.690.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.691.1">0</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.692.1">proxy_limit_rate</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.693.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.694.1">http</span></strong><span class="koboSpan" id="kobo.695.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.696.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.697.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.698.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.699.1">This</span><a id="_idIndexMarker429"/><span class="koboSpan" id="kobo.700.1"> allows you to limit the rate at which NGINX downloads the response from the </span><span class="No-Break"><span class="koboSpan" id="kobo.701.1">backend proxy.</span></span></p>
+<p><span class="koboSpan" id="kobo.702.1">Syntax: Numeric value (bytes </span><span class="No-Break"><span class="koboSpan" id="kobo.703.1">per second)</span></span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="IMG---Caption" lang="en-US" xml:lang="en-US"><a id="_idTextAnchor635"/><span class="koboSpan" id="kobo.704.1">Table 6.3: The directives relevant to limits, timeouts, and errors</span></p>
+<h2 id="_idParaDest-137"><a id="_idTextAnchor636"/><a id="_idTextAnchor637"/><span class="koboSpan" id="kobo.705.1">Other directives</span></h2>
+<p><span class="koboSpan" id="kobo.706.1">Finally, the last set of </span><a id="_idIndexMarker430"/><span class="koboSpan" id="kobo.707.1">directives available in the proxy module is uncategorized and is </span><span class="No-Break"><span class="koboSpan" id="kobo.708.1">as follows:</span></span></p>
+<table class="No-Table-Style _idGenTablePara-1" id="table004-2">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<thead>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.709.1">Directive</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="bold"><span class="koboSpan" id="kobo.710.1">Description</span></strong></span></p>
+</td>
+</tr>
+</thead>
+<tbody>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.711.1">proxy_headers_hash_max_size</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.712.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.713.1">http</span></strong><span class="koboSpan" id="kobo.714.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.715.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.716.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.717.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.718.1">This sets the maximum size for the proxy header’s </span><span class="No-Break"><span class="koboSpan" id="kobo.719.1">hash tables.</span></span></p>
+<p><span class="koboSpan" id="kobo.720.1">Syntax: </span><span class="No-Break"><span class="koboSpan" id="kobo.721.1">Numeric value</span></span></p>
+<p><span class="koboSpan" id="kobo.722.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.723.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.724.1">512</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.725.1">proxy_headers_hash_bucket_size</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.726.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.727.1">http</span></strong><span class="koboSpan" id="kobo.728.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.729.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.730.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.731.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.732.1">This sets the bucket size for the proxy header’s </span><span class="No-Break"><span class="koboSpan" id="kobo.733.1">hash tables.</span></span></p>
+<p><span class="koboSpan" id="kobo.734.1">Syntax: </span><span class="No-Break"><span class="koboSpan" id="kobo.735.1">Numeric value</span></span></p>
+<p><span class="koboSpan" id="kobo.736.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.737.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.738.1">64</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.739.1">proxy_force_ranges</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.740.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.741.1">http</span></strong><span class="koboSpan" id="kobo.742.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.743.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.744.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.745.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.746.1">When set to </span><strong class="source-inline"><span class="koboSpan" id="kobo.747.1">on</span></strong><span class="koboSpan" id="kobo.748.1">, NGINX will enable byte-range support on responses from the </span><span class="No-Break"><span class="koboSpan" id="kobo.749.1">backend proxy.</span></span></p>
+<p><span class="koboSpan" id="kobo.750.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.751.1">on</span></strong> <span class="No-Break"><span class="koboSpan" id="kobo.752.1">or </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.753.1">off</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.754.1">Default </span><span class="No-Break"><span class="koboSpan" id="kobo.755.1">value: </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.756.1">off</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.757.1">proxy_ignore_headers</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.758.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.759.1">http</span></strong><span class="koboSpan" id="kobo.760.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.761.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.762.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.763.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.764.1">This prevents NGINX from processing one of the following four headers from the backend server response: </span><strong class="source-inline"><span class="koboSpan" id="kobo.765.1">X-Accel-Redirect</span></strong><span class="koboSpan" id="kobo.766.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.767.1">X-Accel-Expires</span></strong><span class="koboSpan" id="kobo.768.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.769.1">Expires</span></strong><span class="koboSpan" id="kobo.770.1">, </span><span class="No-Break"><span class="koboSpan" id="kobo.771.1">and </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.772.1">Cache-Control</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.773.1">.</span></span></p>
+<p><span class="koboSpan" id="kobo.774.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.775.1">proxy_ignore_headers </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.776.1">header1 [header2...];</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.777.1">proxy_set_body</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.778.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.779.1">http</span></strong><span class="koboSpan" id="kobo.780.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.781.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.782.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.783.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.784.1">This allows you to set a static request body for debugging purposes. </span><span class="koboSpan" id="kobo.784.2">Variables may be used in the </span><span class="No-Break"><span class="koboSpan" id="kobo.785.1">directive value.</span></span></p>
+<p><span class="koboSpan" id="kobo.786.1">Syntax: String value (</span><span class="No-Break"><span class="koboSpan" id="kobo.787.1">any value)</span></span></p>
+<p><span class="koboSpan" id="kobo.788.1">Example: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.789.1">proxy_set_body test;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.790.1">proxy_set_header</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.791.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.792.1">http</span></strong><span class="koboSpan" id="kobo.793.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.794.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.795.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.796.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.797.1">This directive allows you to redefine header values to be transferred to the backend server. </span><span class="koboSpan" id="kobo.797.2">It can be declared </span><span class="No-Break"><span class="koboSpan" id="kobo.798.1">multiple times.</span></span></p>
+<p><span class="koboSpan" id="kobo.799.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.800.1">proxy_set_header </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.801.1">Header Value;</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.802.1">Example: </span><strong class="source-inline"><span class="koboSpan" id="kobo.803.1">proxy_set_header </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.804.1">Host $host;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.805.1">proxy_store</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.806.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.807.1">http</span></strong><span class="koboSpan" id="kobo.808.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.809.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.810.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.811.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.812.1">This</span><a id="_idIndexMarker431"/><span class="koboSpan" id="kobo.813.1"> specifies whether or not the backend server response should be stored as a file. </span><span class="koboSpan" id="kobo.813.2">Stored response files can be reused for serving </span><span class="No-Break"><span class="koboSpan" id="kobo.814.1">other requests.</span></span></p>
+<p><span class="koboSpan" id="kobo.815.1">Possible values are </span><strong class="source-inline"><span class="koboSpan" id="kobo.816.1">on</span></strong><span class="koboSpan" id="kobo.817.1">, </span><strong class="source-inline"><span class="koboSpan" id="kobo.818.1">off</span></strong><span class="koboSpan" id="kobo.819.1">, or a path relative to the document root (or alias). </span><span class="koboSpan" id="kobo.819.2">You may also set this to </span><strong class="source-inline"><span class="koboSpan" id="kobo.820.1">on</span></strong><span class="koboSpan" id="kobo.821.1"> and define the </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.822.1">proxy_temp_path</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.823.1"> directive.</span></span></p>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.824.1">Examples:</span></span></p>
+<ul>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.825.1">proxy_store on;</span></strong></span></li>
+<li><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.826.1">proxy_temp_path /temp/store;</span></strong></span></li>
+</ul>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.827.1">proxy_store_access</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.828.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.829.1">http</span></strong><span class="koboSpan" id="kobo.830.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.831.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.832.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.833.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.834.1">This directive defines file access permissions for the stored </span><span class="No-Break"><span class="koboSpan" id="kobo.835.1">response files.</span></span></p>
+<p><span class="koboSpan" id="kobo.836.1">Syntax: </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.837.1">proxy_store_access [user:[r|w|rw]][group:[r|w|rw]][all:[r|w|rw]];</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.838.1">Example: </span><strong class="source-inline"><span class="koboSpan" id="kobo.839.1">proxy_store_access user:rw </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.840.1">group:rw all:r;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.841.1">proxy_http_version</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.842.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.843.1">http</span></strong><span class="koboSpan" id="kobo.844.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.845.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.846.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.847.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.848.1">This sets the HTTP version to be used for communicating with the proxy backend. </span><span class="koboSpan" id="kobo.848.2">HTTP </span><strong class="source-inline"><span class="koboSpan" id="kobo.849.1">1.0</span></strong><span class="koboSpan" id="kobo.850.1"> is the default value, but if you are going to enable keepalive connections, you might want to set this directive </span><span class="No-Break"><span class="koboSpan" id="kobo.851.1">to </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.852.1">1.1</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.853.1">.</span></span></p>
+<p><span class="koboSpan" id="kobo.854.1">Syntax: </span><strong class="source-inline"><span class="koboSpan" id="kobo.855.1">proxy_http_version 1.0 | </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.856.1">1.1;</span></strong></span></p>
+</td>
+</tr>
+<tr class="No-Table-Style">
+<td class="No-Table-Style">
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.857.1">proxy_cookie_domain</span></strong></span></p>
+<p><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.858.1">proxy_cookie_path</span></strong></span></p>
+<p><span class="koboSpan" id="kobo.859.1">Context: </span><strong class="source-inline"><span class="koboSpan" id="kobo.860.1">http</span></strong><span class="koboSpan" id="kobo.861.1">, </span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.862.1">server</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.863.1">, </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.864.1">location</span></strong></span></p>
+</td>
+<td class="No-Table-Style">
+<p><span class="koboSpan" id="kobo.865.1">This</span><a id="_idIndexMarker432"/><span class="koboSpan" id="kobo.866.1"> applies an on-the-fly modification to the domain or path attributes of a </span><span class="No-Break"><span class="koboSpan" id="kobo.867.1">cookie (case-insensitive).</span></span></p>
+<p><span class="No-Break"><span class="koboSpan" id="kobo.868.1">Syntaxes:</span></span></p>
+<ul>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.869.1">proxy_cookie_domain off | </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.870.1">domain replacement;</span></strong></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.871.1">proxy_cookie_path off | domain </span></strong><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.872.1">replacement ;</span></strong></span></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="IMG---Caption" lang="en-US" xml:lang="en-US"><a id="_idTextAnchor638"/><span class="koboSpan" id="kobo.873.1">Table 6.4: Uncategorized directives for the proxy module</span></p>
+<h2 id="_idParaDest-138"><a id="_idTextAnchor639"/><span class="koboSpan" id="kobo.874.1">Variables</span></h2>
+<p><span class="koboSpan" id="kobo.875.1">The proxy module offers several </span><a id="_idIndexMarker433"/><span class="koboSpan" id="kobo.876.1">variables that can be inserted in various locations, for example, in the </span><strong class="source-inline"><span class="koboSpan" id="kobo.877.1">proxy_set_header</span></strong><span class="koboSpan" id="kobo.878.1"> directive or the logging-related directives such as </span><strong class="source-inline"><span class="koboSpan" id="kobo.879.1">log_format</span></strong><span class="koboSpan" id="kobo.880.1">. </span><span class="koboSpan" id="kobo.880.2">The available variables are </span><span class="No-Break"><span class="koboSpan" id="kobo.881.1">the following:</span></span></p>
+<ul>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.882.1">$proxy_host</span></strong><span class="koboSpan" id="kobo.883.1">: This contains the hostname of the backend server used for the </span><span class="No-Break"><span class="koboSpan" id="kobo.884.1">current request.</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.885.1">$proxy_port</span></strong><span class="koboSpan" id="kobo.886.1">: This contains the port of the backend server used for the </span><span class="No-Break"><span class="koboSpan" id="kobo.887.1">current request.</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.888.1">$proxy_add_x_forwarded_for</span></strong><span class="koboSpan" id="kobo.889.1">: This variable contains the value of the </span><strong class="source-inline"><span class="koboSpan" id="kobo.890.1">X-Forwarded-For</span></strong><span class="koboSpan" id="kobo.891.1"> request header followed by the remote address of the client. </span><span class="koboSpan" id="kobo.891.2">Both values are separated by a comma. </span><span class="koboSpan" id="kobo.891.3">If the </span><strong class="source-inline"><span class="koboSpan" id="kobo.892.1">X-Forwarded-For</span></strong><span class="koboSpan" id="kobo.893.1"> request header is unavailable, the variable only contains the client’s </span><span class="No-Break"><span class="koboSpan" id="kobo.894.1">remote address.</span></span></li>
+<li><strong class="source-inline"><span class="koboSpan" id="kobo.895.1">$proxy_internal_body_length</span></strong><span class="koboSpan" id="kobo.896.1">: Length of </span><a id="_idIndexMarker434"/><span class="koboSpan" id="kobo.897.1">the request body (set with the </span><strong class="source-inline"><span class="koboSpan" id="kobo.898.1">proxy_set_body</span></strong><span class="koboSpan" id="kobo.899.1"> directive </span><span class="No-Break"><span class="koboSpan" id="kobo.900.1">or </span></span><span class="No-Break"><strong class="source-inline"><span class="koboSpan" id="kobo.901.1">0</span></strong></span><span class="No-Break"><span class="koboSpan" id="kobo.902.1">)</span><a id="_idTextAnchor640"/><span class="koboSpan" id="kobo.903.1">.</span></span></li>
+</ul>
+<p><span class="koboSpan" id="kobo.904.1">Although the directives and variables mentioned are for informational purposes at this stage, we will actively apply them in upcoming chapters, exploring their practical uses in scenarios such as load balancing </span><span class="No-Break"><span class="koboSpan" id="kobo.905.1">and beyon</span><a id="_idTextAnchor641"/><span class="koboSpan" id="kobo.906.1">d.</span></span></p>
+<h1 id="_idParaDest-139"><a id="_idTextAnchor642"/><span class="koboSpan" id="kobo.907.1">Looking at NGINX and microservices</span></h1>
+<p><span class="koboSpan" id="kobo.908.1">Now that we’ve explored the proxy</span><a id="_idIndexMarker435"/><span class="koboSpan" id="kobo.909.1"> module in depth, it’s time to have a look at what a modern web application architecture might look like. </span><span class="koboSpan" id="kobo.909.2">There are entire books dedicated to this topic but we only really need to know how NGINX can enable various setups, and the NGINX part doesn’t differ too much between </span><span class="No-Break"><span class="koboSpan" id="kobo.910.1">different setups.</span></span></p>
+<p><span class="koboSpan" id="kobo.911.1">For any given task that we need our application to do, we have two options: we can either proxy to a backend server such as Node.js and have that handle the work, or we can implement it directly in NGINX. </span><span class="koboSpan" id="kobo.911.2">Which option you go with depends on a lot of factors, but the two main factors to consider are speed </span><span class="No-Break"><span class="koboSpan" id="kobo.912.1">and complexity.</span></span></p>
+<p><span class="koboSpan" id="kobo.913.1">Proxying to a complex backend server has an overhead cost but usually allows you to code reusability and use package managers such </span><a id="_idIndexMarker436"/><span class="koboSpan" id="kobo.914.1">as </span><a id="_idIndexMarker437"/><span class="koboSpan" id="kobo.915.1">Packagist and NPM. </span><span class="koboSpan" id="kobo.915.2">Conversely, implementing a feature in NGINX puts us closer to the user so we have less overhead, but the development itself also becomes </span><span class="No-Break"><span class="koboSpan" id="kobo.916.1">more difficult.</span></span></p>
+<p><span class="koboSpan" id="kobo.917.1">Most setups will choose to proxy to a backend for simplicity. </span><span class="koboSpan" id="kobo.917.2">An example of a feature implemented in NGINX would be Cloudflare and its proxy/CDN service. </span><span class="koboSpan" id="kobo.917.3">Since they deal with a huge scale of requests and response time is critical to them, they have implemented their security filtering (web application firewall) directly in NGINX using a module to add Lua support in the NGINX </span><span class="No-Break"><span class="koboSpan" id="kobo.918.1">config file.</span></span></p>
+<p><span class="koboSpan" id="kobo.919.1">Cloudflare has hundreds of developers, including people who have worked on the core part of NGINX code before, so don’t expect to quite reach their level, but there are also simpler scenarios where NGINX can implement part of the </span><span class="No-Break"><span class="koboSpan" id="kobo.920.1">application logic.</span></span></p>
+<p><span class="koboSpan" id="kobo.921.1">A simple example of application logic in NGINX is to move our cache from inside our backend server to NGINX itself. </span><span class="koboSpan" id="kobo.921.2">In the following example, we’re checking Memcached for a cached version of a page, and only if we don’t find it do we proxy to our </span><span class="No-Break"><span class="koboSpan" id="kobo.922.1">application backend:</span></span></p>
+<pre class="source-code"><span class="koboSpan" id="kobo.923.1">
+# Check cache and use PHP as a fallback.
+</span><span class="koboSpan" id="kobo.923.2">location ~* \.php$ {
+default_type text/html;
+charset utf-8;
+if ($request_method = GET) {
+set $memcached_key $request_uri;
+memcached_pass memcached;
+error_page 404 502 = @nocache;
+}
+if ($request_method != GET) {
+fastcgi_pass backend;
+}
+}
+location @nocache {
+fastcgi_pass backend;
+}</span></pre> <p><span class="koboSpan" id="kobo.924.1">When we go into more advanced </span><a id="_idIndexMarker438"/><span class="koboSpan" id="kobo.925.1">logic, the NGINX configuration gets a bit complicated. </span><span class="koboSpan" id="kobo.925.2">We will look at several proxy configuration scenarios in more detail in the </span><span class="No-Break"><span class="koboSpan" id="kobo.926.1">next c</span><a id="_idTextAnchor643"/><a id="_idTextAnchor644"/><a id="_idTextAnchor645"/><a id="_idTextAnchor646"/><a id="_idTextAnchor647"/><a id="_idTextAnchor648"/><a id="_idTextAnchor649"/><span class="koboSpan" id="kobo.927.1">ha</span><a id="_idTextAnchor650"/><span class="koboSpan" id="kobo.928.1">pter.</span></span></p>
+<h1 id="_idParaDest-140"><a id="_idTextAnchor651"/><span class="koboSpan" id="kobo.929.1">Summary</span></h1>
+<p><span class="koboSpan" id="kobo.930.1">In this chapter, we had a look at how reverse proxying works and how NGINX fits into the modern picture of microservices and complex web applications, both in the sense of enabling the microservice architecture and also in the sense of building application logic directly </span><span class="No-Break"><span class="koboSpan" id="kobo.931.1">into NGINX.</span></span></p>
+<p><span class="koboSpan" id="kobo.932.1">This chapter should have given you an idea of the possibilities that NGINX provides as an application server, and hopefully clarified the complexity/speed trade-off of implementing logic </span><span class="No-Break"><span class="koboSpan" id="kobo.933.1">in NGINX.</span></span></p>
+<p><span class="koboSpan" id="kobo.934.1">Now that we’ve got an overview of the possibilities offered by NGINX, we’re going to put what we’ve learned to good use. </span><span class="koboSpan" id="kobo.934.2">In the next chapter, we’ll cover a specific case: NGINX with Docker, using the </span><span class="No-Break"><span class="koboSpan" id="kobo.935.1">NGINX proxy.</span></span></p>
+</div>
+
+
+<div class="Content" id="_idContainer035">
+<h1 id="_idParaDest-141" lang="en-US" xml:lang="en-US"><a id="_idTextAnchor652"/><span class="koboSpan" id="kobo.1.1">Part 3: NGINX in Action</span></h1>
+</div>
+<div id="_idContainer036">
+<p><span class="koboSpan" id="kobo.2.1">In this final part of the book, you’ll explore how NGINX can be integrated into larger IT infrastructures, with advanced deployment strategies, cloud environments, and automated management. </span><span class="koboSpan" id="kobo.2.2">This section focuses on the real-life use cases of NGINX within complex systems, including load balancing, cloud deployments, and maintaining high availability </span><span class="No-Break"><span class="koboSpan" id="kobo.3.1">and security.</span></span></p>
+<p><span class="koboSpan" id="kobo.4.1">This part includes the </span><span class="No-Break"><span class="koboSpan" id="kobo.5.1">following chapters:</span></span></p>
+<ul>
+<li><a href="B21787_07.xhtml#_idTextAnchor653"><em class="italic"><span class="koboSpan" id="kobo.6.1">Chapter 7</span></em></a><em class="italic"><span class="koboSpan" id="kobo.7.1">, Introduction to Load Balancing and Optimization</span></em></li>
+<li><a href="B21787_08.xhtml#_idTextAnchor688"><em class="italic"><span class="koboSpan" id="kobo.8.1">Chapter 8</span></em></a><em class="italic"><span class="koboSpan" id="kobo.9.1">, NGINX within a Cloud Infrastructure</span></em></li>
+<li><a href="B21787_09.xhtml#_idTextAnchor701"><em class="italic"><span class="koboSpan" id="kobo.10.1">Chapter 9</span></em></a><em class="italic"><span class="koboSpan" id="kobo.11.1">, Fully Deploy, Manage, and Auto-Update NGINX with Ansible</span></em></li>
+<li><a href="B21787_10.xhtml#_idTextAnchor708"><em class="italic"><span class="koboSpan" id="kobo.12.1">Chapter 10</span></em></a><em class="italic"><span class="koboSpan" id="kobo.13.1">, Case Studies</span></em></li>
+<li><a href="B21787_11.xhtml#_idTextAnchor749"><em class="italic"><span class="koboSpan" id="kobo.14.1">Chapter 11</span></em></a><em class="italic"><span class="koboSpan" id="kobo.15.1">, Troubleshooting</span></em></li>
+</ul>
+</div>
+<div>
+<div id="_idContainer037">
+</div>
+</div>
+<div>
+<div class="Basic-Graphics-Frame" id="_idContainer038">
+</div>
+</div>
+</body></html>

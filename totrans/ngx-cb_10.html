@@ -1,0 +1,667 @@
+<html><head></head><body>
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Docker Containers</h1>
+                </header>
+            
+            <article>
+                
+<p>In this chapter, we will cover the following topics:</p>
+<ul>
+<li>NGINX web server via Docker</li>
+<li>NGINX reverse proxy via Docker</li>
+<li>Docker Compose with NGINX</li>
+<li>NGINX load balancing with Docker</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Introduction</h1>
+                </header>
+            
+            <article>
+                
+<p>While the concept of container technology isn't new, the rise of Docker's popularity is simply because it was the first to bring simplicity and scalability to the market. For those who don't quite understand what Docker is, on a simplistic level, it's just an application container.</p>
+<p>Containers themselves are simply another way of virtualizing your environment. Rather than having to emulate components such as a <strong>Virtual Machine</strong> (<strong>VM</strong>), containers run on a single kernel and rely on software-level abstraction and isolation to provide lightweight and faster virtual environments. Docker takes this a step further and isolates it right down to a single application, as shown in the following diagram:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/7192fc7f-7ec5-4a92-9e65-8625425e0f5e.png"/></div>
+<p>The advantage is that this high level of abstraction means that you can provide a highly consistent and rapidly deployable service architecture that is simple to run. Not only that, Docker has a number of tools to orchestrate and help manage the deployment of the containers as well.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Installing Docker </h1>
+                </header>
+            
+            <article>
+                
+<p>If you haven't installed Docker yet, the easiest way to try it is on your local development machine. Rather than running it natively, these environments set up a small Linux VM and provide wrappers to directly use it from your existing operating system.</p>
+<p>To install it, download and run it through the installers from here:</p>
+<ul>
+<li><strong>Windows</strong>: <a href="https://www.docker.com/docker-windows" target="_blank"><span class="URLPACKT">https://www.docker.com/docker-windows</span></a></li>
+<li><strong>macOS</strong>: <a href="https://www.docker.com/docker-mac" target="_blank"><span class="URLPACKT">https://www.docker.com/docker-mac</span></a></li>
+</ul>
+<div class="packt_tip">As Docker is a rapidly evolving platform, always consult the official documentation in case there have been any changes since the time of writing.</div>
+<p>If you're installing Docker on a dedicated server or VPS, this can be done using the standard tools. For a CentOS 7 system, this is as simple as the following:</p>
+<pre><strong>yum install docker</strong>
+<strong>systemctl start docker</strong>  </pre>
+<p>Those who are running Ubuntu, the commands are just as simple:</p>
+<pre><strong>apt install docker</strong>  </pre>
+<p>This gives us a fully working Docker environment, even better if you have a local development installation and a staging/production system to test these recipes on.</p>
+<p>To familiarize yourself with Docker, we'll go through a few basic commands. The first is to simply run the <kbd>docker</kbd> command. This runs the Docker client and will spit out a list of commands that are available. If you see an error at this point, double-check the output from your installation or system logs.</p>
+<p>Next, let's run <kbd>docker ps</kbd>, which will list all the containers:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="323" src="assets/0d57b9d5-ed96-4207-aa74-a3133357da49.png" width="656"/></div>
+<p>As this is a brand-new installation, you won't see any listed here. Lastly, we can run <kbd>docker version</kbd> to list both the server and client versions:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/080f8fc9-7e42-4b6f-9261-4794ed0c7a38.png"/></div>
+<p>While the Docker client can run on a different system to the Docker server (or Docker Engine as it can also be referred to as), you'll need to ensure that the versions are compatible.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">NGINX web server via Docker</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe will step you through the basics of setting up a simple NGINX container via Docker. When you see the simplicity of the installation, don't be fooled by how easy it is, as that's the point of Docker.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>If you're already running existing Docker containers, make sure they're either stopped or are not running on port 80. Otherwise, they will conflict with this recipe.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>We'll start by pulling down the latest image of Docker. While this is an optional step, it will allow you to see how Docker works in stages for the first time. To download the NGINX image (which for the officially packaged version is simply called <kbd>nginx</kbd>), run the following:</p>
+<pre><strong>docker pull nginx</strong>  </pre>
+<p>This will then pull down a number of images, each of which will display a series of unique image IDs, like the ones displayed in this example:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/2c89f2cc-f5e0-48a2-9c00-ab121372b76e.png"/></div>
+<p>Once our image has finished downloading, we can start creating our first container:</p>
+<pre><strong>docker run --name nginx-basic -d -p 81:80 nginx</strong>  </pre>
+<p>If this works, you should get a single-line output, which will be the ID of the container:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/fd4b9592-b6ff-48f9-99d7-3abecaf09a67.png"/></div>
+<p>This indicates that the container has been created and started. If this is the first time you're seeing a containerized system, less than a second setup may seem like a fault at first. However, that's how quickly a container can be created and be up and running. To test the site, we can now browse the IP/hostname of where your Docker instance is running and connect to port <kbd>81</kbd> to confirm:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="298" src="assets/229b4fc3-c1a6-4be8-aa9f-ba7631ea556f.png" width="310"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Docker images are a layered format, which allows each layer to be reused between other images. This is to save on space, rather than having 20 instances of NGINX running on Ubuntu with all the system libraries duplicated. Docker will split these instances into layers so that you can have a singular base image, and each change to this is stored as a layer. Our NGINX image looks like this:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/730c825b-24fe-4fed-844a-18e61293db93.png"/></div>
+<p>Each layer represents a change, and even the base image itself can be made up of multiple layers. Once you have a running container, any changes are then performed as <strong>Copy-on-Write</strong> (<strong>COW</strong>); this means the original images are preserved, while also allowing the ability to modify instances based on them.</p>
+<p>Our one-line deploy command can be broken down into a number of different parts:</p>
+<ul>
+<li><kbd>run</kbd>: This tells Docker to create an instance and run the default command. As shown in the preceding figure, this is the <kbd>nginx</kbd> command to start NGINX.</li>
+<li><kbd>--name nginx-basic</kbd>: This gives our container a name, which allows you to easily identify and link to it from other containers.</li>
+<li><kbd>-d</kbd>: This option detaches the container from the command line and runs it in the background.</li>
+<li><kbd>-p 81:80</kbd>: Using <kbd>-p</kbd> specifies port mapping for the container. It's always in this format: <kbd>&lt;host&gt;:&lt;container&gt;</kbd>. For our instance, we've opened port <kbd>81</kbd> on our server (or the development machine) and mapped it to port <kbd>80</kbd> in the container (where NGINX listens by default).</li>
+<li><kbd>nginx</kbd>: Finally, we specify the image name. This can also include a version tag, or it will select the latest release if no tag is specified. If we wanted to run an older version of NGINX, we could specify <kbd>nginx:1.9.14</kbd> to use the latest 1.9 release.</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>Our initial example is fairly basic, but can be easily extended to serve static files. Rather than building an image with the files deployed, we can map a volume to the host in which Docker is on. This way, we can edit the files locally but still have them served from within the Docker container. Here's our updated <kbd>run</kbd> command:</p>
+<pre><strong>docker run --name nginx-basic -d -p 81:80 -v /var/static:/usr/share/nginx/html:ro  nginx</strong>  </pre>
+<p>Docker's filesystems use a union filesystem (for example, OverlayFS); this allows you to join two systems at a specified mount point. In our preceding example, we mounted <kbd>/var/static</kbd> on our local server and specified the mount point as <kbd>/usr/share/nginx/html</kbd>. We've also specified that the mount is read-only to prevent anything within the container from modifying the files.</p>
+<p>Changes to the files done within your local server (or the development machine) and in the <kbd>/var/static</kbd> directory will be served by our Docker instance.</p>
+<p>This also means that you can keep your Docker configurations common between varying configurations and simply update the content separately. If you're especially using a <strong>Revision Control System</strong> (<strong>RCS</strong>) such as Git, it means you have a system that can be quickly updated via a <strong>Continuous Integration</strong> (<strong>CI</strong>) system.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>Docker documentation: <a href="https://docs.docker.com/" target="_blank"><span class="URLPACKT">https://docs.docker.com/</span></a></li>
+<li>Official NGINX Docker hub entry: <a href="https://hub.docker.com/_/nginx/" target="_blank"><span class="URLPACKT">https://hub.docker.com/_/nginx/</span></a></li>
+<li>Official image build code: <a href="https://github.com/nginxinc/docker-nginx" target="_blank"><span class="URLPACKT">https://github.com/nginxinc/docker-nginx</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">NGINX reverse proxy via Docker</h1>
+                </header>
+            
+            <article>
+                
+<p>In most scenarios, Docker will be deployed alongside an application container, such as Ruby on Rails, WordPress, or similar. In traditional deployment scenarios, these would all be configured on one server. However, in a Docker-based environment, you may want to reduce each container to a single task or process where possible, like a microservice-based architecture. This is so that you can independently upgrade or replace each part without affecting the other. An example of this is updating system libraries or deploying different PHP versions. As each task is a separate container, it remains isolated and, therefore, unaffected by other containers.</p>
+<p>Using a reverse proxy on your local development server can also be a great way to test your application before deploying. Generally, if you have a basic WAMP (that is, Windows, Apache, MySQL, PHP) style development environment, then you may not discover unique issues, which only show when you have a proxy server that mimics your production environment.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe assumes you have some form of web or application server running on your local server. Ideally, this could be <em>Dockerized</em> as well, but we'll cover both scenarios.</p>
+<p>Here's how it's going to look:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/86bfb0f9-8748-456c-9031-c8ee32ed7554.png"/></div>
+<p>As most real-world deployments are via HTTPS, we're also going to incorporate SSL certificate deployments.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Because the standard NGINX image is perfect for more complex deployments, we're going to modify it to suit our needs. The great thing about Docker is that this process is very simple to do.</p>
+<p>Firstly, we're going to create a Docker image definition file, which is called <kbd>Dockerfile</kbd>. This is what Docker uses to build an image, and it can reference an existing image as the base so that you don't have to reinvent the wheel. Here's our <kbd>Dockerfile</kbd>:</p>
+<pre>FROM nginx:latest 
+ 
+# Configuration 
+COPY default.conf /etc/nginx/conf.d/ 
+ 
+# SSL Certificates and DH Key 
+COPY dockerdemo.crt /etc/ssl/dockerdemo.crt 
+COPY dockerdemo.key /etc/ssl/dockerdemo.key 
+COPY dh4096.pem /etc/ssl/dh4096.pem 
+ 
+# Symlink the logs to stdout and stderr 
+RUN ln -sf /dev/stdout /var/log/nginx/access.log 
+RUN ln -sf /dev/stderr /var/log/nginx/error.log 
+ 
+# Expose port 443 (HTTPS) 
+EXPOSE 443 
+ 
+CMD ["nginx", "-g", "daemon off;"] </pre>
+<p>In the same directory, we will also need our NGINX configuration file. As we want to override the default settings, we have called this <kbd>default.conf</kbd> so that it copies over the exiting file. Based on the <em>Configuring NGINX as a simple reverse proxy</em> recipe back in <a href="bc04362e-995f-4550-92b7-183754306d34.xhtml"><span class="ChapterrefPACKT">Chapter 7</span></a>, <em>Reverse Proxy</em>, our configuration will look like this:</p>
+<pre>server { 
+    listen              443 ssl http2; 
+    server_name         dockerdemo.nginxcookbook.com; 
+    ssl_certificate     /etc/ssl/dockerdemo.crt; 
+    ssl_certificate_key /etc/ssl/dockerdemo.key; 
+    ssl_dhparam         /etc/ssl/dh4096.pem; 
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2; 
+    ssl_ciphers         HIGH:!aNULL:!MD5; 
+ 
+    ssl_prefer_server_ciphers on; 
+    client_max_body_size 75M; 
+ 
+    location / { 
+        proxy_pass http://127.0.0.1:8000; 
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;                 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header Host $host; 
+    } 
+} </pre>
+<p>Lastly, we also need our SSL certificates and keys copied over as well. If you're intending to distribute this image or update the SSL certificates separately to the image, you can remove this from the image and use a volume mount to store the certificates on the local server.</p>
+<div class="packt_tip">If you need to generate a test SSL certificate, there's a quick guide available in <a href="ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml"><span class="ChapterrefPACKT">Chapter 4</span></a>, <em>All About SSLs</em>.</div>
+<p>Once you have all the configuration files ready, you can now tell Docker to build an image. It will store this image locally, based on the tags you provide. To create the image, run the following:</p>
+<pre><strong>docker build -t nginx-demo-proxy .</strong>  </pre>
+<p>Docker will then go through each of the steps in <kbd>Dockerfile</kbd> to produce a new image. Your output should look similar to this:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/6934f931-bd7d-48e1-aa04-81f4d84ebb2c.png"/></div>
+<p>We can see that, in the final output, our Docker image has been given the <kbd>b4007604b77e</kbd> ID. We can confirm this by viewing which Docker images we have installed:</p>
+<pre><strong>docker images</strong> </pre>
+<p>The following is the output listing our Docker image:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/755d1e59-c389-4772-accb-e76611281518.png"/></div>
+<p>Although there are a number of intermediate images, by default, Docker doesn't display them.</p>
+<p>After building and confirming that we have our Docker image, you can now deploy it:</p>
+<pre><strong>docker run --name nginx-proxy -d --net=host nginx-demo-proxy</strong>  </pre>
+<p>This will create a container based on our new image, exposing port <kbd>443</kbd> via the server. Rather than being a bridged network (therefore using docker0), we tell NGINX to use the host's network.</p>
+<div class="packt_tip">Currently, there's a longstanding issue with Docker for Mac accessing the host, based on the underlying OS limitation. For now, the easiest workaround is to only use container to container networking.</div>
+<p>This is best used for development only, as you're limited to only running one instance of each image due to the lack of port mapping.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Within our <kbd>Dockerfile</kbd>, we define a number of steps to build the image:</p>
+<ul>
+<li><kbd>FROM</kbd>: This defines our starter image; for this recipe, we used <kbd>nginx:latest</kbd>. Rather than build the image from scratch, we simply start with the official NGINX image. If you want to manually install your own build, you could start with a base Linux, such as Debian or Alpine.</li>
+<li><kbd>COPY</kbd>: In order to make the files part of the image, we can copy them as part of the build process. For this image, we've copied over our NGINX configuration file as well as the SSL certificates. If the files exist in the base image, they will simply be overwritten.</li>
+<li><kbd>RUN</kbd>: We can issue commands within the build. In this instance, we symlink the default log files through to <kbd>/dev/stdout</kbd> and <kbd>/dev/stderr</kbd> so that we can view the logs from the standard Docker log tools.</li>
+<li><kbd>EXPOSE</kbd>: In order to access network ports outside of the container, they must be exposed to the Docker networking subsystem. From here, they can be explicitly mapped using <kbd>-p</kbd> in the <kbd>docker run</kbd> command or implicitly mapped simply with <kbd>-P</kbd>.</li>
+<li><kbd>CMD</kbd>: This defines the default command executed when the container starts. It's set up in the format of <kbd>['executable', 'param1', 'param2']</kbd>, so for our NGINX command, it translates to <kbd>nginx -g daemon off;</kbd>. Because Docker requires the application to stay in the foreground, the <kbd>-g</kbd> option allows us to set an additional directive of daemon off to enforce this.</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>The recipe wasn't about how production systems are deployed, as we were mixing host-deployed services with container-based ones. Most production deployments of Docker have 100 percent of services deployed within Docker containers, which simplifies networking.</p>
+<p>In a typical production deployment, here's what we might see:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="238" src="assets/d301b5a2-2af4-4430-b6e6-9348c1cbcf30.png" width="420"/></div>
+<p>With everything containerized and isolated, we can still connect these without having to expose the ports to the world. Previously, this was called <strong>linking</strong> containers, and while the linking commands worked, they also had significant limitations. Instead, we now create distinct networks within the host.</p>
+<p>These networks allow containers to talk to each other in distinctly named networks and you can have multiple networks within one system without any issues. If you've previously used Docker and haven't moved to a version higher than 1.9, it's worth it for the improvements in this part alone.</p>
+<p>To allow two containers to talk to each other, we will first create a network:</p>
+<pre><strong>docker network create webnet</strong>  </pre>
+<p>I've named this network <kbd>webnet</kbd>, which will be between NGINX and the application only. In the preceding example, we can also create separate networks between the Rails application and PostgreSQL, then again for Rails and Redis. This level of isolation helps ensure there's no accidental data leakage if there is a security fault.</p>
+<p>I have installed a Redmine container (which is a project management application based on Ruby on Rails), which will benefit from a reverse proxy in front to provide SSL termination. Because of the power of Docker, we can quickly deploy a Redmine server and automatically connect it to our <kbd>webnet</kbd> network:</p>
+<pre><strong>docker run -d --name demo-redmine --net webnet redmine</strong>  </pre>
+<p>In order for NGINX to proxy the <kbd>redmine</kbd> container, first we'll need to update the proxy configuration. When added to a network, Docker's internal DNS server will automatically add the entry so that we can simply refer to the container by name. In the <kbd>default.conf</kbd>, update, the <kbd>proxy_pass</kbd> line will look like this:</p>
+<pre>proxy_pass http://redmine-demo:3000; </pre>
+<p>As previously, we'll need to rebuild our image and then run a container, this time linked to <kbd>webnet</kbd> instead of the host:</p>
+<pre><strong>docker build -t nginx-demo-proxy .</strong>
+<strong>docker run --name nginx-proxy -d --net webnet -p 443:443 nginx-demo-proxy</strong>  </pre>
+<p>When deploying the <kbd>nginx-proxy</kbd> image this time, we will also join it to the <kbd>webnet</kbd> network and then bind port <kbd>443</kbd> to the main host. Because the NGINX container is on the same network as the Redmine demo, it can explicitly access it via port <kbd>3000</kbd>, whereas the host server can't. If you have everything configured correctly, you should see the proxied connection to Redmine:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="254" src="assets/26517725-3105-460f-9b6d-fe00b53fb4c9.png" width="510"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>macOS network limitation: <a href="https://docs.docker.com/docker-for-mac/networking/#there-is-no-docker0-bridge-on-macos" target="_blank"><span class="URLPACKT">https://docs.docker.com/docker-for-mac/networking/#there-is-no-docker0-bridge-on-macos</span></a></li>
+<li><kbd>Dockerfile</kbd> best practices: <a href="https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/" target="_blank"><span class="URLPACKT">https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/</span></a></li>
+<li><kbd>Dockerfile</kbd> reference: <a href="https://docs.docker.com/engine/reference/builder/" target="_blank"><span class="URLPACKT">https://docs.docker.com/engine/reference/builder/</span></a></li>
+<li>Docker networking: <a href="https://docs.docker.com/engine/userguide/networking/" target="_blank"><span class="URLPACKT">https://docs.docker.com/engine/userguide/networking/</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Docker Compose with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>In our previous recipes, we deployed Docker containers in a singular fashion. While this is okay for smaller projects and testing, for production environments, ideally, we want this to be as repeatable as possible. This is where Docker Compose comes into the picture. Docker Compose is a tool that allows you to define multicontainer Docker applications for ease of management and ease of deployment. It does this via a single configuration file, which defines both the containers to deploy as well as the networking.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>Docker Compose is installed by default for all modern Docker installations. We'll take our Redmine deployment and convert it back into a one-command deployment process again.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To get started, we need to create a <kbd>docker-compose.yml</kbd> file. This is in YAML format, which is a simple text-based language with a strong focus on readability. Here's what our <kbd>docker-compose.yml</kbd> file looks like:</p>
+<pre>version: '3' 
+ 
+networks: 
+  webnet: 
+ 
+services: 
+  redmine: 
+    image: redmine 
+    networks: 
+      webnet: 
+        aliases: 
+          - demo-redmine 
+ 
+  nginx-proxy: 
+    build: ./ 
+    ports: 
+      - 443:443 
+    networks: 
+      - webnet </pre>
+<p>This is located in the same directory as <kbd>Dockerfile</kbd> and the previous NGINX configuration files we used. The directory naming is also important, as Docker Compose will use it to prepend the names of the containers it creates. For this recipe, I have the files located in the <kbd>composedemo</kbd> directory.</p>
+<p>With our Docker Compose configuration file, we can now build and create the containers:</p>
+<pre><strong>docker-compose up</strong>  </pre>
+<p>This will firstly build our <kbd>nginx-proxy</kbd> image and then proceed to create all the containers. You should see an output like this as the containers start:</p>
+<pre><strong>Creating network "composedemo_webnet" with the default driver</strong>
+<strong>Creating composedemo_redmine_1</strong>
+<strong>Creating composedemo_nginx-proxy_1</strong>
+<strong>Attaching to composedemo_nginx-proxy_1, composedemo_redmine_1</strong>  </pre>
+<p>The naming is reflective of the configuration we used, where it prepends the directory name, adds the container name, and then appends a sequence number.</p>
+<p>After the containers have been started, all the logs will output to the screen, and the containers will be running in the foreground. If you want to start it in the background, you can do this with the following:</p>
+<pre><strong>docker-compose run -d</strong>  </pre>
+<p>This starts the containers in the background, much like our previous recipe. They can also be stopped with one command:</p>
+<pre><strong>docker-compose stop</strong>  </pre>
+<p>With the ability to cleanly define the multicontainer deployments and then deploy with a single command, Docker Compose is an important part of the Docker ecosystem.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>The YAML configuration file for Docker Compose has a number of elements in this recipe. Firstly, we define the version number (<kbd>version: '3'</kbd>). This isn't a revision number for the individual file, but tells Docker Compose what format to expect the configuration file in.</p>
+<p>Next, we define the network (<kbd>webnet</kbd>). By default, Docker Compose will create a separate network for all the containers, but we have explicitly named it in this recipe. The reason we do this is to retain compatibility with our previous recipe.</p>
+<p>Lastly, we define our services. The first is the <kbd>redmine</kbd> service, which we create from the <kbd>redmine</kbd> image. This is then added to the webnet network, and we also alias the name of the container. Again, this is to help maintain compatibility and reduce changes. While this isn't necessary to do, the reduction in changes—if you've come from a previous configuration—can help with diagnosing any issues.</p>
+<p>The second service defined is our NGINX container, named <kbd>nginx-proxy</kbd>. Instead of using an image, we tell Docker Compose to build the container first from the current directory (<kbd>./</kbd>). Where we previously had to manually build and tag the image, Docker Compose does this automatically for us. We then map the host port <kbd>443</kbd> to the container port <kbd>443</kbd> and, like the Redmine service, we add it to the <kbd>webnet</kbd> network.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>Docker Compose documentation: <a href="https://docs.docker.com/compose/overview/" target="_blank"><span class="URLPACKT">https://docs.docker.com/compose/overview/</span></a></li>
+<li>Docker Compose file format: <a href="https://docs.docker.com/compose/compose-file/" target="_blank"><span class="URLPACKT">https://docs.docker.com/compose/compose-file/</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">NGINX load balancing with Docker</h1>
+                </header>
+            
+            <article>
+                
+<p>Once you've tackled the conversion from complex deploy scripts into neat <kbd>Dockerfile</kbd>, the next step is to deal with scale. As for most other problems, Docker has a solution for this too; scaling is one of those.</p>
+<p>While newer versions of Docker have added native load balancing, it's still quite simplistic. This makes NGINX a better choice for many uses. Since you're already familiar with the workings of NGINX, it's easily adapted to provide load balancing within a Docker environment.</p>
+<p>In a larger deployment, we'd use a more formal service discovery tool, such as <kbd>consul</kbd> or <kbd>etcd</kbd>, in order to provide more granular control. This recipe will simply use the built-in DNS capability of Docker in order to round-robin the requests.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe has been simplified to run on a single VM. In most real-world scenarios, this would be spread across multiple VMs. Here's what our test scenario looks like:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="109" src="assets/65f03933-29ba-4248-b6cc-5a49d93f55b3.png" width="441"/></div>
+<p>We're using the HTest tool, as covered back in <a href="4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml" target="_blank"><span class="ChapterrefPACKT">Chapter 8</span></a>, <em>Load Balancing</em>, as the container we want to scale and load balance.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To deploy our load-balanced platform, first we're going to create an NGINX container. Here's our <kbd>default.conf</kbd>:</p>
+<pre>server { 
+    listen              443 ssl http2; 
+    server_name         dockerdemo.nginxcookbook.com; 
+ 
+    ssl_certificate     /etc/ssl/dockerdemo.crt; 
+    ssl_certificate_key /etc/ssl/dockerdemo.key; 
+    ssl_dhparam         /etc/ssl/dh4096.pem; 
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2; 
+    ssl_ciphers         HIGH:!aNULL:!MD5; 
+ 
+    ssl_prefer_server_ciphers on; 
+    client_max_body_size 75M; 
+ 
+    location / { 
+        resolver 127.0.0.11 valid=1; 
+        set $backend "http://htestbackend:8000"; 
+        proxy_pass $backend; 
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header Host $host; 
+    } 
+} </pre>
+<p>Additional files, such as the associated SSL certificates and <kbd>Dockerfile</kbd>, are also required.</p>
+<div class="packt_infobox">These are also available directly from GitHub at <a href="https://github.com/timbutler/nginxcookbook" target="_blank"><span class="URLPACKT">https://github.com/timbutler/nginxcookbook</span></a>.</div>
+<p>As we're still using Docker Compose for the deployment, we'll also need our updated <kbd>docker-compose.yml</kbd> configuration:</p>
+<pre>version: '3' 
+ 
+networks: 
+  htestnet: 
+ 
+services: 
+  nginx-proxy: 
+    build: ./ 
+    ports: 
+      - "443:443" 
+    networks: 
+      - htestnet 
+ 
+  htest: 
+    image: timbutler/htest 
+    networks: 
+      htestnet: 
+        aliases: 
+          - htestbackend </pre>
+<p>Again, this is quite similar to our previous recipe, as the structure of what we're trying to achieve is quite similar. Once we have the configuration, we can now build and start our containers:</p>
+<pre><strong>docker-compose up -d</strong>  </pre>
+<p>This will start both the <kbd>nginx</kbd> container as well as <kbd>htest</kbd>; it will also start the associated network. If successful, you should see an output like this:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="106" src="assets/508b2b3e-efe5-4497-b22f-4e384fdf05f2.png" width="392"/></div>
+<p>By default, however, there's only one instance of <kbd>htest</kbd> running. In order to scale this, we can simply tell Docker Compose how many instances we want to run. Here's an example of this:</p>
+<pre><strong>docker-compose scale htest=4</strong>  </pre>
+<p>This will start an additional three <kbd>htest</kbd> containers:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="368" src="assets/ee88587e-08f0-487b-9cbb-9f571e722db8.png" width="328"/></div>
+<p>Because we have NGINX set to call the proxy backend by its hostname, these are now called in a basic round-robin to each of the containers. If you browse to the site, you should see the counter for <kbd>htest</kbd> jumping around as each instance serves a request.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>In our NGINX configuration (<kbd>default.conf</kbd>), we add the resolver directive (<kbd>resolver 127.0.0.11 valid=1</kbd>) that directs NGINX to use the built-in Docker DNS resolver. In order to distribute the load, setting the validity to 1 means any TTL is ignored and the result only stays valid for 1 second.</p>
+<p>Then, we set the variable <kbd>$backend</kbd> to <kbd>http://htestbackend:8000</kbd>. The use of a variable ensures that it's evaluated each time in order to have the IP address updated.</p>
+<p>Within <kbd>Dockerfile</kbd>, we have set the alias for the <kbd>htest</kbd> container to <kbd>htestbackend</kbd>. Once we call the <kbd>scale</kbd> command, this starts three additional containers. Although a unique name is allocated to each container (for example, <kbd>loadbalancer_htest_1</kbd>), the alias ensures that there's a common name. This avoids having to rewrite the configuration of NGINX each time a new system is added, giving us the ability to add additional backends without reconfiguring them.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>NGINX <kbd>resolver</kbd> directive: <a href="http://nginx.org/en/docs/http/ngx_http_core_module.html#resolver" target="_blank"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_core_module.html#resolver</span></a></li>
+<li>To know more about the <kbd>docker compose scale</kbd> command: <a href="https://docs.docker.com/compose/reference/scale/" target="_blank"><span class="URLPACKT">https://docs.docker.com/compose/reference/scale/</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    </body></html>

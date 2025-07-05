@@ -1,0 +1,288 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;2.&#xA0;Configuring Core Modules"><div class="titlepage"><div><div><h1 class="title"><a id="ch02"/>Chapter 2. Configuring Core Modules</h1></div></div></div><p>In this chapter we will explore the configuration of the <code class="literal">Main</code> and <code class="literal">Events</code> modules of Nginx, which are also called the core modules. We will discuss the module-related configuration options and important points that one needs to remember while using these options.</p><div class="section" title="Understanding the Main module"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec11"/>Understanding the Main module</h1></div></div></div><p>The Nginx <code class="literal">Main</code> module<a id="id64" class="indexterm"/> consists of the following configuration directives or commands:</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Name</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Value</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Default</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Example</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>daemon<a id="id65" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>on, off</p>
+</td><td style="text-align: left" valign="top">
+<p>on</p>
+</td><td style="text-align: left" valign="top"> </td></tr><tr><td style="text-align: left" valign="top">
+<p>master_process<a id="id66" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>on, off</p>
+</td><td style="text-align: left" valign="top">
+<p>on</p>
+</td><td style="text-align: left" valign="top"> </td></tr><tr><td style="text-align: left" valign="top">
+<p>timer_resolution<a id="id67" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>interval</p>
+</td><td style="text-align: left" valign="top">
+<p>0</p>
+</td><td style="text-align: left" valign="top">
+<p>100ms</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>pid<a id="id68" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>file</p>
+</td><td style="text-align: left" valign="top">
+<p>logs/nginx.pid</p>
+</td><td style="text-align: left" valign="top">
+<p>/var/log/nginx.pid</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>lock_file<a id="id69" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>file</p>
+</td><td style="text-align: left" valign="top">
+<p>logs/nginx.lock</p>
+</td><td style="text-align: left" valign="top">
+<p>/var/log/nginx.lock</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>worker_processes<a id="id70" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number, auto</p>
+</td><td style="text-align: left" valign="top">
+<p>1</p>
+</td><td style="text-align: left" valign="top">
+<p>2</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>debug_points<a id="id71" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>stop, abort</p>
+</td><td style="text-align: left" valign="top">
+<p>null </p>
+</td><td style="text-align: left" valign="top">
+<p>stop</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>user<a id="id72" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>user [group]</p>
+</td><td style="text-align: left" valign="top">
+<p>nobody nobody</p>
+</td><td style="text-align: left" valign="top">
+<p>www users</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>worker_priority<a id="id73" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>0</p>
+</td><td style="text-align: left" valign="top">
+<p>15</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>worker_cpu_affinity<a id="id74" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>cpu mask</p>
+</td><td style="text-align: left" valign="top"> </td><td style="text-align: left" valign="top">
+<p>0101 1010</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>worker_rlimit_nofile<a id="id75" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top"> </td><td style="text-align: left" valign="top">
+<p>1000</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>worker_rlimit_core<a id="id76" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>size</p>
+</td><td style="text-align: left" valign="top"> </td><td style="text-align: left" valign="top">
+<p>500M</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>worker_rlimit_sigpending<a id="id77" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top"> </td><td style="text-align: left" valign="top">
+<p>1000</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>working_directory<a id="id78" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>directory</p>
+</td><td style="text-align: left" valign="top">
+<p>compile time</p>
+</td><td style="text-align: left" valign="top">
+<p>/usr/local/nginx</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>env<a id="id79" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>variable = value</p>
+</td><td style="text-align: left" valign="top"> </td><td style="text-align: left" valign="top">
+<p>PERL5LIB=/data/site/modules</p>
+</td></tr></tbody></table></div><div class="section" title="Explaining directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec16"/>Explaining directives</h2></div></div></div><p>We will now discuss<a id="id80" class="indexterm"/> all the <code class="literal">Main</code> module's directives mentioned in the preceding table in detail.</p><div class="section" title="daemon"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec09"/>daemon</h3></div></div></div><p>The <code class="literal">daemon</code> directive<a id="id81" class="indexterm"/> determines if Nginx will run in the daemon mode. A daemon (or a service) is a background process that is designed to run autonomously, with little or no user intervention. Since Version 1.0.9 of Nginx, it is safe to run Nginx with this option turned off. It is not possible to do a binary upgrade of Nginx without stopping it, if this option is off.</p><p>Nginx's master process is responsible for nonstop binary upgrades. The signal that is used for this purpose is <code class="literal">SIGUSR2</code>. However, when the daemon mode is off, this signal is ignored because the master process will still have the old binary. This is unlike the daemon mode, where the parent of the new worker process is switched to the <code class="literal">Init</code> process, and therefore, you can start a new worker process with new binaries. The only reason you might want to run the daemon mode<a id="id82" class="indexterm"/> with <code class="literal">master_process</code> off would be for debugging purposes. Turning these options off will run Nginx in the foreground without a master process, and you can terminate it simply by pressing <span class="emphasis"><em>Ctrl</em></span> + <span class="emphasis"><em>R</em></span>. However, you should not run Nginx in production without the daemon mode and <code class="literal">master_process</code>.</p></div><div class="section" title="master_process"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec10"/>master_process</h3></div></div></div><p>The <code class="literal">master_process</code> directive<a id="id83" class="indexterm"/> determines if Nginx will run with a master process. It has many responsibilities in Nginx, including spawning off worker processes. Nginx will run in the single-process mode if you set <code class="literal">master_process</code> off. You<a id="id84" class="indexterm"/> should always run in production with the <code class="literal">master_process</code> option turned on. The only reason you might want to turn <code class="literal">master_process</code> off is for debugging reasons, as it might be much simpler to debug the code in a single-process mode.</p></div><div class="section" title="timer_resolution"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec11"/>timer_resolution</h3></div></div></div><p>Setting the <code class="literal">timer_resolution</code> directive<a id="id85" class="indexterm"/> will reduce the number of <code class="literal">gettimeofday()</code> system calls. Instead of doing this system call for each kernel event, <code class="literal">gettimeofday()</code> is only called once per specified interval. You might want to turn this option <a id="id86" class="indexterm"/>off if <code class="literal">gettimeofday()</code> shows up as an overhead on a busy server. You won't notice any difference on an idle server though. One good reason to use <code class="literal">timer_resolution</code> is to get the exact time in logs for the upstream response times.</p></div><div class="section" title="pid"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec12"/>pid</h3></div></div></div><p>The <code class="literal">pid</code> directive<a id="id87" class="indexterm"/> specifies the<a id="id88" class="indexterm"/> filename for the <code class="literal">PID</code> file of the master process. The default value is relative to the <code class="literal">--prefix</code> configure option.</p></div><div class="section" title="lock_file"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec13"/>lock_file</h3></div></div></div><p>The <code class="literal">lock_file</code> directive <a id="id89" class="indexterm"/>specifies the filename of the lock file. The default value is relative to<a id="id90" class="indexterm"/> the <code class="literal">--prefix</code> configure option. You can also specify this option during the compile time through the following configure script:</p><div class="informalexample"><pre class="programlisting">./configure --lock-path=/var/log/nginx.lock</pre></div></div><div class="section" title="worker_processes"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec14"/>worker_processes</h3></div></div></div><p>The <code class="literal">worker_processes</code> directive <a id="id91" class="indexterm"/>defines the maximum number of worker processes. A worker process is a single-threaded process spawned by the master process. If you set this option to <code class="literal">auto</code>, Nginx will automatically try to determine the<a id="id92" class="indexterm"/> number of CPUs/core and set this option equal to that number. The <code class="literal">auto</code> parameter is supported starting from Versions 1.3.8 and 1.2.5. If you want Nginx to only use a limited number of cores on your server, setting this value explicitly would be a good idea.</p></div><div class="section" title="debug_points"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec15"/>debug_points</h3></div></div></div><p>The <code class="literal">debug_points</code> directive is useful to debug Nginx. If you set this directive to <code class="literal">abort</code>, Nginx will produce<a id="id93" class="indexterm"/> a core dump file whenever there is an internal error. You can use this core dump file to obtain an <a id="id94" class="indexterm"/>error trace in a system debugger such as <code class="literal">gdb</code>. In order to obtain the core dump file, you will also need to configure the <code class="literal">working_rlimit_core</code> and <code class="literal">working_directory</code> directives.</p><p>If this directive is set to <code class="literal">stop</code>, any internal error will lead to the stopping of the process.</p></div><div class="section" title="user"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec16"/>user</h3></div></div></div><p>The <code class="literal">user</code> directive is used to<a id="id95" class="indexterm"/> specify the user and the group of the worker processes.<a id="id96" class="indexterm"/> If no group name is specified, the same group name as that of the user is used. You can override the default nobody nobody by specifying the user and the group with the following <code class="literal">configure</code> script:</p><div class="informalexample"><pre class="programlisting">./configure --user=www --group=users</pre></div></div><div class="section" title="worker_priority"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec17"/>worker_priority</h3></div></div></div><p>The <code class="literal">worker_priority</code> directive<a id="id97" class="indexterm"/> allows you to set the nice priority of the<a id="id98" class="indexterm"/> worker processes. Nginx will use the <code class="literal">setpriority()</code> system call to set the priority. Setting the priority to a lower value can result in favorable scheduling of the worker processes.</p><p>The actual priority range varies between kernel versions. Before 1.3.36, Linux had a range from –infinity to 15. Since kernel 1.3.43, Linux has the range from -20 to 19. On some systems, the range of nice values is from -20 to 20.</p></div><div class="section" title="worker_cpu_affinity"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec18"/>worker_cpu_affinity</h3></div></div></div><p>The <code class="literal">worker_cpu_affinity</code> directive<a id="id99" class="indexterm"/> allows you to set the affinity masks for the worker processes. Affinity masks are bit masks, which can bind a process to a certain CPU. This can lead to better performance on some systems such as <a id="id100" class="indexterm"/>Windows, where several system processes are restricted to the first CPU/core. Therefore, excluding the first CPU/core can lead to better performance. We can bind each worker process to a different CPU with the following code snippet:</p><div class="informalexample"><pre class="programlisting">worker_processes    4;
+worker_cpu_affinity 0001 0010 0100 1000;</pre></div><p>You can set the CPU affinity value to up to 64 CPU/core.</p></div><div class="section" title="worker_rlimit_nofile"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec19"/>worker_rlimit_nofile</h3></div></div></div><p>The <code class="literal">worker_rlimit_nofile</code> directive <a id="id101" class="indexterm"/>sets the maximum limit on open files (<code class="literal">RLIMIT_NOFILE</code>) that a worker process can use. When this directive is set, the <code class="literal">setrlimit()</code><a id="id102" class="indexterm"/> system call is used to set the resource limit. Any attempt to exceed this limit will result in an error <code class="literal">EFILE</code> (signifying too many open files).</p></div><div class="section" title="worker_rlimit_core"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec20"/>worker_rlimit_core</h3></div></div></div><p>The <code class="literal">worker_rlimit_core</code> directive<a id="id103" class="indexterm"/> sets the maximum size of the core dump file created by a worker process. When this<a id="id104" class="indexterm"/> option is set, the <code class="literal">setrlimit()</code> system call is used to set the resource limit of the file size. When this option is <code class="literal">0</code>, no core dump files are created.</p></div><div class="section" title="worker_rlimit_sigpending"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec21"/>worker_rlimit_sigpending</h3></div></div></div><p>The <code class="literal">worker_rlimit_sigpending</code> <a id="id105" class="indexterm"/>directive specifies the limit on the number of signals that may be queued for the real user ID of the calling process. If you are using a Linux kernel version newer than 2.6.6, it will support real-time signals (<code class="literal">rtsig</code>), and each process will have its own queue as opposed to a system-wide queue<a id="id106" class="indexterm"/> in the earlier implementations. When this option is set, a <code class="literal">setrlimit()</code> system call is used to set the resource limit <code class="literal">RLIMIT_SIGPENDING</code>. In order to enforce this limit, both standard and real-time signals are counted.</p></div><div class="section" title="working_directory"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec22"/>working_directory</h3></div></div></div><p>The <code class="literal">working_directory</code> directive<a id="id107" class="indexterm"/><a id="id108" class="indexterm"/> specifies the path where the core dump files are created. This path should be an absolute path. You must make sure that the user or group specified via the <code class="literal">user</code> option has a write permission in this folder.</p></div><div class="section" title="env"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec23"/>env</h3></div></div></div><p>The <code class="literal">env</code> directive<a id="id109" class="indexterm"/> allows you to<a id="id110" class="indexterm"/> set some environment variables, which will be inherited by the worker processes. If you set some environment variables on a shell, they will be erased by Nginx, except <code class="literal">TZ</code>. This directive allows you to preserve some of the inherited variables, change their values, or create new environment variables. The environment variable <code class="literal">NGINX</code> is used internally by the server and should not be set by the user.</p><p>If you specify an<a id="id111" class="indexterm"/> environment variable's name without specifying its value, the value from the parent process, that is, the shell will be retained by Nginx. But if you specify a value as well, this new value will be used by the server.</p><div class="informalexample"><pre class="programlisting">env MALLOC_OPTIONS;
+env PERL5LIB=/data/site/modules;
+env OPENSSL_ALLOW_PROXY_CERTS=1;</pre></div><p>In the preceding code snippet, the value of the environment variable <code class="literal">MALLOC_OPTIONS</code> is retained from the parent process, while the other two environment variables are defined or redefined and any value set by the parent process is wiped off.</p></div></div></div></div>
+<div class="section" title="Understanding the Events module"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec12"/>Understanding the Events module</h1></div></div></div><p>The <code class="literal">Events</code> module<a id="id112" class="indexterm"/> deals with the configuration of <code class="literal">epoll</code>, <code class="literal">kqueue</code>, <code class="literal">select</code>, <code class="literal">poll</code>, and more. This module consists of the following directives:</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Name</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Value</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Default</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Example</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>accept_mutex<a id="id113" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>on, off</p>
+</td><td style="text-align: left" valign="top">
+<p>on</p>
+</td><td style="text-align: left" valign="top">
+<p>off</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>accept_mutex_delay<a id="id114" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>interval (ms)</p>
+</td><td style="text-align: left" valign="top">
+<p>500ms</p>
+</td><td style="text-align: left" valign="top">
+<p>500ms</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>debug_connection<a id="id115" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>ip, cidr</p>
+</td><td style="text-align: left" valign="top">
+<p>none</p>
+</td><td style="text-align: left" valign="top">
+<p>192.168.1.1</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>devpoll_changes<a id="id116" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>32</p>
+</td><td style="text-align: left" valign="top">
+<p>64</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>devpoll_events<a id="id117" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>32</p>
+</td><td style="text-align: left" valign="top">
+<p>64</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>kqueue_changes<a id="id118" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>512</p>
+</td><td style="text-align: left" valign="top">
+<p>512</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>kqueue_events<a id="id119" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>512</p>
+</td><td style="text-align: left" valign="top">
+<p>512</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>epoll_events<a id="id120" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>512</p>
+</td><td style="text-align: left" valign="top">
+<p>512</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>multi_accept<a id="id121" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>on, off</p>
+</td><td style="text-align: left" valign="top">
+<p>off</p>
+</td><td style="text-align: left" valign="top">
+<p>on</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>rtsig_signo<a id="id122" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>signal number</p>
+</td><td style="text-align: left" valign="top">
+<p>SIGRTMIN+10</p>
+</td><td style="text-align: left" valign="top"> </td></tr><tr><td style="text-align: left" valign="top">
+<p>rtsig_overflow_events<a id="id123" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>16</p>
+</td><td style="text-align: left" valign="top">
+<p>24</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>rtsig_overflow_test<a id="id124" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>32</p>
+</td><td style="text-align: left" valign="top">
+<p>40</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>rtsig_overflow_threshold<a id="id125" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>10</p>
+</td><td style="text-align: left" valign="top">
+<p>3</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>use<a id="id126" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Kqueue, rtsig, epoll, /dev/poll, select</p>
+</td><td style="text-align: left" valign="top">
+<p>decided by the configure script</p>
+</td><td style="text-align: left" valign="top">
+<p>rtsig</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>worker_connections<a id="id127" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>number</p>
+</td><td style="text-align: left" valign="top">
+<p>512</p>
+</td><td style="text-align: left" valign="top">
+<p>200</p>
+</td></tr></tbody></table></div><div class="section" title="Explaining directives"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec17"/>Explaining directives</h2></div></div></div><p>We will now discuss the <a id="id128" class="indexterm"/>
+<code class="literal">Events</code> module's directives summarized in the preceding table, in detail.</p><div class="section" title="accept_mutex"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec24"/>accept_mutex</h3></div></div></div><p>The <code class="literal">accept_mutex</code> directive tries to prevent workers from competing over <code class="literal">accept()</code> for listing sockets (in the kernel). In other words, without <code class="literal">accept_mutex</code>, workers may try to simultaneously check for new<a id="id129" class="indexterm"/> events on sockets, which may lead to a slight increase in the CPU usage. Depending on your OS and the event-notification <a id="id130" class="indexterm"/>mechanisms, the results may vary. If you are using <code class="literal">rtsig</code> as the signal-processing mechanism, this option needs to be enabled.</p></div><div class="section" title="accept_mutex_delay"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec25"/>accept_mutex_delay</h3></div></div></div><p>As enabling <code class="literal">accept_mutex</code> serializes the <code class="literal">accept()</code> call from worker processes, that is, one worker process does one <a id="id131" class="indexterm"/>
+<code class="literal">accept</code> at a time, the <code class="literal">accept_mutex_delay</code> directive determines how long the other worker processes <a id="id132" class="indexterm"/>will wait before they are ready to accept new connections while another process is already doing it.</p></div><div class="section" title="debug_connection"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec26"/>debug_connection</h3></div></div></div><p>In order to use the <code class="literal">debug_connection</code> directive, Nginx needs to be built with the --<a id="id133" class="indexterm"/>
+<code class="literal">debug-enabled</code> option <a id="id134" class="indexterm"/>while running the configure script. You can specify the IPv4 or IPv6 address of the clients for which the <a id="id135" class="indexterm"/>debugging log will be enabled. You can also provide a domain name or unix: for Unix domain socket connections. The log level for the rest of the clients is determined through the <code class="literal">error_log</code> option. The debug log is written to the logfile specified in the <code class="literal">error_log</code> option as defined in the following code snippet:</p><div class="informalexample"><pre class="programlisting">error_log /var/log/nginx-error.log;
+events {
+    debug_connection 127.0.0.1;
+    debug_connection localhost;
+    debug_connection 192.0.2.0/24;	
+    debug_connection ::1;
+    debug_connection 2001:0db8::/32;
+    debug_connection unix:;
+    ...
+}</pre></div></div><div class="section" title="devpoll_changes and devpoll_events"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec27"/>devpoll_changes and devpoll_events</h3></div></div></div><p>The <code class="literal">/dev/poll</code> directive is an efficient method used in Solaris 7 11/99+, HP/UX 11.22+ (eventport), IRIX 6.5.15+, and Tru64 UNIX 5.1A+. The <code class="literal">devpoll_changes</code> and <code class="literal">devpoll_events</code> parameters <a id="id136" class="indexterm"/>define the number of changes and<a id="id137" class="indexterm"/> events that can move to and from <a id="id138" class="indexterm"/>the kernel.<a id="id139" class="indexterm"/> Nginx only writes the <code class="literal">devpoll_changes</code> or <code class="literal">devpoll_events</code> number of events and changes to <code class="literal">/dev/poll</code> at a time while processing events.</p></div><div class="section" title="kqueue_changes and kqueue_events"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec28"/>kqueue_changes and kqueue_events</h3></div></div></div><p>The <code class="literal">kqueue</code> directive is an efficient event-notification interface used in FreeBSD 4.1+, OpenBSD 2.9+,<a id="id140" class="indexterm"/> NetBSD 2.0, and Mac OS X. It provides efficient input and output event pipelines between the <code class="literal">kernel</code> and <code class="literal">user</code> processes. It is possible to <a id="id141" class="indexterm"/>receive pending events while using only a single system call <code class="literal">kevent()</code>. This contrasts with older traditional polling system calls such as <code class="literal">poll</code> and <code class="literal">select</code>, which <a id="id142" class="indexterm"/>are less <a id="id143" class="indexterm"/>efficient, especially while polling for events on a large number of file descriptors. Other advanced event mechanisms such as <code class="literal">/dev/poll</code> and <code class="literal">epoll</code> allow you to do the same.</p><p>These parameters control how many changes and events are passed at a time to the <code class="literal">kevent()</code> system call.</p></div><div class="section" title="epoll_events"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec29"/>epoll_events</h3></div></div></div><p>The <code class="literal">epoll_events</code> directive<a id="id144" class="indexterm"/> is an efficient event-notification method used in Linux 2.6+. There are patches present to port this functionality to older kernels <a id="id145" class="indexterm"/>as well. This parameter determines the buffer size where the events are returned at a time before they are processed.</p></div><div class="section" title="multi_accept"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec30"/>multi_accept</h3></div></div></div><p>The worker process will try to <a id="id146" class="indexterm"/>accept all or as many<a id="id147" class="indexterm"/> incoming connections as possible when the <code class="literal">multi_accept</code> directive is enabled. Turning this option off will result in worker processes only accepting one connection at a time. This option is ignored if the <code class="literal">kqueue_events</code> notification method is used. If you use the <code class="literal">rtsig</code> method, this option is automatically enabled. By default, <a id="id148" class="indexterm"/>this option is turned off. It can be a high-performance tweak; however, the bad thing with <code class="literal">multi_accept</code> is that if you have a constant stream of incoming<a id="id149" class="indexterm"/> connections at a high rate, it may overflow your <code class="literal">worker_connections</code> directive without any chance of processing the already-accepted connections.</p></div><div class="section" title="rtsig_signo"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec31"/>rtsig_signo</h3></div></div></div><p>Linux supports 32 real-time signals, numbered from 32 (<code class="literal">SIGRTMIN</code>) to 63 (<code class="literal">SIGRTMAX</code>). Programs should always refer to real-time signals using the notation <code class="literal">SIGRTMIN+n</code>, since the range of <a id="id150" class="indexterm"/>real-time signal numbers varies across *nix platforms. Nginx uses two signals when the <code class="literal">rtsig</code> method is used. The directive <a id="id151" class="indexterm"/>specifies the first signal number. The second signal number is one more than the first signal number. By default, <code class="literal">rtsig_signo</code> is SIGRTMIN+10 (42), and the second signal number in this case would be 43.</p></div><div class="section" title="rtsig_overflow_events, rtsig_overflow_test, and rtsig_overflow_threshold"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec32"/>rtsig_overflow_events, rtsig_overflow_test, and rtsig_overflow_threshold</h3></div></div></div><p>The <code class="literal">rtsig_overflow_events</code>, <code class="literal">rtsig_overflow_test</code>, and <code class="literal">rtsig_overflow_threshold</code> directives define how the queue overflow is handled while using real-time signals. When overflow <a id="id152" class="indexterm"/>occurs, Nginx flushes the <code class="literal">rtsig</code> queue, then handles the switching of events between <code class="literal">poll()</code> and <code class="literal">rtsig poll()</code>, and handles all the<a id="id153" class="indexterm"/> unhandled events <a id="id154" class="indexterm"/>consecutively, <a id="id155" class="indexterm"/>while <code class="literal">rtsig</code> periodically drains the queues to prevent a new overflow. When the overflow is handled completely, Nginx switches to the <code class="literal">rtsig</code> method <a id="id156" class="indexterm"/>again.</p><p>The <code class="literal">rtsig_overflow_events</code> directive <a id="id157" class="indexterm"/>specifies the number of events to be passed via <code class="literal">poll()</code>.</p><p>The <code class="literal">rtsig_overflow_test</code> directive specifies the number of events handled by <code class="literal">poll()</code>, after which, Nginx will drain the <code class="literal">rtsig</code> queue.</p><p>The <code class="literal">rtsig_overflow_threshold</code> directive works in Linux 2.4.x only. Before draining the <code class="literal">rtsig</code> queue, Nginx looks at the extent to which the queue has been filled up. The default is 1/10. <code class="literal">rtsig_overflow_threshold 3</code> means a value of 1/3.</p></div><div class="section" title="use"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec33"/>use</h3></div></div></div><p>The <code class="literal">use</code> directive specifies the event-notification method that should be used (<code class="literal">kqueue</code>, epoll, and more). This<a id="id158" class="indexterm"/> is useful for platforms where multiple options are available. During the configuration<a id="id159" class="indexterm"/> time, the best method for event notification is selected automatically, so in most cases, you don't need to set this directive.</p></div><div class="section" title="worker_connections"><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl3sec34"/>worker_connections</h3></div></div></div><p>The <code class="literal">worker_connections</code> directive specifies the maximum number of simultaneous connections that can be opened by a worker process.</p><p>It should be kept in mind that<a id="id160" class="indexterm"/> this number includes<a id="id161" class="indexterm"/> all the connections and not just the client connections. Another consideration is that the actual number of simultaneous connections should not exceed the current limit on the maximum number of open files that can be changed by <code class="literal">worker_rlimit_nofile</code>.</p></div></div></div>
+<div class="section" title="Summary"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec13"/>Summary</h1></div></div></div><p>In this chapter, we have looked at the configuration details of the two core modules of Nginx, that is, the <code class="literal">Main</code> and <code class="literal">Events</code> modules. These modules can't be opted out of, and you can't disable them. So, we went through each option and the suitable situations to use them.</p><p>In the next chapter, we will look at installing and configuring HTTP modules and the configuration options related to those modules.</p></div></body></html>

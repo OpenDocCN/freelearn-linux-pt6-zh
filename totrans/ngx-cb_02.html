@@ -1,0 +1,794 @@
+<html><head></head><body>
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Common PHP Scenarios</h1>
+                </header>
+            
+            <article>
+                
+<p>In this chapter, we will cover the following recipes:</p>
+<ul>
+<li>Configuring NGINX for WordPress</li>
+<li>WordPress multisite with NGINX</li>
+<li>Running Drupal using NGINX</li>
+<li>Using NGINX with MediaWiki</li>
+<li>Using Magento with NGINX</li>
+<li>Configuring NGINX for Joomla</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Introduction</h1>
+                </header>
+            
+            <article>
+                
+<p>PHP is a thoroughly tested product to use with NGINX because it is the most popular web-based programming language. It powers sites, such as Facebook, Wikipedia, and every WordPress-based site, and its popularity hasn't faded as other languages have grown.</p>
+<p>In this chapter, we'll go through examples of the more common PHP scenarios and how to implement them with NGINX. As WordPress is the most popular of the PHP systems, I've included some additional information to help with troubleshooting. Even if you're not using WordPress, some of this information may be helpful if you run into issues with other PHP frameworks.</p>
+<p>Most of the recipes expect that you have a working understanding of PHP systems, so not all of the setup steps for the systems will be covered. This is to keep the book succinct and allow the focus to be on the NGINX components.</p>
+<p>In order to keep the configurations as simple as possible, I haven't included details such as cache headers or SSL configurations in these recipes. This will be covered in later chapters and the full working configurations will be made available via <a href="https://github.com/timbutler/nginxcookbook/" target="_blank">https://github.com/timbutler/nginxcookbook/</a>.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Configuring NGINX for WordPress</h1>
+                </header>
+            
+            <article>
+                
+<p>Covering nearly 30 percent of all websites, WordPress is certainly the <strong>Content Management System</strong> (<strong>CMS</strong>) of choice by many. Although it came from a blogging background, WordPress is a very powerful CMS for all content types and powers some of the world's busiest websites.</p>
+<p>By combining it with NGINX, you can deploy a highly scalable web platform.</p>
+<div class="packt_infobox">You can view the official WordPress documentation on NGINX at <a href="https://codex.wordpress.org/Nginx" target="_blank"><span class="URLPACKT">https://codex.wordpress.org/Nginx</span></a>.</div>
+<p>We'll also cover some of the more complex WordPress scenarios, including multisite configurations with subdomains and directories.</p>
+<p>Let's get started.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>To compile PHP code and run it via NGINX, the preferred method is via <strong>PHP-FPM</strong>, a high-speed <strong>FastCGI Process Manager</strong>. We'll also need to install PHP itself and, for the sake of simplicity, we'll stick with the OS-supplied version. Those seeking the highest possible performance should ensure they're running PHP 7 (released December 3, 2015), which can offer a 2-3 times speed improvement for WordPress, while at the same time being up to four times more memory efficient compared to PHP 5.6.</p>
+<p>To install PHP-FPM, you should run the following on a Debian/Ubuntu system:</p>
+<pre><strong>apt-get install php7.0-fpm</strong></pre>
+<p>For those running CentOS/RHEL, you should run the following:</p>
+<pre><strong>sudo yum install php-fpm</strong> </pre>
+<p>As PHP itself is a prerequisite for the <kbd>php-fpm</kbd> packages, it will also be installed.</p>
+<div class="packt_infobox"><span class="packt_screen">Note</span>: Other packages such as MySQL will be required if you're intending to run this on a single VPS instance. Consult the WordPress documentation for a full list of requirements.</div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>In this instance, we're simply using a standalone WordPress site, which would be deployed in many personal and business scenarios. This is the typical deployment for WordPress.</p>
+<p>For ease of management, I've created a dedicated config file just for the WordPress site (<kbd>/etc/nginx/conf.d/wordpress.conf</kbd>):</p>
+<pre>server { 
+    listen       80; 
+    server_name  wordpressdemo.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/access.log  combined; 
+ 
+    location / { 
+        root   /var/www/html; 
+        try_files $uri $uri/ /index.php?$args;     
+    } 
+ 
+    location ~ \.php$ { 
+        fastcgi_pass unix:/var/run/php7.0-fpm.sock; 
+        fastcgi_index index.php; 
+        fastcgi_param SCRIPT_FILENAME <br/>         $document_root$fastcgi_script_name; 
+        include fastcgi_params; 
+    } 
+} </pre>
+<p>Reload NGINX to read the new configuration file and check your log files if there are any errors. If you're installing WordPress from scratch, you should see the following:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="399" src="assets/97343223-e9bd-4a84-a499-29edbe25d83d.png" width="503"/></div>
+<p>You can complete the WordPress installation if you haven't already.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>For the most part, the configuration is the same as the static website configuration in <a href="69685f00-24c3-428c-b607-01a4e9a2784d.xhtml"><span class="ChapterrefPACKT">Chapter 1</span></a>, <em>Let's Get Started</em>. For the root URL call, we have a new <kbd>try_files</kbd> directive, which will attempt to load the files in the order specified, but will fall back to the last parameter if they all fail.</p>
+<p>For this WordPress example, it means that any static files will be served if they exist on the system, then fall back to <kbd>/index.php?args</kbd> if this fails.</p>
+<p>The <kbd>args</kbd> rewrite allows the permalinks of the site to be in a much more human form. For example, if you have a working WordPress installation, you can see links such as the one shown in the following screenshot:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="611" src="assets/2fe479db-b80f-4f6a-9d61-568023f1b092.png" width="695"/></div>
+<p>Lastly, we process all PHP files via the FastCGI interface to PHP-FPM. In the preceding example, we're referencing the Ubuntu/Debian standard; if you're running CentOS/RHEL, then the path will be <kbd>/var/run/php-fpm.sock</kbd>.</p>
+<p>NGINX is simply <em>proxying</em> the connection to the PHP-FPM instance, rather than being part of NGINX itself. This separation allows for greater resource control, especially since the number of incoming requests to the web server doesn't necessarily match the number of PHP requests for a typical website.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>Take care when copying and pasting any configuration files. It's very easy to miss something and have one thing slightly different in your environment, which will cause issues with the website working as expected. Here's a quick lookup table of various other issues which you may come across:</p>
+<table class="MsoTableGrid">
+<tbody>
+<tr>
+<td>
+<p><strong>Error</strong></p>
+</td>
+<td>
+<p><strong>What to check</strong></p>
+</td>
+</tr>
+<tr>
+<td>
+<p><kbd>502 Bad Gateway</kbd></p>
+</td>
+<td>
+<p>File ownership permissions for the PHP-FPM socket file</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><kbd>404 File Not Found</kbd></p>
+</td>
+<td>
+<p>Check for the missing <kbd>index index.php</kbd> directive</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><kbd>403 Forbidden</kbd></p>
+</td>
+<td>
+<p>Check for the correct path in the <kbd>root</kbd> directive and/or check for correct file permissions</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<p>Your error log (defaults to <kbd>/var/log/nginx/error.log</kbd>) will generally contain a lot more detail regarding the issue you're seeing compared with what's displayed in the browser. Make sure you check the error log if you receive any errors.</p>
+<div class="packt_infobox"><span class="packt_screen">Hint</span>: NGINX does not support <kbd>.htaccess</kbd> files. If you see examples on the web referencing a <kbd>.htaccess</kbd> files, these are Apache specific. Make sure any configurations you're looking at are for NGINX.</div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">WordPress multisite with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>WordPress <strong>multisites</strong> (also referred to as network sites) allow you to run multiple websites from the one codebase. This can reduce the management burden of having separate WordPress installations when you have similar sites. For example, if you have a sporting site with separate news and staff for different regions, you can use a multisite installation to accomplish this.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To convert a WordPress site into a multisite, you need to add the configuration variable into your config file <kbd><span>wp-config.php</span></kbd>:</p>
+<pre>define( 'WP_ALLOW_MULTISITE', true ); </pre>
+<p>Under the <span class="packt_screen">Tools</span> menu, you'll now see an extra menu called <span class="packt_screen">Network Setup</span>. This will present you with two main options, <span class="packt_screen">Sub-domains</span> and <span class="packt_screen">Sub-directories</span>. These are the two different ways the multisite installation will work. The <span class="packt_screen">Sub-domains</span> option has the sites separated by domain names, for example, <kbd>site1.nginxcookbook.com</kbd> and <kbd>site2.nginxcookbook.com</kbd>. The <span class="packt_screen">Sub-directories</span> option means that the sites are separated by directories, for example, <kbd>www.nginxcookbook.com/site1</kbd> and <kbd>www.nginxcookbook.com/site2</kbd>.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="257" src="assets/e7d47de1-4a62-4648-82cc-38dc9029d73e.png" width="544"/></div>
+<p>There's no functional difference between the two, it's simply an aesthetic choice. However, once you've made your choice, you cannot return to the previous state.</p>
+<p>Once you've made the choice, it will then provide the additional code to add to your <kbd>wp-config.php</kbd> file.</p>
+<p>Here's the code for my example, which is subdirectory based:</p>
+<pre>define('MULTISITE', true); 
+define('SUBDOMAIN_INSTALL', false); 
+define('DOMAIN_CURRENT_SITE', 'wordpress.nginxcookbook.com'); 
+define('PATH_CURRENT_SITE', '/'); 
+define('SITE_ID_CURRENT_SITE', 1); 
+define('BLOG_ID_CURRENT_SITE', 1); </pre>
+<p>Because NGINX doesn't support <kbd>.htaccess</kbd> files, the second part of the WordPress instructions will <em>not</em> work. Instead, we need to modify the NGINX configuration to provide the rewrite rules ourselves.</p>
+<p>In the existing <kbd>/etc/nginx/conf.d/wordpress.conf</kbd> file, you'll need to add the following just after the <kbd>location /</kbd> directive:</p>
+<pre>if (!-e $request_filename) { 
+    rewrite /wp-admin$ $scheme://$host$uri/ permanent; 
+    rewrite ^(/[^/]+)?(/wp-.*) $2 last;                      
+    rewrite ^(/[^/]+)?(/.*\.php) $2 last;                    
+} </pre>
+<p>Although the <kbd>if</kbd> statements are normally avoided if possible, in this instance, it will ensure the subdirectory multisite configuration works as expected. If you're expecting a few thousand concurrent users on your site, then it may be worthwhile investigating the static mapping of each site. There are plugins to assist with the map generations for this, but they are still more complex compared to the <kbd>if</kbd> statement.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Subdomains</h1>
+                </header>
+            
+            <article>
+                
+<p>If you've selected subdomains, your code to put in <kbd>wp-config.php</kbd> will look like this:</p>
+<pre>define('MULTISITE', true); 
+define('SUBDOMAIN_INSTALL', true); 
+define('DOMAIN_CURRENT_SITE', 'wordpressdemo.nginxcookbook.com'); 
+define('PATH_CURRENT_SITE', '/'); 
+define('SITE_ID_CURRENT_SITE', 1); 
+define('BLOG_ID_CURRENT_SITE', 1); </pre>
+<p>You'll also need to modify the NGINX config as well to add in the wildcard for the server name:</p>
+<pre>server_name  *.wordpressdemo.nginxcookbook.com wordpressdemo.nginxcookbook.com; </pre>
+<p>You can now add in the additional sites, such as <kbd>site1.wordpressdemo.nginxcookbook.com</kbd>, and there won't be any changes required for NGINX.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>NGINX recipe page: <a href="https://www.nginx.com/resources/wiki/start/topics/recipes/wordpress/" target="_blank"><span class="URLPACKT">https://www.nginx.com/resources/wiki/start/topics/recipes/wordpress/</span></a></li>
+<li>WordPress Codex page: <a href="https://codex.wordpress.org/Nginx" target="_blank"><span class="URLPACKT">https://codex.wordpress.org/Nginx</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Running Drupal using NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>With version 8 recently released and a community of over 1 million supporters, Drupal remains a popular choice when it comes to a highly flexible and functional CMS platform. Version 8 has over 200 new features compared to version 7, aimed at improving both the usability and manageability of the system. This cookbook will be using version 8.0.5.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="454" src="assets/cb1217cd-6355-4aaf-b64e-3037736eff35.png" width="619"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This example assumes you already have a working instance of Drupal or are familiar with the installation process. You can also follow the installation guide available at <a href="https://www.drupal.org/documentation/install" target="_blank"><span class="URLPACKT">https://www.drupal.org/documentation/install</span></a>.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe is for a basic Drupal configuration, with the Drupal files located in <kbd>/var/www/html</kbd>.</p>
+<p>Here's the configuration to use:</p>
+<pre>server { 
+    listen       80; 
+    server_name  drupal.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/drupal.access.log  combined; 
+    index index.php; 
+ 
+    root   /var/www/html/; 
+ 
+    location / { 
+        try_files $uri $uri/ /index.php?$args; 
+    } 
+ 
+    location ~ (^|/)\. { 
+        return 403; 
+    } 
+ 
+    location ~ /vendor/.*\.php$ { 
+        deny all; 
+        return 404; 
+    } 
+ 
+    location ~ \.php$|^/update.php { 
+        fastcgi_pass unix:/var/run/php7.0-fpm.sock; 
+        fastcgi_split_path_info ^(.+?\.php)(|/.*)$; 
+        fastcgi_index index.php; 
+        fastcgi_param SCRIPT_FILENAME <br/>         $document_root$fastcgi_script_name; 
+        include fastcgi_params; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Based on a simple PHP-FPM structure, we make a few key changes specific to the Drupal environment. The first change is as follows:</p>
+<pre>location ~ (^|/)\. { 
+    return 403; 
+} </pre>
+<p>We put a block in for any files beginning with a dot, which are normally hidden and/or system files. This is to prevent accidental information leakage:</p>
+<pre>location ~ /vendor/.*\.php$ { 
+    deny all; 
+    return 404; 
+} </pre>
+<p>Any PHP file within the <kbd>vendor</kbd> directory is also blocked, as they shouldn't be called directly. Blocking the PHP files limits any potential exploit opportunity which could be discovered in third-party code.</p>
+<p>Lastly, Drupal 8 changed the way the PHP functions are called for updates, which causes any old configuration to break. The <kbd>location</kbd> directive for the PHP files looks like this:</p>
+<pre>location ~ \.php$|^/update.php { </pre>
+<p>This is to allow the distinct pattern that Drupal uses, where the PHP filename could be midway through the URI.</p>
+<p>We also modify how the FastCGI process splits the string, so that we ensure we always get the correct answer:</p>
+<pre>fastcgi_split_path_info ^(.+?\.php)(|/.*)$; </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>NGINX recipe: <a href="https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/" target="_blank"><span class="URLPACKT">https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Using NGINX with MediaWiki</h1>
+                </header>
+            
+            <article>
+                
+<p>MediaWiki, most recognized by its use with Wikipedia, is the most popular open source wiki platform available. With features heavily focused on the ease of editing and sharing content, MediaWiki makes a great system to store information you want to continually edit:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="389" src="assets/b64f4aa7-06a7-4aef-a473-5a411392cff9.png" width="636"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This example assumes you already have a working instance of MediaWiki or are familiar with the installation process. For those unfamiliar with the process, it's available online at <a href="https://www.mediawiki.org/wiki/Manual:Installation_guide" target="_blank"><span class="URLPACKT">https://www.mediawiki.org/wiki/Manual:Installation_guide</span></a>.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>The basic NGINX configuration for MediaWiki is very similar to many other PHP platforms. It has a flat directory structure which easily runs with basic system resources.</p>
+<p>Here's the configuration:</p>
+<pre>server { 
+    listen       80; 
+    server_name  mediawiki.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/mediawiki.access.log  combined; 
+    index index.php; 
+ 
+    root   /var/www/html/; 
+ 
+    location / { 
+        try_files $uri $uri/ /index.php?$args; 
+    } 
+ 
+    location ~ \.php$ { 
+        fastcgi_pass unix:/var/run/php7.0-fpm.sock; 
+        fastcgi_index index.php; 
+        fastcgi_param SCRIPT_FILENAME <br/>         $document_root$fastcgi_script_name; 
+        include fastcgi_params; 
+    } 
+} </pre>
+<p>The default installation doesn't use any rewrite rules, which means you'll get URLs such as <kbd>index.php?title=Main_Page</kbd> instead of the neater (and more readable) <kbd>/wiki/Main_Page</kbd>. To enable this, we need to edit the <kbd>LocalSettings.php</kbd> file and add the following lines:</p>
+<pre>$wgArticlePath = "/wiki/$1"; 
+$wgUsePathInfo = TRUE; </pre>
+<p>This allows the URLs to be rewritten in a much neater format.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>NGINX recipe: <a href="https://www.nginx.com/resources/wiki/start/topics/recipes/mediawiki/" target="_blank"><span class="URLPACKT">https://www.nginx.com/resources/wiki/start/topics/recipes/mediawiki</span>/</a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Using Magento with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>With nearly 30 percent market share, Magento is the most popular e-commerce platform in the world. Due to a number of features and complexity, it's also a very resource-intensive system to use compared to a lightweight alternative. This means that NGINX is an ideal pairing to ensure you have the highest performance possible.</p>
+<p>The latest major version of Magento is 2.0, which was nearly a complete rewrite compared to the previous versions. There's still quite a bit of complexity involved too, so make sure that you're ready to take on Magento if you've chosen it for your e-commerce platform:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="368" src="assets/cae24b63-9891-44bb-bd8a-8efd418dc58c.png" width="626"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This guide assumes you're familiar with the installation of Magento 2.0 and have a working instance. Although there shouldn't be too many major changes, this recipe has been tested with version 2.0.2.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Thankfully, Magento provides a fairly functional NGINX sample configuration (located in the root of the Magento source folder) to get started with. I've located the files within the <kbd>/var/www/html</kbd> directory, which will be known as <kbd>MAGE_ROOT</kbd>.</p>
+<p>Magento provides a basic configuration out of the box, which only requires a few small changes. However, I prefer to use my own configuration which I find easier to follow. Here's how I do it:</p>
+<pre>server { 
+    listen       80; 
+    server_name  magento.nginxcookbook.com; 
+    set $MAGE_ROOT /var/www/html; 
+ 
+    access_log  /var/log/nginx/magento.access.log  combined; 
+    index index.php; 
+ 
+    root   $MAGE_ROOT/pub/; 
+ 
+    location / { 
+        try_files $uri $uri/ /index.php?$args; 
+    } 
+    location ~ ^/(setup|update) { 
+        root $MAGE_ROOT; 
+        location ~ ^/(setup|update)/index.php { 
+            fastcgi_pass   unix:/var/run/php7.0-fpm.sock; 
+            fastcgi_index  index.php; 
+            fastcgi_param  SCRIPT_FILENAME  <br/>             $document_root$fastcgi_script_name; 
+            include        fastcgi_params; 
+        } 
+ 
+        location ~ ^/(setup|update)/(?!pub/). { 
+            deny all; 
+        } 
+ 
+        location ~ ^/(setup|update)/pub/ { 
+            add_header X-Frame-Options "SAMEORIGIN"; 
+        } 
+    } 
+ 
+    location /static/ { 
+        expires max; 
+ 
+        if (!-f $request_filename) { 
+            rewrite ^/static/(version\d*/)?(.*)$ <br/>             /static.php?resource=$2 last; 
+        } 
+        add_header X-Frame-Options "SAMEORIGIN"; 
+    } 
+ 
+    location /media/ { 
+        try_files $uri $uri/ /get.php?$args; 
+ 
+        location ~ ^/media/theme_customization/.*\.xml { 
+            deny all; 
+        } 
+ 
+        add_header X-Frame-Options "SAMEORIGIN"; 
+    } 
+ 
+    location ~ \.php$ { 
+        fastcgi_pass unix:/var/run/php7.0-fpm.sock; 
+        fastcgi_index index.php; 
+        fastcgi_param SCRIPT_FILENAME <br/>         $document_root$fastcgi_script_name; 
+        include fastcgi_params; 
+    } 
+} </pre>
+<p>As you can see, this is significantly more complex than a basic WordPress configuration. There are four main sections; the first is to handle the setup and updates, the second is to handle static media (for example, default Magento, CSS, and JavaScript), media files (for example, upload images), and finally how to process PHP files.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>We'll go through this one in sections. Magento is different from many flat file / single root directory structures, so it requires some slight changes compared to a basic PHP site.</p>
+<pre>set $MAGE_ROOT /var/www/html; </pre>
+<p>This sets a variable we can easily reference and it means there's only one place we need to update if we move the files:</p>
+<pre>root   $MAGE_ROOT/pub/; </pre>
+<p>All of the main website files sit in the <kbd>pub</kbd> subdirectory. This is commonly overlooked when uploading the files to a shared hosting platform such as CPanel or Plesk. Ensure that the main <kbd>root</kbd> directive points to the <kbd>pub</kbd> folder, not just the directory of the Magento files. The <kbd>root</kbd> directive is therefore pointed at the <kbd>pub</kbd> folder with the preceding configuration line.</p>
+<p>Conversely, the setup and update URLs need to have a separate <kbd>root</kbd> directive to ensure they also point to the correct location:</p>
+<pre>location (/setup|/upgrade) { 
+    root $MAGE_ROOT; <br/>}</pre>
+<p>This sets the <kbd>root</kbd> back to the default directory, which sits outside the <kbd>pub</kbd> directory. The easiest way to look at it is to view the setup and upgrade sites as separate websites with their own separate structure. This is why the directive block also has the following:</p>
+<pre>location ~ ^/(setup|update)/index.php { 
+    fastcgi_pass   unix:/var/run/php7.0-fpm.sock; 
+    fastcgi_index  index.php; 
+    fastcgi_param  SCRIPT_FILENAME  <br/>     $document_root$fastcgi_script_name; 
+    include        fastcgi_params; 
+} </pre>
+<p>We only allow access to <kbd>index.php</kbd> within the <kbd>setup</kbd>/<kbd>update</kbd> directories, and then deny access to any <em>nonpub</em> file:</p>
+<pre>location ~ ^/(setup|update)/(?!pub/). { 
+            deny all; 
+        } </pre>
+<p>This will give a 403 error if a malicious user or script attempts to access files outside the <kbd>pub</kbd> directory.</p>
+<p>It also ensures that all requests come from the same frame, which will prevent clickjacking:</p>
+<pre>add_header X-Frame-Options SAMEORIGIN; </pre>
+<p>The static and media sections are both fairly similar in how they operate. Headers are set for caching (explained in more detail in <a href="bc04362e-995f-4550-92b7-183754306d34.xhtml"><span class="ChapterrefPACKT">Chapter 7</span></a>, <em>Reverse Proxy</em>) and the calls are wrapped through a PHP function (<kbd>static.php</kbd> or <kbd>get.php</kbd>) to allow Magento to perform tasks such as file merging and minification. It can result in a slightly slower first hit, but as it caches the result each subsequent request should be very fast.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>Magento sample configuration: <a href="https://github.com/magento/magento2/blob/develop/nginx.conf.sample" target="_blank">h<span class="URLPACKT">ttps://github.com/magento/magento2/blob/develop/nginx.conf.sample</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Configuring NGINX for Joomla</h1>
+                </header>
+            
+            <article>
+                
+<p>With the recent release of version 3.5, Joomla is still one of the most popular CMS platforms in the world. This latest release features full PHP 7 support, drag-and-drop images, and more:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="371" src="assets/249e5024-4e56-45a5-ae75-cb4d951f53a9.png" width="565"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This assumes you have a working Joomla installation and have located the files at <kbd>/var/www/html/</kbd>. If you need an installation guide, try the official documentation available at <a href="https://docs.joomla.org/J3.x:Installing_Joomla" target="_blank"><span class="URLPACKT">https://docs.joomla.org/J3.x:Installing_Joomla</span></a>.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To use Joomla with NGINX, we need a simple NGINX configuration file. This is a very basic PHP-FPM configuration with no changes required:</p>
+<pre>server { 
+    listen       80; 
+    server_name  joomla.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/joomla.access.log  combined; 
+    index index.php; 
+ 
+    root   /var/www/html/; 
+ 
+    location / { 
+        try_files $uri $uri/ /index.php?$args; 
+    } 
+ 
+    location ~ \.php$ { 
+        fastcgi_pass unix:/var/run/php7.0-fpm.sock; 
+        fastcgi_index index.php; 
+        fastcgi_param SCRIPT_FILENAME <br/>         $document_root$fastcgi_script_name; 
+        include fastcgi_params; 
+    } 
+ 
+    location ^~ /cache/ { 
+        deny all; 
+    } 
+} </pre>
+<p>To enable clean URLs, you also need to ensure that URL rewriting is enabled:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="88" src="assets/862f3d5d-9b3c-4a8e-b9f2-03877fcf2b39.png" width="371"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>Joomla docs: <a href="https://docs.joomla.org/Nginx" target="_blank"><span class="URLPACKT">https://docs.joomla.org/Nginx</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    </body></html>

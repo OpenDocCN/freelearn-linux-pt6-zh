@@ -1,0 +1,650 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;1.&#xA0;Installing NGINX and Third-Party Modules"><div class="titlepage"><div><div><h1 class="title"><a id="ch01"/>Chapter 1. Installing NGINX and Third-Party Modules</h1></div></div></div><p>NGINX was first conceived to be an HTTP <a id="id0" class="indexterm"/>server. It was created to solve the C10K problem, described by Daniel <a id="id1" class="indexterm"/>Kegel at <a class="ulink" href="http://www.kegel.com/c10k.html">http://www.kegel.com/c10k.html</a>, of designing a web server to handle 10,000 simultaneous connections. NGINX is able to do this through its event-based connection-handling mechanism, and will use the OS-appropriate event mechanism in order to achieve this goal.</p><p>Before we begin exploring how to configure NGINX, we will first install it. This chapter details how to install NGINX itself and how to get the correct modules installed and configured. NGINX is modular by design, and there is a rich community of third-party module developers who have added functionality to the core NGINX server by creating modules that can be compiled into the server and installed along with it.</p><p>In this chapter, we will cover:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Installing NGINX using a package manager</li><li class="listitem" style="list-style-type: disc">Installing NGINX from source</li><li class="listitem" style="list-style-type: disc">Configuring for web or mail service</li><li class="listitem" style="list-style-type: disc">Enabling various modules</li><li class="listitem" style="list-style-type: disc">Finding and installing third-party modules</li><li class="listitem" style="list-style-type: disc">Putting it all together</li></ul></div><div class="section" title="Installing NGINX using a package manager"><div class="titlepage"><div><div><h1 class="title"><a id="ch01lvl1sec08"/>Installing NGINX using a package manager</h1></div></div></div><p>Chances are that your operating system of choice already provides <code class="literal">nginx</code> as a package. Installing it is as simple as using your package manager's <a id="id2" class="indexterm"/>
+<a id="id3" class="indexterm"/>
+<a id="id4" class="indexterm"/>commands:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Linux <a id="id5" class="indexterm"/><a id="id6" class="indexterm"/>(deb-based)<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo apt-get install nginx</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">Linux <a id="id7" class="indexterm"/><a id="id8" class="indexterm"/>(rpm-based)<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo yum install nginx</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc"><a id="id9" class="indexterm"/><a id="id10" class="indexterm"/>FreeBSD<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo pkg_install -r nginx</strong></span>
+</pre></div><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note02"/>Note</h3><p>The <code class="literal">sudo</code> <a id="id11" class="indexterm"/>command is representative of what you need to execute on your operating system to achieve superuser ('root') privileges. If your operating system supports <a id="id12" class="indexterm"/>
+<span class="strong"><strong>RBAC</strong></span> (<span class="strong"><strong>Role-based access control</strong></span>), then you would use a different command, such as 'pfexec' to achieve the same goal.</p></div></div></li></ul></div><p>These commands will install NGINX into standard locations, specific to your operating system. This is the preferred installation method if you need to use your operating system's packages.</p><p>The NGINX core team also provides binaries of the stable version, available from <a class="ulink" href="http://nginx.org/en/download.html">http://nginx.org/en/download.html</a>. Users of distributions without an <code class="literal">nginx</code> package (such as CentOS), can use the following instructions to install pre-tested, pre-compiled binaries.</p><div class="section" title="CentOS"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl2sec07"/>CentOS</h2></div></div></div><p>Add the <a id="id13" class="indexterm"/>NGINX <a id="id14" class="indexterm"/>repository to your yum configuration by creating the following file:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo vi /etc/yum.repos.d/nginx.repo</strong></span>
+<span class="strong"><strong>[nginx]</strong></span>
+<span class="strong"><strong>name=nginx repo</strong></span>
+<span class="strong"><strong>baseurl=http://nginx.org/packages/centos/6/$basearch/</strong></span>
+<span class="strong"><strong>gpgcheck=0</strong></span>
+<span class="strong"><strong>enabled=1</strong></span>
+</pre></div><p>Then install <code class="literal">nginx</code> by executing the following command:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo yum install nginx</strong></span>
+</pre></div><p>Alternative instructions for installing an <a id="id15" class="indexterm"/>
+<code class="literal">nginx-release</code> package are available at the preceding URL.</p></div><div class="section" title="Debian"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl2sec08"/>Debian</h2></div></div></div><p>Install the NGINX signing key by downloading it <a id="id16" class="indexterm"/>
+<a id="id17" class="indexterm"/>from <a class="ulink" href="http://nginx.org/keys/nginx_signing.key">http://nginx.org/keys/nginx_signing.key</a> and adding it to the apt keyring:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo apt-key add nginx_signing.key</strong></span>
+</pre></div><p>Append the <code class="literal">nginx.org</code> repository to the end of <code class="literal">/etc/apt/sources.list</code>:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/apt/sources.list</strong></span>
+<span class="strong"><strong>deb http://nginx.org/packages/debian/ squeeze nginx</strong></span>
+<span class="strong"><strong>deb-src http://nginx.org/packages/debian/ squeeze nginx</strong></span>
+</pre></div><p>Then install <code class="literal">nginx</code> by executing the following command:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo apt-get update</strong></span>
+<span class="strong"><strong>sudo apt-get install nginx</strong></span>
+</pre></div><p>If your operating system does not include <code class="literal">nginx</code> in its list of available packages, the version there is too old for what you would like to do, the packages at <a class="ulink" href="http://nginx.org">nginx.org</a> don't serve your needs, or you would like to use the "development" release of NGINX, then compiling NGINX from source is the only other option.</p></div></div></div>
+<div class="section" title="Installing NGINX from source"><div class="titlepage"><div><div><h1 class="title"><a id="ch01lvl1sec09"/>Installing NGINX from source</h1></div></div></div><p>NGINX downloads are available for two separate branches of NGINX code—stable and development. The development branch is the one in which active development is taking place. Here is where new features will be found and integrated <a id="id18" class="indexterm"/>before finding their way into the stable branch. When a "development" version is released, it has undergone the same QA and a similar set of functional tests as the stable branch, so either branch may be used on production systems. The major difference between the two branches lies in the support of third-party <a id="id19" class="indexterm"/>modules. The internal API may change in the development release, whereas it stays the same on the stable branch, so backward compatibility for third-party modules is only available for stable releases.</p><div class="section" title="Preparing a build environment"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl2sec09"/>Preparing a build environment</h2></div></div></div><p>In order to compile NGINX from source, certain requirements <a id="id20" class="indexterm"/>need to be met on your system. Besides a compiler, you also need the OpenSSL and <a id="id21" class="indexterm"/>
+<span class="strong"><strong>PCRE</strong></span> (<span class="strong"><strong>Perl Compatible Regular Expressions</strong></span>) libraries and development headers, if you want to enable the SSL support and be able to use the <code class="literal">rewrite</code> module, respectively. Depending on your system, these requirements may already be met in the default installation. If not, you will need to either locate the appropriate package and install it, or download the source, unpack it, and point NGINX's configure script to this location.</p><p>NGINX will attempt to build a dependent library statically if you include a <a id="id22" class="indexterm"/>
+<code class="literal">–with-&lt;library&gt;=&lt;path&gt;</code> option to configure. You might want this if you would like to ensure that NGINX is not dependent on any other part of the system and/or would like to squeeze that extra bit of performance out of your <code class="literal">nginx</code> binary. If you are using features of external libraries that are only available from a certain version onwards (for example, the Next Protocol Negotiation TLS extension available from OpenSSL Version 1.0.1), then you would have to specify the path to the unpacked sources of that particular version.</p><p>There are other, optional, packages that you may provide support for if you like. These include <a id="id23" class="indexterm"/>MD5 and <a id="id24" class="indexterm"/>SHA-1 hashing algorithm support, <a id="id25" class="indexterm"/>zlib compression, and <a id="id26" class="indexterm"/>libatomic library support. The <a id="id27" class="indexterm"/>hashing algorithms are used in many places in NGINX, for example, to compute the hash of a URI to determine a cache key. <a id="id28" class="indexterm"/>The <a id="id29" class="indexterm"/>zlib compression library is used for delivering gzipped content. If the <a id="id30" class="indexterm"/>
+<code class="literal">atomic_ops</code> library is available, NGINX will use its atomic memory update operations to implement high-performance memory-locking code.</p></div><div class="section" title="Compiling from source"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl2sec10"/>Compiling from source</h2></div></div></div><p>NGINX may be downloaded <a id="id31" class="indexterm"/>from <a class="ulink" href="http://nginx.org/en/download.html">http://nginx.org/en/download.html</a>. Here you will find the source of either branch in the <code class="literal">.tar.gz</code> or <code class="literal">.zip</code> format. <a id="id32" class="indexterm"/>Unpack the archive into a temporary directory as follows:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>$ mkdir $HOME/build</strong></span>
+<span class="strong"><strong>$ cd $HOME/build &amp;&amp; tar xzf nginx-&lt;version-number&gt;.tar.gz</strong></span>
+</pre></div><p>Configure it using the following command:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>$ cd $HOME/build/nginx-&lt;version-number&gt; &amp;&amp; ./configure</strong></span>
+</pre></div><p>And compile it as follows:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>$ make &amp;&amp; sudo make install</strong></span>
+</pre></div><p>When compiling your own <code class="literal">nginx</code> binary, you are much more free to include only what you need. Can you already say under which user NGINX should run? Do you want to specify the default logfile locations so that they don't need to be explicitly set in the configuration? The following table of configure options will help you design your own binary. These are options that are valid for NGINX independent of which module is activated.</p><div class="section" title="Table: Common configure options"><div class="titlepage"><div><div><h3 class="title"><a id="ch01lvl6sec01"/>Table: Common configure options</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Option<a id="id33" class="indexterm"/>
+</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--prefix=&lt;path&gt;</code>
+<a id="id34" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The root of the installation. All other installation paths are relative to this one.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--sbin-path=&lt;path&gt;</code>
+<a id="id35" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The path to the <code class="literal">nginx</code> binary. If not specified, this will be relative to the prefix.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--conf-path=&lt;path&gt;</code>
+<a id="id36" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The path to where <code class="literal">nginx</code> will look for its configuration file, if not specified on the command line.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--error-log-path=&lt;path&gt;</code>
+<a id="id37" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This is where <code class="literal">nginx</code> will write its error logfile, unless configured otherwise.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--pid-path=&lt;path&gt;</code>
+<a id="id38" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This is where nginx will write the pid file of the master process, usually under <code class="literal">/var/run</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--lock-path=&lt;path&gt;</code>
+<a id="id39" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The path to the shared memory mutex lock file.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--user=&lt;user&gt;</code>
+<a id="id40" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The user under which the worker processes should run.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--group=&lt;group&gt;</code>
+<a id="id41" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The group under which the worker processes should run.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-file-aio</code>.</p>
+</td><td style="text-align: left" valign="top">
+<p>Enables asynchronous I/O for FreeBSD 4.3+ and Linux 2.6.22+</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-debug</code>
+<a id="id42" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This <a id="id43" class="indexterm"/>option <a id="id44" class="indexterm"/>will enable debug logging. Not recommended for production systems.</p>
+</td></tr></tbody></table></div><p>You are also able to compile with optimizations that you may not get in a packaged installation. This is where the following options can be especially useful:</p></div><div class="section" title="Table: Configure options for optimization"><div class="titlepage"><div><div><h3 class="title"><a id="ch01lvl6sec02"/>Table: Configure options for optimization</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Option</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-cc=&lt;path&gt;</code>
+<a id="id45" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If you would like to set a C compiler that is not in your default PATH.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-cpp=&lt;path&gt;</code>
+<a id="id46" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This is the corresponding path to the C preprocessor.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-cc-opt=&lt;options&gt;</code>
+<a id="id47" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Here is where the path to the necessary <code class="literal">include</code> files may be indicated (<code class="literal">-I&lt;path&gt;</code>), as well as optimizations (<code class="literal">-O4</code>) and specifying a 64-bit build.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-ld-opt=&lt;options&gt;</code>
+<a id="id48" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The options to the linker include library path (<code class="literal">-L&lt;path&gt;</code>) and run path (<code class="literal">-R&lt;path&gt;</code>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-cpu-opt=&lt;cpu&gt;</code>
+<a id="id49" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>A build specific to a particular <a id="id50" class="indexterm"/>CPU family may be specified with this option.</p>
+</td></tr></tbody></table></div></div></div></div>
+<div class="section" title="Configuring for web or mail service"><div class="titlepage"><div><div><h1 class="title"><a id="ch01lvl1sec10"/>Configuring for web or mail service</h1></div></div></div><p>NGINX is unique among high-performing web servers in that it was also designed to be a mail proxy server. Depending on your goals in building NGINX, you can configure it for web acceleration, a web server, a mail proxy, or all of them. It may be beneficial to have one package that you can install on any server in your infrastructure and be able to set NGINX's role through configuration, or it may serve your needs better to have a slimmed-down binary to use in high-performance environments where every extra KB counts.</p><div class="section" title="Configure options for a mail proxy"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl2sec11"/>Configure options for a mail proxy</h2></div></div></div><p>The following <a id="id51" class="indexterm"/>table specifies configuration options that are unique to the mail module:</p><div class="section" title="Table: Mail configure options"><div class="titlepage"><div><div><h3 class="title"><a id="ch01lvl6sec03"/>Table: Mail configure options</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Option</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-mail</code>
+<a id="id52" class="indexterm"/>
+<a id="id53" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This will enable the <code class="literal">mail</code> module, which is not activated <a id="id54" class="indexterm"/>by default.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-mail_ssl_module</code>
+<a id="id55" class="indexterm"/>
+<a id="id56" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>In order to proxy any kind of <code class="literal">mail</code> transaction that uses SSL/TLS, this module will need to be activated.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-mail_pop3_module</code>
+<a id="id57" class="indexterm"/>
+<a id="id58" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When enabling the <code class="literal">mail</code> module, the POP3 module may be disabled separately.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-mail_imap_module</code>
+<a id="id59" class="indexterm"/>
+<a id="id60" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When enabling the <code class="literal">mail</code> module, the IMAP module may be disabled separately.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-mail_smtp_module</code>
+<a id="id61" class="indexterm"/>
+<a id="id62" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When enabling the <code class="literal">mail</code> module, the SMTP module may be disabled separately.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http</code>
+<a id="id63" class="indexterm"/>
+<a id="id64" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This option will completely disable the <code class="literal">http</code> module; use it if you know <a id="id65" class="indexterm"/>you only want to compile in <code class="literal">mail</code> support.</p>
+</td></tr></tbody></table></div><p>For a typical mail proxy, I would recommend configuring NGINX as follows:</p><div class="informalexample"><pre class="programlisting">$ ./configure --with-mail --with-mail_ssl_module --with-openssl=${BUILD_DIR}/openssl-1.0.1c</pre></div><p>SSL/TLS is needed nowadays on almost every mail installation and not having it enabled on a mail proxy robs users of expected functionality. I've recommended compiling OpenSSL statically so that there are no dependencies on the operating system's OpenSSL library. The <code class="literal">BUILD_DIR</code> variable referenced in the preceding command would of course have to be set beforehand.</p></div></div><div class="section" title="Configure the options to specify paths"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl2sec12"/>Configure the options to specify paths</h2></div></div></div><p>The following table shows what configuration options are available to the <code class="literal">http</code> module, <a id="id66" class="indexterm"/>from activating the Perl module to specifying the location of temporary directories:</p><div class="section" title="Table: HTTP configure options"><div class="titlepage"><div><div><h3 class="title"><a id="ch01lvl6sec04"/>Table: HTTP configure options</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Option</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http-cache</code>
+<a id="id67" class="indexterm"/>
+<a id="id68" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When using the upstream module, NGINX can be configured to cache the <a id="id69" class="indexterm"/>contents locally. This option disables that cache.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_perl_module</code>
+<a id="id70" class="indexterm"/>
+<a id="id71" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>NGINX configuration can be extended by using Perl code. This option activates that module. (Use of this module, however, degrades performance.)</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-perl_modules_path=&lt;path&gt;</code>
+<a id="id72" class="indexterm"/>
+<a id="id73" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This option specifies the path to additional Perl modules needed for using the embedded Perl interpreter. It may also be specified as a configuration option.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-perl=&lt;path&gt;</code>
+<a id="id74" class="indexterm"/>
+<a id="id75" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The path to Perl (Version 5.6.1 and higher), if not found on the default path.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--http-log-path=&lt;path&gt;</code>
+<a id="id76" class="indexterm"/>
+<a id="id77" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The default path to the HTTP access log.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--http-client-body-temp-path=&lt;path&gt;</code>
+<a id="id78" class="indexterm"/>
+<a id="id79" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When receiving the request from the client, this is the directory used as a temporary location for the body of that request. If the WebDAV module is enabled, it is recommended to set this path to be <a id="id80" class="indexterm"/>on the same filesystem as the final destination.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--http-proxy-temp-path=&lt;path&gt;</code>
+<a id="id81" class="indexterm"/>
+<a id="id82" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>When proxying, this is the directory used as a location to store temporary files.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--http-fastcgi-temp-path=&lt;path&gt;</code>
+<a id="id83" class="indexterm"/>
+<a id="id84" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The location for FastCGI temporary files.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--http-uwsgi-temp-path=&lt;path&gt;</code>
+<a id="id85" class="indexterm"/>
+<a id="id86" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The location for uWSGI temporary files.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--http-scgi-temp-path=&lt;path&gt;</code>
+<a id="id87" class="indexterm"/>
+<a id="id88" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The location for <a id="id89" class="indexterm"/>SCGI temporary files.</p>
+</td></tr></tbody></table></div></div></div></div>
+<div class="section" title="Enabling various modules"><div class="titlepage"><div><div><h1 class="title"><a id="ch01lvl1sec11"/>Enabling various modules</h1></div></div></div><p>Besides the <code class="literal">http</code> and <code class="literal">mail</code> modules, there are a number of other modules included in the NGINX distribution. These modules are not activated per default, but may be <a id="id90" class="indexterm"/>enabled by setting the appropriate configuration option <code class="literal">--with-&lt;module-name&gt;_module</code>.</p><div class="section" title="Table: HTTP module configure options"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl6sec05"/>Table: HTTP module configure options</h2></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Option</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_ssl_module</code>
+<a id="id91" class="indexterm"/>
+<a id="id92" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If you need to encrypt web traffic, you will need this option to be able to use URLs beginning with <code class="literal">https</code>. (<a id="id93" class="indexterm"/>Requires the OpenSSL library.)</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_realip_module</code>
+<a id="id94" class="indexterm"/>
+<a id="id95" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If your NGINX will be behind a L7 load balancer or other device that passes the client's IP address in an HTTP header, you will need to enable this module. For use in situations where multiple clients appear to come from one IP address.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_addition_module</code>
+<a id="id96" class="indexterm"/>
+<a id="id97" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module works as an output filter, enabling you to add content of a different location before or after that of the location itself.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_xslt_module</code>
+<a id="id98" class="indexterm"/>
+<a id="id99" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module will handle transformations of XML responses, based on one or more XSLT stylesheets. (Requires the libxml2 and <a id="id100" class="indexterm"/>libxslt libraries.)</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_image_filter_module</code>
+<a id="id101" class="indexterm"/>
+<a id="id102" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module is able to act as a filter on images, processing them before handing them over to the client. (Requires the libgd library.)</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_geoip_module</code>
+<a id="id103" class="indexterm"/>
+<a id="id104" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>With this module, you are able to set various variables to use in configuration blocks to make decisions based on the geographic location found for a client's IP address. (Requires the MaxMind GeoIP library and the corresponding precompiled database files.)</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_sub_module</code>
+<a id="id105" class="indexterm"/>
+<a id="id106" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module implements a substitution filter, replacing one string in the response with another.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_dav_module</code>
+<a id="id107" class="indexterm"/>
+<a id="id108" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enabling this module will activate the configuration directives for using WebDAV. Note that this module should only be enabled on a need-to-use basis, as it could present security problems if configured incorrectly.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_flv_module</code>
+<a id="id109" class="indexterm"/>
+<a id="id110" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If you need to be able to stream Flash video files, this module will provide for pseudo-streaming.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_mp4_module</code>
+<a id="id111" class="indexterm"/>
+<a id="id112" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module supports pseudo-streaming for H.264/AAC files.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_gzip_static_module</code>
+<a id="id113" class="indexterm"/>
+<a id="id114" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Use this module if you would like to support sending pre-compressed versions of static files when the resource is called <a id="id115" class="indexterm"/>without the <code class="literal">.gz</code> ending.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_gunzip_module</code>
+<a id="id116" class="indexterm"/>
+<a id="id117" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module will decompress pre-compressed content for clients that do not support gzip encoding.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_random_index_module</code>
+<a id="id118" class="indexterm"/>
+<a id="id119" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>If you would like to serve an index file chosen at random from the files in a directory, then this module needs to be enabled.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_secure_link_module</code>
+<a id="id120" class="indexterm"/>
+<a id="id121" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module provides a mechanism to hash a link to a URL, so that only those <a id="id122" class="indexterm"/>with the proper password would be able to calculate the link.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--with-http_stub_status_module</code>
+<a id="id123" class="indexterm"/>
+<a id="id124" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Enabling this module will help you gather statistics from NGINX itself. The output can be graphed using RRDtool or something similar.</p>
+</td></tr></tbody></table></div><p>As you can see, these are all modules that build upon the <code class="literal">http</code> module, providing extra functionality. Enabling the modules at compile time should not affect runtime performance at all. Using the modules later in the configuration is where performance may be impacted.</p><p>I would therefore recommend the following <code class="literal">configure</code> <a id="id125" class="indexterm"/>
+<a id="id126" class="indexterm"/>options for a web accelerator/proxy:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>$ ./configure --with-http_ssl_module --with-http_realip_module --with-http_geoip_module --with-http_stub_status_module --with-openssl=${BUILD_DIR}/openssl-1.0.1c</strong></span>
+</pre></div><p>And the following for a web server:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>$ ./configure --with-http_stub_status_module</strong></span>
+</pre></div><p>The difference lies in where NGINX will be faced with clients. The web acceleration role would take care of terminating SSL requests as well as dealing with proxied clients and making decisions based on where a client came from. The web server role would need only provide default file serving capability.</p><p>I would recommend always enabling the <code class="literal">stub_status</code> module, as it provides a means of gathering metrics on how your NGINX is performing.</p></div><div class="section" title="Disabling unused modules"><div class="titlepage"><div><div><h2 class="title"><a id="ch01lvl2sec14"/>Disabling unused modules</h2></div></div></div><p>There are also a number of <code class="literal">http</code> modules that are normally activated, but may be disabled by setting the appropriate configuration option <code class="literal">--without-&lt;module-name&gt;_module</code>. If you have no use for these modules in your configuration, you can safely disable them.</p><div class="section" title="Table: Disable configure options"><div class="titlepage"><div><div><h3 class="title"><a id="ch01lvl6sec06"/>Table: Disable configure options</h3></div></div></div><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Option</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Explanation</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_charset_module</code>
+<a id="id127" class="indexterm"/>
+<a id="id128" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The charset <a id="id129" class="indexterm"/>module is responsible for setting the <code class="literal">Content-Type</code> response <a id="id130" class="indexterm"/>header, as well as converting from one charset to another.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_gzip_module</code>
+<a id="id131" class="indexterm"/>
+<a id="id132" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">gzip</code> <a id="id133" class="indexterm"/>module works as an output filter, compressing content as it's delivered to the client.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_ssi_module</code>
+<a id="id134" class="indexterm"/>
+<a id="id135" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module is a filter that processes Server Side Includes. If the Perl module is enabled, an additional SSI command (<code class="literal">perl</code>) is available.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_userid_module</code>
+<a id="id136" class="indexterm"/>
+<a id="id137" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">userid</code> module <a id="id138" class="indexterm"/>enables NGINX to set cookies that can be used for client identification. The variables <code class="literal">$uid_set</code> and <code class="literal">$uid_got</code> can then be logged for user tracking.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_access_module</code>
+<a id="id139" class="indexterm"/>
+<a id="id140" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">access</code> <a id="id141" class="indexterm"/>module controls access to a location based on IP address.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_auth_basic_module</code>
+<a id="id142" class="indexterm"/>
+<a id="id143" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module limits access via HTTP Basic Authentication.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_autoindex_module</code>
+<a id="id144" class="indexterm"/>
+<a id="id145" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">autoindex</code> <a id="id146" class="indexterm"/>module enables NGINX to generate a directory listing for directories that have no index file.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_geo_module</code>
+<a id="id147" class="indexterm"/>
+<a id="id148" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module enables you to set up configuration variables based on a client's IP address and then take action on the value of those variables.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_map_module</code>
+<a id="id149" class="indexterm"/>
+<a id="id150" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <a id="id151" class="indexterm"/>map module enables you to map one variable to another.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_split_clients_module</code>
+<a id="id152" class="indexterm"/>
+<a id="id153" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module creates variables that can be used for A/B testing.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_referer_module</code>
+<a id="id154" class="indexterm"/>
+<a id="id155" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module enables NGINX to block requests based on the Referer HTTP header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_rewrite_module</code>
+<a id="id156" class="indexterm"/>
+<a id="id157" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">rewrite</code> <a id="id158" class="indexterm"/>module allows you to change URIs based on various conditions.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_proxy_module</code>
+<a id="id159" class="indexterm"/>
+<a id="id160" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The <code class="literal">proxy</code> <a id="id161" class="indexterm"/>module allows NGINX to pass requests on to another server or group of servers.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_fastcgi_module</code>
+<a id="id162" class="indexterm"/>
+<a id="id163" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The FastCGI module enables NGINX to pass requests to a FastCGI server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_uwsgi_module</code>
+<a id="id164" class="indexterm"/>
+<a id="id165" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module enables NGINX to pass requests to a uWSGI server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_scgi_module</code>
+<a id="id166" class="indexterm"/>
+<a id="id167" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The SCGI <a id="id168" class="indexterm"/>module enables NGINX to pass requests to an SCGI server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_memcached_module</code>
+<a id="id169" class="indexterm"/>
+<a id="id170" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module enables NGINX to interact with a memcached server, placing responses to queries into a variable.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_limit_conn_module</code>
+<a id="id171" class="indexterm"/>
+<a id="id172" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module enables NGINX to set connection limits based on certain keys, usually an IP address.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_limit_req_module</code>
+<a id="id173" class="indexterm"/>
+<a id="id174" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>With this module, NGINX can limit the request rate per key.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_empty_gif_module</code>
+<a id="id175" class="indexterm"/>
+<a id="id176" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The empty GIF module produces a 1 x 1-pixel in-memory transparent GIF.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_browser_module</code>
+<a id="id177" class="indexterm"/>
+<a id="id178" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The browser module allows for configurations based on the <code class="literal">User-Agent</code> HTTP request header. Variables are set based on the version found in this header.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">--without-http_upstream_ip_hash_module</code>
+<a id="id179" class="indexterm"/>
+<a id="id180" class="indexterm"/>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This module defines a set of servers that may be used in conjunction with the various proxy modules.</p>
+</td></tr></tbody></table></div></div></div></div>
+<div class="section" title="Finding and installing third-party modules"><div class="titlepage"><div><div><h1 class="title"><a id="ch01lvl1sec12"/>Finding and installing third-party modules</h1></div></div></div><p>As with many open source projects, there is an active developer community surrounding NGINX. Thanks to NGINX's modular nature, this community is <a id="id181" class="indexterm"/>
+<a id="id182" class="indexterm"/>able to develop and publish modules to provide additional functionality. They cover a wide range of applications, so it pays to take a look at what is available before embarking on developing your own module.</p><p>The procedure for installing a third-party module is fairly <a id="id183" class="indexterm"/>
+<a id="id184" class="indexterm"/>straightforward:</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem">Locate the module you would like to use (either search on <a class="ulink" href="https://github.com">https://github.com</a> or see <a class="ulink" href="http://wiki.nginx.org/3rdPartyModules">http://wiki.nginx.org/3rdPartyModules</a>).</li><li class="listitem">Download the module.</li><li class="listitem">Unpack the source.</li><li class="listitem">Read the README file, if included. See if there are any dependencies that you will need to install.</li><li class="listitem">Configure NGINX to use the module as follows. <code class="literal">/configure –add-module=&lt;path&gt;</code>.</li></ol></div><p>This procedure will give you an <code class="literal">nginx</code> binary with the additional functionality of that module.</p><p>Keep in mind that many third-party modules are of an experimental nature. Test using a module first before rolling it out on production systems. And remember that the development releases of NGINX may have API changes that can cause problems with third-party modules.</p><p>Special mention should be made here of the <a id="id185" class="indexterm"/>
+<code class="literal">ngx_lua</code> third-party module. The <code class="literal">ngx_lua</code> module serves to enable Lua instead of Perl as a configuration time embedded scripting language. The great advantage this module has over the <a id="id186" class="indexterm"/>
+<code class="literal">perl</code> module is its non-blocking nature and tight integration with other third-party modules. The installation instructions are fully described at <a class="ulink" href="http://wiki.nginx.org/HttpLuaModule#Installation">http://wiki.nginx.org/HttpLuaModule#Installation</a>. We will be using this module as an example of installing a third-party module in the next section.</p></div>
+<div class="section" title="Putting it all together"><div class="titlepage"><div><div><h1 class="title"><a id="ch01lvl1sec13"/>Putting it all together</h1></div></div></div><p>Now that you have gotten a glimpse at what all the various configuration options are for, you can design a binary that precisely fits your needs. The following example specifies the prefix, user, group, certain paths, disables some modules, enables some others, and includes a couple of third-party modules:</p><div class="informalexample"><pre class="programlisting">$ export BUILD_DIR=`pwd`
+$ export NGINX_INSTALLDIR=/opt/nginx
+$ export VAR_DIR=/home/www/tmp
+$ export LUAJIT_LIB=/opt/luajit/lib
+$ export LUAJIT_INC=/opt/luajit/include/luajit-2.0
+
+$ ./configure \
+        --prefix=${NGINX_INSTALLDIR} \
+        --user=www \
+        --group=www \
+        --http-client-body-temp-path=${VAR_DIR}/client_body_temp \
+        --http-proxy-temp-path=${VAR_DIR}/proxy_temp \
+        --http-fastcgi-temp-path=${VAR_DIR}/fastcgi_temp \
+        --without-http_uwsgi_module \
+        --without-http_scgi_module \
+        --without-http_browser_module \
+        --with-openssl=${BUILD_DIR}/../openssl-1.0.1c \
+        --with-pcre=${BUILD_DIR}/../pcre-8.32 \
+        --with-http_ssl_module \
+        --with-http_realip_module \
+        --with-http_sub_module \
+        --with-http_flv_module \
+        --with-http_gzip_static_module \
+        --with-http_gunzip_module \
+        --with-http_secure_link_module \
+        --with-http_stub_status_module \
+        --add-module=${BUILD_DIR}/ngx_devel_kit-0.2.17 \
+        --add-module=${BUILD_DIR}/ngx_lua-0.7.9</pre></div><p>Following a lot of output showing what <code class="literal">configure</code> was able to find on your system, a summary is printed out as follows:</p><div class="informalexample"><pre class="programlisting">Configuration summary
+  + using PCRE library: /home/builder/build/pcre-8.32
+  + using OpenSSL library: /home/builder/build/openssl-1.0.1c
+  + md5: using OpenSSL library
+  + sha1: using OpenSSL library
+  + using system zlib library
+
+  nginx path prefix: "/opt/nginx"
+  nginx binary file: "/opt/nginx/sbin/nginx"
+  nginx configuration prefix: "/opt/nginx/conf"
+  nginx configuration file: "/opt/nginx/conf/nginx.conf"
+  nginx pid file: "/opt/nginx/logs/nginx.pid"
+  nginx error log file: "/opt/nginx/logs/error.log"
+  nginx http access log file: "/opt/nginx/logs/access.log"
+  nginx http client request body temporary files: "/home/www/tmp/client_body_temp"
+  nginx http proxy temporary files: "/home/www/tmp/proxy_temp"
+  nginx http fastcgi temporary files: "/home/www/tmp/fastcgi_temp"</pre></div><p>As you can see, <code class="literal">configure</code> found all the items we were looking for, and acknowledged our preferences for certain paths. Now, you can build your <code class="literal">nginx</code> and install it, as mentioned at the beginning of the chapter.</p></div>
+<div class="section" title="Summary"><div class="titlepage"><div><div><h1 class="title"><a id="ch01lvl1sec14"/>Summary</h1></div></div></div><p>This chapter has introduced you to the various modules available for NGINX. By compiling your own binary, you are able to tailor what functionality your <code class="literal">nginx</code> will provide. Building and installing software will not be new to you, so not a lot of time was spent on creating a build environment or making sure that all dependencies were present. An NGINX installation should be one that fits your needs, so feel free to enable or disable modules as you see fit.</p><p>Next up we will present an overview of basic NGINX configuration, to get a feel for how to configure NGINX in general.</p></div></body></html>

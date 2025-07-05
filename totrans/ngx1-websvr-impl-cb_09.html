@@ -1,0 +1,399 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;9.&#xA0;Using Other Third-party Modules"><div class="titlepage"><div><div><h1 class="title"><a id="ch09"/>Chapter 9. Using Other Third-party Modules</h1></div></div></div><p>In this chapter, we will cover:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Setting up an IMAP/POP3 proxy server</li><li class="listitem" style="list-style-type: disc">Setting up authentication for mail services</li><li class="listitem" style="list-style-type: disc">Setting up SSL for mail authentication</li><li class="listitem" style="list-style-type: disc">Using Nginx as a WEBDAV reverse proxy</li><li class="listitem" style="list-style-type: disc">Dynamic image resizing using Nginx</li><li class="listitem" style="list-style-type: disc">Replacing and searching text in Nginx response</li><li class="listitem" style="list-style-type: disc">Assembling ZIP files on the fly</li><li class="listitem" style="list-style-type: disc">Using Nginx as a HTTP publish-subscribe server</li><li class="listitem" style="list-style-type: disc">Transforming XML responses using XSLT templates</li><li class="listitem" style="list-style-type: disc">Setting up Etags for static content</li><li class="listitem" style="list-style-type: disc">Easy logging of page load times</li><li class="listitem" style="list-style-type: disc">Streaming of MP4/H.264 files</li><li class="listitem" style="list-style-type: disc">Setting up SCGI sites</li><li class="listitem" style="list-style-type: disc"><a class="indexterm" id="id237"/>Setting up expiring links</li></ul></div><div class="section" title="Introduction"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec01"/>Introduction</h1></div></div></div><p>This chapter will have a look at some inbuilt, third-party modules which allow us to extend and use Nginx with other protocols, such as IMAP, POP3, WebDAV, and much more. Due to the flexible and well-defined module API, many module developers have used Nginx for interesting web-based tasks, such as XSLT transformations, image resizing, and HTTP publish-subscribe server.<a class="indexterm" id="id238"/>
+</p></div></div>
+<div class="section" title="Setting up an IMAP/POP3 proxy server"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec02"/>Setting up an IMAP/POP3 proxy server</h1></div></div></div><p>One of the most understated uses of Nginx is that of acting as a mail proxy server. It understands the IMAP, SMTP, and the POP3 protocols. In this recipe we will set up Nginx as a proxy for your test IMAP/POP3 server. However, you will need to have an authentication script that will basically return a response redirecting the incoming client to its correct IMAP or POP3 server.<a class="indexterm" id="id239"/>
+</p><div class="mediaobject"><img alt="Setting up an IMAP/POP3 proxy server" height="197" src="graphics/4965OS_09_01.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec01"/>How to do it...</h2></div></div></div><p>You need to put the following configuration in your setup:</p><div class="informalexample"><pre class="programlisting">mail {
+auth_http localhost:9000/cgi-bin/auth;
+proxy on;
+imap_capabilities "IMAP4rev1" "UIDPLUS";
+server {
+listen 143;
+protocol imap;
+server_name imap.example1.com;
+}
+pop3_capabilities "TOP" "USER";
+server {
+listen 110;
+protocol pop3;
+server_name pop3.example1.com;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec02"/>How it works...</h2></div></div></div><p>This setup takes any incoming request and sends back a response outlining the POP3 or IMAP server it must connect with. We can see the necessary capabilities that the connecting client must have in order to work with the POP3 or IMAP server.<a class="indexterm" id="id240"/>
+</p><p>The auth endpoint will return something as follows:</p><div class="informalexample"><pre class="programlisting">HTTP/1.0 200 OK
+Auth-Status: OK
+Auth-Server: 192.168.1.10
+Auth-Port: 110
+Auth-User: newname
+</pre></div><p>This basically tells the client that they need to connect with 192.168.1.10 on port 110 to continue further interaction with the backend POP3 server.</p></div></div>
+<div class="section" title="Setting up authentication for mail services"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec03"/>Setting up authentication for mail services</h1></div></div></div><p>Mail being a personal form of communication inevitably requires authentication of some form or another. We will use embedded Perl to do the authentication in this example. This is driven in the backend with a table that contains the user and corresponding mail server list.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec03"/>How to do it...</h2></div></div></div><p>All you need to enable IMAP and POP3 support is to paste the following configuration in your Nginx setup:<a class="indexterm" id="id241"/>
+</p><div class="informalexample"><pre class="programlisting">user nobody;
+worker_processes 1;
+error_log logs/error.log info;
+pid logs/nginx.pid;
+events {
+worker_connections 1024;
+multi_accept on;
+}
+http {
+perl_modules perl/lib;
+Nginxauthentication, setting up for mail servicesperl_require mailauth.pm;
+server {
+location /auth {
+perl mailauth::handler;
+}
+}
+}
+mail {
+auth_http 127.0.0.1:80/auth;
+pop3_capabilities "TOP" "USER";
+imap_capabilities "IMAP4rev1" "UIDPLUS";
+server {
+listen 110;
+protocol pop3;
+proxy on;
+}
+server {
+listen 143;
+protocol imap;
+proxy on;
+}
+</pre></div><p>Now you will also need to create a file called<code class="literal"> mailauth.pm</code> in the configuration directory and paste the following code:</p><div class="informalexample"><pre class="programlisting">package mailauth;
+use nginx;
+use DBI;
+my $dsn="DBI:mysql:database=DBNAME;host=HOSTNAME";
+our $dbh=DBI-&gt;connect_cached($dsn, 'dbusername', 'dbpass', {AutoCommit =&gt; 1});
+our $sth=$dbh-&gt;prepare("select password,mail_server from mailaccounts where username=? limit 1");
+our $auth_ok;
+our $mail_server_ip={};
+our $protocol_ports={};
+$mail_server_ip-&gt;{'mailhost01'}="192.168.1.22";
+$mail_server_ip-&gt;{'mailhost02'}="192.168.1.33";
+$protocol_ports-&gt;{'pop3'}=110;
+$protocol_ports-&gt;{'imap'}=143;
+sub handler {
+my $r = shift;
+$auth_ok=0;
+$sth-&gt;execute($r-&gt;header_in("Auth-User"));
+Nginxauthentication, setting up for mail servicesmy $hash=$sth-&gt;fetchrow_hashref();
+# assuming that the query results password and mail_server
+# assuming that the password is in crypt format
+if (crypt($r-&gt;header_in("Auth-Pass"), $hash-&gt;{'password'}) eq $r-&gt;header_in("Auth-Pass")){
+$auth_ok=1;
+}
+if ($auth_ok==1){
+$r-&gt;header_out("Auth-Status", "OK") ;
+$r-&gt;header_out("Auth-Server", $mail_server_ip-&gt;{$hash-&gt;{'mail_server'}});
+$r-&gt;header_out("Auth-Port", $protocol_ports-&gt;{$r-&gt;header_in("Auth-Protocol")});
+} else {
+$r-&gt;header_out("Auth-Status", "Invalid login or password") ;
+}
+$r-&gt;send_http_header("text/html");
+return OK;
+}
+1;
+__END__
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec04"/>How it works...</h2></div></div></div><p>The preceding configuration basically works in the following way; the authorization information is passed in the header to the proxy.<a class="indexterm" id="id244"/>
+</p><div class="informalexample"><pre class="programlisting">GET /auth HTTP/1.0
+Host: auth.server.hostname
+Auth-Method: plain
+Auth-User: user
+Auth-Pass: password
+Auth-Protocol: imap
+Auth-Login-Attempt: 1
+Client-IP: 192.168.1.1
+</pre></div><p>Then the Perl code will actually verify the information in the header, and based on the protocol it will choose the mail server it needs to redirect to. The end-point then sends back the following on the success of the request; this will be the backend that the service will connect to.</p><div class="informalexample"><pre class="programlisting">HTTP/1.0 200 OK
+Auth-Status: OK
+Auth-Server: 192.168.1.22
+Auth-Port: 110
+Auth-User: newname
+</pre></div></div></div>
+<div class="section" title="Setting up SSL for mail authentication"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec04"/>Setting up SSL for mail authentication</h1></div></div></div><p>This recipe will look at how one can set up SSL for the mail proxy you have working with Nginx. This will add a significant layer of security to the initial authentication exchange, which would happen in plain text and would be exposed to the man in the middle and replay attacks easily.<a class="indexterm" id="id245"/>
+</p><div class="mediaobject"><img alt="Setting up SSL for mail authentication" src="graphics/4965OS_09_02.jpg" width="314"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec05"/>How to do it...</h2></div></div></div><p>You will need to put the following configuration in your setup and ensure the certificates are in the correct places:<a class="indexterm" id="id246"/>
+</p><div class="informalexample"><pre class="programlisting">mail {
+auth_http localhost:9000/cgi-bin/auth;
+proxy on;
+starttls on; ## enable STARTTLS for all mail servers
+# The config assumes certificates in /etc/nginx/ssl/ and
+# private keys in /etc/nginx/ssl/private/
+ssl on;
+ssl_prefer_server_ciphers on;
+ssl_protocols TLSv1 SSLv3;
+ssl_ciphers HIGH:!ADH:!MD5:@STRENGTH;
+ssl_session_cache shared:TLSSL:16m;
+ssl_session_timeout 10m;
+## default SSL cert. Each host should have its own.
+ssl_certificate ssl/wildcard.crt;
+ssl_certificate_key ssl/private/wildcard.key;
+## default, STARTTLS is appended because of starttls directive above
+imap_capabilities "IMAP4rev1" "UIDPLUS";
+server {
+listen 143;
+protocol imap;
+SSLsetting up, for mail authenticationserver_name mx.example1.com;
+}
+pop3_capabilities "TOP" "USER";
+server {
+listen 110;
+protocol pop3;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec06"/>How it works...</h2></div></div></div><p>This recipe simply sets up a set of certificates that will be used for every proxy request that comes through Nginx. It uses TLS and SSL, which ensure reliable security based on the browser you have in action.</p><p>The other directives help you set the cache sizes and timeout sizes, the defaults are fairly optimal in most use cases and would require tweaking in the event of a significant rise in secure certificate-driven traffic.</p></div></div>
+<div class="section" title="Using Nginx as a WEBDAV reverse proxy"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec05"/>Using Nginx as a WEBDAV reverse proxy</h1></div></div></div><p>Web-based Distributed Authoring and Versioning (WebDAV) is a set of methods based on the Hypertext Transfer Protocol (HTTP) that facilitates collaboration between users in editing and managing documents and files stored on World Wide Web servers. WEBDAV adds more keywords on top of HTTP which support many more keywords, such as PUT, DELETE, MKCOL, COPY, and MOVE.<a class="indexterm" id="id248"/>
+</p><p>The WebDAV protocol makes the Web a readable and writable medium. It provides a framework for users to create, change, and move documents on a server (typically a web server or "web share").</p><p>This recipe will help us proxy WEBDAV correctly over Nginx. It finds application in SVN over HTTP and many other situations.<a class="indexterm" id="id249"/>
+</p><div class="mediaobject"><img alt="Using Nginx as a WEBDAV reverse proxy" height="150" src="graphics/4965OS_09_03.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec07"/>How to do it...</h2></div></div></div><p>We will first set up the module and then add the configuration necessary for WEBDAV to work properly behind Nginx.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will start with installing the module:<div class="informalexample"><pre class="programlisting">./configure --with-http_dav_module
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> We will then add configuration in the location directives where we want the WEBDAV supports.<div class="informalexample"><pre class="programlisting">root /data/www/www.example1.com;
+location /files {
+dav_methods PUT DELETE MKCOL COPY MOVE;
+create_full_put_path on;
+dav_access group:rw all:r;
+limit_except GET {
+allow 192.168.1.0/32;
+deny all;
+}
+}
+</pre></div></li><li class="listitem"> Now we will restart the server to see the changes.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec08"/>How it works...</h2></div></div></div><p>In this configuration, we set up the various WEBDAV methods that Nginx will support. We then enable the ability to create intermediary directories when a new file is PUT (and the directories above it do not exist). We then use some basic group level permission on which user or group can make the calls and modify the files.<a class="indexterm" id="id250"/>
+</p><p>We also put a limit rule that does not allow computers outside the subnet to make anything other than a GET method call. That ensures that someone cannot modify the files maliciously from outside.</p></div></div>
+<div class="section" title="Dynamic image resizing using Nginx"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec06"/>Dynamic image resizing using Nginx</h1></div></div></div><p>Today the Web is about multimedia, and images that form an important part of it. Image resizing, as a result, has become one of the more common web-based tasks. Writing image manipulation code can be tedious and at times, inefficient. To solve this issue, we will have a look at how can one resize images on the fly using Nginx.<a class="indexterm" id="id251"/>
+</p><div class="mediaobject"><img alt="Dynamic image resizing using Nginx" src="graphics/4965_09_04.jpg" width="287"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec09"/>How to do it...</h2></div></div></div><p>So you will need to follow these steps to install the module and then configure Nginx to resize images.<a class="indexterm" id="id252"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will first need to compile Nginx with this module:<div class="informalexample"><pre class="programlisting">./configure -with-http_image_filter_module
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> You will then need to add the following configuration in your site configuration:<div class="informalexample"><pre class="programlisting">location /img/ {
+proxy_pass http://backend;
+image_filter resize 150 100;
+error_page 415 = /empty;
+}
+location = /empty {
+empty_gif;
+}
+</pre></div></li><li class="listitem"> You will then need to restart Nginx to complete the installation and configuration.<div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch09lvl2sec10"/>How it works...</h3></div></div></div><p>The idea is fairly simple; it acts as an image filter, resizing any image that is uploaded to this endpoint. The directive<code class="literal"> image_filter</code> takes the<code class="literal"> resize</code> and size (100 X 100) parameter to do the necessary filtering:<a class="indexterm" id="id253"/>
+</p><div class="mediaobject"><img alt="How it works..." src="graphics/4965_09_05.jpg" width="305"/></div></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h3 class="title"><a id="ch09lvl2sec11"/>There's more...</h3></div></div></div><p>You can set other parameters for the<code class="literal"> image_filter</code> directive and can get it do other forms of image manipulation. The following table lists the possibilities.</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.11076388888889"/><col style="text-align: left" width="4.21263020833333"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Parameter value</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Description</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">test</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This checks if the image type is an image format, otherwise it returns an HTTP 415 error code</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">size</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>It gives information about the image in the JSON format, for example:<code class="literal"> { "img" : { "width": 100, "height": 100, "type": "gif" } }</code> If it is not an image it returns {}</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">resize</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This proportionally scales the images to the given height and width</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">Crop</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This does not scale, but crops the image to the given height and width</p>
+</td></tr></tbody></table></div></div></div></div>
+<div class="section" title="Replacing and searching text in Nginx response"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec08"/>Replacing and searching text in Nginx response</h1></div></div></div><p>It is sometimes possible that you would need to block or remove certain keywords from the entire site at the shortest notice possible. With much larger sites, and static page sites, this can be a very tedious and time-consuming process. Nginx provides you with a quick way of replacing and searching texts in the response it sends out. In this example, we will clear swear words out of the outputted response.<a class="indexterm" id="id254"/>
+</p><div class="mediaobject"><img alt="Replacing and searching text in Nginx response" height="85" src="graphics/4965OS_09_06.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec12"/>How to do it...</h2></div></div></div><p>You will first need to install the module, and then we will put in some configuration that will remove all kinds of swear words.<a class="indexterm" id="id255"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will first compile Nginx with the substitution module.<div class="informalexample"><pre class="programlisting">./configure --with-http_sub_module
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Now we will enter the required configuration to enable the substitution:<div class="informalexample"><pre class="programlisting">Server {
+Server_name www.example1.com;
+...
+location / {
+...
+sub_filter 'bad_word' '**This is censored**';
+sub_filter_once off;
+}
+}
+</pre></div></li><li class="listitem"> We can now safely restart Nginx to complete the installation and see the module in action.</li></ol></div><div class="informalexample"><pre class="programlisting">/et/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec13"/>How it works...</h2></div></div></div><p>This piece of configuration basically takes all occurrences of<code class="literal"> bad_word</code> in the response and substitutes it with<code class="literal">'**This is censored**'</code>. The directive<code class="literal"> sub_filter_once</code> basically ensures that the replacement happens for the first occurrence only; we have switched it off as we want to replace all occurrences.<a class="indexterm" id="id256"/>
+</p><div class="mediaobject"><img alt="How it works..." height="164" src="graphics/4965OS_09_07.jpg"/></div></div></div>
+<div class="section" title="Assembling ZIP files on the fly"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec09"/>Assembling ZIP files on the fly</h1></div></div></div><p>An often needed feature on most sites nowadays is the ability to download a compressed version of a file. We will, in this recipe, introduce a module that will take a set of files in the local files system and serve them as a single ZIP file. This is a very efficient module which can easily archive hundreds of megabytes of files.<a class="indexterm" id="id257"/>
+</p><div class="mediaobject"><img alt="Assembling ZIP files on the fly" height="158" src="graphics/4965_09_08.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec14"/>How to do it...</h2></div></div></div><p>In this recipe, we will first install the module, and then we will see how it works.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to first download the code for the module and then configure Nginx.<div class="informalexample"><pre class="programlisting">wget http://wiki.nginx.org/images/6/61/Mod_zip-1.1.6.tar.gz
+tar -xvzf Mod_zip-1.1.6.tar.gz
+cd nginx
+./configure --add-module=../Mod_zip-1.1.6
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> You should restart Nginx; the command will differ based on your platform.<div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></li><li class="listitem"> You can then try testing the module by making the following HTTP request. This request should contain "X-Archive-Files: zip" in its header:<div class="informalexample"><pre class="programlisting">- 428 /test1.txt Test file 1.txt
+- 100339 /test2.txt Test file 2.txt
+</pre></div></li><li class="listitem"> This should trigger the download of a ZIP archive.</li></ol></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec15"/>How it works...</h2></div></div></div><p>The working of this module is interesting, in that we are making a special HTTP request with the "X-Archive-Files: zip" header which triggers this module. What we send is a list of the files that need to be in the archive in the following format:<a class="indexterm" id="id258"/>
+</p><p>
+<code class="literal">&lt;CRC-32 value&gt; &lt;Filesize in bytes&gt; &lt;file location&gt; &lt;filename in archive&gt;</code>
+</p><p>If there is any error in the list of files, then the download is aborted. It is also important to notice in the example that sometimes the CRC-32 value of a file may not be at hand, so you can send "-"in the place of that parameter.</p><p>If there is any error in the list of files, then the download is aborted. It is also important to notice in the example that sometimes the CRC-32 value of a file may not be at hand, so you can send "-"in the place of that parameter.</p></div></div>
+<div class="section" title="Using Nginx as a HTTP publish-subscribe server"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec11"/>Using Nginx as a HTTP publish-subscribe server</h1></div></div></div><p>Most of us are using one social network or another, and in recent years it is very clear that the social Internet is all about real-time. Driving this forward is asynchronous JavaScript HTTP calls which come in two forms, the short poll and the long poll.</p><p>To explain this let's take the simple example of a real-time updating status page. There are two possible ways of updating this page, one is that the JavaScript periodically fires a request, say every second, and gets an update from the server. This has its pros and cons, as it is clearly not real-time in the true sense. The other approach is the event driven one, where the JavaScript opens a connection with the server and waits till the server responds (which may take quite a while in some cases). The issue with this approach is that this potentially eats up resources for the web server as it waits to send a response to the client. However, due to Nginx's event-driven architecture, it is very cheap for Nginx to keep many connections open concurrently.<a class="indexterm" id="id259"/>
+</p><p>In this recipe, we will have a look at an Nginx module that helps you easily implement the HTTP publish-subscribe model using Nginx.</p><div class="mediaobject"><img alt="Using Nginx as a HTTP publish-subscribe server" src="graphics/4965OS_09_09.jpg" width="174"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec16"/>How to do it...</h2></div></div></div><p>In this recipe we will first install the module and then set up the configuration.<a class="indexterm" id="id260"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first download the module and then compile it into Nginx:<div class="informalexample"><pre class="programlisting">wget http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz
+tar -xvzf nginx_http_push_module-0.692.tar.gz
+cd nginx
+./configure --add-module=../nginx_http_push_module-0.692
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Now the following configuration needs to be inserted in the server directive:<div class="informalexample"><pre class="programlisting"># internal publish endpoint (keep it private / protected)
+location /publish {
+set $push_channel_id $arg_id; #/?id=239aff3 or somesuch
+push_publisher;
+push_store_messages on; # enable message queueing
+push_message_timeout 2h; # expire buffered messages after 2 hours
+push_max_message_buffer_length 10; # store 10 messages
+push_min_message_recipients 0; # minimum recipients before purge
+}
+# public long-polling endpoint
+location /activity {
+push_subscriber;
+push_subscriber_concurrency broadcast;
+set $push_channel_id $arg_id;
+default_type text/plain;
+}
+</pre></div></li><li class="listitem"> We will then restart Nginx.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec17"/>How it works...</h2></div></div></div><p>This configuration creates a publishing end-point that will take an ID parameter to publish in. It will store the last 10 messages in a buffer for the new recipients who join the channel.<a class="indexterm" id="id261"/>
+</p><p>It also creates an activity endpoint, which is actually the long-polling endpoint, which the JavaScript will call and wait for. In its current configuration, it will allow any client who joins the channel to long-poll this end-point. This will make your application dependant on Nginx for the long-poll ability, thus freeing up resources on your application server. Nginx has a lot less overhead for maintaining open connections, which is a necessity in long-poll based activities.</p><div class="mediaobject"><img alt="How it works..." src="graphics/4965_09_10.jpg" width="346"/></div><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="note05"/>Note</h3><p>The preceding site has the TV chatter feed which is driven by the Nginx's publish-subscribe module and scales easily for thousands of users.</p></div></div></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec18"/>There's more...</h2></div></div></div><p>You can also use this same channel broadcasting mechanism for one-to-one communication as well. So you can set values to the<code class="literal"> push_subscriber_concurrency</code> directive depending on which you can achieve other communication modes.</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="0.746527777777778"/><col style="text-align: left" width="3.58576388888889"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Modes</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Description</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>last</p>
+</td><td style="text-align: left" valign="top">
+<p>Only the most recent listener request is kept, 409 for others</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>first</p>
+</td><td style="text-align: left" valign="top">
+<p>Only the oldest listener request is kept, 409 for others</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>broadcast</p>
+</td><td style="text-align: left" valign="top">
+<p>Any number of listener requests may be long-polling</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Transforming XML responses using XSLT templates"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec13"/>Transforming XML responses using XSLT templates</h1></div></div></div><p>Before the advent of JavaScript as the primary client side language, JSON or JavaScript object notation had not really caught on. XML has been the dominant format of exchange for quite some time and most systems continue to support one XML format or another. It is also interesting to note how the newer document formats (new office and open office formats) are also primarily XML standards in a well-packaged archive.<a class="indexterm" id="id262"/>
+</p><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="note06"/>Note</h3><p>Nginx gives us the ability to transform the XML responses that it generates into another XML format by the application of a XSLT. This can be very useful in situations where one requires API outputs to fit an external client's requirements without a change to the end-point.</p></div></div><div class="mediaobject"><img alt="Transforming XML responses using XSLT templates" src="graphics/4965OS_09_11.jpg" width="210"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec19"/>How to do it...</h2></div></div></div><p>We will first install the module and then configure your site setup.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to install the XSL module:<div class="informalexample"><pre class="programlisting">./configure --with-http_xslt_module
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Insert the following configuration into your server directive:<div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+. . .
+location / {
+. . .
+}
+location /xml_api {
+xml_entities /site/dtd/entities.dtd;
+xslt_stylesheet /site/xslt/one.xslt param1="value";
+. . .
+}
+}
+</pre></div></li><li class="listitem"> Restart Nginx.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec20"/>How it works...</h2></div></div></div><p>This configuration allows you to apply one XSLT transform on all the XML responses that the<code class="literal"> /xml_api</code> endpoint generates. This also allows you to set parameters in the XSLT based on your Nginx variables (or GET parameters).<a class="indexterm" id="id263"/>
+</p></div></div>
+<div class="section" title="Setting up Etags for static content"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec14"/>Setting up Etags for static content</h1></div></div></div><p>Etags are a part of the HTTP protocol and is utilized for cache validation. This allows more efficiency on the part of the web browser and saves bandwidth as well. You can think of Etags as Unique IDs which represent the current state of a URL.<a class="indexterm" id="id264"/>
+</p><p>Nginx does not generate Etags for the static content that it serves, and as a result you are not able to make full use of the advantages of Etags. In this recipe, we will install a module that will get your static content running with Etags in a jiffy.</p><div class="mediaobject"><img alt="Setting up Etags for static content" height="179" src="graphics/4965_09_12.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec21"/>How to do it...</h2></div></div></div><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the module:<a class="indexterm" id="id265"/><div class="informalexample"><pre class="programlisting">git clone git://github.com/mikewest/nginx-static-etags.git ./nginx-static-etags
+cd nginx
+./configure --add-module=../nginx-static-etags
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Now we can place the following directives in the locations where we want the static files to contain the Etags directive:<div class="informalexample"><pre class="programlisting">location / {
+...
+FileETag on;
+...
+}
+</pre></div></li><li class="listitem"> You need to restart Nginx to see the affect.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec22"/>How it works...</h2></div></div></div><p>This directive basically adds the ability for Nginx to have a look at the static files being served and add an ETag to the HTTP header. When the files change, the Etag header changes accordingly, this ensures cache invalidation on the client's browser and downloading of the new updated static file.<a class="indexterm" id="id266"/>
+</p></div></div>
+<div class="section" title="Easy logging of page load times"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec15"/>Easy logging of page load times</h1></div></div></div><p>If you are in the business of running portals or websites, the speed of your site is one of the most important parts of your interaction with the end user. You would want to find out the slower parts of your website and possibly optimize your codebase to respond to those requests faster.<a class="indexterm" id="id267"/>
+</p><p>This recipe has a look at a module that helps you log the page load times and then you can parse those logs to find out the part of the sites that take the most amount of time to load up.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec23"/>How to do it...</h2></div></div></div><p>This recipe involves the setting up of the module and then a re-configuration of the logging format to output the page load time variable. We also run a parser to get a list of the slower pages on the site.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will need to install this module first:<div class="informalexample"><pre class="programlisting">wget http://wiki.nginx.org/images/7/78/Ngx_http_log_request_speed.tar.gz
+tar -xvzf Ngx_http_log_request_speed.tar.gz
+cd nginx
+./configure --add-module=../Ngx_http_log_request_speed
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> We will configure Nginx to log the page loading times as well:<div class="informalexample"><pre class="programlisting">user www www;
+worker_processes 2;
+error_log logs/error.log;
+pid logs/nginx.pid;
+events {
+worker_connections 1024;
+}
+http {
+log_request_speed_filter on;
+log_request_speed_filter_timeout 3;
+. . .
+}
+</pre></div></li><li class="listitem"> Now we need to restart Nginx.<div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></li><li class="listitem"> Run the site for some time, and then you can run the log parser to see some analysis:</li></ol></div><div class="informalexample"><pre class="programlisting">wget http://wiki.nginx.org/images/a/a8/Log_Analyzer.tar.gz
+cd Log_Analyzer
+tail -n 10000 /var/log/nginx/error.log | grep 'process request' | ./analyzer.pl -r
+POST /message/ajaxWrite/from_profile/toni32 HTTP/1.1 --- avg ms: 3110, value count: 1
+POST /sessionupdate_prod.php HTTP/1.1 --- avg ms: 3312, value count: 137
+GET /favoriten/1 HTTP/1.1 --- avg ms: 3345, value count: 76
+GET /nachrichten/read/in/neu/369217567 HTTP/1.1 --- avg ms: 3737, value count: 1
+POST /login_prod.php HTTP/1.1 --- avg ms: 4117, value count: 14
+GET /wan/isonline?NICKNAME=luckynight&amp;rtime=1259292758 HTTP/1.1 --- avg ms: 5267, value count: 1
+GET /sessionupdate_prod.php HTTP/1.1 --- avg ms: 5572, value count: 8
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec24"/>How it works...</h2></div></div></div><p>In the preceding steps we have installed the plugin which adds a Nginx variable that keeps track of the amount of time the backend takes to respond. This variable can now be easily logged, giving you performance insights without writing extra code. After logging, you can use a simple script for this extra column to find out the slower pages.</p><p>The directive<code class="literal"> log_request_speed_filter_timeout</code> basically sets a cut-off of three seconds, above which all pages will be logged. This prevents unnecessary time logging of pages.</p></div></div>
+<div class="section" title="Streaming of MP4/H.264 files"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec16"/>Streaming of MP4/H.264 files</h1></div></div></div><p>Video streaming has become a social phenomenon with the rise of sites such as YouTube (<a class="ulink" href="http://youtube.com">http://youtube.com</a>), Metacafe (<a class="ulink" href="http://metacafe.com">http://metacafe.com</a>), and Dailymotion (<a class="ulink" href="http://dailymotion.com">http://dailymotion.com</a>). Most of these sites either stream FLV files or MP4 files. We have covered how you can efficiently stream FLV files and now we will cover MP4.<a class="indexterm" id="id268"/>
+</p><p>Nginx supports an MP4 streaming module that allows you to easily stream and seek MP4 files.</p><div class="mediaobject"><img alt="Streaming of MP4/H.264 files" height="209" src="graphics/4965_09_13.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec25"/>How to do it...</h2></div></div></div><p>In this recipe, we will first install the module and then configure a particular location to serve the MP4 video files.<a class="indexterm" id="id269"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the module:<div class="informalexample"><pre class="programlisting">wget http://i.6.cn/nginx_mp4_streaming_public_20081229.tar.bz2
+tar -xvjf nginx_mp4_streaming_public_20081229.tar.bz2
+cd nginx
+./configure --add-module=../nginx_mp4_streaming_public_20081229
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> Now we will add the following configuration to the location directive where your video files reside:<div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+. . .
+root /var/www/www.example1.com;
+location / {
+. . .
+}
+location /videos {
+mp4;
+. . .
+}
+}
+</pre></div></li><li class="listitem"> We will need to restart Nginx to apply the settings.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec26"/>How it works...</h2></div></div></div><p>All you require to support MP4 files streaming is to add the directive above. This module ensures that you can seek to random parts of the file as well.<a class="indexterm" id="id270"/>
+</p></div></div>
+<div class="section" title="Setting up SCGI sites"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec17"/>Setting up SCGI sites</h1></div></div></div><p>Nginx supports SCGI out of the box, and as a result it is rather straightforward to set up. This is supposed to be an alternative to CGI, much like FastCGI. In this recipe, we will assume that you already have an SCGI backend and we will go ahead and set up Nginx as the frontend proxy server.</p><p>FastCGI has a fairly complicated protocol, as compared to SCGI which makes it prone to efficiency issues. Due to the simplicity of the protocol definition which is 100 lines long (<a class="ulink" href="http://python.ca/nas/scgi/protocol.txt">http://python.ca/nas/scgi/protocol.txt</a>), SCGI is considered and often found to be a faster and more efficient CGI replacement as compared to FastCGI.<a class="indexterm" id="id271"/>
+</p><div class="mediaobject"><img alt="Setting up SCGI sites" height="80" src="graphics/4965OS_09_14.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec27"/>How to do it...</h2></div></div></div><p>To get this running, all you need to do is to use the following configuration in your setup and then restart Nginx:<a class="indexterm" id="id272"/>
+</p><div class="informalexample"><pre class="programlisting">http {
+scgi_cache_path /usr/local/nginx/temp levels=1:2
+keys_zone=NAME:10m
+inactive=5m;
+server {
+location / {
+scgi_pass 127.0.0.1:9000;
+scgi_cache NAME;
+scgi_cache_valid 200 302 1h;
+scgi_cache_valid 301 1d;
+scgi_cache_valid any 1m;
+scgi_cache_min_uses 1;
+scgi_cache_use_stale error timeout invalid_header http_500;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec28"/>How it works...</h2></div></div></div><p>This assumes that you have an SCGI backend running on localhost on port 9000. This configuration sets up an SCGI cache of 10MBs which caches all 200OK files for a minute. This is very similar to how the FastCGI cache works.</p></div></div>
+<div class="section" title="Setting up expiring links"><div class="titlepage"><div><div><h1 class="title"><a id="ch09lvl1sec18"/>Setting up expiring links</h1></div></div></div><p>A lot of the time, security comes as a factor of time limits and obfuscation. We will explore a module here which will let you generate links that are valid until a certain Date/Time.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec29"/>How to do it...</h2></div></div></div><p>We will set up the module and then setup the secure download location.<a class="indexterm" id="id273"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the module:<div class="informalexample"><pre class="programlisting">git clone https://github.com/replay/ngx_http_secure_download.git
+cd nginx
+./configure --add-module=../ngx_http_secure_download
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> We will need to add the following configuration under the server directive:<div class="informalexample"><pre class="programlisting">location /timedfolder {
+secure_download on;
+secure_download_secret IAmSalt$remote_addr;
+secure_download_path_mode file;
+if ($secure_download = "-1") {
+rewrite /expired.html break;
+}
+if ($secure_download = "-2") {
+rewrite /bad_hash.html break;
+}
+if ($secure_download = "-3") {
+return 500;
+}
+rewrite ^(.*)/[0-9a-zA-Z]*/[0-9a-zA-Z]*$ $1 break;
+}
+</pre></div></li><li class="listitem"> We will need to restart Nginx for the configurations to apply.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch09lvl2sec30"/>How it works...</h2></div></div></div><p>In this configuration, we have enabled the module and set the md5 secret as<code class="literal"> IAmSalt$remote_addr</code>. The path mode is file which means that the hash created contains the file name. The URL generated has the following structure:</p><p>
+<code class="literal">&lt;real_path&gt;/&lt;md5_hash&gt;/&lt;expiration_timestamp&gt;</code>
+</p><p>The md5 hash gets generated out of the following string:</p><p>
+<code class="literal">&lt;real_path&gt;/&lt;secret&gt;/&lt;expiration_timestamp&gt;</code>
+</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">real_path</code> can be either the path of the file which you want to access or the folder which contains the file<a class="indexterm" id="id274"/></li><li class="listitem" style="list-style-type: disc"><code class="literal">secret</code> is the hash defined</li><li class="listitem" style="list-style-type: disc"><code class="literal">expiration_timestamp</code> is a unix_timestamp (seconds since beginning of 1970) in hexadecimal format</li></ul></div><p>So an example URL would be like the one below:</p><p>
+<code class="literal">http://www.example1.com/timefolder/protected.html/f901b5272c17b456fabf49c3e9bcc120/49F71056</code>
+</p></div></div></body></html>

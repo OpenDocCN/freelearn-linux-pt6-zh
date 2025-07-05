@@ -1,0 +1,720 @@
+<html><head></head><body>
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Let&amp;#x27;s Get Started</h1>
+                </header>
+            
+            <article>
+                
+<p>In this chapter, we will cover the following recipes:</p>
+<ul>
+<li>A quick installation guide</li>
+<li>Configuring NGINX</li>
+<li>Stopping/starting NGINX</li>
+<li>Enabling modules</li>
+<li>Deploying a basic website</li>
+<li>Basic monitoring</li>
+<li>Real-time statistics</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Introduction</h1>
+                </header>
+            
+            <article>
+                
+<p>NGINX is a powerful software suite which has progressed well beyond a basic web server package. Some of the additional features, such as the reverse proxy and load balancing options, are well known.</p>
+<p>Originally designed to tackle the C10k problem of handling 10,000 concurrent connections, NGINX differentiated itself from Apache with an event-driven architecture. While Apache 2.4 added event-driven processing also, there are a number of distinct differences where NGINX still remains more flexible.</p>
+<p>This book describes how to use NGINX in a number of different scenarios and is aimed at providing you with a working solution rather than being an in-depth review of all NGINX features. If you're unfamiliar with NGINX, I highly recommend that you read <em>Nginx HTTP Server - Third Edition</em>, by Clément Nedelcu, also published by <em>Packt Publishing</em>.</p>
+<div class="packt_infobox">You can also read the official documentation here:<br/>
+<a href="http://nginx.org/en/docs/" target="_blank"><span class="URLPACKT">http://nginx.org/en/docs/</span></a></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">A quick installation guide</h1>
+                </header>
+            
+            <article>
+                
+<p>Since the mainline release (currently 1.11.19) has all of the latest features, you'll need to install it directly from the NGINX repositories. Thankfully, NGINX is kind enough to provide <strong>Red Hat Enterprise Linux</strong> (<strong>RHEL</strong>), CentOS, <strong>SUSE Linux Enterprise Server</strong> (<strong>SLES</strong>), Debian, and Ubuntu repositories, as well as OS X and Windows binaries.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="206" src="assets/f99866ea-a822-446f-9480-46feb342466a.png" width="415"/></div>
+<div class="packt_figure packt_figref CDPAlignCenter CDPAlign">Mainline versus stable</div>
+<div class="packt_figure packt_figref CDPAlignCenter CDPAlign">(source: <a href="https://nginx-com-uploads.s3.amazonaws.com/wp-content/uploads/2016/04/NGINX-1.11-mainline-1.10-stable.png" target="_blank">https://nginx-com-uploads.s3.amazonaws.com/wp-content/uploads/2016/04/NGINX-1.11-mainline-1.10-stable.png</a>)</div>
+<p>The stable and mainline branches don't necessarily reflect system stability, but configuration and module integration stability. Unless you have third-party integration which requires the stable release, we highly recommend the mainline release.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Different Linux distributions have varying package managers, so we'll briefly cover the installation procedures for the more commonly used ones. If the distribution you use isn't covered here, refer to the official NGINX documentation for further guidance.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Packages – RHEL/CentOS</h1>
+                </header>
+            
+            <article>
+                
+<p>To install the latest NGINX release, add the NGINX mainline repository by adding the following to <kbd>/etc/yum.repos.d/nginx.repo</kbd>:</p>
+<pre>[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/mainline/OS/OSRELEASE/$basearch/
+gpgcheck=0
+enabled=1</pre>
+<p>You'll also need to replace <kbd>OS</kbd> with either <kbd>rhel</kbd> or <kbd>centos</kbd>, and replace <kbd>OSRELEASE</kbd> with <kbd>5</kbd>, <kbd>6</kbd>, or <kbd>7</kbd>, for your correct release.</p>
+<div class="packt_tip">You can check your version by running <kbd>cat /etc/redhat-release</kbd>.</div>
+<p>Once you have the repository installed, refresh the packages and then install NGINX.</p>
+<pre class="mce-root"><strong>yum update<br/></strong><strong>yum install nginx</strong></pre>
+<p>If you have any issues, double check your repository for the correct syntax.</p>
+<div class="packt_infobox">For further information, refer to the official documentation at <a href="http://nginx.org/en/linux_packages.html#mainline" target="_blank"><span class="URLPACKT">http://nginx.org/en/linux_packages.html#mainline</span></a>.</div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Packages – Debian/Ubuntu</h1>
+                </header>
+            
+            <article>
+                
+<p>First, download the NGINX signing key for the packages and install it:</p>
+<pre><strong>wget http://nginx.org/keys/nginx_signing.key<br/></strong><strong>apt-key add nginx_signing.key</strong></pre>
+<p>Then, using your preferred Linux editor, we can add the sources to <kbd>/etc/apt/sources.list.d/nginx.list</kbd>:</p>
+<pre>deb http://nginx.org/packages/mainline/debian/ codename nginx<br/>deb-src http://nginx.org/packages/mainline/debian/ codename nginx</pre>
+<p>Replace <kbd>codename</kbd> with the release name; for example, if you're using Debian 8, this will be set to <kbd>jessie</kbd>.</p>
+<p>For Ubuntu-based systems, you'll need to use the following:</p>
+<pre>deb http://nginx.org/packages/mainline/ubuntu/ codename nginx<br/>deb-src http://nginx.org/packages/mainline/ubuntu/ codename nginx</pre>
+<p>Replace <kbd>codename</kbd> with the release name; for example, if you're using Ubuntu 14.04, this will be set to <kbd>trusty</kbd>.</p>
+<p>After adding the new source, we can then update the <kbd>apt</kbd> database and install NGINX:</p>
+<pre><strong>apt-get update<br/></strong><strong>apt-get install nginx</strong></pre>
+<p>Installation should now be complete.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Compiling from scratch</h1>
+                </header>
+            
+            <article>
+                
+<p>Although having the precompiled packages is nice, not all of the modules are available out of the box. NGINX requires you to compile these into the NGINX installation and it's not a simple module like Apache.</p>
+<p>You can simply build from source without any of the packaging tools for CentOS or Debian, however, it makes upgrades and compatibility more difficult. By default, user compiled programs will default to <kbd>/usr/local</kbd>, which means that any documentation which refers to the package defaults (<kbd>/usr/etc</kbd>) will be incorrect.</p>
+<p>My preference is to base the build on the official package sources, rather than the plain source code. There aren't many extra steps involved, but it makes the ongoing management much easier. If you're looking for vanilla build instructions (without packages), these are easily available on the web.</p>
+<div class="packt_infobox">These examples require you to have the mainline repositories already installed.</div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Debian/Ubuntu</h1>
+                </header>
+            
+            <article>
+                
+<p>On Ubuntu/Debian, install the required build tools:</p>
+<pre><strong>apt-get install devscripts</strong></pre>
+<p>This will install quite a few packages on your system, so if you're trying to keep your production environment lean, then I'd recommend that you use a separate build box to complete this.</p>
+<p>We can now install the build prerequisites for NGINX:</p>
+<pre><strong>apt-get build-dep nginx</strong></pre>
+<p>Once you have the required build dependencies, we can now get a copy of the source code. Again, rather than the plain TAR file, we're going to get the packaged variant so that we can easily build them. Here's how we do it:</p>
+<pre><strong>mkdir ~/nginxbuild<br/></strong><strong>cd ~/nginxbuild<br/></strong><strong>apt-get source nginx</strong></pre>
+<p>You should now have a directory with the original TAR file, the Debian description, and any Debian specific patches. The <kbd>apt-get source</kbd> command will automatically extract and apply patches, as required, into a source directory.</p>
+<p>To build without any changes, enter the directory and create the packages:</p>
+<pre><strong>cd nginx-1.9.10/<br/></strong><strong>fakeroot debian/rules binary</strong></pre>
+<p>Compiling the code may take a while, depending on how many processors your workstation or server has. Once it has compiled, you should see two binaries in the parent (<kbd>nginxbuild</kbd>) directory. The resulting files should be:</p>
+<ul>
+<li><kbd>nginx-dbg_1.9.10-1~jessie_amd64.deb</kbd></li>
+<li><kbd>nginx_1.9.10-1~jessie_amd64.deb</kbd></li>
+</ul>
+<p>You can now install NGINX via the newly compiled package:</p>
+<pre><strong>sudo dpkg -i nginx_1.9.10-1~jessie_amd64.deb</strong></pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">CentOS/RHEL</h1>
+                </header>
+            
+            <article>
+                
+<p>Like the Debian build process, first we'll need to install the package build tools and the additional <strong>Extra Packages For Enterprise Linux</strong> (<strong>EPEL</strong>) repository:</p>
+<pre><strong>sudo yum install yum-utils epel-release mock</strong></pre>
+<p>Next, update <kbd>/etc/yum.repos.d/nginx.repo</kbd> and add the additional source repository:</p>
+<pre>[nginx-source]
+name=nginx source repo
+baseurl=http://nginx.org/packages/mainline/centos/7/SRPMS/
+gpgcheck=0 
+enabled=1 </pre>
+<p>In this example, we'll be using a CentOS 7-based release. Refer to the <em>Packages – RHEL/CentOS</em> section for how to modify it for other CentOS versions.</p>
+<p>With the updated repository, we then create a directory for the build, and download the <strong>Source RPM</strong> (<strong>SRPM</strong>):</p>
+<pre><strong>mkdir ~/nginxbuild<br/></strong><strong>cd ~/nginxbuild<br/></strong><strong>yumdownloader --source nginx</strong></pre>
+<p>Next, download the required packages to complete the build:</p>
+<pre><strong>yum-builddep nginx</strong></pre>
+<p>Once all of the development packages have been downloaded, we can now extract the files from the SRPM:</p>
+<pre><strong>rpm2cpio nginx-1.9.10-1.el7.ngx.src.rpm | cpio -idmv</strong></pre>
+<div class="packt_infobox">Note that the name of your directory may vary based on the version of NGINX you have installed. For instance, here it is nginx-1.9.10 as I have installed NGINX 1.9.10.</div>
+<p>You should see an output of the source files similar to this:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="234" src="assets/b8b6ae84-2a99-4531-9be3-44dc26249c14.png" width="549"/></div>
+<p>If we want to update the configuration and apply a patch or change one of the defaults, then this can simply be done by editing the files.</p>
+<p>We can now rebuild these files from source using <kbd>mock</kbd>, which is a tool for building packages. The advantage of <kbd>mock</kbd> is that all of the development dependencies are contained within a <em>chrooted</em> environment, so it doesn't clutter your main installation. This <em>chrooted</em> environment can be cleaned and removed without any impact on the host system, which is great if you want repeatable builds.</p>
+<p>To build, we run the following command:</p>
+<pre><strong>mock --buildsrpm --spec ~/nginxbuild/nginx.spec --sources ~/nginxbuild</strong></pre>
+<p>This generates the SRPMs, and they will be located in the <kbd>/var/lib/mock/epel-7-x86_64/result</kbd> directory, along with the associated log files. Now that we have a rebuilt SRPM, we can now compile it. Again, we're going to use <kbd>mock</kbd> so that everything is neatly contained:</p>
+<pre><strong>mock --no-clean --rebuild var/lib/mock/epel-7-x86_64/result/nginx-1.9.11-1.el7.ngx.src.rpm</strong></pre>
+<p>Depending on your processing power, this may take five minutes or more to complete. Once the build is complete, you should see the resultant binary RPM as well as a debug RPM in the <kbd>/var/lib/mock/epel-7-x86_64</kbd> directory. Here's an example:</p>
+<pre><strong>-rw-rw-r-- 1 demo mock 159K Feb 10 20:59 build.log<br/></strong><strong>-rw-r--r-- 1 demo mock 889K Feb 10 20:57 nginx-1.9.11-1.el7.ngx.src.rpm<br/></strong><strong>-rw-r--r-- 1 demo mock 803K Feb 10 20:59 nginx-1.9.11-1.el7.ngx.x86_64.rpm<br/></strong><strong>-rw-r--r-- 1 demo mock 3.1M Feb 10 20:59 nginx-debuginfo-1.9.11-1.el7.ngx.x86_64.rpm<br/></strong><strong>-rw-rw-r-- 1 demo mock 45K Feb 10 20:59 root.log<br/></strong><strong>-rw-rw-r-- 1 demo mock 1000 Feb 10 20:59 state.log</strong></pre>
+<p>Now that we have the new binary file, we can install it via <kbd>yum</kbd>:</p>
+<pre><strong>sudo yum install /var/lib/mock/epel-7-x86_64/result/nginx-1.9.11-1. ngx.x86_64.rpm</strong></pre>
+<div class="packt_infobox">It's preferable to use <kbd>yum</kbd> over <kbd>rpm</kbd> to install the packages, as it can also install any dependencies.</div>
+<p>You should now have a fully installed NGINX installation, which you compiled from source.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Testing</h1>
+                </header>
+            
+            <article>
+                
+<p>Regardless of your installation method, once you have NGINX up and running, you should be able to browse to it via the IP address and/or <strong>Fully Qualified Domain Name</strong> (<strong>FQDN</strong>) and see something very similar to what is shown here:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="166" src="assets/d78d0ea9-e41f-4c4f-a0cb-16b5dfb8f590.png" width="393"/></div>
+<div class="packt_figure packt_figref CDPAlignCenter CDPAlign">Default NGINX page</div>
+<p>To start, stop, and restart NGINX (if installed using official binaries), you can use the standard Linux init systems. There's a very slight variance between the different OS versions, so it's important to ensure you're using the correct command for the correct variant.</p>
+<div class="packt_infobox">As Ubuntu switched to <kbd>systemd</kbd> as the default init system from 15.04, make sure you double check the version you're using.</div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Here's a quick reference table of the available commands:</p>
+<table>
+<tbody>
+<tr>
+<td>
+<p><strong>Activity/OS</strong></p>
+</td>
+<td>
+<p><strong>CentOS / RedHat 6</strong></p>
+</td>
+<td>
+<p><strong>CentOS / RedHat 7</strong></p>
+</td>
+<td>
+<p><strong>Ubuntu 14.04 / Debian 8</strong></p>
+</td>
+</tr>
+<tr>
+<td>
+<p><strong>Start NGINX</strong></p>
+</td>
+<td><kbd>service nginx start</kbd></td>
+<td><kbd>systemctl start nginx</kbd></td>
+<td><kbd>service nginx start</kbd></td>
+</tr>
+<tr>
+<td>
+<p><strong>Stop NGINX<br/></strong></p>
+</td>
+<td><kbd>service nginx stop</kbd></td>
+<td><kbd>systemctl stop nginx</kbd></td>
+<td><kbd>service nginx stop</kbd></td>
+</tr>
+<tr>
+<td>
+<p><strong>Restart NGINX</strong></p>
+</td>
+<td><kbd>service nginx restart</kbd></td>
+<td><kbd>systemctl restart nginx</kbd></td>
+<td><kbd>service nginx restart</kbd></td>
+</tr>
+<tr>
+<td>
+<p><strong>Reload NGINX</strong></p>
+</td>
+<td><kbd>service nginx reload</kbd></td>
+<td>N/A</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<p>Some modifications to NGINX will require a full restart, whereas others only need the configuration reloaded. In most instances where a configuration file has been modified, a reload is all which is required. NGINX will fork a new set of worker processes, allowing existing workers to complete and cleanly exit so that there is no downtime.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>We can check the NGINX configuration files after changes are made to ensure the syntax is correct. To do this, we run the following:</p>
+<pre><strong>/usr/sbin/nginx -t</strong></pre>
+<p>You should see the following if everything is correct:</p>
+<pre><strong>nginx: the configuration file /etc/nginx/nginx.conf syntax is ok<br/></strong><strong>nginx: configuration file /etc/nginx/nginx.conf test is successful</strong></pre>
+<p>If you have any errors, double check your configuration for syntax errors on the lines indicated.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Configuring NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>Editing the configuration for NGINX is paramount to the way it operates. To integrate NGINX with your particular website or need, you'll need to edit a number of areas within the configuration files. To get started, we'll go through the basics here.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>By default, NGINX will have two main configuration files. The first is <kbd>/etc/nginx/nginx.conf</kbd>, which contains the main server configuration. The second is <kbd>/etc/nginx/default.conf</kbd>, which defines a basic site out of the box for you.</p>
+<div class="packt_infobox"><span class="packt_screen">Warning</span>: Don't just increase values expecting a higher performance.</div>
+<p>Before you make any changes, be 100 percent sure that you understand the implications. Out of the box, NGINX is a highly performant web server which already gives great performance. The age-old programmer's saying that <em>premature optimization is the root of all evil</em> continually rings true here. Simply increasing some figures may lead to increased memory usage, decreased stability, and decreased performance. In <a href="482173df-c31a-4082-abc0-6d6aafd4a5e6.xhtml"><span class="ChapterrefPACKT">Chapter 11</span></a>, <em>Performance Tuning</em>, we'll go through some of the more advanced areas to tweak, but make sure to hit limits before attempting this.</p>
+<p>Here's the default configuration:</p>
+<pre>user  nginx;
+worker_processes 1; 
+ 
+error_log  /var/log/nginx/error.log warn; 
+pid        /var/run/nginx.pid; 
+ 
+events { 
+    worker_connections  1024; 
+} 
+ 
+http { 
+    include       /etc/nginx/mime.types; 
+    default_type  application/octet-stream; 
+ 
+    log_format  main  '$remote_addr - $remote_user [$time_local] <br/>     "$request" ' 
+    '$status $body_bytes_sent "$http_referer" ' 
+    '"$http_user_agent" "$http_x_forwarded_for"'; 
+ 
+    access_log  /var/log/nginx/access.log  main; 
+ 
+    sendfile        on; 
+    #tcp_nopush     on; 
+ 
+    keepalive_timeout  65; 
+ 
+    #gzip  on; 
+ 
+    include /etc/nginx/conf.d/*.conf; 
+} </pre>
+<p>The configuration files have two main components in them—<strong>simple directives</strong> and <strong>block directives</strong>. Simple directives are one-line items which are simple name and value, followed by a semicolon (<kbd>;</kbd>). A block directive has a set of brackets and allows configuration items to be set within a specific context. This makes the configuration files easier to follow, especially as they get more complex.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Here are a few of the key configuration items. Firstly, <kbd>user nginx</kbd> defines the user in which NGINX will run as. This is important to note if you have a server-side script which requires the ability to write files and a user will also require permission to read the files.</p>
+<p>Secondly, <kbd>worker_processes</kbd> sets the number of worker processes that NGINX will start. While a default of <kbd>1</kbd> doesn't sound very high, the event-driven nature means that this certainly won't be a limitation initially. The optimal number of processes depends on many factors, but an easy starting reference is to go by the number of CPU cores your server has.</p>
+<p>Next, <kbd>worker_connections</kbd> is the maximum amount of simultaneous connections that a worker process can open. In the default configuration, this is set to <kbd>1024</kbd> concurrent connections.</p>
+<p>Lastly, the <kbd>include /etc/nginx/conf.d/*.conf;</kbd> line tells NGINX to load all of the <kbd>.conf</kbd> files as if they were all part of the main <kbd>nginx.conf</kbd> file. This allows you to separate the configuration for different sites.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Enabling modules</h1>
+                </header>
+            
+            <article>
+                
+<p>By default, not every module for NGINX has been compiled and is available. As of version 1.9.11 (released in February 2016), NGINX added dynamic modules, similar to the <strong>Dynamic Shared Objects</strong> (<strong>DSO</strong>) like the Apache HTTP server.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="248" src="assets/a438fdbd-c516-4694-8434-3c1b979cff19.png" width="546"/></div>
+<div class="packt_figure packt_figref CDPAlignCenter CDPAlign">Previous NGINX build process</div>
+<p>Previous to this, you needed to recompile NGINX every time you updated a module, so this is a big step forward. Being statically compiled into the main binary also meant that each instance of NGINX loaded all the modules internally, regardless of whether you needed them or not. This is why the mail modules were never compiled in with the standard binaries.</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="249" src="assets/c789d472-84e0-46ef-b9a5-23ce5c320822.png" width="547"/></div>
+<div class="packt_figure packt_figref CDPAlignCenter CDPAlign">NGINX new dynamic modules</div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>However, even though 1.9.11 added the dynamic modules, none of the standard modules are dynamic by default. To make them into dynamic modules, you'll need to update the configure options. For example, to make the mail module dynamic, update <kbd>--with-mail</kbd> to <kbd>--with-mail=dynamic</kbd>.</p>
+<p>The main <kbd>nginx.conf</kbd> configuration file will then need the following:</p>
+<pre>load_module "modules/ngx_mail_module.so";</pre>
+<div class="packt_infobox"><span class="packt_screen">Official Link</span>: <a href="https://www.nginx.com/resources/wiki/extending/" target="_blank"><span class="URLPACKT">https://www.nginx.com/resources/wiki/extending/</span></a></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>There are a number of third-party modules for NGINX, some of which we'll be using later in this book and can be found at <a href="https://www.nginx.com/resources/wiki/modules/" target="_blank"><span class="URLPACKT">https://www.nginx.com/resources/wiki/modules/</span></a>.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Deploying a basic site</h1>
+                </header>
+            
+            <article>
+                
+<p>If you have a static website, this is very easy to deploy with NGINX. With systems such as Jekyll (which powers the GitHub Pages), static site deployments can be easy to generate and are far less hassle when it comes to security and exploits. Quite simply, a static website can't be hacked and doesn't suffer from any performance issues.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<ol>
+<li>To serve static files, we're going to edit the default site configuration file <kbd>/etc/nginx/conf.d/default.conf</kbd> and make a few small changes.</li>
+</ol>
+<p style="padding-left: 60px">Edit the file and add the following:</p>
+<pre class="mce-root">      server {<br/>          listen 80;<br/>          server_name server.yourdomain.com; <br/>          access_log /var/log/nginx/log/host.access.log combined;<br/>         <br/>          location / {<br/>              root /var/www/html;<br/>              index index.html; <br/>          }<br/>      }</pre>
+<ol start="2">
+<li>If the folder doesn't exist, create the <kbd>/var/www/vhosts</kbd> directory with the following command:</li>
+</ol>
+<pre><strong>      mkdir -p /var/www/vhosts</strong></pre>
+<ol start="3">
+<li>Copy your existing website files into the <kbd>/var/www/vhosts</kbd> directory.</li>
+<li>Ensure the files and folders have permission to be read by the <kbd>nginx</kbd> user:</li>
+</ol>
+<pre><strong>      chmod -R o+r /var/www/vhosts<br/>      </strong><strong>chown -R nginx:nginx /var/www/vhosts</strong></pre>
+<ol start="5">
+<li>From your web browser, browse the site and check that it's working.</li>
+</ol>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Let's go through this setup file to understand each directive:</p>
+<ul>
+<li><kbd>listen 80;</kbd>: This defines the port which NGINX will listen to. Port <kbd>80</kbd> is the default standard for HTTP, which is why it doesn't need to be specified in the browser URL.</li>
+<li><kbd>server_name server.yourname.com;</kbd>: This directive tells the server what hostname to match from the request. This allows you to run name-based virtual servers from one IP address, but with different domain names. You can also use different aliases here; for example, you can have both <kbd>www.yourname.com</kbd> and <kbd>yourname.com</kbd>.</li>
+<li><kbd>access_log /var/log/nginx/log/host.access.log combined;</kbd>: The access log records all client access to the site, stores it in the specified file (the second parameter), and uses the third parameter to define the format of the log (<kbd>combined</kbd> is the default).</li>
+<li><kbd>location</kbd>: Lastly, we have a <kbd>location</kbd> block directive. This one is for a root directive (represented by <kbd>/</kbd>), meaning everything in the URL path. There are then two directives contained within this block—the first is the <kbd>root</kbd> directive. This defines where NGINX should look for the files.</li>
+<li><kbd>index</kbd>: The second is the <kbd>index</kbd> directive. This lets NGINX know what name of a file to try if it hasn't been specified in the path. For example, if you put <kbd>http://server.yourname.com/</kbd> into your browser, NGINX will try to load <kbd>http://server.yourname.com/index.html</kbd> instead of displaying a 404 error.</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Basic monitoring</h1>
+                </header>
+            
+            <article>
+                
+<p>Monitoring both the performance and uptime of a web server is paramount when you want to ensure consistent performance. There are a number of ways both these aspects can be monitored, all with varying levels of complexity and information. We'll focus on some of the simpler examples to give you a starting point to go forward with.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>We can enable the basic NGINX <kbd>stub_status</kbd> page to give some rudimentary statistics and service status. To enable, edit your site config and add the following:</p>
+<pre>location = /nginx_status { 
+    stub_status on; 
+    access_log   off; 
+    allow &lt;YOURIPADDRESS&gt;; 
+    deny all; 
+} </pre>
+<p>To prevent information leakage about your system, we have added the <kbd>allow</kbd> command. This should be your IP address. This is followed by the <kbd>deny all</kbd> command to prevent anyone else from loading the URL. We've also turned off access logs for this URL to save space.</p>
+<p>After reloading your configuration (hint: <kbd>systemctl reload nginx</kbd> for systemd-based OS), you can now load the new URL <kbd>/nginx_status</kbd> in your browser.</p>
+<p>You should see something like the following:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/389eb8bf-2017-414f-a153-af7950f9dbb8.png"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Let's take apart the details line-by-line:</p>
+<ul>
+<li>The <kbd>Active connections</kbd> line lists the amount of connections to the server. For a quiet server, this could be less than a dozen. For a busy server, expect this to be in the hundreds.</li>
+<li>The <kbd>server accepts handled requests</kbd> line is little confusing, since it's represented by three numbers (<kbd>81</kbd>, <kbd>81</kbd>, and <kbd>177</kbd> in this example). The first number represents the amount of accepted connections. The second number represents the total number of handled connections. Unless there's a resource limitation, the number of accepted and handled connections should be the same. Next, we have the total number of client requests.</li>
+<li>The last line represents the state of the active connections. <kbd>Reading</kbd> means NGINX is reading the request headers, <kbd>Writing</kbd> means NGINX is writing data back to the client, and <kbd>Waiting</kbd> means that the client is now idle but still has the connection open (due to keep-alives).</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Real-time statistics</h1>
+                </header>
+            
+            <article>
+                
+<p>When your web server is important to you, you'll want to see what's going on in real-time. One great utility to do this is <kbd>ngxtop</kbd>. This program monitors your real-time access log in to display useful metrics such as the number of requests per second, HTTP statuses served, and pages/URLs served. This information can be a great aid to determine what your top pages are and if there is an increased rate of errors.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To install <kbd>ngxtop</kbd>, you'll first need to install the Python package manager, <kbd>pip</kbd>. On a Debian/Ubuntu-based system, you'll need to run the following:</p>
+<pre><strong>apt-get install python-pip</strong></pre>
+<p>For a Red Hat- / CentOS-based system, the EPEL repository is required first. To install, run the following:</p>
+<pre><strong>yum install epel-release<br/></strong><strong>yum install python-pip</strong></pre>
+<p>Once you have <kbd>pip</kbd> installed, you can now install <kbd>ngxtop</kbd>:</p>
+<pre><strong>pip install ngxtop</strong></pre>
+<p>This will download the required files and install <kbd>ngxtop</kbd> for you. It's now ready to use.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>The <kbd>ngxtop</kbd> utility can be simply called from the command line, and it will attempt to read the log file location from the configuration. However, if you're running virtual hosts, it may not read the access log location correctly. The easiest way in this scenario is to manually specify the log location.</p>
+<p>Consider the following example:</p>
+<pre><strong>ngxtop -l /var/log/nginx/access.log</strong></pre>
+<p>This will display a console-based view of what URLs are being accessed. Here's a basic example:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="217" src="assets/983ef72f-255e-4247-a9c4-e32e61874a82.png" width="600"/></div>
+<p>This will refresh every second, giving you near instantaneous information about what URLs NGINX is serving, but that's not all. The <kbd>ngxtop</kbd> utility is quite configurable and there are a number of different ways it can display information.</p>
+<p>We can filter only the <kbd>404</kbd> pages with the following:</p>
+<pre><strong>ngxtop -l /var/log/nginx/access.log --filter 'status == 404'</strong></pre>
+<p>Only those URLs which had a <kbd>404</kbd> are now going to be displayed within <kbd>ngxtop</kbd>. Here's an example output:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="217" src="assets/0f7394a5-ab2a-4342-bc76-d88c3c4fc43e.png" width="626"/></div>
+<p>There are quite a number of other options easy to tailor to your scenario, especially if you know what you're hunting for.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p><span class="URLPACKT">To know more about <kbd>ngxtop</kbd>, refer to</span> <a href="https://github.com/lebinh/ngxtop" target="_blank"><span class="URLPACKT">https://github.com/lebinh/ngxtop</span></a>.</p>
+
+
+            </article>
+
+            
+        </section>
+    </body></html>

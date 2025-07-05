@@ -1,0 +1,741 @@
+<html><head></head><body>
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Advanced Features</h1>
+                </header>
+            
+            <article>
+                
+<p>In this chapter, we will cover the following recipes:</p>
+<ul>
+<li>Authentication with NGINX</li>
+<li>WebDAV with NGINX</li>
+<li>Bandwidth management with NGINX</li>
+<li>Connection limiting with NGINX</li>
+<li>Header modification with NGINX</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Introduction</h1>
+                </header>
+            
+            <article>
+                
+<p>If you've read this cookbook up until this chapter, you'll know that NGINX is a very flexible and powerful platform. Even with what we covered so far, you'll know that there are a number of additional modules and extra flexibility we can use to enhance your current configuration.</p>
+<p>Some of these recipes may be required especially once you start to scale, since servers are a finite resource.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Authentication with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>While many CMSes and advanced web applications have their own authentication systems, we can use NGINX to provide a second layer. This can be used to provide multifactor authentication and also to limit brute force attempts.</p>
+<p>Alternatively, if you have a very basic application or a system, such as Elasticsearch, without any authentication, NGINX is a natural fit to provide for this role.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe assumes that you have an existing web application. This could be as simple as static pages or a full CMS such as WordPress.</p>
+<p>We'll also need to install Apache utilities (not the full web server), which is generally packaged as <kbd>apache2-utils</kbd> on Debian/Ubuntu-based systems and <kbd>httpd-tools</kbd> on CentOS/RedHat-based distributions.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>In order to provide basic authentication, we first need to create a password file. We can do this with the <kbd>htpasswd</kbd> utility, which is part of the Apache tools. It's important that we don't store this file in a publicly accessible directory, otherwise your usernames and passwords will be compromised.</p>
+<p>Here's how to create the password file and add the <kbd>siteadmin</kbd> username to it:</p>
+<pre><strong>htpasswd -c /var/www/private/.htpasswd siteadmin</strong> </pre>
+<p>The <kbd>htpasswd</kbd> utility will then prompt you for a password. While we could specify this via the command line, it would also mean that your password is logged in plain text within your bash history. Ensuring that the password is entered via <kbd>stdin</kbd> reduces the risks of compromise if your log files are exposed.</p>
+<p>Next, we can add additional users to the password file (if they're required). If I want to add one login per user, I can specify it as follows:</p>
+<pre><strong>htpasswd /var/www/private/.htpasswd userA</strong>  </pre>
+<p>This will again prompt for the password (and the confirmation password). You can repeat this for as many users as required. Once we have the password file, we can now set the authentication within our NGINX <kbd>server</kbd> block directive:</p>
+<pre>server { 
+    listen       80; 
+    server_name  secure.nginxcookbook.com; 
+       access_log  /var/log/nginx/secure-access.log  combined; 
+ 
+    location = /favicon.ico { access_log off; log_not_found off; } 
+ 
+    location / { 
+        auth_basic "Restricted Area"; 
+        auth_basic_user_file /var/www/private/.htpasswd; 
+    
+        root   /var/www/html; 
+        index  index.html index.htm; 
+    } </pre>
+<div class="packt_tip">If you're not using this on an SSL encrypted site, the credentials will be transmitted in plain text. Ensure that you protect your site if you want the username and password to remain secure.</div>
+<p>When you visit the site (in this instance, <kbd>http://secure.nginxcookbook.com</kbd>), you'll see one of the following popups. For Firefox, it should look similar to the following screenshot:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="158" src="assets/6d000565-63df-4559-80f3-8bbc5ebc9701.png" width="359"/></div>
+<div>
+<p>Safari users will also see a similar dialog box, requesting login details:</p>
+</div>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="185" src="assets/05510e2a-a6da-4998-81a7-0cdca8f64617.png" width="346"/></div>
+<div>
+<p class="NormalPACKT">And finally, Chrome will also prompt you with a dialog like the following screenshot:</p>
+</div>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="222" src="assets/0e687c8c-f6fb-4997-9169-2a8bb9bec5cc.png" width="345"/></div>
+<p>If you enter one of the usernames and passwords set in the previous step, you'll then be able to browse the website.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>If we take a look at the <kbd>.htpasswd</kbd> file we created, it should look something like this:</p>
+<div class="CDPAlignCenter CDPAlign"><img class="image-border" height="68" src="assets/8ac3d774-7156-47eb-b456-cab9bc1aad03.png" width="432"/></div>
+<p>This file contains the username, the algorithm used (<kbd>$apr1</kbd> denotes a specific Apache MD5 implementation), the salt, and then the password. While some may be worried at the use of MD5, the <kbd>htpasswd</kbd> application iterates the password for 1,000 times to limit brute force attempts. This, combined with salting (the addition of random data) ensures that the password is very hard to brute force.</p>
+<p>We will then define two extra directives within our <kbd>location</kbd> block directive to enable the basic authentication. The <kbd>auth_basic</kbd> directive enables authentication and the <kbd>"Restricted Area"</kbd> string is used as a message by some browsers.</p>
+<p>We will then ask the authentication module to use the file we created (<kbd>/var/www/private/.htpasswd</kbd>) with the <kbd>auth_basic_user_file</kbd> directive. Again, as a reminder, make sure that this isn't in a location that can be publicly accessible from your website. Because we have set the location <kbd>root</kbd> directive to <kbd>/var/www/html</kbd>, and the password file within <kbd>/var/www/private</kbd>, it cannot be directly accessed.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>If we want to simply lock down a specific location, we can do this as well. Consider this example where we take the <kbd>server</kbd> block directive from the <em>Configuring NGINX for WordPress</em> recipe in <a href="a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml">Chapter 2</a>, <em>Common PHP Scenarios</em> and add additional authentication to the <kbd>wp-admin</kbd> directory and <kbd>wp-login.php</kbd> location:</p>
+<pre>location ~ ^(/wp-login.php|/wp-admin/) { 
+        auth_basic "Restricted Area"; 
+        auth_basic_user_file /var/www/private/.htpasswd; 
+        location ~ \.php$ { 
+            fastcgi_pass unix:/var/run/php7.0-fpm.sock; 
+            fastcgi_index index.php; 
+            fastcgi_param SCRIPT_FILENAME <br/>            $document_root$fastcgi_script_name; 
+            include fastcgi_params; 
+        } 
+    } </pre>
+<p>The configuration matches any request starting with (as denoted by the <kbd>^</kbd> symbol) either <kbd>/wp-login.php</kbd> or (<kbd>|</kbd>) <kbd>/wp-admin/</kbd> and adds basic authentication. All other pages on the site don't contain any extra authentication and therefore load normally.</p>
+<p>We also add a nested PHP <kbd>location</kbd> block, as NGINX won't process the declaration outside of the current <kbd>location</kbd> block. For neatness, you could also define this in a separate file once and then include it at each required location. This way, if you ever need to make changes, then it's only in one location.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>The NGINX basic authentication module can be found at <a href="http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html" target="_blank"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html</span></a></li>
+<li>For the <kbd>htpasswd</kbd> program, refer to <a href="https://httpd.apache.org/docs/2.4/programs/htpasswd.html" target="_blank"><span class="URLPACKT">https://httpd.apache.org/docs/2.4/programs/htpasswd.html</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">WebDAV with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p><strong>Web Distributed Authoring and Versioning</strong> (<strong>WebDAV</strong>) is an extension to the standard HTTP protocol that allows remote authoring commands, such as the ability to lock, upload, delete, and create content.</p>
+<p>This content can be in the form of documents, images, objects, and more. While its popularity has declined with the rapid update of full CMSes and cloud storage platforms such as Dropbox, WebDAV still remains a very simple option to implement solutions.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>The standard NGINX installation only includes basic WebDAV support; however, we can extend it to provide the full functionality by compiling a custom module. At the time of writing, the extended module hadn't been converted into a dynamic module, so we need to recompile all of NGINX.</p>
+<p>Firstly, we will download the source for NGINX and prepare it for compilation:</p>
+<pre><strong>mkdir /tmp/nginxbuild</strong>
+<strong>cd /tmp/nginxbuild</strong>
+<strong>yumdownloader --source nginx</strong>  </pre>
+<p>Then, we will download a copy of the extension so that it can be included in the source build:</p>
+<pre><strong>git clone https://github.com/arut/nginx-dav-ext-module.git /tmp/ nginxbuild/nginx-dav-ext-module</strong>  </pre>
+<p>To include the extra module, we modify the <kbd>nginx.spec</kbd> file to compile the additional module to add the additional build requirements, copy the source code, and then modify the configure line. To add the extra library for the build process, we append the following line after <kbd>zlib-devel</kbd> and <kbd>pcre-devel</kbd>:</p>
+<pre>BuildRequires: expat-devel </pre>
+<p>For the source to be included in the source RPM, we then specify the extra directory:</p>
+<pre>Source14: nginx-dav-ext-module </pre>
+<p>Finally, we ensure that it's compiled in by appending the following to the <kbd>BASE_CONFIGURE_ARGS</kbd> definition:</p>
+<pre>--add-module=%{SOURCE14} </pre>
+<div class="packt_tip">A patch file is available in the official code repository for the book.</div>
+<p>With the build configuration updated, we can now recompile NGINX with our extra module:</p>
+<pre>/usr/bin/mock --buildsrpm --spec /tmp/nginxbuild/nginx.spec --sources /tmp/nginxbuild 
+usr/bin/mock --no-clean --rebuild /var/lib/mock/epel-7-x86_64/result/nginx-1.11.9-1.el7.centos.ngx.src.rpm </pre>
+<p>This will generate the source RPM, and then the compiled binary RPM, ready for installation. We can now install the RPM using <kbd>yum</kbd>:</p>
+<pre><strong>yum install /var/lib/mock/epel-7-x86_64/root/builddir/build/RPMS/nginx-1.11.9-1.el7.centos.ngx.x86_64.rpm</strong>  </pre>
+<div class="packt_tip">If you need to perform the same for a Debian or Ubuntu distribution, refer to the <em>Compiling from scratch section</em> covered in the <em>Quick installation guide</em> recipe in <a href="69685f00-24c3-428c-b607-01a4e9a2784d.xhtml">Chapter 1</a><em>, Let's Get Started.</em></div>
+<p>To confirm that the updated packages are available, we can run <kbd>nginx -V</kbd> (note the capital <kbd>V</kbd>) to show the modules that NGINX was compiled with:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="132" src="assets/d6b472f2-4bc9-4abf-bd79-edd73b50f4d5.png" width="516"/></div>
+<p>If you see <kbd>nginx-dav-ext-module</kbd> in the list, the extra module is available and we're ready to proceed.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Here's the <kbd>server</kbd> block directive for our WebDAV configuration:</p>
+<pre>server { 
+    listen              443 ssl; 
+    server_name         webdav.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/webdav-access.log  combined; 
+ 
+    ssl_certificate     /etc/ssl/public.pem; 
+    ssl_certificate_key /etc/ssl/private.key; 
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2; 
+    ssl_ciphers         HIGH:!aNULL:!MD5; 
+ 
+    location / { 
+        auth_basic           "Restricted Area"; 
+        auth_basic_user_file /var/www/private/.htpasswd; 
+ 
+        root /var/www/webdav; 
+        autoindex       on; 
+        client_max_body_size 4g; 
+        client_body_temp_path /tmp; 
+        dav_methods PUT DELETE MKCOL COPY MOVE; 
+        dav_ext_methods PROPFIND OPTIONS; 
+        dav_access  group:rw  all:r; 
+        create_full_put_path  on; 
+         
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>To ensure that any files transmitted remain secure, we set up NGINX using <kbd>HTTPS</kbd> (which is covered in <a href="ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml"><span class="ChapterrefPACKT">Chapter 4</span></a>, <em>All About SSL</em><em>s</em>) so that all data is encrypted in transit. We also use the basic authentication we went through in the previous recipe, so that the files are also secured by a username and password.</p>
+<p>The <kbd>root</kbd> directive then sets where the files are stored, in this case, <kbd>/var/www/webdav</kbd>. At this stage of the configuration, it's exactly like any other static file serving. With the <kbd>autoindex</kbd> directive explicitly set to <kbd>on</kbd>, this automatically generates an index of the files so that they can be easily browsed.</p>
+<p>To allow larger file uploads, <kbd>client_max_body_size</kbd> is set to <kbd>4g</kbd>. If you need to upload files larger than 4 GB, you need to increase this value. Then, <kbd>client_body_temp_path</kbd> defines where the temporary files will be located while they're uploading. For this recipe, we'll set this to <kbd>/tmp</kbd>, so that any file will be temporarily uploaded to this location and then moved into the root location.</p>
+<p>Here, <kbd>dav_methods</kbd> is set to allow the <kbd>PUT</kbd>, <kbd>DELETE</kbd>, <kbd>MKCOL</kbd>, <kbd>COPY</kbd>, and <kbd>MOVE</kbd> methods, which is all of the available methods. This gives complete control to the WebDAV client to upload, create, delete, and move files as they need.</p>
+<p>Using the extra module we compiled, <kbd>dav_ext_methods</kbd> adds two additional extensions. The <kbd>PROPFIND</kbd> extension adds the ability to return file and directory properties in XML, which is used by a number of clients to list the files. The <kbd>OPTIONS</kbd> extension returns a list of available commands to indicate what permissions are available.</p>
+<p>Lastly, we set <kbd>create_full_put_path</kbd> to <kbd>on</kbd>, which means that we can create files within subdirectories as well. The default for WebDAV is to only allow existing subdirectories, which makes it difficult to move existing data structures.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>The NGINX WebDAV module is available at <a href="http://nginx.org/en/docs/http/ngx_http_dav_module.html" target="_blank"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_dav_module.html</span></a></li>
+<li>You can visit WebDAV's official site at <a href="http://www.webdav.org/" target="_blank"><span class="URLPACKT">http://www.webdav.org/</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Bandwidth management with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>If you're serving large binary files (such as video files), it's important to ensure that you fairly distribute your available bandwidth among your users. At the same time, you must ensure that this distribution doesn't impact performance nor inconvenience users by setting restrictions that are too high.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>The modules required are built into the NGINX core, so no upgrades or external modules are required. In this recipe, we'll serve static files, but they can be easily incorporated into your existing site.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Limiting bandwidth must be done within a <kbd>location</kbd> directive. It's important to ensure that, if you have multiple <kbd>location</kbd> block directives which you want to limit, you need to adjust each of these. Here's our basic code:</p>
+<pre>server { 
+    listen 80; 
+    server_name limitbw.nginxcookbook.com; 
+    access_log  /var/log/nginx/limitbw.log  combined; 
+    location / { 
+        limit_rate 5m; 
+        root   /var/www/html; 
+        index  index.html index.htm; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>The <kbd>limit_rate</kbd> directive sets the rate at which each connection can download. This rate is set in bytes per second, not bits per second. Most internet connections are normally represented in bits per second; so, to convert, you will need to divide by eight to set. Our recipe has a limit of 5 <strong>Megabytes per second</strong> (<strong>MBps</strong>), so when it comes to bandwidth in bits, we'll see 40 <strong>Megabits per Second</strong> (<strong>Mbps</strong>).</p>
+<p>We can test this limit using <kbd>wget</kbd>:</p>
+<pre><strong>wget http://limitbw.nginxcookbook.com/1000meg.test</strong>  </pre>
+<p>With our limit in place, the result is as follows:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" src="assets/ac998d9e-4ef6-4707-bdc1-b3147ee8dab7.png"/></div>
+<p>While the rate will fluctuate slightly, we can see that the overall average was 4.94 MBps, which matches our specified rate of 5 MBps.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>Another trick we can do is to allow for an initial burst once the download starts. This is very helpful if you're streaming movie files, as it allows the initial buffer to be filled quickly and therefore allows movies to start playing as quick as possible. To add this, we can update our <kbd>location</kbd> block directive with one additional line:</p>
+<pre>location / {    
+        limit_rate 5m; 
+        limit_rate_after 20m; 
+        root   /var/www/html; 
+        index  index.html index.htm; 
+} </pre>
+<p>The additional <kbd>limit_rate_after</kbd> directive allows the download to run at full speed for the first 20 megabytes (<kbd>20m</kbd>), and then rate limit after this value. Many online streaming services have this implementation in place, not just to balance between the rapid start of the streaming but also to ensure that the bandwidth is fairly shared among its users.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>The NGINX <kbd>limit_rate</kbd> documentation can be found at <a href="http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate" target="_blank"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Connection limiting with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>In addition to limiting bandwidth to ensure fair and equitable access among all users, NGINX is able to place limits on the number of connections. Back in <a href="bc04362e-995f-4550-92b7-183754306d34.xhtml"><span class="ChapterrefPACKT">Chapter 7</span></a>, <em>Reverse Proxy</em>, we covered how to rate limit connections. While they may sound the same, connection limiting is slightly different and has different use cases. Connection limiting is used where you have long running tasks, such as downloads. The previous recipe covering bandwidth limiting only applies per connection, not per IP. We can however combine the two to ensure that each IP address can't exceed the specified bandwidth limit.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>Like the bandwidth limiting, connection limiting is built into the core of NGINX; so no further modules are required.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To provide connection limiting, we first need to define a shared memory space to use for tracking. This needs to be done outside of the <kbd>server</kbd> directive and generally placed in the main NGINX configuration file (<kbd>nginx.conf</kbd>). Here's our directive:</p>
+<pre>limit_conn_zone $binary_remote_addr zone=conlimitzone:10m; </pre>
+<p>Then, we incorporate this into our <kbd>server</kbd> block directive:</p>
+<pre>server { 
+    listen 80; 
+    server_name limitcon.nginxcookbook.com; 
+    access_log  /var/log/nginx/limitcon.log  combined; 
+    location / { 
+        root   /var/www/html; 
+        limit_conn conlimitzone 1; 
+        limit_rate 5m; 
+        index  index.html index.htm; 
+    } 
+} </pre>
+<p>We can confirm this by downloading a large file via the browser and then opening another tab. If you navigate to any other page from the same site, you should see the following:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="85" src="assets/d19c68ad-67f6-4e97-8173-17059bfac2d5.png" width="436"/></div>
+<p>Until the first request is completed, all subsequent attempts will display a <kbd>503</kbd> error.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>We create a shared memory space with the <kbd>limit_conn_zone</kbd> directive so that the connections can be tracked. We use <kbd>$binary_remote_addr</kbd> to track the remote (client) IP address and then name our zone <kbd>conlimitzone</kbd>. Finally, we allocate 10 MB by appending the zone name with <kbd>:10m</kbd>. This is the total space allocation, which is enough to track up to 160,000 concurrent IP addresses.</p>
+<p>In our <kbd>server</kbd> block directive, we then use our zone by setting <kbd>limit_conn</kbd> to the zone name <kbd>conlimitzone</kbd>. This limit is then set to a total of <kbd>1</kbd> connection, which ensures that each unique IP address is only allowed to make a single connection.</p>
+<p>Finally, we use <kbd>limit_rate</kbd> (as shown in our previous recipe) to limit the bandwidth per connection. As we have set the connection limit to <kbd>1</kbd>, this means that each user can only download one file at a time with a total bandwidth of 5 MBps.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>Tracking connections via the client IP address isn't the only way we can limit connections. We can also set a limit for the server as a whole, which can be handy for preventing the server from being overloaded. Especially, where the system is behind a reverse proxy, this can be a simple yet effective way of ensuring that your website or application remains responsive.</p>
+<p>To track for the server as a whole, we again first set the shared memory zone:</p>
+<pre>limit_conn_zone $server_name zone=serverlimitzone:10m; </pre>
+<p>Then, we set our <kbd>server</kbd> directive:</p>
+<pre>server { 
+    listen 80; 
+    server_name limitcon.nginxcookbook.com; 
+    access_log  /var/log/nginx/limitcon.log  combined; 
+    location / { 
+        root   /var/www/html; 
+        limit_conn serverlimitzone 500; 
+        index  index.html index.htm; 
+    } 
+} </pre>
+<p>With this configuration, our server is limited to <kbd>500</kbd> concurrent connections. If there are more connections attempted, a 503 error will be returned to the client.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>The NGINX <kbd>limit_conn</kbd> module documentation can be found at <a href="http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html" target="_blank"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Header modification with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>With more complexities in your system, sometimes some additional debug or information sent in the HTTP headers can be invaluable. The HTTP headers can have a specific meaning that tells the browser to treat a response a certain way or they could simply be to provide extra information, which can be used to trace specific issues from your website or applications.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>The ability to modify the headers is already inbuilt into the NGINX core, but to use the latest features, you'll need version 1.10.0 or higher.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p class="NormalPACKT">There are a number of different ways that we can modify the headers to suit different requirements. While the process remains the same for each, specific examples of where headers are commonly modified are detailed in the following examples.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Caching static content</h1>
+                </header>
+            
+            <article>
+                
+<p>For sites where the static media files (such as CSS, JS, and images) have a version number in their filename, we can easily cache the files with a long expiry without causing any issues. This means that, unless a user clears their cache, they will have a copy of this file to speed up page reloads. To set the caching, we will use a <kbd>location</kbd> block directive (within your main <kbd>server</kbd> block directive) to add the additional headers. Here's the code required:</p>
+<pre>location /static { 
+    expires 365d; 
+    add_header Pragma public; 
+    add_header Cache-Control "public";} </pre>
+<p>To see the headers, we can use Chrome <strong>Developer Tools</strong> (<strong>DevTools</strong>) or a command-line tool such as cURL. If you want to run this via cURL, here's how to do it:</p>
+<pre><strong>curl --head http://headermod.nginxcookbook.com/static/image.png</strong>  </pre>
+<p>This will just display the headers from the server response, which will give us an output similar to the following screenshot:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="190" src="assets/9dfc5c55-3e85-49a9-9685-dc76d124362d.png" width="398"/></div>
+<p>From the cURL output, we can see that the headers (<kbd>Expires</kbd>, <kbd>Pragma</kbd>, and <kbd>Cache-Control</kbd>) have been set correctly.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Removing server name and version</h1>
+                </header>
+            
+            <article>
+                
+<p>By default, NGINX will set a <kbd>Server</kbd> response header, which will contain the product name and version number. While it's mostly a minor thing, some see this as a leakage of information which gives hackers a potential starting point to look for attack vectors. We can remove this version number to remove the version data from the header. Here's how to do it:</p>
+<pre>server { 
+    listen 80; 
+    server_name headermod.nginxcookbook.com; 
+    server_tokens off; 
+} </pre>
+<p>The <kbd>server_tokens</kbd> directive is set to <kbd>on</kbd> by default, so we set it to <kbd>off</kbd> in order to disable the version number. This also removes the version number from the error pages (such as the 404 error page) as well.</p>
+<p>If you need to completely remove the <kbd>server</kbd> header, you'll either need a third-party module or the Plus (paid) edition of NGINX, which allows you to override it.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Extra debug headers</h1>
+                </header>
+            
+            <article>
+                
+<p>While you may not have looked closely, many of the top websites add additional header information to assist with debugging. Facebook adds an <kbd>x-fb-debug</kbd> header, Twitter has an <kbd>x-transaction</kbd> header, and sites such as <a href="https://www.wired.com/" target="_blank"><span class="URLPACKT">https://www.wired.com/</span></a> insert the <kbd>x-served-by</kbd> headers to help trace what proxies your request has passed through. This information doesn't have any impact on the end user; however, the information is invaluable when trying to diagnose hard-to-diagnose cases. While much of the low-level debug information can only be produced within your application code, at a higher level, you can easily incorporate a few helpful headers. Here's an example:</p>
+<pre>add_header X-Host $hostname; 
+add_header X-Request-ID $request_id; 
+add_header X-TCP-RTT $tcpinfo_rtt; </pre>
+<p>These simply need to be inserted into your existing <kbd>server</kbd> block directive, and they will generate an output like the following:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class=" image-border" height="191" src="assets/f66c1733-8e10-4b21-902a-710d4160f543.png" width="352"/></div>
+<p>If you have a meaningful server name (which could include location, variant, cloud provider, or anything similar), adding the <kbd>$hostname</kbd> server (which we set as the <kbd>X-Host</kbd> header) allows you to trace requests down to the exact system causing the issue.</p>
+<p>The <kbd>$request_id</kbd> command generates a 16-byte unique identifier, which can provide easy tracing back to a custom log file format (refer to <a href="3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml" target="_blank"><span class="ChapterrefPACKT">Chapter 5</span></a>, <em>Logging</em>, for more information). This gives us an exact string to match, which is much more effective than trying to search log files for a date range.</p>
+<p>Lastly, we log the TCP <strong>Round Trip Time</strong> (<strong>RTT</strong>) as <kbd>X-TCP-RTT</kbd>, which gives us an indication of the network performance between the server and the client. The RTT is measured in microseconds (not milliseconds) and is based on the underlying operating system's <kbd>TCP_INFO</kbd> data.</p>
+<div class="packt_tip">By default, these additional headers will only be inserted for 20x and 30x responses. If you want them inserted into your error pages (such as a 404), you need to append <kbd>always</kbd> to the end of the <kbd>add_header</kbd> directive.</div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>The NGINX headers module can be found at <a href="http://nginx.org/en/docs/http/ngx_http_headers_module.html" target="_blank"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_headers_module.html﻿</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    </body></html>

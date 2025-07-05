@@ -1,0 +1,266 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;10.&#xA0;Some More Third-party Modules"><div class="titlepage"><div><div><h1 class="title"><a id="ch10"/>Chapter 10. Some More Third-party Modules</h1></div></div></div><p>In this chapter, we will cover:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Configuring a fair load balancing</li><li class="listitem" style="list-style-type: disc">Setting up health checks for backend servers</li><li class="listitem" style="list-style-type: disc">Tracking and reporting file upload progress</li><li class="listitem" style="list-style-type: disc">Generating circles for round edges using Nginx</li><li class="listitem" style="list-style-type: disc">Running Python using Phusion Passenger</li><li class="listitem" style="list-style-type: disc">Generating graphs directly from RRDtool in Nginx</li><li class="listitem" style="list-style-type: disc">Using Google performance tools</li><li class="listitem" style="list-style-type: disc">Serving content directly from GridFS</li><li class="listitem" style="list-style-type: disc">Configuring Basic HTTP auth using PAM</li><li class="listitem" style="list-style-type: disc">Configuring Basic HTTP auth using Kerberos</li></ul></div><div class="section" title="Introduction"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec01"/>Introduction</h1></div></div></div><p><a class="indexterm" id="id275"/>
+This chapter looks at various web situations such as load balancing, server health checks, and more which will be very useful in a production environment. These simple recipes will be highly applicable in enterprise scenarios where you may need to have analytics, external authentication schemes, and many other situations.</p></div></div>
+<div class="section" title="Configuring a fair load balancing"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec02"/>Configuring a fair load balancing</h1></div></div></div><p>Nginx by default uses a round robin mechanism to proxy requests to its backend servers. Most of the time this is sufficient, as the machines on the backend are usually of the same build and configuration, but in many cases it necessary to implement a fair load. This balance takes into account the existing load on a machine before its proxies the requests. This is where the Nginx fair scheduler plugin comes in. It enables the system administrator to configure fair scheduling and allows the backend machines to be of dissimilar performance, and yet the whole system will perform optimally.<a class="indexterm" id="id276"/>
+</p><div class="mediaobject"><img alt="Configuring a fair load balancing" src="graphics/4965OS_10_01.jpg" width="215"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec01"/>How to do it…</h2></div></div></div><p>We will first download the plugin, install it, and then configure it in the steps described ahead.<a class="indexterm" id="id277"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the fair scheduling module:<a class="indexterm" id="id278"/><div class="informalexample"><pre class="programlisting">git clone git://github.com/gnosek/nginx-upstream-fair.git
+cd nginx
+./configure --add-module=../nginx-upstream-fair
+make
+make install
+</pre></div></li><li class="listitem"> We will then put the following in our Nginx configuration:<div class="informalexample"><pre class="programlisting">upstream backend {
+server 192.168.1.3;
+server 192.168.1.5;
+fair;
+}
+server {
+server_name www.example1.com;
+...
+location / {
+proxy_pass http://backend;
+...
+}
+}
+</pre></div></li><li class="listitem"> Now, we need to restart Nginx to see the changes:</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec02"/>How it works…</h2></div></div></div><p>This module lets you configure a weighted least connection round robin mechanism, which keeps track of the real-time load on each individual backend server to make a decision on whom to proxy it to.<a class="indexterm" id="id279"/>
+</p><p>The module also allows you to track the load on each server by visiting a web page; this can be easily integrated into your web infrastructure monitoring systems.</p></div><div class="section" title="There's more…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec03"/>There's more…</h2></div></div></div><p>We can also configure the module to handle the following scheduling cases:</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.575"/><col style="text-align: left" width="3.80277777777778"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Modes</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Description</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>Default</p>
+</td><td style="text-align: left" valign="top">
+<p>This lets us configure the simple weighted least-connection round robin, which basically means you give the request to the server with the least active connections in a round-robin fashion. This is the default mode explained in the preceding example.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>no_rr</p>
+</td><td style="text-align: left" valign="top">
+<p>This disables round robin, which would be applicable in cases where we may be spawning multiple backends depending on your load. It will ensure that Nginx uses as many backends as it needs.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>weight_mode=idle no_rr</p>
+</td><td style="text-align: left" valign="top">
+<p>This mode attempts to balance the load between the minimum pool of backend servers. It can help us identify the actual number of backend servers.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>weight_mode=peak</p>
+</td><td style="text-align: left" valign="top">
+<p>In this mode, Nginx will not send requests to the backend beyond a certain limit. If all the backends are full the client will receive a 502 error.</p>
+</td></tr></tbody></table></div><p>The following diagram shows a scenario how servers respond when they are busy:</p><div class="mediaobject"><img alt="There's more…" src="graphics/4965OS_10_02.jpg" width="164"/></div></div><div class="section" title="See also"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec04"/>See also</h2></div></div></div><p>
+<a class="link" href="ch07.html" title="Chapter 7. Nginx as a Reverse Proxy">Chapter 7</a>, <span class="emphasis"><em>Setup load balancing with reverse proxy</em></span></p></div></div>
+<div class="section" title="Setting up health checks for backend servers"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec03"/>Setting up health checks for backend servers</h1></div></div></div><p>One of the most important aspects of running a fairly large Internet site is the ability to understand the health of your machines. In huge server farms, it is not physically possible to inspect the health of the machines one by one, or for that matter to detect which backend server is down.<a class="indexterm" id="id280"/>
+</p><p>To solve this problem, Nginx has a neat module which will let you run a regular check on all the backend servers and mark them as bad when they do not behave accordingly. Marking them as bad ensures that the end client's request never gets sent to the backend server with issues by Nginx. There are very little performance overheads as Nginx maintains all the health check numbers in memory.</p><div class="mediaobject"><img alt="Setting up health checks for backend servers" src="graphics/4965OS_10_03.jpg" width="162"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec05"/>How to do it…</h2></div></div></div><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the Nginx backend health module:<div class="informalexample"><pre class="programlisting">git clone https://github.com/cep21/healthcheck_nginx_upstreams.git
+cd nginx
+./configure --add-module=../ healthcheck_nginx_upstreams
+make
+backend health moduleinstallingmake install
+</pre></div></li><li class="listitem"> We will then put the following in the configuration files:<div class="informalexample"><pre class="programlisting">upstream backend {
+server 192.168.1.2;
+server 192.168.1.5;
+healthcheck_enabled;
+healthcheck_delay 60000;
+}
+server {
+server_name www.example1.com;
+...
+location / {
+proxy_pass http://backend;
+...
+}
+location /backend_status {
+healthcheck_status;
+}
+}
+</pre></div></li><li class="listitem"> Now, restart Nginx to see the changes.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec06"/>How it works…</h2></div></div></div><p>This module makes a query to the backend servers every minute and then updates the status of every backend server. This was achieved with the<code class="literal"> healthcheck_enabled</code> and<code class="literal"> healthcheck_delay</code> directives.<a class="indexterm" id="id282"/>
+</p><p>We have enabled the health check status page as well, so we can check out the status of the backend server by visiting<a class="ulink" href="http://www.example1.com/backend_status"> http://www.example1.com/backend_status</a>.</p><div class="mediaobject"><img alt="How it works…" src="graphics/4965_10_04.jpg" width="324"/></div></div></div>
+<div class="section" title="Tracking and reporting file upload progress"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec04"/>Tracking and reporting file upload progress</h1></div></div></div><p>File uploading is one of the most common activities on a website. It is achieved by making a multi-part POST submission, which does not allow you to track the progress of the file upload. So if your user is uploading a fairly large file, he expects to be notified about the speed of upload and the time it will take. To ensure that the user is aware, there is a module that helps us track how far the file has been uploaded to the server.<a class="indexterm" id="id283"/>
+</p><div class="mediaobject"><img alt="Tracking and reporting file upload progress" height="149" src="graphics/4965_10_05b.jpg"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec07"/>How to do it…</h2></div></div></div><p>We will first install the plugin, and then see how to configure it in the following steps.<a class="indexterm" id="id284"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the Nginx file upload progress module:<a class="indexterm" id="id285"/><div class="informalexample"><pre class="programlisting">git clone https://github.com/masterzen/nginx-upload-progress-module.git
+cd nginx./configure --add-module=../nginx-upload-progress-module
+make
+make install
+</pre></div></li><li class="listitem"> We will use the following in our Nginx configuration:<div class="informalexample"><pre class="programlisting">http {
+upload_progress proxied 1m;
+server {
+server_name www.example1.com;
+root /var/www/www.example1.com;
+location / {
+proxy_pass http://127.0.0.1;
+proxy_redirect default;
+track_uploads proxied 30s;
+}
+location ^~ /progress {
+report_uploads proxied;
+}
+}
+}
+</pre></div></li><li class="listitem"> A restart of Nginx will apply those changes:</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec08"/>How it works…</h2></div></div></div><p>This configuration basically sets up a 1MB cache to keep track of the uploaded file status. Every file uploaded should be assigned a tracking ID, using which one can query<code class="literal"> http://www.example1.com/progress</code> to find out how much of the file has uploaded till now. It can return a lot of formats based on how we have configured the module output; in this example it will output JSON by default.<a class="indexterm" id="id286"/>
+</p><p>It is important to note that to track the file progress we will need to append an X-Progress-ID, which will uniquely identify the file being uploaded.</p></div></div>
+<div class="section" title="Generating circles for round edges using Nginx"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec06"/>Generating circles for round edges using Nginx</h1></div></div></div><p>The latest in Internet aesthetics are rounded edges, and clearly Nginx is not going to be left behind. This recipe has a look at an interesting module that allows you to generate dynamic circles, which we can easily utilize for creating round edge styles. This is most applicable when you need to support rounded edges on older browsers that are not compatible with CSS3.<a class="indexterm" id="id287"/>
+</p><div class="mediaobject"><img alt="Generating circles for round edges using Nginx" src="graphics/4965_10_06.jpg" width="391"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec09"/>How to do it…</h2></div></div></div><p>We will first install the plugin and then configure it in the following steps.<a class="indexterm" id="id288"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first need to install the Nginx Circle GIF module:<div class="informalexample"><pre class="programlisting">wget http://wiki.nginx.org/images/b/b6/Nginx_circle_gif-0.1.3.tar.gz
+tar xvzf Nginx_circle_gif-0.1.3.tar.gz
+cd nginx
+./configure add-module=../ Nginx_circle_gif-0.1.3
+make
+make install
+</pre></div></li><li class="listitem"> We will then use the following in our Nginx configuration:<div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+...
+location / {
+proxy_pass http://backend;
+...
+}
+location /circle {
+circle_gif;
+}
+}
+</pre></div></li><li class="listitem"> Now, restart Nginx to see the changes.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec10"/>How it works…</h2></div></div></div><p>Configuring this module is simply adding a new URL endpoint, which will act as a web API to generate the gif. The format of the URL is as follows:<a class="indexterm" id="id289"/>
+</p><p>
+<code class="literal">&lt;background color&gt;/&lt;foreground color&gt;/&lt;radius&gt;.gif</code>
+</p><p>So the following URL will generate a black on white circle of radius 10 pixels. We can use this to generate the rounded corner styles:</p><p>
+<code class="literal">http://www.example1.com/circles/ffffff/000000/10.gif</code>
+</p><div class="mediaobject"><img alt="How it works…" src="graphics/4965_10_07.jpg" width="161"/></div></div></div>
+<div class="section" title="Running Python using Phusion Passenger"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec07"/>Running Python using Phusion Passenger</h1></div></div></div><p>Nginx's primary purpose, to act as a state-of-art web and mail proxy server, has curtailed its image as that of an all-purpose server, of which it is fully capable. We will have a look at how can we run Python applications with Phusion Passenger as the backend.</p><div class="mediaobject"><img alt="Running Python using Phusion Passenger" height="104" src="graphics/4965_10_08.jpg"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec11"/>How to do it…</h2></div></div></div><p>We will first install all the dependencies required to install Phusion Passenger and then configure Nginx with it in the following steps.<a class="indexterm" id="id290"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install Ruby:<a class="indexterm" id="id291"/><div class="informalexample"><pre class="programlisting">apt-get update
+apt-get -y install build-essential zlib1g zlib1g-dev libxml2 libxml2-dev libxslt-dev
+wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-p0.tar.gz
+tar -xvf ruby-1.9.2-p0.tar.gz
+./configuremake
+make install
+</pre></div></li><li class="listitem"> We need to install<code class="literal"> rubygems</code>, which is the package management tool for Ruby:<a class="indexterm" id="id292"/><div class="informalexample"><pre class="programlisting">wget http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
+tar zxvf ./rubygems-1.3.5.tgz
+cd rubygems-1.3.5
+sudo ruby setup.rb
+</pre></div></li><li class="listitem"> We will install rails and Passenger Phusion:<div class="informalexample"><pre class="programlisting">gem install rails
+gem install passenger
+</pre></div></li><li class="listitem"> We will install the Passenger Phusion Nginx module, as shown in the following screenshot:<a class="indexterm" id="id293"/><div class="informalexample"><pre class="programlisting">Passenger-install-nginx-module
+</pre><div class="mediaobject"><img alt="How to do it…" height="226" src="graphics/4965_10_09.jpg"/></div></div></li><li class="listitem"> The following configuration is used in nginx.conf and it assumes that the application is placed at<code class="literal"> /var/www/www.example1.com/</code>.<a class="indexterm" id="id294"/><div class="informalexample"><pre class="programlisting">worker_processes 1;
+events {
+worker_connections 1024;
+}
+http {
+include mime.types;
+default_type application/octet-stream;
+sendfile on; keepalive_timeout 65;
+gzip on;
+passenger_root /usr/local/lib/ruby/gems/1.9.1/gems/passenger-2.2.5; passenger_ruby /usr/local/bin/ruby;
+server {
+listen 80;
+server_name localhost;
+root /opt/nginx/html/public/;
+passenger_enabled on
+}
+}
+</pre></div></li><li class="listitem"> Now, a Nginx restart should let you see all the changes at work.<a class="indexterm" id="id295"/></li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec12"/>How it works…</h2></div></div></div><p>Phusion Passenger is a very easy way to deploy production application in Rails, which is a web framework in Ruby. It is also very efficient at deploying Python (WSGI) applications. In this recipe, we have gone ahead and set up a small Python web script to demonstrate this capability.<a class="indexterm" id="id296"/>
+</p></div><div class="section" title="See also"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec13"/>See also</h2></div></div></div><p>
+<a class="link" href="ch06.html" title="Chapter 6. Setting Up Applications: FCGI and WSGI Modules">Chapter 6</a>, <span class="emphasis"><em>Setting up a Python site using uWSGI</em></span></p></div></div>
+<div class="section" title="Generating graphs directly from RRDtool in Nginx"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec09"/>Generating graphs directly from RRDtool in Nginx</h1></div></div></div><p>A lot of sites today show analytics as a part of their offering. The most common form of analytics representation is the time-based graphs, which are very efficiently generated by RRDtool, which is a really good open source graph generation tool. In this recipe, we will explore a module that will create a web API that you can dynamically call to get your graphs.</p><div class="mediaobject"><img alt="Generating graphs directly from RRDtool in Nginx" height="202" src="graphics/4965_10_10.jpg"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec14"/>How to do it…</h2></div></div></div><p>We will first install the plugin and then configure it in the following steps.<a class="indexterm" id="id297"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will install the Nginx RRDtool module; it assumes that you have already installed RRDtools:<a class="indexterm" id="id298"/><div class="informalexample"><pre class="programlisting">wget http://wiki.nginx.org/images/9/9d/Mod_rrd_graph-0.2.0.tar.gz
+tar xvzf Mod_rrd_graph-0.2.0.tar.gz
+cd nginx
+./configure add-module=../Mod_rrd_graph-0.2.0
+make
+make install
+</pre></div></li><li class="listitem"> We will then use the following in our configuration:<div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+...
+location / {
+...
+}
+location /rrd_gen {
+rrd_graph;
+}
+}
+</pre></div></li><li class="listitem"> Now, restart Nginx to see the changes.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec15"/>How it works…</h2></div></div></div><p>This set up is easy to demonstrate. Let's say that we want to generate a graph using the following set of commands in the RRDtool:<a class="indexterm" id="id299"/>
+</p><div class="informalexample"><pre class="programlisting">rrdtool graph --start now-300s \--end now \
+DEF:ds0=test.rrd:reading:AVERAGE \
+LINE1:ds0#00FF00
+</pre></div><p>You can generate the following URL, which will return the preceding graph, but it will appear as a web URL which will simplify your life drastically. This URL contains the preceding code in an URL encoded format appended to the<code class="literal"> http://www.example1.com/rrd_gen</code> URL.</p><p>
+<code class="literal">http://www.example1.com/rrd_gen--start%20now-300s%20--end%20now%20DEF%3Ads0%3Dtest.rrd%3Areading%3AAVERAGE%20LINE1%3Ads0%2300FF00</code>
+</p></div></div>
+<div class="section" title="Using Google performance tools"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec10"/>Using Google performance tools</h1></div></div></div><p>The more experienced Nginx user may actually need to look into limitations of the Nginx platform, in those cases libraries such as Google performance tools make life very easy for the developers. We will look at setting up the Google performance tools module in this recipe.<a class="indexterm" id="id300"/>
+</p><div class="mediaobject"><img alt="Using Google performance tools" src="graphics/4965OS_10_11.jpg" width="218"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec16"/>How to do it…</h2></div></div></div><p>We will first install the plugin and then configure it in the following steps.<a class="indexterm" id="id301"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the Google performance Nginx module:<div class="informalexample"><pre class="programlisting">cd nginx
+./configure --with-google_perftools_module
+make
+make install
+</pre></div></li><li class="listitem"> Use the following in your configuration:<div class="informalexample"><pre class="programlisting">worker_processes 1;
+events {
+worker_connections 1024;
+}
+google_perftools_profiles log/profile;
+http {
+include mime.types;
+default_type application/octet-stream;
+sendfile on;
+keepalive_timeout 65;
+gzip on;
+. . .
+</pre></div></li><li class="listitem"> We will need to restart Nginx to see the changes.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec17"/>How it works…</h2></div></div></div><p>This simple directive will let us profile our worker threads. The generated profile files are defined by the<code class="literal"> google_perftools_profiles</code> directive, and this configuration will generate files such as<code class="literal"> log/profile.&lt;pid&gt;</code> where<code class="literal"> pid</code> is the process ID of the worker thread whose profiling information it is.<a class="indexterm" id="id302"/>
+</p></div></div>
+<div class="section" title="Serving content directly from GridFS"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec11"/>Serving content directly from GridFS</h1></div></div></div><p>GridFS is a specification for storing large files in MongoDB. It basically aims to split down files into smaller chunks which are easily manageable, and allows efficient range operations. We will have a look at how we can configure Nginx to serve content directly from GridFS, thereby creating a situation where you can manage all your large files through GridFS and serve them using Nginx.<a class="indexterm" id="id303"/>
+</p><div class="mediaobject"><img alt="Serving content directly from GridFS" height="156" src="graphics/4965OS_10_12.jpg"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec18"/>How to do it…</h2></div></div></div><p>We will first install the plugin and then configure Nginx in the following steps.<a class="indexterm" id="id304"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> This recipe assumes that you have installed GridFS. We will install the Nginx gridFS module:<div class="informalexample"><pre class="programlisting">git clone https://github.com/mdirolf/nginx-gridfs.git
+cd nginx-gridfs
+git submodule init
+git submodule update
+cd ../nginx
+./configure --add-module=../nginx-gridfs
+make
+make install
+</pre></div></li><li class="listitem"> We will put the following in our Nginx configuration:<div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+. . .
+location /gridfs/ {
+gridfs my_app
+root_collection=pics
+field=_id
+type=int
+user=foo
+pass=bar;
+mongo 127.0.0.1:27017;
+}
+}
+</pre></div></li><li class="listitem"> Now, restart Nginx to check out the changes. Do make sure that GridFS is running before you test.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec19"/>How it works…</h2></div></div></div><p>The configuration above enables the GridFS on a MongoDB database called<code class="literal"> my_app</code>, with the username password as foo and bar respectively. Any call made like<code class="literal"> http://www.example1.com/gridfs/123/</code> will return the corresponding file from the<span class="emphasis"><em> pic</em></span> collection with the ID 123.<a class="indexterm" id="id305"/>
+</p><div class="mediaobject"><img alt="How it works…" src="graphics/4965OS_10_13.jpg" width="152"/></div></div></div>
+<div class="section" title="Configuring Basic HTTP auth using PAM"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec12"/>Configuring Basic HTTP auth using PAM</h1></div></div></div><p>Nginx supports HTTP authentication, and as we have seen in earlier recipes, we can generate<code class="literal"> htpasswd</code> files which contain the valid username and passwords. However, most systems have an existing authentication system that already integrates with PAM, and Nginx has a plugin that already lets you authenticate with PAM.</p><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="note07"/>Note</h3><p>PAM is a mechanism that integrates low-level authentication schemes into high level programming API, thus all your programs can operate independently to how your login system operates.</p></div></div><div class="mediaobject"><img alt="Configuring Basic HTTP auth using PAM" height="160" src="graphics/4965OS_10_14.jpg"/></div><p>The recipe describes a situation where you want to protect<code class="literal"> http://www.example1.com/downloads</code> and ensure that only LDAP authenticated users can access that part of the site.</p><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec20"/>How to do it…</h2></div></div></div><p>We will first install the PAM authentication model and then configure Nginx in the following steps.<a class="indexterm" id="id306"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the Nginx PAM auth module. This recipe assumes that you have an already configured and working LDAP setup.<div class="informalexample"><pre class="programlisting">wget http://web.iti.upv.es/~sto/nginx/ngx_http_auth_pam_module-1.2.tar.gz
+tar xvzf ngx_http_auth_pam_module-1.2.tar.gz
+cd nginx
+./configure add-module=../ngx_http_auth_pam_module-1.2
+make
+make install
+</pre></div></li><li class="listitem"> We will then put the following in our Nginx configuration:<div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+. . .
+location /downloads {
+auth_pam "Downloads";
+auth_pam_service_name "nginx";
+}
+}
+</pre></div></li><li class="listitem"> We will need to put the following in<code class="literal"> /etc/pam.d/nginx:</code><div class="informalexample"><pre class="programlisting">auth required /lib/security/pam_ldap.so
+account required /lib/security/pam_ldap.so
+</pre></div></li><li class="listitem"> Now, you will need to restart your Nginx server.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec21"/>How it works…</h2></div></div></div><p>This module basically utilizes PAM as the top level API to access the LDAP authentication structures. It first enables the authentication in the necessary location, which is<code class="literal"> /downloads</code> in this case. Then we set up a PAM service called Nginx, that basically utilizes the PAM LDAP libraries to complete the authentication.<a class="indexterm" id="id307"/>
+</p><div class="mediaobject"><img alt="How it works…" src="graphics/4965_10_15.jpg" width="163"/></div></div></div>
+<div class="section" title="Configuring Basic HTTP auth using Kerberos"><div class="titlepage"><div><div><h1 class="title"><a id="ch10lvl1sec13"/>Configuring Basic HTTP auth using Kerberos</h1></div></div></div><p>If you are using Windows based systems in a heterogeneous environment, in all probability you must use Kerberos as your authentication protocol. In situations where we are deploying a site internally it may be useful to handle web authentication with Kerberos. Nginx has the solution for this, as it has a module that lets you authenticate the user using Kerberos.</p><p>This recipe will take a look at how you can protect a particular web location using HTTP authentication using Kerberos as the backend. This is a highly experimental plugin, and only useful when you do not have an alternative to this form of authentication in your network.<a class="indexterm" id="id308"/>
+</p><div class="mediaobject"><img alt="Configuring Basic HTTP auth using Kerberos" height="192" src="graphics/4965OS_10_16.jpg"/></div><div class="section" title="How to do it…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec22"/>How to do it…</h2></div></div></div><p>In this recipe, we first install the plugin and then configure Nginx to use it in the following steps.<a class="indexterm" id="id309"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the Nginx Kerberos module:<div class="informalexample"><pre class="programlisting">git clone https://github.com/mike503/spnego-http-auth-nginx-module.git
+cd nginx
+,/configure add-module=../spnego-http-auth-nginx-module
+make
+make install
+</pre></div></li><li class="listitem"> Now we will configure the module:<div class="informalexample"><pre class="programlisting">location /downloads {
+auth_gss on;
+auth_gss_realm LOCALDOMAIN;
+auth_gss_keytab /etc/krb5.keytab;
+auth_gss_service_name HTTP;
+}
+</pre></div></li><li class="listitem"> Restart Nginx for the changes to take effect.</li></ol></div><div class="informalexample"><pre class="programlisting">/etc/init.d/nginx restart
+</pre></div></div><div class="section" title="How it works…"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec23"/>How it works…</h2></div></div></div><p>This module defines the realm name, and then we will need to define the location of the service credentials. Finally, we set up the service that you use to acquire the credentials.<a class="indexterm" id="id310"/>
+</p><p>There are some assumptions that the preceding configuration makes. Your Nginx web server should be in the same broadcast scope of the Kerberos server and so should the client, who will be authenticated to that server.</p><p>In another scenario, it is possible that you already have PAM with Kerberos support set up on your server. In this case you can use the preceding recipe to set up PAM with Kerberos.</p></div><div class="section" title="See also"><div class="titlepage"><div><div><h2 class="title"><a id="ch10lvl2sec24"/>See also</h2></div></div></div><p>The<span class="emphasis"><em> Configuring basic HTTP auth using PAM</em></span> recipe, in this chapter</p></div></div></body></html>

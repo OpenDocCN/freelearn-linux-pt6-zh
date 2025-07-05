@@ -1,0 +1,338 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;7.&#xA0;Nginx as a Reverse Proxy"><div class="titlepage"><div><div><h1 class="title"><a id="ch07"/>Chapter 7. Nginx as a Reverse Proxy</h1></div></div></div><p>In this chapter, we will cover:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Using Nginx as a simple reverse proxy</li><li class="listitem" style="list-style-type: disc">Setting up a rails site using Nginx as a reverse proxy</li><li class="listitem" style="list-style-type: disc">Setting up correct reverse proxy timeouts</li><li class="listitem" style="list-style-type: disc">Setting up caching on the reverse proxy</li><li class="listitem" style="list-style-type: disc">Using multiple backends for the reverse proxy</li><li class="listitem" style="list-style-type: disc">Serving CGI files using thttpd and Nginx</li><li class="listitem" style="list-style-type: disc">Setting up load balancing with reverse proxy</li><li class="listitem" style="list-style-type: disc">Splitting requests based on various conditions using split-clients</li></ul></div><div class="section" title="Introduction"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec01"/>Introduction</h1></div></div></div><p>Nginx has found most applications acting as a reverse proxy for many sites. A reverse proxy is a type of proxy server that retrieves resources for a client from one or more servers. These resources are returned to the client as though they originated from the proxy server itself.<a class="indexterm" id="id167"/>
+</p><p><a class="indexterm" id="id168"/>
+Due to its event driven architecture and C codebase, it consumes significantly lower CPU power and memory than many other better known solutions out there. This chapter will deal with the usage of Nginx as a reverse proxy in various common scenarios. We will have a look at how we can set up a rail application, set up load balancing, and also look at a caching setup using Nginx, which will potentially enhance the performance of your existing site without any codebase changes.</p></div></div>
+<div class="section" title="Using Nginx as a simple reverse proxy"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec02"/>Using Nginx as a simple reverse proxy</h1></div></div></div><p>Nginx in its simplest form can be used as a reverse proxy for any site; it acts as an intermediary layer for security, load distribution, caching, and compression purposes. In effect, it can potentially enhance the overall quality of the site for the end user without any change of application source code by distributing the load from incoming requests to multiple backend servers, and also caching static, as well as dynamic content.<a class="indexterm" id="id169"/>
+</p><div class="mediaobject"><img alt="Using Nginx as a simple reverse proxy" src="graphics/4965OS_07_01.jpg" width="192"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec01"/>How to do it...</h2></div></div></div><p>You will need to first define<code class="literal"> proxy.conf</code>, which will be later included in the main configuration of the reverse proxy that we are setting up:<a class="indexterm" id="id170"/>
+</p><div class="informalexample"><pre class="programlisting">proxy_redirect off;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+client_max_body_size 10m;
+client_body_buffer_size 128k;
+proxy_connect_timeout 90;
+proxy_send_timeout 90;
+proxy_read_timeout 90;s
+proxy_buffers 32 4k
+</pre></div><p>To use Nginx as a reverse proxy for a site running on a local port of the server, the following configuration will suffice:</p><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name example1.com;
+access_log /var/www/example1.com/log/nginx.access.log;
+error_log /var/www/example1.com/log/nginx_error.log debug;
+location / {
+include proxy.conf;
+proxy_pass http://127.0.0.1:8080;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec02"/>How it works...</h2></div></div></div><p>In this recipe, Nginx simply acts as a proxy for the defined backend server which is running on the 8080 port of the server, which can be any HTTP web application. Later in this chapter, other advanced recipes will have a look at how one can define more backend servers, and how we can set them up to respond to requests.<a class="indexterm" id="id171"/>
+</p></div></div>
+<div class="section" title="Setting up a rails site using Nginx as a reverse proxy"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec04"/>Setting up a rails site using Nginx as a reverse proxy</h1></div></div></div><p>In this recipe, we will set up a working rails site and set up Nginx working on top of the application. This will assume that the reader has some knowledge of rails and thin. There are other ways of running Nginx and rails, as well, like using Passenger Phusion.<a class="indexterm" id="id172"/>
+</p><div class="mediaobject"><img alt="Setting up a rails site using Nginx as a reverse proxy" src="graphics/4965_07_02.jpg" width="74"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec03"/>How to do it...</h2></div></div></div><p>This will require you to set up thin first, then to configure thin for your application, and then to configure Nginx.<a class="indexterm" id="id173"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> If you already have gems installed then the following command will install thin, otherwise you will need to install it from source:<div class="informalexample"><pre class="programlisting">sudo gem install thin
+</pre></div></li><li class="listitem"> Now you need to generate the thin configuration. This will create a configuration in the<code class="literal"> /etc/thin</code> directory:<div class="informalexample"><pre class="programlisting">sudo thin config -C /etc/thin/myapp.yml -c /var/rails/myapp --servers 5 -e production
+</pre></div></li><li class="listitem"> Now you can start the thin service. Depending on your operating system the start up command will vary.</li><li class="listitem"> Assuming that you have Nginx installed, you will need to add the following to the configuration file:<div class="informalexample"><pre class="programlisting">upstream thin_cluster {
+server unix:/tmp/thin.0.sock;
+server unix:/tmp/thin.1.sock;
+server unix:/tmp/thin.2.sock;
+server unix:/tmp/thin.3.sock;
+server unix:/tmp/thin.4.sock;
+}
+server {
+listen 80;
+server_name www.example1.com;
+root /var/www.example1.com/public;
+location / {
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header Host $http_host;
+proxy_redirect false;
+try_files $uri $uri/index.html $uri.html @thin;
+location @thin {
+include proxy.conf;
+proxy_pass http://thin_cluster;
+}
+}
+error_page 500 502 503 504 /50x.html;
+location = /50x.html {
+root html;
+}
+}
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch07lvl2sec04"/>How it works...</h3></div></div></div><p>This is a fairly simple rails stack, where we basically configure and run five upstream thin threads which interact with Nginx through socket connections.<a class="indexterm" id="id174"/>
+</p><p>There are a few rewrites that ensure that Nginx serves the static files, and all dynamic requests are processed by the rails backend. It can also be seen how we set proxy headers correctly to ensure that the client IP is forwarded correctly to the rails application. It is important for a lot of applications to be able to access the client IP to show geo-located information, and logging this IP can be useful in identifying if geography is a problem when the site is not working properly for specific clients.</p></div></div></div>
+<div class="section" title="Setting up correct reverse proxy timeouts"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec05"/>Setting up correct reverse proxy timeouts</h1></div></div></div><p>In this section we will set up correct reverse proxy timeouts which will affect your user's interaction when your backend application is unable to respond to the client's request.<a class="indexterm" id="id175"/>
+</p><p>In such a case, it is advisable to set up some sensible timeout pages so that the user can understand that further refreshing may only aggravate the issues on the web application.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec05"/>How to do it...</h2></div></div></div><p>You will first need to set up<code class="literal"> proxy.conf</code> which will later be included in the configuration:</p><div class="informalexample"><pre class="programlisting">proxy_redirect off;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+client_max_body_size 10m;
+client_body_buffer_size 128k;
+proxy_connect_timeout 90;
+proxy_send_timeout 90;
+proxy_read_timeout 90;s
+proxy_buffers 32 4k
+</pre></div><p>Reverse proxy timeouts are some fairly simple flags that we need to set up in the Nginx configuration like in the following example:</p><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name example1.com;
+access_log /var/www/example1.com/log/nginx.access.log;
+error_log /var/www/example1.com/log/nginx_error.log debug;
+#set your default location
+location / {
+include proxy.conf;
+proxy_read_timeout 120;
+proxy_connect_timeout 120;
+proxy_pass http://127.0.0.1:8080;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec06"/>How it works...</h2></div></div></div><p>In the preceding configuration we have set the following variables, it is fairly clear what these variables achieve in the context of the configurations:<a class="indexterm" id="id176"/>
+</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.635"/><col style="text-align: left" width="3.82805555555555"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Use</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_read_timeout</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive sets the read timeout for the response of the proxied server. It determines how long Nginx will wait to get the response to a request. The timeout is established not for the entire response, but only between two operations of reading.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_connect_timeout</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive assigns timeout with the transfer of request to the upstream server. Timeout is established not on the entire transfer of request, but only between two write operations. If after this time the upstream server does not take new data, then Nginx shuts down the connection.</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Setting up caching on the reverse proxy"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec06"/>Setting up caching on the reverse proxy</h1></div></div></div><p>In a setup where Nginx acts as the layer between the client and the backend web application, it is clear that caching can be one of the benefits that can be achieved. In this recipe, we will have a look at setting up caching for any site to which Nginx is acting as a reverse proxy. Due to extremely small footprint and modular architecture, Nginx has become quite the Swiss knife of the modern web stack.<a class="indexterm" id="id177"/>
+</p><div class="mediaobject"><img alt="Setting up caching on the reverse proxy" src="graphics/4965OS_07_03.jpg" width="178"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec07"/>How to do it...</h2></div></div></div><p>This example configuration shows how we can use caching when utilizing Nginx as a reverse proxy web server:<a class="indexterm" id="id178"/>
+</p><div class="informalexample"><pre class="programlisting">http {
+proxy_cache_path /var/www/cache levels=1:2 keys_zone=my-cache:8m max_size=1000m inactive=600m;
+proxy_temp_path /var/www/cache/tmp;
+...
+server {
+listen 80;
+server_name example1.com;
+access_log /var/www/example1.com/log/nginx.access.log;
+error_log /var/www/example1.com/log/nginx_error.log debug;
+#set your default location
+location / {
+include proxy.conf;
+proxy_pass http://127.0.0.1:8080/;
+proxy_cache my-cache;
+proxy_cache_valid 200 302 60m;
+proxy_cache_valid 404 1m;
+}
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec08"/>How it works...</h2></div></div></div><p>This configuration implements a simple cache with 1000MB maximum size, and keeps all HTTP response 200 pages in the cache for 60 minutes and HTTP response 404 pages in cache for 1 minute.<a class="indexterm" id="id179"/>
+</p><p>There is an initial directive that creates the cache file on initialization, in further directives we basically configure the location that is going to be cached.</p><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="tip04"/>Tip</h3><p>It is possible to actually set up more than one cache path for multiple locations.</p></div></div></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec09"/>There's more...</h2></div></div></div><p>This was a relatively small show of what can be achieved with the caching aspect of the proxy module. Here are some more directives that can be really useful in optimizing and making your stack faster and more efficient:</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.57652777777778"/><col style="text-align: left" width="3.83076388888889"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Use</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_cache_bypass</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The directive specifies the conditions under which the answer will not be taken from the cache. If one string variable is not empty and not equal to "0", the answer is not taken from the cache.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_cache_min_uses</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive determines the number of accesses before a page is cached.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_cache_use_stale</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive tells Nginx when to serve a stale item from the proxy cache. For example, when an Application error HTTP Code 500 occurs.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">proxy_cache_methods</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This directive lets you choose what directives to cache [GET, PUT, and so on].</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Using multiple backends for the reverse proxy"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec08"/>Using multiple backends for the reverse proxy</h1></div></div></div><p>As traffic increases, the need to scale the site up becomes a necessity. With a transparent reverse proxy like Nginx in front, most users never even see the scaling affecting their interactions with the site. Usually, for smaller sites one backend process is sufficient to handle the oncoming traffic. As the site popularity increases, the first solution is to increase the number of backend processes and let Nginx multiplex the client requests. This recipe takes a look at how to add new backend processes to Nginx.<a class="indexterm" id="id180"/>
+</p><div class="mediaobject"><img alt="Using multiple backends for the reverse proxy" src="graphics/4965OS_07_04.jpg" width="145"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec10"/>How to do it...</h2></div></div></div><p>The configuration below adds three upstream servers to which client requests will be sent for processing:</p><div class="informalexample"><pre class="programlisting">upstream backend {
+server backend1.example1.com weight=5;
+server backend2.example1.com max_fails=3 fail_timeout=30s;
+server backend3.example1.com;
+}
+server {
+listen 80;
+server_name example1.com;
+access_log /var/www/example1.com/log/nginx.access.log;
+error_log /var/www/example1.com/log/nginx_error.log debug;
+#set your default location
+location / {
+include proxy.conf;
+proxy_pass http://backend;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec11"/>How it works...</h2></div></div></div><p>In this configuration we set up an upstream, which is nothing but a set of servers with some proxy parameters. For the server<code class="literal"> http://backend1.example1.com</code>, we have set a weight of five, which means that the majority of the requests will be directed to that server. This can be useful in cases where there are some powerful servers and some weaker ones. In the next server<code class="literal"> http://backend2.example1.com</code>, we have set the parameters such that three failed requests over a time period of 30 seconds will result in the server being considered inoperative. The last one is a plain vanilla setup, where one error in a ten second window will make the server inoperative!<a class="indexterm" id="id181"/>
+</p><p>This displays the thought put in behind the design of Nginx. It seamlessly handles servers which are problematic and puts them in the set of inoperative servers. All requests to the server are sent in a round robin fashion. We will discuss modules in future recipes that ensure that the requests are sent using other queue mechanisms based on server load and other upstream server performance metrics.</p></div></div>
+<div class="section" title="Serving CGI files using thttpd and Nginx"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec09"/>Serving CGI files using thttpd and Nginx</h1></div></div></div><p>At some point in time in Internet history, most applications were CGI based. Nginx does not serve CGI scripts, so the workaround is to use a really efficient and simple HTTP server called thttpd and to get Nginx to act as a proxy to it.<a class="indexterm" id="id182"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec12"/>How to do it...</h2></div></div></div><p>The best way to go about it is to set up thttpd from source code, apply the IP forwarding patch, and then to use the configuration below:</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Download thttpd and apply the patch.<div class="informalexample"><pre class="programlisting">wget http://www.acme.com/software/thttpd/thttpd-2.25b.tar.gz
+tar xvzf thttpd-2.25b.tar.gz
+</pre></div></li><li class="listitem"> Save the code below in a file called<code class="literal"> thttpd.patch:</code><div class="informalexample"><pre class="programlisting">--- thttpd-2.25b/libhttpd.c 2003-12-25 20:06:05.000000000 +0100
++++ thttpd-2.25b-patched/libhttpd.c 2005-01-09 00:26:04.867255248 +0100
+@@ -2207,6 +2207,12 @@
+if ( strcasecmp( cp, "keep-alive" ) == 0 )
+hc-&gt;keep_alive = 1;
+}
++ else if ( strncasecmp( buf, "X-Forwarded-For:", 16 ) == 0 )
++ { // Use real IP if available
++ cp = &amp;buf[16];
++ cp += strspn( cp, " \t" );
++ inet_aton( cp, &amp;(hc-&gt;client_addr.sa_in.sin_addr) );
++ }
+#ifdef LOG_UNKNOWN_HEADERS
+else if ( strncasecmp( buf, "Accept-Charset:", 15 ) == 0 ||
+strncasecmp( buf, "Accept-Language:", 16 ) == 0 ||
+</pre></div></li><li class="listitem"> Apply the patch and install thttpd:<a class="indexterm" id="id183"/><div class="informalexample"><pre class="programlisting">patch -p 1 -i thttpd.patch
+cd thttpd-2.25b
+make
+sudo make install
+</pre></div></li><li class="listitem"> Use the following configuration for<code class="literal"> /etc/thttpd.conf:</code><div class="informalexample"><pre class="programlisting"># BEWARE : No empty lines are allowed!
+# This section overrides defaults
+# This section _documents_ defaults in effect
+# port=80
+# nosymlink # default = !chroot
+# novhost
+# nocgipat
+# nothrottles
+# host=0.0.0.0
+# charset=iso-8859-1
+host=127.0.0.1
+port=8000
+user=thttpd
+logfile=/var/log/thttpd.log
+pidfile=/var/run/thttpd.pid
+dir=/var/www
+cgipat=**.cgi|**.pl
+</pre></div></li><li class="listitem"> Set up Nginx as a proxy for the port 8000.<div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name example1.com;
+access_log /var/www/example1.com/log/nginx.access.log;
+error_log /var/www/example1.com/log/nginx_error.log debug;
+location /cgi-bin {
+include proxy.conf;
+proxy_pass http://127.0.0.1:8000;
+}
+}
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch07lvl2sec13"/>How it works...</h3></div></div></div><p>The setup above allows you to enjoy the best of CGI and Nginx. You initially set up thttpd, which will run on port 8000 of the server, which will effectively be the core CGI web server and you can run Nginx as the proxy for the user requests.<a class="indexterm" id="id184"/>
+</p><p>All you need to do is place the perl scripts in the<code class="literal"> /var/www</code> directory and you will be running CGI using Nginx and thttpd.</p><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="tip05"/>Tip</h3><p>You can also use the same technique as above to run CGI scripts using other CGI-capable servers like Apache and lightHTTPD as well. You will be required to change the operating ports of those servers to 8000 and the same configuration like above will work.</p></div></div></div></div></div>
+<div class="section" title="Setting up load balancing with reverse proxy"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec10"/>Setting up load balancing with reverse proxy</h1></div></div></div><p>In most reverse proxy systems one wants to have some notion of load balancing in the system. In one of the preceding recipes, we have seen how to set up and run multiple upstream servers in a round robin mechanism of sending over the requests.<a class="indexterm" id="id185"/>
+</p><p>In this recipe, we will install a load balancing module which will allow us to set up a fair load balancing with the upstream servers.</p><div class="mediaobject"><img alt="Setting up load balancing with reverse proxy" src="graphics/4965OS_07_05.jpg" width="124"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec14"/>How to do it...</h2></div></div></div><p>For this particular recipe we will install a third-party module called "upstream fair module".</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> You will need to go an download the module:<div class="informalexample"><pre class="programlisting">wget https://github.com/gnosek/nginx-upstream-fair/tarball/master
+</pre></div></li><li class="listitem"> Compile Nginx with the new module:<div class="informalexample"><pre class="programlisting">Tar xvzf nginx-upstream-fair.tgz
+Cd nginx
+./configure --with-http_ssl_module --add-module=../nginx-upstream-fair/
+Make &amp;&amp; make install
+</pre></div></li><li class="listitem"> You will need to add the following configuration to your<code class="literal"> nginx.conf:</code><div class="informalexample"><pre class="programlisting">upstream backend {
+server backend1.example1.com;
+server backend2.example1.com;
+server backend3.example1.com;
+fair no_rr;
+}
+server {
+listen 80;
+server_name example1.com;
+access_log /var/www/example1.com/log/nginx.access.log;
+error_log /var/www/example1.com/log/nginx_error.log debug;
+#set your default location
+location / {
+proxy_pass http://backend;
+}
+}
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch07lvl2sec15"/>How it works...</h3></div></div></div><p>This is a fairly straightforward setup once you understand the basics of setting up multiple upstream servers. In this particular "fair" mode, which is<code class="literal"> no_rr</code>, the server will send the request to the first backend whenever it is idle. The goal of this module is to not send requests to already busy backends as it keeps information of how many requests a current backend is already processing. This is a much better model than the default round robin that is implemented in the default upstream directive.<a class="indexterm" id="id186"/>
+</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h3 class="title"><a id="ch07lvl2sec16"/>There's more...</h3></div></div></div><p>You can choose to run this load balancer module in a few other modes, as described below, based on your needs! This is a very simple way of ensuring that none of the backend experiences load unevenly as compared to the rest:</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="0.935625"/><col style="text-align: left" width="4.49149739583333"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Mode</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Meaning</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>default (that is fair;)</p>
+</td><td style="text-align: left" valign="top">
+<p>The default mode is a simple WLC-RR (weighted least-connection round-robin) algorithm with a caveat that the weighted part isn't actually too fair under low load.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">no_rr</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This means that whenever the first backend is idle, it's going to get the next request. If it's busy, the request will go to the second backend unless it's busy too, and so on.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">weight_mode=idle no_rr</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This mode redefines the meaning of "idle". It now means "less than weight concurrent requests". So you can easily benchmark your backends and determine that<span class="strong"><strong> X</strong></span> concurrent requests are the maximum for you.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">weight_mode=peak</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This means that Nginx will never send more than weight requests to any single backend. If all backends are full, you will start receiving 502 errors.</p>
+</td></tr></tbody></table></div><p>Here is an example of a peak weight mode setup:</p><div class="informalexample"><pre class="programlisting">upstream backend {
+server backend1.example1.com weight=4;
+server backend2.example1.com weight=3;
+server backend3.example1.com weight=4;
+fair weight_mode=idle no_rr;
+}
+</pre></div></div></div></div>
+<div class="section" title="Splitting requests based on various conditions using split-clients"><div class="titlepage"><div><div><h1 class="title"><a id="ch07lvl1sec12"/>Splitting requests based on various conditions using split-clients</h1></div></div></div><p>This recipe will take a look at how we can potentially separate client requests based on various conditions that can arise.<a class="indexterm" id="id187"/>
+</p><p>We will also understand how we can potentially set up a simple page for A-B testing using this module.</p><div class="mediaobject"><img alt="Splitting requests based on various conditions using split-clients" height="150" src="graphics/4965OS_07_06.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec17"/>How to do it...</h2></div></div></div><p>This module is fairly simple to use and comes inbuilt with Nginx. All you need to do is to insert the following configuration in your<code class="literal"> nginx.conf:</code>
+<a class="indexterm" id="id188"/>
+</p><div class="informalexample"><pre class="programlisting">http {
+split-clients "${remote-addr}AAA" $variant {
+50.0% .one;
+50,0% .two;
+- "";
+}
+...
+server {
+listen 80;
+server_name example1.com;
+access_log /var/www/example1.com/log/nginx.access.log;
+error_log /var/www/example1.com/log/nginx_error.log debug;
+location / {
+root /var/www/example1.com;
+index index${variant}.html;
+}
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch07lvl2sec18"/>How it works...</h2></div></div></div><p>This particular configuration sets up a system which is based upon the remote client address, assigns the values<code class="literal"> .one, .two</code>, or "" to a variable<code class="literal"> $variant</code>. Based upon the variable value, a different page is picked up from the file location.<a class="indexterm" id="id189"/>
+</p><p>The following table shows the various probabilities and actions from the above configuration:</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.025"/><col style="text-align: left" width="0.897361111111111"/><col style="text-align: left" width="3.04625"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Variable value</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Probability</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Page served</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">.one</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>50%</p>
+</td><td style="text-align: left" valign="top">
+<p>
+<code class="literal">/var/www/example1.com/index.one.html</code>
+</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">.two</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>50%</p>
+</td><td style="text-align: left" valign="top">
+<p>
+<code class="literal">/var/www/example1.com/index.two.html</code>
+</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">""</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>0%</p>
+</td><td style="text-align: left" valign="top">
+<p>
+<code class="literal">/var/www/example1.com/index.html</code>
+</p>
+</td></tr></tbody></table></div><div class="mediaobject"><img alt="How it works..." height="129" src="graphics/4965OS_07_07.jpg"/></div><p>The preceding pie chart clearly displays the split across the two pages. Utilizing this approach, we are able to test out interactions with the page changes that you have made. This forms the basis of usability testing.</p></div></div></body></html>

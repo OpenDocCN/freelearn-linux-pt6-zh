@@ -1,0 +1,460 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;2.&#xA0;All About Rewrites: The Rewrite Module"><div class="titlepage"><div><div><h1 class="title"><a id="ch02"/>Chapter 2. All About Rewrites: The Rewrite Module</h1></div></div></div><p>In this chapter, we will cover:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Setting up a simple redirect</li><li class="listitem" style="list-style-type: disc">Using variables in your rewrite</li><li class="listitem" style="list-style-type: disc">Using cookies for your rewrites</li><li class="listitem" style="list-style-type: disc">Using browser agents for your rewrites</li><li class="listitem" style="list-style-type: disc">Using rate limits as a condition for rewrites</li><li class="listitem" style="list-style-type: disc">Blocking requests based on HTTP referrers</li><li class="listitem" style="list-style-type: disc">Serving maintenance page when deploying</li><li class="listitem" style="list-style-type: disc">Setting up a WordPress site with static file serving</li><li class="listitem" style="list-style-type: disc">Setting up a Drupal site with static file serving</li><li class="listitem" style="list-style-type: disc">Setting up a Magento site with static file serving</li><li class="listitem" style="list-style-type: disc">Converting your apache .htaccess into Nginx rewrites</li><li class="listitem" style="list-style-type: disc">Using maps to make configurations cleaner</li></ul></div><div class="section" title="Introduction"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec01"/>Introduction</h1></div></div></div><p><a class="indexterm" id="id41"/>
+This chapter is devoted to the rewrite module; it will teach you the basics and also allow you to configure various commonly available web development frameworks to work correctly with your Nginx setup using the correct rewrite rules.</p></div></div>
+<div class="section" title="Setting up a simple redirect"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec02"/>Setting up a simple redirect</h1></div></div></div><p>A lot of sites undergo changes, and in some cases complete rewriting. In most cases the earlier contents URLs would have changed, leading to loss of SEO and, of course, inconvenience for older clients. This recipe will help you write simple rewrites so that you can ensure that your new site has all the redirect working.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec01"/>How to do it...</h2></div></div></div><p>Let's take a simple example of a site called<a class="ulink" href="http://www.example1.com"> http://www.example1.com</a>. It earlier had a page called<a class="ulink" href="http://www.example1.com/blog/test-post.html"> http://www.example1.com/blog/test-post.html</a> and now it's been redone. The new blog has a different URL scheme and this old post is at the following location:<a class="ulink" href="http://www.example1.com/blog/test-post/"> http://www.example1.com/blog/test-post/</a>. It may look like a simple change, but when an older bookmarked user visits the older URL they would get a 404 error page. The configuration change below will easily let you rewrite the older URL to the new one:<a class="indexterm" id="id42"/>
+</p><div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+...
+rewrite ^/blog/test-post.html$ /blog/test-post/ permanent;
+location ~ .php$ {
+...
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec02"/>How it works...</h2></div></div></div><p>This creates a permanent redirection [301] rule for the older URL and makes it point to the new one. Over time this can be removed as permanent redirects changes the bookmarks and makes sure that people/crawlers do not keep coming back to the older URL.</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec03"/>There's more...</h2></div></div></div><p>You can also do a temporary redirection which is the 302 redirection by removing the permanent keyword that is:</p><div class="informalexample"><pre class="programlisting">rewrite ^/blog/test-post.html$ /blog/test-post/ ;
+</pre></div><p>This means that the browser will not update the bookmark and also the search crawlers will not update the new URL as the primary one for the content on the page.</p></div></div>
+<div class="section" title="Using variables in your rewrite"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec03"/>Using variables in your rewrite</h1></div></div></div><p>Now that we are comfortable with the basics, we can go ahead and write more interesting rewrites using conditions based on various variables accessible inside the configuration. We will look at a simple example where we check for the presence of a particular GET parameter in the URI, in the presence of which we rewrite to a special URL.<a class="indexterm" id="id43"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec04"/>How to do it...</h2></div></div></div><p>We will use the following piece of configuration to create the conditional rewrite:<a class="indexterm" id="id44"/>
+</p><div class="informalexample"><pre class="programlisting">location / {
+...
+If ($arg_special ~* (beta|alpha|gamma) ) {
+rewrite ^(.*)$ http://www.example1.com/greek/$1/;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec05"/>How it works...</h2></div></div></div><p>If you type in any URL which has a GET parameter special (for example,<a class="ulink" href="http://www.example.com/?special=beta&amp;test=test1)"> http://www.example.com/?special=beta&amp;test=test1)</a> it will show a corresponding special page for beta. This is very useful if you want to hide certain parts of your site or make it accessible only by using a basic key in the parameter.<a class="indexterm" id="id45"/>
+</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec06"/>There's more...</h2></div></div></div><p>As seen above, you can configure a lot more variables available to you in the HTTP header. Here is a list of more variables that we can access to write more interesting rules.</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.65173611111111"/><col style="text-align: left" width="3.84197048611111"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Variable</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Description</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$arg_PARAMETER</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable contains the value of the GET request variable PARAMETER if present in the query string.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$args</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable contains the query string in the URL, for example<code class="literal"> foo=123&amp;bar=blahblah</code> if the URL is<code class="literal"> http://example1.com/? foo=123&amp;bar=blahblah</code>
+</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$binary_remote_addr</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The address of the client in binary form.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$body_bytes_sent</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The bytes of the body sent.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$content_length</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable is equal to line Content-Length in the header of request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$content_type</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable is equal to line Content-Type in the header of request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$document_root</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable is equal to the value of directive root for the current request.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$document_uri</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The same as<code class="literal"> $uri</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$host</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable contains the value of the 'Host' value in the request header, or the name of the server processing if the 'Host' value is not available.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$http_HEADER</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The value of the HTTP header HEADER when converted to lowercase and with "dashes" converted to "underscores", for example,<code class="literal"> $http_user_agent, $http_referer</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$is_args</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Evaluates to "?" if<code class="literal"> $args</code> is set, returns "" otherwise.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$request_uri</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable is equal to the *original* request URI as received from the client including the args. It cannot be modified. Look at<code class="literal"> $uri</code> for the post-rewrite/altered URI. Does not include host name. Example: "/foo/bar.php?arg=baz".</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$scheme</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The HTTP scheme (that is http, https). Evaluated only on demand, for example:<code class="literal"> rewrite ^(.+)$ $scheme://example.com$1 redirect</code>;</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_addr</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable contains the server address. It is advisable to indicate addresses correctly in the listen directive and use the bind parameter so that a system call is not made every time this variable is accessed.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_name</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The name of the server.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_port</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable is equal to the port of the server, to which the request arrived.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$server_protocol</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable is equal to the protocol of request, usually this is HTTP/1.0 or HTTP/1.1.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<code class="literal">$uri</code>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This variable is equal to current URI in the request (without arguments, those are in<code class="literal"> $args.)</code> It can differ from<code class="literal"> $request_uri</code> which is what is sent by the browser. Examples of how it can be modified are internal redirects, or with the use of index. Does not include host name. Example:<code class="literal">"/foo/bar.html"</code>
+</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Using cookies for your rewrites"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec04"/>Using cookies for your rewrites</h1></div></div></div><p>Most websites today use their cookies to effectively track and interact with the client's browser. Nginx with its powerful rewrite module, allows us to write some interesting rules with the information that may exist in the browser cookies. You can check out the various cookies on your browser through the preferences.<a class="indexterm" id="id46"/>
+</p><div class="mediaobject"><img alt="Using cookies for your rewrites" src="graphics/4965_02_01.jpg" width="376"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec07"/>How to do it...</h2></div></div></div><p>We can take the simple example of a site which is running the staging and production versions on the same Nginx instance. Based upon the cookie, the URL is rewritten into the correct one. The following snippet will allow you to switch sites based upon what is in the cookie:</p><div class="informalexample"><pre class="programlisting">if ($cookie_env ~* "testing") {
+rewrite ^(.*)$ /testing/$1;
+}
+if ($cookie_env ~* "staging") {
+rewrite ^(.*)$ /staging/$1;
+}
+if ($cookie_env ~* "production") {
+rewrite ^(.*)$ /production/$1;
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec08"/>How it works...</h2></div></div></div><p>In the above configuration the cookie value is checked for the type of setup that the user is accessing. This cookie is set on the user logging in by the application, so a testing user will be able to access cutting-edge features, while a staging user will be able to access beta features for testing only, and the normal users will continue to use the stable production system.<a class="indexterm" id="id47"/>
+</p></div></div>
+<div class="section" title="Using browser agents for your rewrites"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec05"/>Using browser agents for your rewrites</h1></div></div></div><p>In this recipe we will see how we can utilize rewrites for displaying alternative sites based on the user agent of the client's browser. We can take the example of a very flashy site that wants to display different sets of pages based upon the browser that the client is using. The following two screenshots display how<code class="literal"> facebook.com</code> appears on a normal desktop browser and on an iPhone; the URL however remains the same.<a class="indexterm" id="id48"/>
+</p><div class="mediaobject"><img alt="Using browser agents for your rewrites" height="258" src="graphics/4965_02_02.jpg"/></div><p>In the preceding screenshot, we are looking at the full browser version of Facebook, and you can see a fairly wide-screen site. In the following screenshot, we can see the mobile version of Facebook which clearly lets go of a lot of functionality because of the reduced screen-size.<a class="indexterm" id="id49"/>
+</p><div class="mediaobject"><img alt="Using browser agents for your rewrites" src="graphics/4965_02_03.jpg" width="142"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec09"/>How to do it...</h2></div></div></div><p>The simple example that we take is of an iPhone surfing the website and how you can actually rewrite the URL to show them a completely iPhone-compatible website. The configuration below is a great start for it!<a class="indexterm" id="id50"/>
+</p><div class="informalexample"><pre class="programlisting">location / {
+...
+if ($http_user_agent ~* '(iPhone|iPod)') {
+set $iphone_request '1';
+}
+if ($iphone_request = '1') {
+rewrite ^.+ http://m.example1.com/$uri;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec10"/>How it works...</h2></div></div></div><p>The idea is simple. What it allows is checking the HTTP USER AGENT header that already comes to us. We see if it is an iPhone or an iPod browser. If that is the case, we actually set a variable to some value. If that variable is "1", we go ahead and rewrite the URL to the mobile version of the site.<a class="indexterm" id="id51"/>
+</p></div></div>
+<div class="section" title="Using rate limits as a condition for rewrites"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec06"/>Using rate limits as a condition for rewrites</h1></div></div></div><p>Nginx has some really interesting built-in features around rate limiting requests. This recipe will help you understand how exactly you can control the requests to your application, thereby maintaining a certain quality of service to your users even under significant loads.</p><p>Nginx lets you define zones that act as storage area for the state of sessions. The value of the session key is decided by the chosen variable which, is usually the IP or the hostname of the client.<a class="indexterm" id="id52"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec11"/>How to do it...</h2></div></div></div><p>In this example, we will see how we can rate limit based on certain parameters, like the user agent.</p><div class="informalexample"><pre class="programlisting">location / {
+. . .
+if ($http_user_agent ~ "MSIE") {
+limit_rate 5k;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec12"/>How it works...</h2></div></div></div><p>In the preceding example we check if the user agent contains MSIE, in which case it will rate limit the transfer to 5000 bytes only.</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec13"/>There's more...</h2></div></div></div><p>You can also set up request based rate limiting by using the following snippet:<a class="indexterm" id="id53"/>
+</p><div class="informalexample"><pre class="programlisting">http {
+limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
+...
+server {
+...
+location / {
+limit_req zone=one burst=5;
+}
+}
+</pre></div><p>The above configuration creates a zone called one, which has a session storage size of 10MB allocated to it and allows a rate of one request per second in this particular configuration. In case any request comes that is outside of the rate limit that cannot be served, it will get a "Service unavailable" 503 page. You can store approximately 16000 sessions in a 1MB zone. You can choose to create as many zones as you require for your system.<a class="indexterm" id="id54"/>
+</p><div class="mediaobject"><img alt="There's more..." height="124" src="graphics/4965_02_04.jpg"/></div></div></div>
+<div class="section" title="Blocking requests based on HTTP referrers"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec07"/>Blocking requests based on HTTP referrers</h1></div></div></div><p>In this recipe, we will take the example of writing a rule which will look at your HTTP REFERER header line of the request and block spammers on your site.<a class="indexterm" id="id55"/>
+</p><div class="mediaobject"><img alt="Blocking requests based on HTTP referrers" src="graphics/4965_02_05.jpg" width="395"/></div><p>The preceding screenshot displays the spam comments on a blog for a single day; these have been made by automated bots which are trying to get linkbacks for their various properties. These techniques fall under the dark aspects of SEO.<a class="indexterm" id="id56"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec14"/>How to do it...</h2></div></div></div><p>To block spammer bots from visiting your site, you can use the following code snippet inside the location part of your configuration:<a class="indexterm" id="id57"/>
+</p><div class="informalexample"><pre class="programlisting">location / {
+...
+if ($http_referer ~* (babes|click|diamond|forsale|girl|jewelry|love|nudit|organic|poker|porn|poweroversoftware|sex|teen|video|webcam|zippo)) {
+return 403;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec15"/>How it works...</h2></div></div></div><p>This basically has a look at the<code class="literal"> $http_referer</code> variable and matches it with the various keywords provided. This is a very effective in ensuring that you do not have a lot of spam in your system linking back to bad sites! In case the keywords do match, it returns a 403 client error.<a class="indexterm" id="id58"/>
+</p><div class="mediaobject"><img alt="How it works..." height="135" src="graphics/4965_02_06.jpg"/></div></div></div>
+<div class="section" title="Serving maintenance page when deploying"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec08"/>Serving maintenance page when deploying</h1></div></div></div><p>One of the few things that most sites need to do is deploy code, and usually do it when the site is running on production. Nginx is really amazing in terms of how it can easily reload its configuration without terminating the client connections. You can have a look at the reloading recipe in the previous chapter to know more. In this recipe, we will have a look at a simple way of setting up a system which can make your deployment pain free for the end user and you as well!<a class="indexterm" id="id59"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec16"/>How to do it...</h2></div></div></div><p>Let's run through step-by-step what one needs to do to make a working deployment. In the process the various configuration changes will also be outlined.</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Create a directory which has the temporary "Coming back soon" HTML file. Let's call this<code class="literal"> /var/www/www.example1.com/deployment/</code> and the file is<code class="literal"> index.html</code>.</li><li class="listitem"> You need to create an alternative configuration file which will be called<code class="literal"> temporary.conf</code>. This file basically replaces the server configuration for<a class="ulink" href="http://www.example1.com"> www.example1.com</a> with the following:<a class="indexterm" id="id60"/><div class="informalexample"><pre class="programlisting">server {
+server_name www.example1.com;
+location / {
+index index.html;
+root /var/www/www.example1.com/deployment/;
+rewrite ^(.*)$ http://www.example1.com/;
+}
+}
+</pre></div></li><li class="listitem"> Now we can write a small script for deployment. It will basically put the site into a temporary mode and then update your codebase. After the code update, it will simply copy the older production configuration and reload Nginx.<div class="informalexample"><pre class="programlisting">!#/bin/bash
+mv /etc/nginx/nginx.conf /etc/nginx/nginx_temp.conf
+mv /etc/nginx/temporary.conf /etc/nginx/nginx.conf
+kill -HUP `cat /var/log/nginx/nginx.pid`
+#&lt;deploy the code&gt;
+# Restart the Fcgi / WSGI backend
+mv /etc/nginx/nginx_temp.conf /etc/nginx/nginx.conf
+kill -HUP `cat /var/log/nginx/nginx.pid`
+</pre></div></li></ol></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h3 class="title"><a id="ch02lvl2sec17"/>How it works...</h3></div></div></div><p>In this recipe, we simply use our earlier learned techniques and combine them with some nifty bash scripting to write a simple deployment script. The idea is to rewrite all the URLs to the maintenance page when the site is being deployed, and once done with the backend code deployment we revert back to the older production configuration.</p><div class="mediaobject"><img alt="How it works..." height="117" src="graphics/4965_02_07.jpg"/></div></div></div></div>
+<div class="section" title="Setting up a WordPress site with static file serving"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec10"/>Setting up a WordPress site with static file serving</h1></div></div></div><p>WordPress is one of the world's leading blogging systems, and is pretty much the defacto standard today. It has a fairly easy setup with Apache2 and makes setting up of clean URLs pretty simple as well. However, with Nginx, (and PHP over fcgi) setting up WordPress with clean URLs requires some amount of work. My own blog is running on WordPress with Nginx!<a class="indexterm" id="id61"/>
+</p><div class="mediaobject"><img alt="Setting up a WordPress site with static file serving" src="graphics/4965_02_08.jpg" width="393"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec18"/>How to do it...</h2></div></div></div><p>Let's try to set up a complete WordPress blog using Nginx and PHP over fcgi. In this recipe, you will end up learning the various details around the WordPress and Nginx stack.<a class="indexterm" id="id62"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Download WordPress -<a class="ulink" href="http://Wordpress.org/latest.tar.gz"> http://Wordpress.org/latest.tar.gz</a>.</li><li class="listitem"> Untar it at<code class="literal"> /var/www/www.example1.com/:</code><div class="informalexample"><pre class="programlisting">tar -xvzf latest.tar.gz
+</pre></div></li><li class="listitem"> Add the following configuration in<code class="literal"> Nginx.conf</code> within the http directive:<div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+root /var/www/www.example1.com;
+index index.php index.html;
+try_files $uri $uri/ /index.php?q=$uri;
+location ~* \.(jpg|jpeg|gif|css|png|js|ico|html)$ {
+expires max;
+}
+location ~ \.php$ {
+include /etc/nginx/fastcgi_params;
+fastcgi_pass 127.0.0.1:9000;
+}
+}
+</pre></div></li><li class="listitem"> Restart the server:<div class="informalexample"><pre class="programlisting">kill -HUP &lt;master PID&gt;
+</pre></div></li><li class="listitem"> Go to the blog, and start the installation.<a class="indexterm" id="id63"/><div class="mediaobject"><img alt="How to do it..." height="271" src="graphics/4965_02_09.jpg"/></div></li><li class="listitem"> Log in to the administrative section and set up the clean URLs.<div class="informalexample"><pre class="programlisting">/blog/%year%/%monthnum%/%day%/%postname%/
+</pre><div class="mediaobject"><img alt="How to do it..." height="228" src="graphics/4965_02_10.jpg"/></div></div></li><li class="listitem">The following screenshot is the permalink setting that allows you to have clean URLs without .php with the various parameters appended. That makes it very search engine and human friendly:<a class="indexterm" id="id64"/><div class="mediaobject"><img alt="How to do it..." height="173" src="graphics/4965_02_11b.jpg"/></div></li><li class="listitem"> We are nearly done. Now you can go ahead and customize your cool, new WordPress blog!<a class="indexterm" id="id65"/></li></ol></div><div class="mediaobject"><img alt="How to do it..." height="209" src="graphics/4965_02_12.jpg"/></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec19"/>How it works...</h2></div></div></div><p>This is a fairly basic setup. The clean URLs are handled by one rewrite. The interesting part is the static file serving, which is highlighted in the configuration above, that checks if the file being served is a static file (that is a GIF, PNG, DOC, and so on). If it is, then the file is served with an expiry header with long expiration time. This reduces the consumed bandwidth as it facilitates extended client side caching.<a class="indexterm" id="id66"/>
+</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec20"/>There's more...</h2></div></div></div><p>Many sites have alternative setups to handle higher loads, and use plugins like<code class="literal"> wp-supercache.</code> The following configuration has the correct rewrites for fully utilizing the combined power of<code class="literal"> wp-supercache</code> and Nginx. This setup has the capability to handle a significant amount of load within very low resource constraints:</p><div class="informalexample"><pre class="programlisting">if (-f $request_filename) {
+break;
+}
+set $supercache_file '';
+set $supercache_uri $request_uri;
+if ($request_method = POST) {
+set $supercache_uri '';
+}
+if ($query_string) {
+set $supercache_uri '';
+}
+if ($http_cookie ~* "comment_author_|Wordpress|wp-postpass_" ) {
+set $supercache_uri '';
+}
+if ($supercache_uri ~ ^(.+)$) {
+set $supercache_file /blog/wp-content/cache/supercache/$http_host/$1index.html;
+}
+if (-f $document_root$supercache_file) {
+rewrite ^(.*)$ $supercache_file break;
+}
+if (!-e $request_filename) {
+rewrite ^(.+)$ /index.php?q=$1 last;
+}
+</pre></div><p>In the following screenshot you can see the WP super cache Manager plugin configuration page which allows you to setup other parameters for the caching based on your site requirements. In the above example we handle the basic settings which assume that all the pages need to be cached.</p><div class="mediaobject"><img alt="There's more..." height="209" src="graphics/4965_02_13.jpg"/></div></div></div>
+<div class="section" title="Setting up a Drupal site with static file serving"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec12"/>Setting up a Drupal site with static file serving</h1></div></div></div><p>Drupal is an emerging open source CMS and has captured the imagination of many PHP developers and enthusiasts alike. In this recipe, we will have a look at how we can set up Drupal using Nginx and PHP over FastCGI.<a class="indexterm" id="id67"/>
+</p><div class="mediaobject"><img alt="Setting up a Drupal site with static file serving" height="208" src="graphics/4965_02_14.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec21"/>How to do it...</h2></div></div></div><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Download Drupal:<a class="ulink" href="http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz"> http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz</a><a class="indexterm" id="id68"/></li><li class="listitem"> Untar Drupal to<code class="literal"> /var/www/www.example1.com/</code>.</li><li class="listitem"> Add the following to your<code class="literal"> Nginx.conf:</code><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+root /var/www/www.example1.com;
+index index.php index.html index.htm
+try_files $uri $uri/ /index.php?q=$uri;
+location ~* \.(jpg|jpeg|gif|css|png|js|ico|html)$ {
+expires max;
+}
+location ~ \.php$ {
+include /etc/nginx/fastcgi_params;
+fastcgi_pass 127.0.0.1:9000;
+}
+}
+</pre></div></li><li class="listitem"> Reload Nginx:<div class="informalexample"><pre class="programlisting">kill -HUP &lt;master PID&gt;
+</pre></div></li><li class="listitem"> Set up Drupal:</li></ol></div><div class="mediaobject"><img alt="How to do it..." height="270" src="graphics/4965_02_15.jpg"/></div><p>The preceding screenshot lets you set up the database settings for the installation. In the following screen, you will be logged in as administrator and will have the ability to manipulate the various options of the platform:<a class="indexterm" id="id69"/>
+</p><div class="mediaobject"><img alt="How to do it..." height="257" src="graphics/4965_02_16b.jpg"/></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec22"/>How it works...</h2></div></div></div><p>The basic Drupal setup is very similar to the WordPress setup shown in the earlier recipe, and has the same rewrite rules. You need to transform the clean URL into a parameterized URL for<code class="literal"> index.php</code>, as shown in the highlighted directive,<code class="literal"> try_files</code>.<a class="indexterm" id="id70"/>
+</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec23"/>There's more...</h2></div></div></div><p>Drupal has an exciting caching framework called Boost, which enhances the speed drastically. It can be used in conjunction with Nginx to handle fairly high loads. Do note that this stack with the boost modules has certain pitfalls when it comes to large Drupal sites; it is best utilized with smaller portals.</p><div class="informalexample"><pre class="programlisting">set $boost "";
+if ( $request_method = GET ) {
+set $boost G;
+}
+if ($http_cookie !~ "DRUPAL_UID") {
+set $boost "${boost}D";
+}
+if ($query_string = "") {
+set $boost "${boost}Q";
+}
+if ( -f $document_root/cache/$host/0/index.html ) {
+set $boost "${boost}I";
+}
+if ($boost = GDQI) {
+rewrite ^/$ /cache/$server_name/0/index.html break;
+}
+if ( -f $document_root/cache/$host/0$request_uri.html ) {
+set $boost "${boost}F";
+}
+if ($boost = GDQIF) {
+rewrite .? /cache/$server_name/0$request_uri.html break;
+}
+if ( -d $document_root/cache/$host/0$request_uri ) {
+set $boost "${boost}E";
+}
+if ( -f $document_root/cache/$host/0$request_uri/index.html ) {
+set $boost "${boost}F";
+}
+if ($boost = GDQEF) {
+rewrite .? /cache/$server_name/0$request_uri/index.html break;
+}
+if (!-e $request_filename) {
+rewrite ^/(.*)$ /index.php?q=$1 last;
+}
+</pre></div><div class="note" style="" title="Note"><div class="inner"><h3 class="title"><a id="tip03"/>Tip</h3><p>The important assumption in the above case is that the boost cache is set at<code class="literal"> /cache/</code>.</p></div></div><div class="mediaobject"><img alt="There's more..." src="graphics/4965_02_17.jpg" width="363"/></div></div></div>
+<div class="section" title="Setting up a Magento site with static file serving"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec14"/>Setting up a Magento site with static file serving</h1></div></div></div><p>Magento is a neat e-commerce CMS which has been around for a fair bit of time. It has gained widespread acceptance due to its strong API and committed developer community. In this recipe, we will have a look at how to set up Magento using Nginx and PHP over FastCGI.<a class="indexterm" id="id71"/>
+</p><div class="mediaobject"><img alt="Setting up a Magento site with static file serving" height="238" src="graphics/4965_02_18.jpg"/></div><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec24"/>How to do it...</h2></div></div></div><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Download Magento:<a class="ulink" href="http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip"> http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip</a><a class="indexterm" id="id72"/></li><li class="listitem"> Untar Magento to<code class="literal"> /var/www/www.example1.com/</code>.</li><li class="listitem"> Add this to your<code class="literal"> Nginx.conf:</code><div class="informalexample"><pre class="programlisting">server {
+listen 80 default;
+server_name www.example1.com;
+root /var/www/www.example1.com;
+location / {
+index index.html index.php;
+if (!-e $request_filename) {
+rewrite / /index.php;
+}
+}
+location ~ \.php/ {
+rewrite ^(.*\.php)/ $1 last;
+}
+location ~ \.php$ {
+include fastcgi_params;
+fastcgi_pass 127.0.0.1:9000;
+}
+}
+</pre></div></li><li class="listitem"> Reload Nginx:<div class="informalexample"><pre class="programlisting">kill -HUP &lt;master PID&gt;
+</pre></div></li><li class="listitem"> Install Magento:</li></ol></div><div class="mediaobject"><img alt="How to do it..." src="graphics/4965_02_19.jpg" width="395"/></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec25"/>How it works...</h2></div></div></div><p>Magento, unlike Drupal or WordPress, does not rewrite its URL to<code class="literal"> index.php</code>. All the pages map to<code class="literal"> index.php</code>. This is achieved by the rewrite rule that has been highlighted in the configuration code above.<a class="indexterm" id="id73"/>
+</p></div></div>
+<div class="section" title="Converting your Apache's .htaccess into Nginx rewrites"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec16"/>Converting your Apache's .htaccess into Nginx rewrites</h1></div></div></div><p>One of the primary uses of Nginx rewrites is to help you easily translate Apache2's .htaccess to usable Nginx configuration. Apache2 is the dominant open source web server in the world. In such a situation, inevitably most of the code available has .htaccess rules and very little direction regarding how to go about configuring Nginx rewrites so that it can properly run the site.<a class="indexterm" id="id74"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec26"/>How to do it...</h2></div></div></div><p>In this we will have a look at an example where we take an .htaccess file and see its equivalent Nginx rewrite rules. In the later sections, we will have a look at some patterns that emerge out of the conversion which you can later utilize for converting other scripts.</p><div class="informalexample"><pre class="programlisting">Options -Indexes
+Options +FollowSymLinks
+# Enable ETag
+#FileETag MTime Size
+FileETag none
+# Set expiration header
+ExpiresActive on
+ExpiresDefault A2592000
+Header append Cache-Control "public"
+# Compress some text file types
+AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/x-javascript text/javascript application/javascript application/json
+# Deactivate compression for buggy browsers
+BrowserMatch ^Mozilla/4 gzip-only-text/html
+BrowserMatch ^Mozilla/4\.0[678] no-gzip
+BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+# Set header information for proxies
+Header append Vary User-Agent
+########################################################
+# Rewrite Rules
+########################################################
+RewriteEngine on
+# Require SSL (HTTPS) on the signup page
+rewritesapache .htaccess, conerting intoRewriteCond %{SERVER_PORT} 80
+RewriteCond %{REQUEST_URI} ^/signup/?
+RewriteRule ^(.*)$ https://www.example.com/$1 [R,L]
+# Redirect /signup/plan or /signup/plan/ -&gt; /signup/index.php?account_type=plan
+RewriteRule ^signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 [NC,L]
+# Redirect /home/123 or /home/123/ -&gt; home.php?home_id=123
+RewriteRule ^home/([0-9]+)/?$ home.php?home_id=$1 [NC,L]
+# Redirect /homes/ in case someone made a typo when it should have been /home/
+RewriteRule ^homes/([0-9]+)/?$ home.php?home_id=$1 [NC,L]
+#################################################
+# Default Settings
+#################################################
+# hide apache server signaute on apache generated pages (e.g. 404)
+ServerSignature Off
+</pre></div><p>The equivalent Nginx rule set is:</p><div class="informalexample"><pre class="programlisting">if ($server_port ~ "80"){
+set $rule_0 1$rule_0;
+}
+if ($uri ~ "^/signup/?"){
+set $rule_0 2$rule_0;
+}
+if ($rule_0 = "21"){
+rewrite ^/(.*)$ https://www.example.com/$1 redirect;
+break;
+}
+rewrite ^/signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 last;
+rewrite ^/home/([0-9]+)/?$ /home.php?home_id=$1 last;
+rewrite ^/homes/([0-9]+)/?$ /home.php?home_id=$1 last;
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec27"/>How it works...</h2></div></div></div><p>Now let's have a look at how exactly the rules have got translated, so the Apache rewrite rules basically enforce the following rules:<a class="indexterm" id="id76"/>
+</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">If the request is on port 80 and the URL is /signup/ then it is rewritten to the HTTPS version</li><li class="listitem" style="list-style-type: disc">It redirects all<code class="literal"> /signup/plan</code> or<code class="literal"> /signup/plan/</code> to<code class="literal"> /signup/index.php?account_type=plan</code></li><li class="listitem" style="list-style-type: disc">It redirects all<code class="literal"> /home/123</code> or<code class="literal"> /home/123/</code> to<code class="literal"> home.php?home_id=123</code></li><li class="listitem" style="list-style-type: disc">It fixes all<code class="literal"> /homes/</code> to<code class="literal"> /home/</code></li></ul></div><p>So basically, if you notice, the conversion is very direct and rather simple. The Apache .htaccess basically utilizes a sequential set of conditions which are converted to if conditionals statements in Nginx which manipulate some variables. The following table gives you a clearer look at the direct conversion of the rewrites.</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.85321180555556"/><col style="text-align: left" width="1.50455618193655"/><col style="text-align: left" width="2.08314766932015"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Apache</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Nginx</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Notes</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>RewriteCond %{SERVER_PORT} 80</p>
+</td><td style="text-align: left" valign="top">
+<p>if ($server_port ~ "80"){ set $rule_0 1$rule_0; }</p>
+</td><td style="text-align: left" valign="top">
+<p>This is a simple rewrite conditional check for what is the server port.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>RewriteCond %{REQUEST_URI} ^/signup/?</p>
+</td><td style="text-align: left" valign="top">
+<p>if ($uri ~ "^/signup/?"){ set $rule_0 2$rule_0; }</p>
+</td><td style="text-align: left" valign="top">
+<p>This is a check for the URL structure.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>RewriteRule ^(.*)$ https://www.example.com/$1 [R,L]</p>
+</td><td style="text-align: left" valign="top">
+<p>if ($rule_0 = "21"){ rewrite ^/(.*)$ https://www.example.com/$1 redirect; break; }</p>
+</td><td style="text-align: left" valign="top">
+<p>This Rule is fired only when the above two conditions are met. It's a redirect as specified by the R in the Apache configuration and redirect in Nginx.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>RewriteRule ^signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 [NC,L]</p>
+</td><td style="text-align: left" valign="top">
+<p>rewrite ^/signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 last;</p>
+</td><td style="text-align: left" valign="top">
+<p>This simply matches URLs which look like /signup/something and rewrites them to /signup/index.php?account_type=something . If you notice, something can contain alphabets to have a match.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>RewriteRule ^home/([0-9]+)/?$ home.php?home_id=$1 [NC,L]</p>
+</td><td style="text-align: left" valign="top">
+<p>rewrite ^/home/([0-9]+)/?$ /home.php?home_id=$1 last;</p>
+</td><td style="text-align: left" valign="top">
+<p>This is similar to the above rewrite and matched for a number.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>RewriteRule ^homes/([0-9]+)/?$ home.php?home_id=$1 [NC,L]</p>
+</td><td style="text-align: left" valign="top">
+<p>rewrite ^/homes/([0-9]+)/?$ /home.php?home_id=$1 last;</p>
+</td><td style="text-align: left" valign="top">
+<p>This rewrite is matches for patterns like /homes/123, /homes/123123 and so on. It is similar to the above rewrites.</p>
+</td></tr></tbody></table></div><p>It is clear how you can take rewrite conditionals in Apache htaccess, and convert them to Nginx conditions which modify the value of a variable as shown in the comparison above. It is fairly simple to see the pattern of conversion for the actual rewrites that take place by looking at the table above.<a class="indexterm" id="id77"/>
+</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec28"/>There's more...</h2></div></div></div><p>Today, there are a lot of online tools that are fairly advanced and let you convert your .htaccess file directly into an Nginx configuration! Though it is still safe to assume that more efficient code is generated by human conversion in slightly complex cases. You can try using<a class="ulink" href="http://www.anilcetin.com/convert-apache-htaccess-to-nginx/"> http://www.anilcetin.com/convert-apache-htaccess-to-nginx/</a> and see your Apache configuration converted into Nginx configuration with one click.</p></div></div>
+<div class="section" title="Using maps to make configurations cleaner"><div class="titlepage"><div><div><h1 class="title"><a id="ch02lvl1sec17"/>Using maps to make configurations cleaner</h1></div></div></div><p>There is a very useful Nginx module that allows the classification of set of values into different sets of values, which is then stored in a variable. The idea is that it makes it much simpler to write switch-case, like statements where you have a different rewrite when there is a different value. So let us look at some examples where the map module is effectively used.<a class="indexterm" id="id78"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec29"/>How to do it...</h2></div></div></div><p>Let's say you want to detect the incoming hostname and want to do something different on certain domains and sub-domains, we will write a map and utilize it in a simple rewrite rule:<a class="indexterm" id="id79"/>
+</p><div class="informalexample"><pre class="programlisting">map $http_host $name {
+hostnames;
+default 0;
+example.com 1;
+*.example.com 1;
+test.com 2;
+*.test.com 2;
+.site.com 3;
+}
+if($name ~* 1) {
+&lt;some rewrite rule&gt;
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec30"/>How it works...</h2></div></div></div><p>This idea is simple. Here you have taken the<code class="literal"> $http_host</code> variable and created a map where it will simply fill<code class="literal"> $name</code> with the value corresponding to the matched value. So for example, if the site visited was<a class="ulink" href="http://abc.site.com"> http://abc.site.com</a> then the $name value would be set at three as per the map.</p><p>The hostname directive allows you to write one instead of two mappings if you want to cover a complete domain, that is:</p><div class="informalexample"><pre class="programlisting">.example1.com 1;
+</pre></div><p>Instead of:</p><div class="informalexample"><pre class="programlisting">example1.com 1;
+*.example1.com 1;
+</pre></div></div><div class="section" title="There's more…"><div class="titlepage"><div><div><h2 class="title"><a id="ch02lvl2sec31"/>There's more…</h2></div></div></div><p>After this variable is mapped, one can utilize this for triggering other rewrite rules. The recipe for using cookies with rewrite rules could have potentially utilized this approach to have a much cleaner configuration file:</p><div class="informalexample"><pre class="programlisting">if ($cookie_env ~* "testing") {
+rewrite ^(.*)$ /testing/$1;
+}
+if ($cookie_env ~* "staging") {
+rewrite ^(.*)$ /staging/$1;
+}
+if ($cookie_env ~* "production") {
+rewrite ^(.*)$ /production/$1;
+}
+</pre></div><p>The above can be simply translated into:<a class="indexterm" id="id80"/>
+</p><div class="informalexample"><pre class="programlisting">map $cookie_env $type {
+default /production/;
+testing /testing/;
+staging /staging/;
+production /production/;
+}
+rewrite ^(.*)$ $type/$1;
+</pre></div><p>This looks much cleaner and effectively is the equivalent to the configuration that is not using the Map module.</p></div></div></body></html>

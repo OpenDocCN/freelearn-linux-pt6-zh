@@ -1,0 +1,459 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;8.&#xA0;Troubleshooting Techniques"><div class="titlepage"><div><div><h1 class="title"><a id="ch08"/>Chapter 8. Troubleshooting Techniques</h1></div></div></div><p>We live in an imperfect world. Despite our best intentions and planning, sometimes things don't turn out the way we had expected. We need to be able to step back and take a look at what went wrong. When we cannot immediately see what is causing the error, we need to be able to reach into a toolbox of techniques for helping us discover the problem. This process of figuring out what went wrong and how to fix it is what we call troubleshooting.</p><p>In this chapter, we will explore different techniques for troubleshooting NGINX:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Analyzing log files</li><li class="listitem" style="list-style-type: disc">Configuring advanced logging</li><li class="listitem" style="list-style-type: disc">Common configuration errors</li><li class="listitem" style="list-style-type: disc">Operating system limits</li><li class="listitem" style="list-style-type: disc">Performance problems</li><li class="listitem" style="list-style-type: disc">Using the Stub Status module</li></ul></div><div class="section" title="Analyzing log files"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec58"/>Analyzing log files</h1></div></div></div><p>Before going into a<a id="id1103" class="indexterm"/> prolonged debugging session trying to track down the<a id="id1104" class="indexterm"/> cause of a problem, it is usually helpful to first look at the log files. They will often provide the clue we need to track down the error and correct it. The messages that appear in the <code class="literal">error_log</code> can <a id="id1105" class="indexterm"/>sometimes be a bit cryptic, however, so we will discuss the format of the log entries and then take a look at a few examples to show you how to interpret what they mean.</p><div class="section" title="Error log file formats"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec62"/>Error log file formats</h2></div></div></div><p>NGINX uses a couple <a id="id1106" class="indexterm"/>of different <a id="id1107" class="indexterm"/>logging functions that produce the <code class="literal">error_log</code> entries. The formats used with these functions take on the following patterns:</p><p>
+<span class="emphasis"><em>&lt;timestamp&gt; [log-level] &lt;master/worker pid&gt;#0: message</em></span>
+</p><p>For example:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/14 18:56:41  [notice] 2761#0: using inherited sockets from "6;" </strong></span>
+</pre></div><p>This is an example of informational messages (log level <code class="literal">notice</code>). In this case, an <code class="literal">nginx</code> binary has replaced a previously-running one, and was able to successfully inherit the old binary's sockets.</p><p>The error-level logger produces a message like the following:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/14 18:50:34 [error] 2632#0: *1 open() "/opt/nginx/html/blog" failed (2: No such file or directory), client: 127.0.0.1, server: www.example.com, request: "GET /blog HTTP/1.0", host: "www.example.com"</strong></span>
+</pre></div><p>Depending on the error, you will see messages from the operating system (such as in this case), or just from NGINX itself. In this case, we see the following components:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">timestamp (<code class="literal">2012/10/14 18:50:34</code>)</li><li class="listitem" style="list-style-type: disc">log level (<code class="literal">error</code>)</li><li class="listitem" style="list-style-type: disc">worker pid (<code class="literal">2632</code>)</li><li class="listitem" style="list-style-type: disc">connection number (<code class="literal">1</code>)</li><li class="listitem" style="list-style-type: disc">system call (<code class="literal">open</code>)</li><li class="listitem" style="list-style-type: disc">argument to the system call (<code class="literal">/opt/nginx/html/blog</code>)</li><li class="listitem" style="list-style-type: disc">error message resulting from the system call (<code class="literal">2: No such file or directory</code>)</li><li class="listitem" style="list-style-type: disc">which client made the request resulting in the error (<code class="literal">127.0.0.1</code>)</li><li class="listitem" style="list-style-type: disc">which server context was responsible for handling the request (<code class="literal">www.example.com</code>)</li><li class="listitem" style="list-style-type: disc">the request itself (<code class="literal">GET /blog HTTP/1.0</code>)</li><li class="listitem" style="list-style-type: disc">the <code class="literal">Host</code> header sent in the request (<code class="literal">www.example.com</code>)</li></ul></div><p>Here is an example of a <a id="id1108" class="indexterm"/>critical-level log entry:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/14 19:11:50 [crit] 3142#0: the changing binary signal is ignored: you should shutdown or terminate before either old or new binary's process</strong></span>
+</pre></div><p>A critical-level message<a id="id1109" class="indexterm"/> means<a id="id1110" class="indexterm"/> that NGINX cannot perform the requested action. If it was not already running, this means that NGINX would not start.</p><p>Here is an example of an emergency message:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/14 19:12:05 [emerg] 3195#0: bind() to 0.0.0.0:80 failed (98: Address already in use)</strong></span>
+</pre></div><p>An <a id="id1111" class="indexterm"/>emergency <a id="id1112" class="indexterm"/>message also means that NGINX could not do what was requested. It also means that NGINX won't start, or if it was already running when asked to read the configuration, it won't perform the requested change.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note17"/>Note</h3><p>If you are wondering why your configuration change is not taking effect, check the error log. NGINX has most likely encountered an error in the configuration and has not applied the change.</p></div></div></div><div class="section" title="Error log file entry examples"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec63"/>Error log file entry examples</h2></div></div></div><p>The following are some <a id="id1113" class="indexterm"/>examples<a id="id1114" class="indexterm"/> of error messages found in real log files. After each example, a short explanation of what it could mean follows. Please note that the exact text may be different from what you see in your log files, due to improvements made in newer releases of NGINX.</p><p>Look at the following log file entry example:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/11/29 21:31:34 [error] 6338#0: *1 upstream prematurely closed connection while reading response header from upstream, client: 127.0.0.1, server: , request: "GET / HTTP/1.1", upstream: "fastcgi://127.0.0.1:8080", host: "www.example.com"</strong></span>
+</pre></div><p>Here we have a message that could be interpreted in a couple of ways. It might mean that the server we are talking to has an error in its implementation, and does not speak the FastCGI protocol properly. It could also mean that we have mistakenly directed traffic to an HTTP server, instead of a FastCGI server. If that is the case, a simple configuration change (using <code class="literal">proxy_pass</code> instead of <code class="literal">fastcgi_pass</code>, or using the correct address for the FastCGI server) could fix the problem.</p><p>This type of message could also simply mean that the upstream server takes too long to generate a response. The reason could be due to a number of factors, but the solution, as far as NGINX is concerned, is fairly simple: increase the timeouts. Depending on which module was responsible for making this connection, the <code class="literal">proxy_read_timeout</code> or <code class="literal">fastcgi_read_timeout</code> (or other <code class="literal">*_read_timeout</code>) directive would need to be increased from the default value of <code class="literal">60s</code>.</p><p>Look at the following log file entry example:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/11/29 06:31:42 [error] 2589#0: *6437 client intended to send too large body: 13106010 bytes, client: 127.0.0.1, server: , request: "POST /upload_file.php HTTP/1.1", host: "www.example.com", referrer: "http://www.example.com/file_upload.html"</strong></span>
+</pre></div><p>This one is fairly straightforward. NGINX reports that the file could not be uploaded because it is too large. To fix this problem, raise the value of <code class="literal">client_body_size</code>. Keep in mind that due to encoding, the uploaded size will be about 30 percent greater than the file size itself (for example, if you want to allow your users to upload files up to 12 MB, set this directive to <code class="literal">16m</code>).</p><p>Look <a id="id1115" class="indexterm"/>at the<a id="id1116" class="indexterm"/> following log file entry example:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/14 19:51:22 [emerg] 3969#0: "proxy_pass" cannot have URI part in location given by regular expression, or inside named location, or inside "if" statement, or inside "limit_except" block in /opt/nginx/conf/nginx.conf:16</strong></span>
+</pre></div><p>In this example, we see that NGINX won't start due to a configuration error. The error message is very informative as to why NGINX won't start. We see that there is a URI in the argument to the <code class="literal">proxy_pass</code> directive in a place where it should not have one. NGINX even tells us on which line (here <code class="literal">16</code>) of which file <code class="literal">(/opt/nginx/conf/nginx.conf</code>) the error occurred.</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/14 18:46:26 [emerg] 2584#0: mkdir() "/home/www/tmp/proxy_temp" failed (2: No such file or directory)</strong></span>
+</pre></div><p>This is an example of a case where NGINX won't start because it can't perform what was asked of it. The <code class="literal">proxy_temp_path</code> directive<a id="id1117" class="indexterm"/> specifies a location for NGINX to store temporary files when proxying. If NGINX cannot create this directory, it won't start, so ensure that the path leading up to this directory exists.</p><p>Look at the following log file entry example:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/14 18:46:54 [emerg] 2593#0: unknown directive "client_body_temp_path" in /opt/nginx/conf/nginx.conf:6</strong></span>
+</pre></div><p>We see in the preceding code what may appear to be a puzzling message. We know that <code class="literal">client_body_temp_path</code> is a <a id="id1118" class="indexterm"/>valid directive, but NGINX does not accept it and gives an <code class="literal">unknown directive</code> message. When we think about how NGINX processes its configuration file, we realize that this does make sense after all. NGINX is built in a modular fashion. Each module is responsible for processing its own configuration context. We therefore conclude that this directive appeared in a part of the configuration file outside the context of the module that parses this directive.</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/16 20:56:31 [emerg] 3039#0: "try_files" directive is not allowed here in /opt/nginx/conf/nginx.conf:16</strong></span>
+</pre></div><p>Sometimes, NGINX will give us a hint as to what is wrong. In the preceding example, NGINX has understood the<a id="id1119" class="indexterm"/> <code class="literal">try_files</code> directive, but tells us that it is used in the wrong place. It very conveniently gives us the location in the configuration file where the error occurred, so that we can find it more easily.</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/16 20:56:42 [emerg] 3043#0: host not found in upstream "tickets.example.com" in /opt/nginx/conf/nginx.conf:22</strong></span>
+</pre></div><p>This <a id="id1120" class="indexterm"/>emergency-level message shows us how dependent NGINX is on DNS if hostnames are used in the configuration. If NGINX can't resolve the hostnames used in <code class="literal">upstream</code>, <code class="literal">proxy_pass</code>, <code class="literal">fastcgi_pass</code>, or other <code class="literal">*_pass</code> directives, then it won't start. This will have implications on the order in which NGINX is started after a fresh boot. Ensure that name resolution works at the time when NGINX starts.</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/29 18:59:26 [emerg] 2287#0: unexpected "}" in /opt/nginx/conf/nginx.conf:40</strong></span>
+</pre></div><p>This type of message is indicative of a configuration error in which NGINX can't close the context. Something leading up to the line given has prevented NGINX from forming a complete context with the <code class="literal">{</code> and <code class="literal">}</code> characters. This usually means that the previous line is missing a semicolon, so NGINX reads the <code class="literal">}</code> character as part of that unfinished line.</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/28 21:38:34 [emerg] 2318#0: unexpected end of file, expecting "}" in /opt/nginx/conf/nginx.conf:21</strong></span>
+</pre></div><p>Related to the<a id="id1121" class="indexterm"/> previous error, this one means that NGINX reached the end of the configuration file before finding a matching closing brace. This kind of error occurs when there are unbalanced <code class="literal">{</code> and <code class="literal">}</code> characters. Using a text editor that matches sets of braces is helpful in locating exactly where one is missing. Depending on where that missing brace is inserted, the configuration can end up meaning something completely different from what was intended.</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/10/29 18:50:11 [emerg] 2116#0: unknown "exclusion" variable</strong></span>
+</pre></div><p>Here we see an example of using a variable without first declaring it. This means that <code class="literal">$exclusion</code> appeared in the configuration before a <code class="literal">set</code>, <code class="literal">map</code>, or <code class="literal">geo</code> directive defined what the value was to be. This type of error could also be indicative of a typo. We may have defined the <code class="literal">$exclusions</code> variable, but mistakenly later referenced it as <code class="literal">$exclusion</code>.</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>2012/11/29 21:26:51 [error] 3446#0: *2849 SSL3_GET_FINISHED:digest check failed</strong></span>
+</pre></div><p>This means that you need to disable SSL session reuse. You can do this by setting the <code class="literal">proxy_ssl_session_reuse</code> directive to <code class="literal">off</code>.</p></div></div></div>
+<div class="section" title="Configuring advanced logging"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec59"/>Configuring advanced logging</h1></div></div></div><p>Under normal <a id="id1122" class="indexterm"/>circumstances, we <a id="id1123" class="indexterm"/>want logging to be as minimal as possible. Usually <a id="id1124" class="indexterm"/>what's important is which URIs were called by which clients and when, and if there was an error, to show the resulting error message. If we want to see more information, that leads into a debug logging configuration.</p><div class="section" title="Debug logging"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec64"/>Debug logging</h2></div></div></div><p>To activate <a id="id1125" class="indexterm"/>debug logging, the <code class="literal">nginx</code> binary needs to have been compiled with the<a id="id1126" class="indexterm"/> <code class="literal">--with-debug</code> configure flag. As this flag is not recommended for high performance production systems, we may want to provide two separate <code class="literal">nginx</code> binaries for our needs: one which we use in production, and one that has all the same configure options, with the addition of <code class="literal">--with-debug</code> so that we may simply swap out the binary at runtime in order to be able to debug.</p><div class="section" title="Switching binaries at runtime"><div class="titlepage"><div><div><h3 class="title"><a id="ch08lvl3sec46"/>Switching binaries at runtime</h3></div></div></div><p>NGINX provides the <a id="id1127" class="indexterm"/>capability<a id="id1128" class="indexterm"/> to switch out binaries at runtime. After having replaced the <code class="literal">nginx</code> binary with a different one, either because we're upgrading or we would like to load a new NGINX which has different modules compiled in, we can begin the procedure for replacing a running <code class="literal">nginx</code> binary:</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem">Send the running NGINX master process a USR2 signal, to tell it to start a new master process. It will rename its PID file to <code class="literal">.oldbin</code> (for example, <code class="literal">/var/run/nginx.pid.oldbin</code>):<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># kill -USR2 `cat /var/run/nginx.pid`</strong></span>
+</pre></div><p>There will now be two NGINX master processes running, each with its own set of workers to handle incoming requests:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>root 1149 0.0 0.2 20900 11768 ?? Is Fri03PM 0:00.13 nginx: master process /usr/local/sbin/nginx</strong></span>
+<span class="strong"><strong>www 36660 0.0 0.2 20900 11992 ?? S 12:52PM 0:00.19 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 36661 0.0 0.2 20900 11992 ?? S 12:52PM 0:00.19 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 36662 0.0 0.2 20900 12032 ?? I 12:52PM 0:00.01 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 36663 0.0 0.2 20900 11992 ?? S 12:52PM 0:00.18 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>root 50725 0.0 0.1 18844 8408 ?? I 3:49PM 0:00.05 nginx: master process /usr/local/sbin/nginx</strong></span>
+<span class="strong"><strong>www 50726 0.0 0.1 18844 9240 ?? I 3:49PM 0:00.00 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 50727 0.0 0.1 18844 9240 ?? S 3:49PM 0:00.01 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 50728 0.0 0.1 18844 9240 ?? S 3:49PM 0:00.01 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 50729 0.0 0.1 18844 9240 ?? S 3:49PM 0:00.01 nginx: worker process (nginx)</strong></span>
+</pre></div></li><li class="listitem">Send the old NGINX master process a WINCH signal to tell it to stop handling new requests, and phase out its worker processes once they are done with their current requests:<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># kill -WINCH `cat /var/run/nginx.pid.oldbin`</strong></span>
+</pre></div><p>You'll get the following response output:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>root 1149 0.0 0.2 20900 11768 ?? Ss Fri03PM 0:00.14 nginx: master process /usr/local/sbin/nginx</strong></span>
+<span class="strong"><strong>root 50725 0.0 0.1 18844 8408 ?? I 3:49PM 0:00.05 nginx: master process /usr/local/sbin/nginx</strong></span>
+<span class="strong"><strong>www 50726 0.0 0.1 18844 9240 ?? I 3:49PM 0:00.00 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 50727 0.0 0.1 18844 9240 ?? S 3:49PM 0:00.01 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 50728 0.0 0.1 18844 9240 ?? S 3:49PM 0:00.01 nginx: worker process (nginx)</strong></span>
+<span class="strong"><strong>www 50729 0.0 0.1 18844 9240 ?? S 3:49PM 0:00.01 nginx: worker process (nginx)</strong></span>
+</pre></div></li><li class="listitem">Send the old NGINX master process a <code class="literal">QUIT</code> signal, once all its worker processes have ended, and we will have only the new <code class="literal">nginx</code> binary running, responding to requests:<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># kill -QUIT `cat /var/run/nginx.pid.oldbin`</strong></span>
+</pre></div></li></ol></div><p>If there is any problem with the new binary, we can roll back to the old one before sending the <code class="literal">QUIT</code> signal to the old binary:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># kill -HUP `cat /var/run/nginx.pid.oldbin`</strong></span>
+<span class="strong"><strong># kill -QUIT `cat /var/run/nginx.pid`</strong></span>
+</pre></div><p>If the new <a id="id1129" class="indexterm"/>binary <a id="id1130" class="indexterm"/>still has a master process running, you can send it a <code class="literal">TERM</code> signal to force it to quit:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># kill -TERM `cat /var/run/nginx.pid`</strong></span>
+</pre></div><p>Likewise, any new worker processes that are still running may first be stopped with a<a id="id1131" class="indexterm"/> <code class="literal">KILL</code> signal.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note18"/>Note</h3><p>Note that some operating systems will automatically perform the binary upgrade procedure for you when the <code class="literal">nginx</code> package is upgraded.</p></div></div><p>Once we have our debug-enabled <code class="literal">nginx</code> binary running, we can configure debug logging:</p><div class="informalexample"><pre class="programlisting">user www;
+
+events {
+
+    worker_connections 1024;
+
+}
+
+error_log logs/debug.log debug;
+
+http {
+
+   …
+
+}</pre></div><p>We have <a id="id1132" class="indexterm"/>placed the <code class="literal">error_log</code> directive in the main context of the NGINX configuration, so that it will<a id="id1133" class="indexterm"/> be valid for each subcontext, if not overwritten within. We can have multiple <code class="literal">error_log</code> directives, each pointing to a different file and with a different logging level. In addition to <code class="literal">debug</code>, <code class="literal">error_log</code> can also take on the following values:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">debug_core</code></li><li class="listitem" style="list-style-type: disc"><code class="literal">debug_alloc</code></li><li class="listitem" style="list-style-type: disc"><code class="literal">debug_mutex</code></li><li class="listitem" style="list-style-type: disc"><code class="literal">debug_event</code></li><li class="listitem" style="list-style-type: disc"><code class="literal">debug_http</code></li><li class="listitem" style="list-style-type: disc"><code class="literal">debug_imap</code></li></ul></div><p>Each level is to debug a specific module within NGINX.</p><p>It also makes sense to configure a separate error log per virtual server. That way, the errors related only to that server are found in a specific log. This concept can be extended to include the <code class="literal">core</code> and <code class="literal">http</code> modules as well:</p><div class="informalexample"><pre class="programlisting">error_log logs/core_error.log;
+
+events {
+
+    worker_connections 1024;
+
+}
+
+http {
+
+    error_log logs/http_error.log;
+
+    server {
+
+        server_name www.example.com;
+
+        error_log logs/www.example.com_error.log;
+
+    }
+
+    server {
+
+        server_name www.example.org;
+
+        error_log logs/www.example.org_error.log;
+
+    }
+
+}</pre></div><p>Using this <a id="id1134" class="indexterm"/>pattern, <a id="id1135" class="indexterm"/>we are able to debug a particular virtual host, if that is the area we are interested in:</p><div class="informalexample"><pre class="programlisting">    server {
+
+        server_name www.example.org;
+
+        error_log logs/www.example.org_debug.log debug_http;
+
+    }</pre></div><p>What follows is an example of <code class="literal">debug_http</code> level output from a single request. Some comments as to what is going on at each point are interspersed throughout:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http cl:-1 max:1048576</pre></div><p>The <code class="literal">rewrite</code> module<a id="id1136" class="indexterm"/> is activated very early on in the request processing phase:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; rewrite phase: 3</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; post rewrite phase: 4</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; generic phase: 5</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; generic phase: 6</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; generic phase: 7</strong></span>
+</pre></div><p>Access restrictions are checked:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; access phase: 8</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; access: 0100007F FFFFFFFF 0100007F</strong></span>
+</pre></div><p>The <code class="literal">try_files</code> directive<a id="id1137" class="indexterm"/> is parsed next. The path to the file is constructed from any string (<code class="literal">http script copy</code>) plus the <a id="id1138" class="indexterm"/>value<a id="id1139" class="indexterm"/> of any variable (<code class="literal">http script var</code>) in the parameters to the <code class="literal">try_files</code> directive:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; try files phase: 11</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http script copy: "/"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http script var: "ImageFile.jpg"</strong></span>
+</pre></div><p>The evaluated parameter is then concatenated with the <code class="literal">alias</code> or <code class="literal">root</code> for that <code class="literal">location</code>, and the full path to the file is found:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; trying to use file: "/ImageFile.jpg" "/data/images/ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; try file uri: "/ImageFile.jpg"</strong></span>
+</pre></div><p>Once the file is found, its contents are processed:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; content phase: 12</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; content phase: 13</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; content phase: 14</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; content phase: 15</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; content phase: 16</strong></span>
+</pre></div><p>The <code class="literal">http filename</code> is the full path to the file to be sent:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http filename: "/data/images/ImageFile.jpg"</strong></span>
+</pre></div><p>The <code class="literal">static</code> module receives the file descriptor for this file:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http static fd: 15</strong></span>
+</pre></div><p>Any temporary content in the body of the response is no longer needed:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http set discard body</strong></span>
+</pre></div><p>Once all information about the file is known, NGINX can construct the full response headers:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; HTTP/1.1 200 OK</strong></span>
+<span class="strong"><strong>Server: nginx/&lt;version&gt;</strong></span>
+<span class="strong"><strong>Date: &lt;Date header&gt;</strong></span>
+<span class="strong"><strong>Content-Type: &lt;MIME type&gt;</strong></span>
+<span class="strong"><strong>Content-Length: &lt;filesize&gt;</strong></span>
+<span class="strong"><strong>Last-Modified: &lt;Last-Modified header&gt;</strong></span>
+<span class="strong"><strong>Connection: keep-alive</strong></span>
+<span class="strong"><strong>Accept-Ranges: bytes</strong></span>
+</pre></div><p>The next phase <a id="id1140" class="indexterm"/>involves any <a id="id1141" class="indexterm"/>transformations to be performed on the file due to output filters that may be active:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http write filter: l:0 f:0 s:219</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http output filter "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http copy filter: "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http postpone filter "/ImageFile.jpg?file=ImageFile.jpg" 00007FFF30383040</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http write filter: l:1 f:0 s:480317</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http write filter limit 0</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http write filter 0000000001911050</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http copy filter: -2 "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http finalize request: -2, "/ImageFile.jpg?file=ImageFile.jpg" a:1, c:1</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http run request: "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http writer handler: "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http output filter "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http copy filter: "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http postpone filter "/ImageFile.jpg?file=ImageFile.jpg" 0000000000000000</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http write filter: l:1 f:0 s:234338</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http write filter limit 0</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http write filter 0000000000000000</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http copy filter: 0 "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http writer output filter: 0, "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http writer done: "/ImageFile.jpg?file=ImageFile.jpg"</strong></span>
+</pre></div><p>Once the output filters have run, the request is finalized:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http finalize request: 0, "/ImageFile.jpg?file=ImageFile.jpg" a:1, c:1</strong></span>
+</pre></div><p>The <code class="literal">keepalive</code> handler is responsible for determining if the connection should remain open:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; set http keepalive handler</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http close request</strong></span>
+</pre></div><p>After the request has been processed, it can then be logged:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http log handler</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; hc free: 0000000000000000 0</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; hc busy: 0000000000000000 0</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; tcp_nodelay</strong></span>
+</pre></div><p>The client has closed the connection, so NGINX will as well:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; http keepalive handler</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [info] &lt;worker pid&gt;#0: *&lt;connection number&gt; client &lt;IP address&gt; closed keepalive connection</strong></span>
+<span class="strong"><strong>&lt;timestamp&gt; [debug] &lt;worker pid&gt;#0: *&lt;connection number&gt; close http connection: 3</strong></span>
+</pre></div><p>As you can see, <a id="id1142" class="indexterm"/>there is quite a bit of information included here. If you have trouble figuring out why a <a id="id1143" class="indexterm"/>particular configuration isn't working, going through the output of the debug log can be helpful. You can immediately see in what order the various filters run, as well as what handlers are involved in serving the request.</p></div></div><div class="section" title="Using access logs for debugging"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec65"/>Using access logs for debugging</h2></div></div></div><p>When I was<a id="id1144" class="indexterm"/> learning how to program, and couldn't find the source of a <a id="id1145" class="indexterm"/>problem, a friend of mine told me to "put printf's everywhere". That was how he was most quickly able to find the source of a problem. What he meant by this was to place a statement that would print a message at each code branch point, so that we could see which code path was getting executed and where the logic was breaking down. By doing this, we could visualize what was going on and could more easily see where the problem lies.</p><p>This same principle can be applied to configuring NGINX. Instead of <code class="literal">printf()</code>
+<a id="id1146" class="indexterm"/> we can use the <code class="literal">log_format</code> and <code class="literal">access_log</code> directives <a id="id1147" class="indexterm"/>to visualize request flow and analyze what's going on during request processing. Use the <code class="literal">log_format</code> directive<a id="id1148" class="indexterm"/> to see the values of variables at different points in the configuration:</p><div class="informalexample"><pre class="programlisting">http {
+
+    log_format sentlog '[$time_local] "$request" $status $body_bytes_sent ';
+    log_format imagelog '[$time_local] $image_file $image_type '
+                    '$body_bytes_sent $status';
+
+
+    log_format authlog '[$time_local] $remote_addr $remote_user '
+                    '"$request" $status';
+
+    
+
+}</pre></div><p>Use multiple <code class="literal">access_logs</code> to see which locations are getting called at what times. By configuring a different <code class="literal">access_log</code> for each location, we can easily see which ones are not being used. Any change to such a location will have no effect on request processing; the locations higher-up in the processing hierarchy need to be examined first.</p><div class="informalexample"><pre class="programlisting">http {
+
+    log_format sentlog '[$time_local] "$request" $status $body_bytes_sent ';
+
+    log_format imagelog '[$time_local] $image_file $image_type '
+                    '$body_bytes_sent $status';
+
+    log_format authlog '[$time_local] $remote_addr $remote_user '
+                    '"$request" $status';
+
+    server {
+
+        server_name .example.com;
+
+        root /home/www;
+
+        location / {
+
+            access_log logs/example.com-access.log combined;
+
+            access_log logs/example.com-root_access.log sentlog;
+
+            rewrite ^/(.*)\.(png|jpg|gif)$ /images/$1.$2;
+
+            set $image_file $1;
+
+            set $image_type $2;
+        }
+
+        location /images {
+
+            access_log logs/example.com-images_access.log imagelog;
+
+        }
+
+        location /auth {
+
+            auth_basic "authorized area";
+
+            auth_basic_user_file conf/htpasswd;
+
+            deny all;
+
+            access_log logs/example.com-auth_access.log authlog;
+
+        }
+
+    }
+
+}</pre></div><p>In the preceding <a id="id1149" class="indexterm"/>example, there is an <code class="literal">access_log</code> declaration for<a id="id1150" class="indexterm"/> each location, as well as a different <code class="literal">log_format</code> for each <code class="literal">access_log</code> declaration. We can determine which requests made it to each location depending on the entries found in the corresponding <code class="literal">access_log</code>. If there are no entries in the <code class="literal">example.com-images_access.log</code> file, for example, then we know that no requests reached the <code class="literal">/images</code> location. We can compare the contents of the various log files to see if the variables are being set to the <a id="id1151" class="indexterm"/>proper values. For example, if the <code class="literal">$image_file</code> and <code class="literal">$image_type</code> variables <a id="id1152" class="indexterm"/>are empty, the corresponding placeholders in the <code class="literal">imagelog</code> format <code class="literal">access_log</code> will be empty.</p></div></div>
+<div class="section" title="Common configuration errors"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec60"/>Common configuration errors</h1></div></div></div><p>The next step in<a id="id1153" class="indexterm"/> troubleshooting a problem is to take a look at the configuration, to see if it actually achieves the goal you are trying to accomplish. NGINX <a id="id1154" class="indexterm"/>configurations have been floating around the Internet for a number of years. Often, they were designed for an older version of NGINX, and to solve a specific problem. Unfortunately, these configurations are copied without really understanding the problem they were designed to solve. There is sometimes a better way to solve the same problem, using a <span class="emphasis"><em>newer</em></span> configuration.</p><div class="section" title="Using if instead of try_files"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec66"/>Using if instead of try_files</h2></div></div></div><p>One such case is a situation in <a id="id1155" class="indexterm"/>which a user wants to deliver a<a id="id1156" class="indexterm"/> static file if it is found on the filesystem, and if not, to pass the request on to a FastCGI server:</p><div class="informalexample"><pre class="programlisting">server {
+
+    root /var/www/html;
+
+    location / {
+
+        if (!-f $request_filename) {
+
+            include fastcgi_params;
+
+            fastcgi_pass 127.0.0.1:9000;
+
+            break;
+
+        }
+
+    }
+
+}</pre></div><p>This was the way this problem was commonly solved before NGINX had the <code class="literal">try_files</code> directive, which appeared in Version 0.7.27. The reason why this is considered a configuration error is that it<a id="id1157" class="indexterm"/> involves using <code class="literal">if</code> within a <code class="literal">location</code> directive. As <a id="id1158" class="indexterm"/>detailed in the <span class="emphasis"><em>Converting an "if"-fy configuration to a more modern interpretation</em></span> section in <a class="link" href="ch04.html" title="Chapter 4. NGINX as a Reverse Proxy">Chapter 4</a>, <span class="emphasis"><em>NGINX as a Reverse Proxy</em></span>, this can lead to unexpected results or possibly even a crash. The way to correctly solve this problem is as follows:</p><div class="informalexample"><pre class="programlisting">server {
+
+    root /var/www/html;
+
+    location / {
+
+        try_files $uri $uri/ @fastcgi;
+
+    }
+
+    location @fastcgi {
+        include fastcgi_params;
+
+        fastcgi_pass 127.0.0.1:9000;
+
+    }
+
+}</pre></div><p>The <code class="literal">try_files</code> directive<a id="id1159" class="indexterm"/> is used to determine if the file exists on the filesystem, and if not, passes the request on to the FastCGI server, without using <code class="literal">if</code>.</p></div><div class="section" title="Using if as a hostname switch"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec67"/>Using if as a hostname switch</h2></div></div></div><p>There are countless examples <a id="id1160" class="indexterm"/>of configurations where <code class="literal">if</code> is used to redirect <a id="id1161" class="indexterm"/>requests based on the <a id="id1162" class="indexterm"/>HTTP <code class="literal">Host</code> header. These types of configurations work as selectors and are evaluated for each request:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name .example.com;
+
+    root /var/www/html;
+
+    if ($host ~* ^example\.com) {
+
+        rewrite ^/(.*)$ http://www.example.com/$1 redirect;
+
+    }
+
+}</pre></div><p>Instead of <a id="id1163" class="indexterm"/>incurring <a id="id1164" class="indexterm"/>the <a id="id1165" class="indexterm"/>processing costs associated with evaluating <code class="literal">if</code> for each request, NGINX's normal request-matching routine can route the request to the correct virtual server. The redirect can then be placed where it belongs, and even without a rewrite:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name example.com;
+
+    return 301 $scheme://www.example.com;
+
+}
+server {
+
+    server_name www.example.com;
+
+    root /var/www/html;
+
+    location / {
+
+        …
+
+    }
+
+}</pre></div></div><div class="section" title="Not using the server context to best effect"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec68"/>Not using the server context to best effect</h2></div></div></div><p>Another place where copied <a id="id1166" class="indexterm"/>configuration snippets often lead to incorrect configurations is the area of the <code class="literal">server</code> context. The <code class="literal">server</code> context describes the whole virtual server (everything that should be addressed under a particular <code class="literal">server_name</code>). It is underutilized in these copied configuration snippets.</p><p>Often, we will see <code class="literal">root</code> and <code class="literal">index</code> specified per <code class="literal">location</code>:</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name www.example.com;
+
+    location / {
+
+        root /var/www/html;
+
+        index index.php index.html index.htm;
+
+    }
+
+    location /ftp{
+
+        root /var/www/html;
+
+        index index.php index.html index.htm;
+
+    }
+
+}</pre></div><p>This can lead to <a id="id1167" class="indexterm"/>configuration errors when new locations are added, and the directives are not copied to those new locations or are copied incorrectly. The point of using the <code class="literal">root</code> and <code class="literal">index</code> directives is to indicate the document root for the virtual server and the files that should be tried when a directory is given in the URI, respectively. These values are then inherited for any <code class="literal">location</code> within that <code class="literal">server</code> context.</p><div class="informalexample"><pre class="programlisting">server {
+
+    server_name www.example.com;
+
+    root /var/www/html;
+
+    index  index.php index.html index.htm;
+
+    location / {
+
+        ...
+
+    }
+
+    location /ftp{
+
+        ...
+
+    }
+
+}</pre></div><p>Here, we have <a id="id1168" class="indexterm"/>specified that all files will be found under <code class="literal">/var/www/html</code> and that <code class="literal">index.php index.html index.htm</code> are to be tried, in order, as <code class="literal">index</code> files for any location.</p></div></div>
+<div class="section" title="Operating system limits"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec61"/>Operating system limits</h1></div></div></div><p>The operating system is often the <a id="id1169" class="indexterm"/>last place we look to for discovering a problem. We assume that whoever set up the system has tuned the operating system for our workload and tested it under similar scenarios. This is often not the case. We sometimes need to look into the operating system itself to identify a bottleneck.</p><p>As with NGINX, there are two major areas where we can initially look for performance problems: <span class="strong"><strong>file descriptor limits</strong></span> <a id="id1170" class="indexterm"/>and <a id="id1171" class="indexterm"/>
+<span class="strong"><strong>network limits</strong></span>.</p><div class="section" title="File descriptor limits"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec69"/>File descriptor limits</h2></div></div></div><p>NGINX uses file descriptors in<a id="id1172" class="indexterm"/> several different ways. The<a id="id1173" class="indexterm"/> major use is to respond to client connections, each one using a file descriptor. Each outgoing connection (especially prevalent in proxy configurations) requires a unique IP:TCP port pair, which NGINX refers to using a file descriptor. If NGINX is serving any static file or a response from its cache, a file descriptor is used as well. As you can see, the number of file descriptors can climb quickly with the number of concurrent users. The total number of file descriptors that NGINX may use is limited by the operating system.</p><p>The typical UNIX-like operating system has a different set of limits for the superuser (<code class="literal">root</code>) than for a regular user, so make sure to execute the following command as the non-privileged user under which you're running NGINX (specified either by the <code class="literal">--user</code> compile-time option or the <code class="literal">user</code> configuration directive).</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>ulimit -n</strong></span>
+</pre></div><p>This command will show you the number of open file descriptors allowed for that user. Usually, this number is set conservatively to 1024 or even lower. Since we know that NGINX will be the major user of file descriptors on the machine, we can set this number much higher. How to do this depends on the specific operating system. This can be done as follows:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Linux<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/security/limits.conf</strong></span>
+
+<span class="strong"><strong>www-run  hard  nofile  65535</strong></span>
+<span class="strong"><strong>$ ulimit -n 65535</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">FreeBSD<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/sysctl.conf</strong></span>
+
+<span class="strong"><strong>kern.maxfiles=65535</strong></span>
+<span class="strong"><strong>kern.maxfilesperproc=65535</strong></span>
+<span class="strong"><strong>kern.maxvnodes=65535</strong></span>
+<span class="strong"><strong># /etc/rc.d/sysctl reload</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">Solaris<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># projadd -c "increased file descriptors"  -K "process.max-file-descriptor=(basic,65535,deny)" resource.file</strong></span>
+
+<span class="strong"><strong># usermod -K project=resource.file www</strong></span>
+</pre></div></li></ul></div><p>The <a id="id1174" class="indexterm"/>preceding<a id="id1175" class="indexterm"/> two commands will increase the maximum number of file descriptors allowed for a new process running as user <code class="literal">www</code>. This will also persist across a reboot.</p><p>The following two commands will increase the maximum number of file descriptors allowed for a running NGINX process:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># prctl -r -t privileged -n process.max-file-descriptor -v 65535 -i process `pgrep nginx`</strong></span>
+
+<span class="strong"><strong># prctl -x -t basic -n process.max-file-descriptor -i process `pgrep nginx`</strong></span>
+</pre></div><p>Each of these methods will change the operating system limit itself, but will have no effect on the running NGINX process. To enable NGINX to use the number of file descriptors specified, set the <code class="literal">worker_rlimit_nofile</code> directive<a id="id1176" class="indexterm"/> to this new limit:</p><div class="informalexample"><pre class="programlisting">worker_rlimit_nofile  65535;
+
+worker_processes    8;
+
+events {
+
+    worker_connections	8192;
+
+}</pre></div><p>Now, send the running <code class="literal">nginx</code> master process the <code class="literal">HUP</code> signal:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># kill -HUP `cat /var/run/nginx.pid`</strong></span>
+</pre></div><p>NGINX <a id="id1177" class="indexterm"/>will then be<a id="id1178" class="indexterm"/> able to handle just over 65,000 simultaneous clients, connections to upstream servers, and any local static or cached files. This many <code class="literal">worker_processes</code> only makes sense if you actually have eight CPU cores or are heavily I/O bound. If that is not the case, decrease the number of <code class="literal">worker_processes</code> to match the number of CPU cores and increase <code class="literal">worker_connections</code> so that the product of the two approaches 65,000.</p><p>You can, of course, increase the number of total file descriptors and <code class="literal">worker_connections</code> up to a limit that makes sense for your hardware and use case. NGINX is capable of handling millions of simultaneous connections, provided the operating system limits and configuration are set correctly.</p></div><div class="section" title="Network limits"><div class="titlepage"><div><div><h2 class="title"><a id="ch08lvl2sec70"/>Network limits</h2></div></div></div><p>If you find yourself<a id="id1179" class="indexterm"/> in a<a id="id1180" class="indexterm"/> situation in which no network buffers are available, you will most likely only be able to log in at the console, if at all. This can happen when NGINX receives so many client connections that all available network buffers are used up. Increasing the number of network buffers is also specific to a particular operating system and may be done as follows:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">FreeBSD<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /boot/loader.conf</strong></span>
+
+<span class="strong"><strong>kern.ipc.nmbclusters=262144</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">Solaris<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># ndd -set /dev/tcp tcp_max_buf 16777216</strong></span>
+</pre></div></li></ul></div><p>When NGINX is acting as either a mail or an HTTP proxy, it will need to open many connections to its upstream servers. To enable as many connections as possible, the ephemeral TCP port range should be adjusted to its maximum.</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Linux<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/sysctl.conf</strong></span>
+
+<span class="strong"><strong>net.ipv4.ip_local_port_range = 1024 65535</strong></span>
+<span class="strong"><strong># sysctl -p /etc/sysctl.conf</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">FreeBSD<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/sysctl.conf</strong></span>
+
+<span class="strong"><strong>net.inet.ip.portrange.first=1024</strong></span>
+<span class="strong"><strong>net.inet.ip.portrange.last=65535</strong></span>
+<span class="strong"><strong># /etc/rc.d/sysctl reload</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">Solaris<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># ndd -set /dev/tcp tcp_smallest_anon_port 1024</strong></span>
+<span class="strong"><strong># ndd -set /dev/tcp tcp_largest_anon_port 65535</strong></span>
+</pre></div></li></ul></div><p>Having <a id="id1181" class="indexterm"/>adjusted <a id="id1182" class="indexterm"/>these basic values, we will now take a look at more specific performance-related parameters in the next section.</p></div></div>
+<div class="section" title="Performance problems"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec62"/>Performance problems</h1></div></div></div><p>When designing an<a id="id1183" class="indexterm"/> application and configuring NGINX <a id="id1184" class="indexterm"/>to deliver it, we expect it to perform well. When we experience performance problems, however, we need to take a look at what could cause them. It may be in the application itself. It may be our NGINX configuration. We will investigate how to discover where the problem lies.</p><p>When proxying, NGINX does most of its work over the network. If there are any limitations at the network level, NGINX cannot perform optimally. Network tuning is again specific to the operating system and network that you are running NGINX on, so these tuning parameters should be examined in your particular situation.</p><p>One of the most important values relating to network performance is the size of the <code class="literal">listen</code> queue for new TCP connections. This number should be increased to enable more clients. Exactly how to do this and what value to use depends on the operating system and optimization goal.</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Linux<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/sysctl.conf</strong></span>
+
+<span class="strong"><strong>net.core.somaxconn = 3240000</strong></span>
+<span class="strong"><strong># sysctl -p /etc/sysctl.conf</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">FreeBSD<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/sysctl.conf</strong></span>
+
+<span class="strong"><strong>kern.ipc.somaxconn=4096</strong></span>
+<span class="strong"><strong># /etc/rc.d/sysctl reload</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">Solaris<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># ndd -set /dev/tcp tcp_conn_req_max_q 1024</strong></span>
+<span class="strong"><strong># ndd -set /dev/tcp tcp_conn_req_max_q0 4096</strong></span>
+</pre></div></li></ul></div><p>The next parameter to change is the size of the send and receive buffers. Note that these values are for illustration purposes only— they may lead to excessive memory usage, so be sure to test in your specific scenario.</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Linux<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/sysctl.conf</strong></span>
+
+<span class="strong"><strong>net.ipv4.tcp_wmem = 8192 87380 1048576</strong></span>
+<span class="strong"><strong>net.ipv4.tcp_rmem = 8192 87380 1048576</strong></span>
+<span class="strong"><strong># sysctl -p /etc/sysctl.conf</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">FreeBSD<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>vi /etc/sysctl.conf</strong></span>
+
+<span class="strong"><strong>net.inet.tcp.sendspace=1048576</strong></span>
+<span class="strong"><strong>net.inet.tcp.recvspace=1048576</strong></span>
+<span class="strong"><strong># /etc/rc.d/sysctl reload</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">Solaris<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong># ndd -set /dev/tcp tcp_xmit_hiwat 1048576</strong></span>
+<span class="strong"><strong># ndd -set /dev/tcp tcp_recv_hiwat 1048576</strong></span>
+</pre></div></li></ul></div><p>You can<a id="id1185" class="indexterm"/> also change these buffers in NGINX's configuration <a id="id1186" class="indexterm"/>directly, so that they are only valid for NGINX and not for any other software you are running on the machine. This may be desirable when you have multiple services running, but want to ensure that NGINX gets the most out of your network stack:</p><div class="informalexample"><pre class="programlisting">server {
+
+    listen 80 sndbuf=1m rcvbuf=1m;
+
+}</pre></div><p>Depending on your network setup, you will notice a marked change in performance. You should examine your particular setup, though, and make one change at a time, observing the results after each change. <a id="id1187" class="indexterm"/>Performance tuning can be done on so many different<a id="id1188" class="indexterm"/> levels that this small treatment here does not do the subject justice. If you are interested in learning more about performance tuning, there are a number of books and online resources that you should take a look at.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="tip14"/>Tip</h3><p>
+<span class="strong"><strong>Making network tuning changes in Solaris persistent</strong></span>
+</p><p>In the previous two sections, we <a id="id1189" class="indexterm"/>changed several <a id="id1190" class="indexterm"/>TCP-level parameters on the command line. For Linux<a id="id1191" class="indexterm"/> and<a id="id1192" class="indexterm"/> FreeBSD, these changes would be persisted after a reboot due to the changes also being made in system configuration files (for example, <code class="literal">/etc/sysctl.conf</code>). For Solaris, the situation is different. These changes are not made in <code class="literal">sysctls</code>, so they cannot be persisted in this file.</p><p>Solaris 10<a id="id1193" class="indexterm"/> and above offers the<a id="id1194" class="indexterm"/> <span class="strong"><strong>Service Management Framework</strong></span> (<span class="strong"><strong>SMF</strong></span>). This is a unique way of managing services and ensuring a start order at reboot. (Of course, it is much more than this, but this oversimplification serves here.) To persist the TCP-level changes mentioned before, we can write an SMF manifest and corresponding script to apply the changes.</p><p>These are detailed in <a class="link" href="apd.html" title="Appendix D. Persisting Solaris Network Tunings">Appendix D</a>, <span class="emphasis"><em>Persisting Solaris Network Tunings</em></span>.</p></div></div></div>
+<div class="section" title="Using the Stub Status module"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec63"/>Using the Stub Status module</h1></div></div></div><p>NGINX provides an introspection module, which outputs <a id="id1195" class="indexterm"/>certain statistics about how it is running. This module is called <a id="id1196" class="indexterm"/>
+<span class="strong"><strong>Stub Status</strong></span> and is enabled with the <code class="literal">--with-http_stub_status_module</code> configure flag.</p><p>To see the statistics produced by this module, the <code class="literal">stub_status</code> directive needs to be set to <code class="literal">on</code>. A separate <code class="literal">location</code> directive should be created for this module, so that an ACL may be applied:</p><div class="informalexample"><pre class="programlisting">location /nginx_status {
+
+    stub_status on;
+
+    access_log off;
+
+    allow 127.0.0.1;
+
+    deny all;
+
+}</pre></div><p>Calling this URI<a id="id1197" class="indexterm"/> from the localhost (for example, with <code class="literal">curl</code> <code class="literal">http://localhost/nginx_status</code>) will show output similar to the following lines:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>Active connections: 2532</strong></span>
+<span class="strong"><strong>server accepts handled requests</strong></span>
+<span class="strong"><strong> 1476737983 1476737983 3553635810</strong></span>
+<span class="strong"><strong>Reading: 93 Writing: 13 Waiting: 2426</strong></span>
+</pre></div><p>Here we see that there are 2,532 open connections, of which NGINX is currently reading the request header of 93, and 13 connections are in a state in which NGINX is either reading the request body, processing the request, or writing a response to the client. The remaining 2,426 requests are considered<a id="id1198" class="indexterm"/> <code class="literal">keepalive</code> connections. Since this <code class="literal">nginx</code> process was started, it has both accepted and handled 1,476,737,983 connections, meaning that none were closed immediately after having been accepted. There were a total of 3,553,635,810 requests handled through these 1,476,737,983 connections, meaning there were approximately 2.4 requests per connection.</p><p>This kind of <a id="id1199" class="indexterm"/>data can be collected and graphed using your favorite system metrics tool chain. There are plugins for <a id="id1200" class="indexterm"/>Munin,<a id="id1201" class="indexterm"/> Nagios, <a id="id1202" class="indexterm"/>collectd, and others, which use the <code class="literal">stub_status</code> module to collect statistics. Over time, you may notice certain trends and be able to correlate them to specific factors, but only if the data is collected. Spikes in user traffic as well as changes in the operating system should be visible in these graphs.</p></div>
+<div class="section" title="Summary"><div class="titlepage"><div><div><h1 class="title"><a id="ch08lvl1sec64"/>Summary</h1></div></div></div><p>Problems surface on a number of levels when bringing a new piece of software into production. Some errors can be tested for and eradicated in a test environment; others surface only under real load with real users. To discover the reasons for these problems, NGINX provides very detailed logging, at a number of levels. Some of the messages may have multiple interpretations, but the overall pattern is understandable. By experimenting with the configuration and seeing what kinds of error messages are produced, we can gain a feeling for how to interpret the entries in the error log. The operating system has an influence on how NGINX runs, as it imposes certain limits due to default settings for a multiuser system. Understanding what is going on at the TCP level will help when tuning these parameters to meet the load under real conditions. Rounding off our tour of troubleshooting, we saw what kind of information the <code class="literal">stub_status</code> module was capable of delivering. This data can be useful to get an overall idea for how our NGINX is performing.</p><p>The appendices are up next. The first is a directive reference, listing all of NGINX's configuration directives in one place, including default values and in which context they may be used.</p></div></body></html>

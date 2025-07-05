@@ -1,0 +1,215 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;6.&#xA0;Setting Up Applications: FCGI and WSGI Modules"><div class="titlepage"><div><div><h1 class="title"><a id="ch06"/>Chapter 6. Setting Up Applications: FCGI and WSGI Modules</h1></div></div></div><p>In this chapter, we will cover:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Setting up a PHP FCGI site</li><li class="listitem" style="list-style-type: disc">Setting up a Python site using uWSGI</li><li class="listitem" style="list-style-type: disc">Modifying FCGI timeouts</li><li class="listitem" style="list-style-type: disc">Utilizing FCGI cache to speed it up</li><li class="listitem" style="list-style-type: disc">Using multiple FCGI backends</li></ul></div><div class="section" title="Introduction"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec01"/>Introduction</h1></div></div></div><p>This is a practical section devoted to helping programmers and system administrators to understand and install their applications using Nginx as the web server. Due to the lack of integrated modules for running PHP and Python, the setting up of such systems can be an issue for non-experienced system administrators.</p><p>Nginx is designed to be a framework to handle native web and mail protocols using an event driven mechanism. Most of the web server-application interfaces have been added to the main web server later. Over time, CGI has evolved into many forms. It has resulted FCGI, SCGI, and similar protocol WSGI for python. The goal at the end of the day for all these protocols is to effectively communicate with the web server in a standardized format with the lowest possible language overheads.<a class="indexterm" id="id142"/>
+</p></div></div>
+<div class="section" title="Setting up a PHP FCGI site"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec02"/>Setting up a PHP FCGI site</h1></div></div></div><p>This recipe helps you to set up a PHP site using Nginx and PHP-fpm fairly easily and quickly. Nginx, unlike Apache, does not have<code class="literal"> mod_php</code> built into it and remains a standalone web server which supports many standard protocols such as CGI, FCGI, SCGI, WSGI, and more through core and third-party modules.<a class="indexterm" id="id143"/>
+</p><p>PHP-fpm is a set of utilities and scripts that enables the system administrator to easily run and manage a PHP FCGI backend. This is officially available as a part of the PHP5.3.x stable and would become a major part of PHP deployment going forward.<a class="indexterm" id="id144"/>
+</p><p>We will initially have a look at how to set up php-fpm and then see a simple WordPress site being configured using this setup.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec01"/>How to do it...</h2></div></div></div><p>This will be divided into two sections; one which will help you install php-fpm and the other which will help you configure WordPress on Nginx using this setup.<a class="indexterm" id="id145"/>
+</p><p>
+<span class="strong"><strong>Installing php-fpm for PHP 5.2.x</strong></span>
+<a class="indexterm" id="id146"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Depending on your system and PHP requirements you will need to either download the packages [deb/rpm] or the source code.</li><li class="listitem"> If you are lucky, you can work with the packages you can download from<a class="ulink" href="http://php-fpm.org/download/"> http://php-fpm.org/download/</a> depending on the version of PHP that you have.</li><li class="listitem"> If you are not in luck for the packages, you will need to follow the guide on the following site:<a class="ulink" href="http://legacy.php-fpm.org/Documentation"> http://legacy.php-fpm.org/Documentation</a>. In this guide you will effectively download the latest patch for PHP 5.2.X and then apply the patch:<div class="informalexample"><pre class="programlisting">bzip2 -cd php-5.2.11.tar.bz2 | tar xf -
+patch -d php-5.2.11 -p1 &lt;php-fpm-0.6~5.2.patch
+cd php-5.2.11
+./buildconf --force
+./configure --enable-fastcgi --with-fpm --with-libevent[=path]
+</pre></div></li><li class="listitem"> After the installation is done, you can start the php-fpm daemon process. This will by default run on the 9000 port (or you can configure it according to your needs).</li></ol></div><p>
+<span class="strong"><strong>Configuring WordPress</strong></span>
+<a class="indexterm" id="id147"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> Now we will simply create a new configuration for the WordPress site that you plan to run with Nginx and PHP-FPM. This assumes that the php-fpm is listening on port 9000.<a class="indexterm" id="id148"/><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+root /var/www/www.example1.com;
+index index.php index.html index.htm;
+try_files $uri $uri/ /index.php;
+location ~ \.php$ {
+include fastcgi_params;
+fastcgi_pass 127.0.0.1:9000;
+fastcgi_index index.php;
+}
+}
+</pre></div></li><li class="listitem"> Now all you need to do is restart Nginx and make sure that it accepts the configuration.<a class="indexterm" id="id149"/></li><li class="listitem"> After this, we can access the domain that has been set up and that will redirect you to the installation page, as displayed in the following screenshot:<div class="mediaobject"><img alt="How to do it..." height="263" src="graphics/4965_06_01.jpg"/></div></li><li class="listitem"> You will need to make sure that you have created a MySQL database on your system, as the next installation screen requires you to enter the database information:<a class="indexterm" id="id150"/><div class="mediaobject"><img alt="How to do it..." src="graphics/4965_06_02.jpg" width="590"/></div></li><li class="listitem"> Finally, you will have got your PHP WordPress blog up and running!<a class="indexterm" id="id151"/></li></ol></div><div class="mediaobject"><img alt="How to do it..." height="245" src="graphics/4965_06_03.jpg"/></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec02"/>How it works...</h2></div></div></div><p>Depending on the operating system and PHP version, you will have to choose the correct method of installing php-fpm. After the installation, you will need to start the php-fpm daemon installed on a port that is not already in use by any other application.</p><p>The Nginx configuration step involves setting up a server directive which will basically invoke the daemon with the HTTP request and the script being queried. We are also handling WordPress clean URLs using the above rewrites.<a class="indexterm" id="id152"/>
+</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec03"/>There's more...</h2></div></div></div><p>You can also go ahead and install other PHP applications without any clean URLs by simply using the following sample configuration! In this case, we do not require any of the static files and clean URL rewrites.</p><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+root /var/www/www.example1.com;
+index index.php index.html index.htm;
+location ~ \.php$ {
+include fastcgi_conf;
+fastcgi_pass 127.0.0.1:9000;
+fastcgi_index index.php;
+}
+}
+</pre></div></div></div>
+<div class="section" title="Setting up a Python site using uWSGI"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec03"/>Setting up a Python site using uWSGI</h1></div></div></div><p>Python has seen an immense rise of popularity ever since it was adopted by Google for a significant part of its server side scripting. It has garnered significant support from the industry and consequently warrants attention in this practical chapter.<a class="indexterm" id="id153"/>
+</p><p>There has been development of<span class="strong"><strong> Web Server Gateway Interface</strong></span> (WSGI) which acts as a simple and universal interface between a web server and the various Python frameworks that have come up in recent times. In this recipe, we will use a sample installation of Django, which is a Python web framework, to show how we can get Nginx and python to work together.<a class="indexterm" id="id154"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec04"/>How to do it...</h2></div></div></div><p>For setting up a simple python, we will look at three parts. The first part will deal with the installation of uWSGI (<code class="literal">http://projects.unbit.it/uwsgi/wiki</code>), the second will deal with the setting up a very basic Django installation, and the last will deal with how to get them all working together.<a class="indexterm" id="id155"/>
+</p><p>
+<span class="strong"><strong>Installation of uWSGI</strong></span>
+<a class="indexterm" id="id156"/>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> If you are using a Nginx which is greater than 0.8.4 then uWSGI is already installed on your server. Otherwise you will need to follow the steps below. It is also assumed that you have root privileges or<code class="literal"> sudo</code> access to the server on which the installation is to be done.</li><li class="listitem"> Download the uWSGI module at the same level of your Nginx source code directory and then configure the package:<p>wget <a class="ulink" href="http://projects.unbit.it/downloads/uwsgi-0.9.6.5.tar.gz ">http://projects.unbit.it/downloads/uwsgi-0.9.6.5.tar.gz
+</a>
+</p><div class="informalexample"><pre class="programlisting">tar xvzf uwsgi-0.9.6.5.tar.gz
+cd nginx
+./configure --add-module=../uwsgi-0.9.6.5/nginx/
+make &amp;&amp; make install
+</pre></div></li><li class="listitem"> This will install the uWSGI module for your Nginx setup. You will also need to copy the<code class="literal"> uwsgi_params</code> file into your Nginx installation directory.</li></ol></div><p>
+<span class="strong"><strong>Basic Django setup with WSGI script</strong></span>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> We will first install the easy_install script from<a class="ulink" href="http://peak.telecommunity.com/dist/ez_setup.py"> http://peak.telecommunity.com/dist/ez_setup.py</a><div class="informalexample"><pre class="programlisting">sudo python http://peak.telecommunity.com/dist/ez_setup.py
+</pre></div></li><li class="listitem"> We will then install the Django package using<code class="literal"> easy_install</code>, this will handle all the dependencies and install them for you.<div class="informalexample"><pre class="programlisting">sudo easy_install django
+</pre></div></li><li class="listitem"> After this, we will start a new project called<code class="literal"> test</code><div class="informalexample"><pre class="programlisting">django-admin.py startproject testapp
+</pre></div></li><li class="listitem"> We can now test if it is running or not by simply going into the test directory and invoking the in-built development server:<div class="informalexample"><pre class="programlisting">cd test
+python manage.py runserver
+</pre><div class="mediaobject"><img alt="How to do it..." height="117" src="graphics/4965_06_04.jpg"/></div></div></li><li class="listitem"> We will now create the WSGI file that will run this test setup. You will need to go above the test directory and create a new file called<code class="literal"> django_wsgi.py:</code><a class="indexterm" id="id157"/><div class="informalexample"><pre class="programlisting">import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'testapp.settings'
+import django.core.handlers.wsgi
+application = django.core.handlers.wsgi.WSGIHandler()
+</pre></div></li><li class="listitem"> You will now need to run a uWSGI instance for this site using the following command. This assumes that the project was created at<code class="literal"> /var/www/</code> and the port that uWSGI will use is 3031.</li></ol></div><div class="informalexample"><pre class="programlisting">uwsgi --socket 127.0.0.1:3031 --pythonpath /var/www/ --pythonpath /var/www/testapp/ -w django_wsgi -M -T -d server.log L
+</pre></div><p>
+<span class="strong"><strong>Nginx with uWSGI</strong></span>
+</p><div class="orderedlist"><ol class="orderedlist arabic"><li class="listitem"> For running this test Django site, you will need to add the following configuration:<div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+location / {
+root /var/www/testapp;
+index index.php index.html index.htm;
+}
+location / {
+uwsgi_pass 127.0.0.1:3031;
+include uwsgi_params;
+}
+}
+</pre></div></li><li class="listitem"> You will need to restart the Nginx web server and then you can try visiting your site.<a class="indexterm" id="id158"/></li></ol></div><div class="mediaobject"><img alt="How to do it..." height="159" src="graphics/4965_06_05.jpg"/></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec05"/>How it works...</h2></div></div></div><p>The idea behind uWSGI is to provide a common protocol between the application and the web server so that you can plug and play depending on your needs. In this recipe, we can clearly see how one can go about uWSGI, which in some cases already comes as a part of the Nginx source package. We can see how to create and get a small Django application running.</p><p>So the uWSGI daemon runs on the 3031 port in our example and Nginx basically converts the HTTP requests into the WSGI protocol and proxies them to the daemon. uWSGI provides quite a lot of features which allow you to also manage the python overheads properly.<a class="indexterm" id="id159"/>
+</p></div><div class="section" title="There's more..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec06"/>There's more...</h2></div></div></div><p>You can take this simple example and extend it to most other python frameworks. Here is a really small standalone python script for<code class="literal"> web.py</code> developers. Save this as<code class="literal"> django_usgi2.py:</code>
+</p><div class="informalexample"><pre class="programlisting">import web
+urls = (
+'/(.*)', 'hello'
+)
+app = web.application(urls, globals())
+class hello:
+def GET(self, name):
+if not name:
+name = 'World'
+return 'Hello, ' + name + '!'
+application = app.wsgifunc()
+</pre></div><p>To run this use:</p><div class="informalexample"><pre class="programlisting">uwsgi -s /tmp/web.py.socket -w django_usgi2.py
+</pre></div></div></div>
+<div class="section" title="Modifying FCGI timeouts"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec04"/>Modifying FCGI timeouts</h1></div></div></div><p>If you have already discovered the various possibilities of how to set up PHP with Nginx, it will become clear that FCGI is a fairly optimal setup for low to medium traffic environments for PHP and Python, where RAM is a constraint.<a class="indexterm" id="id160"/>
+</p><p>In situations where due to resource constraints or time-consuming computation the FCGI daemon is not able to send back a response quickly enough, the user is made to wait and this lowers the quality of experience for the site.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec07"/>How to do it...</h2></div></div></div><p>In order to increase your FCGI timeout from the default 60 second you will need to add the following to your FCGI directives:</p><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+root /var/www/www.example1.com;
+index index.php index.html index.htm;
+fastcgi_read_timeout 120;
+fastcgi_write_timeout 120;
+try_files $uri $uri/ /index.php;
+location ~ \.php$ {
+include fastcgi_params;
+fastcgi_pass 127.0.0.1:9000;
+fastcgi_index index.php;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec08"/>How it works...</h2></div></div></div><p>These simple directives simply increase the amount of time the server waits for the upstream FCGI process to process and send data. This is important as other directives like<code class="literal"> send_timeout</code> and<code class="literal"> proxy_connect_timeout</code> do not affect the Nginx FCGI upstream setting.<a class="indexterm" id="id161"/>
+</p><p>We are utilizing the same Nginx setup from the recipe use to set up PHP-fpm with Nginx in the above configuration.</p></div></div>
+<div class="section" title="Utilizing FCGI cache to speed it up"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec05"/>Utilizing FCGI cache to speed it up</h1></div></div></div><p>Due to the disconnected nature of the Nginx and the FCGI daemon, a cache in between can really speed things up for common requests. If set up correctly it can do wonders for a site and the server as the CPU will not be utilized unnecessarily.<a class="indexterm" id="id162"/>
+</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec09"/>How to do it...</h2></div></div></div><p>It is pretty easy to setup:</p><div class="informalexample"><pre class="programlisting">http {
+fastcgi_cache_path /var/www/cache levels=1:2
+keys_zone=NAME:10m
+inactive=5m;
+server {
+server_name wwww.example1.com;
+...
+location / {
+...
+fastcgi_pass 127.0.0.1:9000;
+fastcgi_cache NAME;
+fastcgi_cache_valid 200 302 1h;
+fastcgi_cache_valid 301 1d;
+fastcgi_cache_valid any 1m;
+fastcgi_cache_min_uses 1;
+fastcgi_cache_use_stale error timeout invalid_header http_500;
+}
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec10"/>How it works...</h2></div></div></div><p>In this recipe we are setting up a cache called<code class="literal"> NAME</code> and setting it up for the site, with an hour of caching on any site that was successfully retrieved, while very low caching for error pages.</p><p>The<code class="literal"> fastcgi_cache_path</code> directive specifies the path to the cache storage and other cache parameters. All data is stored within this directive, the cache key and the name of the cache file are calculated as the MD5 sum of the proxied URL. The levels parameter sets the number and width of the name of the sub directories to be used in the caching file location. The size has been set to 10M in the current example, and by default, entries are removed from the chache if inactive for ten minutes.</p><p>The following table summarizes the various directives and their use:<a class="indexterm" id="id163"/>
+</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left" width="1.5211539309249"/><col style="text-align: left" width="3.90375843676892"/></colgroup><thead><tr><th style="text-align: left" valign="bottom">
+<p>Directive</p>
+</th><th style="text-align: left" valign="bottom">
+<p>Use</p>
+</th></tr></thead><tbody><tr><td style="text-align: left" valign="top">
+<p>fastcgi_cache</p>
+</td><td style="text-align: left" valign="top">
+<p>This determines the area which will be utilized for caching</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>fastcgi_cache_key</p>
+</td><td style="text-align: left" valign="top">
+<p>This sets the key that will be used for caching</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>fastcgi_cache_path</p>
+</td><td style="text-align: left" valign="top">
+<p>This sets the path and other critical parameters for the cache being created</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>fastcgi_cache_methods</p>
+</td><td style="text-align: left" valign="top">
+<p>This sets which HTTP methods are to be allowed while caching</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>fastcgi_cache_min_uses</p>
+</td><td style="text-align: left" valign="top">
+<p>This specifies how many requests to the same URL will be cached</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>fastcgi_cache_use_stale</p>
+</td><td style="text-align: left" valign="top">
+<p>This determines if the web server will start serving stale cached data in case of gateway errors</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>fastcgi_cache_valid</p>
+</td><td style="text-align: left" valign="top">
+<p>This sets the caching period for the specified HTTP codes</p>
+</td></tr></tbody></table></div></div></div>
+<div class="section" title="Using multiple FCGI backends"><div class="titlepage"><div><div><h1 class="title"><a id="ch06lvl1sec06"/>Using multiple FCGI backends</h1></div></div></div><p>In this recipe, we will look at how to work with multiple FCGI backends on the system. This can happen in a system where you have multiple types of applications running, such as a PHP application, a Python FCGI application, and so on.<a class="indexterm" id="id164"/>
+</p><p>It can also be the case that you want to isolate two application backends to prevent performance issues between them, as one slow application would definitely tie the other one down.</p><div class="section" title="How to do it..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec11"/>How to do it...</h2></div></div></div><p>This is fairly straightforward, as you can create a simple<code class="literal"> fcgi_common</code> file that will contain the common FCGI configuration:<a class="indexterm" id="id165"/>
+</p><div class="informalexample"><pre class="programlisting">fastcgi_param SCRIPT_FILENAME /var/www/www.example1.com$fastcgi_script_name;
+fastcgi_param QUERY_STRING $query_string;
+fastcgi_param REQUEST_METHOD $request_method;
+fastcgi_param CONTENT_TYPE $content_type;
+fastcgi_param CONTENT_LENGTH $content_length;
+fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+fastcgi_param REQUEST_URI $request_uri;
+fastcgi_param DOCUMENT_URI $document_uri;
+fastcgi_param DOCUMENT_ROOT $document_root;
+fastcgi_param SERVER_PROTOCOL $server_protocol;
+fastcgi_param GATEWAY_INTERFACE CGI/1.1;
+fastcgi_param SERVER_SOFTWARE nginx/$nginx_version;
+fastcgi_param REMOTE_ADDR $remote_addr;
+fastcgi_param REMOTE_PORT $remote_port;
+fastcgi_param SERVER_ADDR $server_addr;
+fastcgi_param SERVER_PORT $server_port;
+fastcgi_param SERVER_NAME $server_name;
+fastcgi_param REDIRECT_STATUS 200;
+</pre></div><p>You will then need to use the following configuration and put it in the Nginx configuration file at<code class="literal"> sites-enabled/www.example1.com:</code>
+</p><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example1.com;
+location / {
+root /var/www/www.example1.com;
+index index.php index.html index.htm;
+}
+location ~ \.php$ {
+include fcgi_common;
+fastcgi_pass 127.0.0.1:9000;
+fastcgi_index index.php;
+}
+}
+</pre></div><p>You will then need to use the following configuration and put it in the Nginx configuration file at<code class="literal"> sites-enabled/www.example2.com</code>
+<a class="indexterm" id="id166"/>
+</p><div class="informalexample"><pre class="programlisting">server {
+listen 80;
+server_name www.example2.com;
+location / {
+root /var/www/www.example2.com;
+index index.php index.html index.htm;
+}
+location ~ \.php$ {
+include fcgi_common;
+fastcgi_pass 127.0.0.1:9001;
+fastcgi_index index.php;
+}
+}
+</pre></div></div><div class="section" title="How it works..."><div class="titlepage"><div><div><h2 class="title"><a id="ch06lvl2sec12"/>How it works...</h2></div></div></div><p>This setup basically lets you take out the common parts of the FCGI directives and have a clean setup for as many sites as you want.</p><p>If you notice, with this setup the rewrites specific for the clean URLs of an application are the only extra directives that are required.</p></div></div></body></html>

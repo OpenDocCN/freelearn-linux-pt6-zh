@@ -1,0 +1,358 @@
+<html><head></head><body><div class="chapter" title="Chapter&#xA0;3.&#xA0;Using the Mail Module"><div class="titlepage"><div><div><h1 class="title"><a id="ch03"/>Chapter 3. Using the Mail Module</h1></div></div></div><p>NGINX<a id="id356" class="indexterm"/> was designed to not only serve web traffic, but also to provide a means of proxying mail services. In this chapter you will learn how to configure NGINX as a mail proxy for POP3, IMAP, and SMTP services. We will examine running NGINX as a mail proxy server in the following sections:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Basic proxy service</li><li class="listitem" style="list-style-type: disc">Authentication service</li><li class="listitem" style="list-style-type: disc">Combining with memcached</li><li class="listitem" style="list-style-type: disc">Interpreting log files</li><li class="listitem" style="list-style-type: disc">Operating system limits</li></ul></div><div class="section" title="Basic proxy service"><div class="titlepage"><div><div><h1 class="title"><a id="ch03lvl1sec24"/>Basic proxy service</h1></div></div></div><p>The NGINX mail proxy module<a id="id357" class="indexterm"/> was originally developed for <a id="id358" class="indexterm"/>FastMail. They had a need to provide a single IMAP endpoint for their users, while hosting the actual mail account on one of a number of upstream mail servers. Typical proxying programs of the time used the classic Unix forking model, which meant that a new<a id="id359" class="indexterm"/> process was forked for each connection. IMAP<a id="id360" class="indexterm"/> has very long-lived connections, which means that these processes would stay around for a very long time. This would then lead to very sluggish proxy servers, as they would have to manage these processes for the lifetime of each connection. NGINX's event-based process model was a better fit for this type of service. As a mail proxy, NGINX is able to direct traffic to any number of mailbox servers where the actual mail account is hosted. This provides the ability to communicate one endpoint to customers, while scaling the number of mailbox servers up with the number of users. Both commercial and open-source mail solutions, such as Atmail<a id="id361" class="indexterm"/> and <a id="id362" class="indexterm"/>Zimbra, are built around this model.</p><p>The following diagram will help visualize how this works:</p><div class="mediaobject"><img src="graphics/7447OS_03_01.jpg" alt="Basic proxy service"/></div><p>An incoming request<a id="id363" class="indexterm"/> will be handled on a per-protocol basis. The mail proxy module may be configured differently for <a id="id364" class="indexterm"/>POP3, <a id="id365" class="indexterm"/>IMAP, or<a id="id366" class="indexterm"/> SMTP. For each protocol, NGINX queries an authentication service with the username and password. If the authentication is successful, the connection is proxied to the mail server indicated in the response from the authentication service. If the authentication was unsuccessful, the client connection is terminated. The authentication service thus determines which clients can use POP3 / IMAP / SMTP services and which mail server they may use. As any number of mail servers may be handled in this way, NGINX can provide a proxy service for all of them through one central gateway.</p><p>A proxy<a id="id367" class="indexterm"/> acts on behalf of someone or something else. In this case, NGINX is acting on behalf of the mail client, terminating the connection and opening a new one to the upstream server. This means that there is no direct communication between the mail client and the actual mailbox server or SMTP relay host.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note03"/>Note</h3><p>If there are any mail rules based on information contained in the client connection, these rules will not work, unless the mail software is able to support an extension, such as XCLIENT<a id="id368" class="indexterm"/> for SMTP.</p></div></div><p>This is an important <a id="id369" class="indexterm"/>point in designing an architecture that contains a proxy server—the proxy host will need to be able to support more connections than a typical upstream server. Not as much processing power or memory as a mailbox server would be needed, but the number of persistent connections needs to be taken into account.</p><div class="section" title="POP3 service"><div class="titlepage"><div><div><h2 class="title"><a id="ch03lvl2sec24"/>POP3 service</h2></div></div></div><p>The <span class="strong"><strong>Post Office Protocol</strong></span> is an Internet standard <a id="id370" class="indexterm"/>protocol used to retrieve mail messages from a mailbox server. The current incarnation of the protocol is Version 3, thus <span class="strong"><strong>POP3</strong></span>
+<a id="id371" class="indexterm"/>. Mail clients will typically retrieve all new messages on a mailbox server in one session, then close the connection. After closing, the mailbox server will delete all messages that have been marked as retrieved.</p><p>In order for NGINX to act as a POP3 proxy, some basic directives need to be configured:</p><div class="informalexample"><pre class="programlisting">mail {
+  auth_http  localhost:9000/auth;
+
+  server {
+    listen  110;
+    protocol  pop3;
+    proxy  on;
+  }
+}</pre></div><p>This configuration snippet enables the mail module and configures it for POP3 service, querying an authentication service running on port 9000 on the same machine. NGINX will listen on port 110 on all local IP addresses, providing a POP3 proxy service. You will notice that we do not configure the actual mail servers here—it is the job of the authentication service to tell NGINX which server a particular client should be connected to.</p><p>If your mail server only supports certain capabilities (or you only want to advertise certain capabilities), NGINX is flexible enough to announce these:</p><div class="informalexample"><pre class="programlisting">mail {
+  pop3_capabilities    TOP USER;
+}</pre></div><p>Capabilities are a way of advertising support for optional commands. For POP3, the client can request the supported capabilities before or after authentication, so it is important to configure these correctly in NGINX.</p><p>You may also specify which authentication methods are supported:</p><div class="informalexample"><pre class="programlisting">mail {
+  pop3_auth    apop cram-md5;
+}</pre></div><p>If the <a id="id372" class="indexterm"/>APOP <a id="id373" class="indexterm"/>authentication <a id="id374" class="indexterm"/>method is supported, the authentication service needs to provide NGINX with the user's password in clear text, so that it can generate the MD5 digest.</p></div><div class="section" title="IMAP service"><div class="titlepage"><div><div><h2 class="title"><a id="ch03lvl2sec25"/>IMAP service</h2></div></div></div><p>The <span class="strong"><strong>Internet Message Access Protocol</strong></span> is also an<a id="id375" class="indexterm"/> Internet-standard protocol used to retrieve mail messages from a mailbox server. It provides quite a bit of extended functionality over the earlier POP protocol. Typical usage leaves all messages on the server, so that multiple mail clients can access the same mailbox. This also means that there may be many more, persistent connections to an upstream mailbox server from clients using IMAP than those using POP3.</p><p>To proxy IMAP connections, a configuration similar to the POP3 NGINX snippet used before can be used:</p><div class="informalexample"><pre class="programlisting">mail {
+  auth_http  localhost:9000/auth;
+
+  imap_capabilities    IMAP4rev1 UIDPLUS QUOTA;
+  imap_auth    login cram-md5;
+
+  server {
+    listen 143;
+    protocol imap;
+    proxy on;
+  }
+}</pre></div><p>Note that we did not need to specify the <code class="literal">protocol</code>, as <code class="literal">imap</code> is the default value. It is included here for clarity.</p><p>The <code class="literal">imap_capabilities</code> <a id="id376" class="indexterm"/>and <code class="literal">imap_auth</code> directives function <a id="id377" class="indexterm"/>similarly to their POP3 counterparts.</p></div><div class="section" title="SMTP service"><div class="titlepage"><div><div><h2 class="title"><a id="ch03lvl2sec26"/>SMTP service</h2></div></div></div><p>The <span class="strong"><strong>Simple Mail Transport Protocol</strong></span> is the <a id="id378" class="indexterm"/>Internet-standard protocol for transferring mail messages <a id="id379" class="indexterm"/>from one server to another or from a client to a server. Although authentication was not at first conceived for this protocol, SMTP-AUTH is supported as an extension.</p><p>As you have seen, the logic of configuring the <code class="literal">mail</code> module is fairly straightforward. This holds for SMTP proxying as well:</p><div class="informalexample"><pre class="programlisting">mail {
+  auth_http  localhost:9000/auth;
+
+  smtp_capabilities  PIPELINING 8BITMIME DSN;
+  smtp_auth    login cram-md5;
+
+  server {
+    listen 25;
+    protocol smtp;
+    proxy on;
+  }
+}</pre></div><p>Our proxy server will only advertise the <code class="literal">smtp_capabilities</code> that we set, otherwise it will only list which authentication mechanisms it accepts, because the list of extensions is sent to the client when it sends the <code class="literal">HELO</code>/<code class="literal">EHLO</code> command. This may be useful when proxying to multiple SMTP servers, each having different capabilities. You could configure NGINX to list only the capabilities that all of these servers have in common. It is important to set these to only the extensions that the SMTP server itself supports.</p><p>Due to SMTP-AUTH being an extension to SMTP, and not necessarily supported in every configuration, NGINX is capable of proxying an SMTP connection that does no authentication whatsoever. In this case, only the <code class="literal">HELO</code>, <code class="literal">MAIL FROM</code>, and <code class="literal">RCPT TO</code> parts of the protocol are available to the authentication service for determining which upstream should be chosen for a given client connection. For this setup, ensure that the <code class="literal">smtp_auth</code> directive<a id="id380" class="indexterm"/> is set to <code class="literal">none</code>.</p></div><div class="section" title="Using SSL/TLS"><div class="titlepage"><div><div><h2 class="title"><a id="ch03lvl2sec27"/>Using SSL/TLS</h2></div></div></div><p>If your <a id="id381" class="indexterm"/>organization <a id="id382" class="indexterm"/>requires mail traffic to be encrypted, or if <a id="id383" class="indexterm"/>you yourself want more security in your mail transfers, you can enable <a id="id384" class="indexterm"/>NGINX to use TLS to provide POP3 over SSL, IMAP over SSL, or SMTP over SSL. To enable TLS support, either set the <code class="literal">starttls</code> directive to <code class="literal">on</code> for STLS/STARTTLS support or set the <code class="literal">ssl</code> directive to <code class="literal">on</code> for pure SSL/TLS support and configure the appropriate <code class="literal">ssl_*</code> directives for your site:</p><div class="informalexample"><pre class="programlisting">mail {
+  # allow STLS for POP3 and STARTTLS for IMAP and SMTP
+  starttls    on;
+  # prefer the server's list of ciphers, so that we may determine security
+  ssl_prefer_server_ciphers  on;
+  # use only these protocols
+     ssl_protocols    TLSv1 SSLv3;
+  # use only high encryption cipher suites, excluding those
+  #   using anonymous DH and MD5, sorted by strength
+     ssl_ciphers    HIGH:!ADH:!MD5:@STRENGTH;
+  # use a shared SSL session cache, so that all workers can
+  #   use the same cache
+  ssl_session_cache    shared:MAIL:10m;
+  # certificate and key for this host
+  ssl_certificate      /usr/local/etc/nginx/mail.example.com.crt;
+  ssl_certificate_key  /usr/local/etc/nginx/mail.example.com.key;
+}</pre></div><p>See <a class="ulink" href="https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html">https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html</a> for a description of the differences between a<a id="id385" class="indexterm"/> pure SSL/TLS <a id="id386" class="indexterm"/>connection and upgrading a plain <a id="id387" class="indexterm"/>connection to an encrypted one with <a id="id388" class="indexterm"/>SSL/TLS.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="tip02"/>Tip</h3><p>
+<span class="strong"><strong>Using OpenSSL to generate an SSL certificate</strong></span>
+</p><p>If you have never <a id="id389" class="indexterm"/>generated an <a id="id390" class="indexterm"/>SSL certificate before, the following steps will help you create one:</p><p>Create a certificate request:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>$ openssl req -newkey rsa:2048 -nodes -out mail.example.com.csr -keyout mail.example.com.key</strong></span>
+</pre></div></div></div><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="tip03"/>Tip</h3><p>This should generate the following output:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>Generating a 2048 bit RSA private key </strong></span>
+<span class="strong"><strong>....................................................................................................................+++ </strong></span>
+<span class="strong"><strong>....................+++ </strong></span>
+<span class="strong"><strong>writing new private key to 'mail.example.com.key' </strong></span>
+<span class="strong"><strong>----- </strong></span>
+<span class="strong"><strong>You are about to be asked to enter information that will be incorporated </strong></span>
+<span class="strong"><strong>into your certificate request. </strong></span>
+<span class="strong"><strong>What you are about to enter is what is called a Distinguished Name or a DN. </strong></span>
+<span class="strong"><strong>There are quite a few fields but you can leave some blank </strong></span>
+<span class="strong"><strong>For some fields there will be a default value, </strong></span>
+<span class="strong"><strong>If you enter '.', the field will be left blank. </strong></span>
+<span class="strong"><strong>----- </strong></span>
+<span class="strong"><strong>Country Name (2 letter code) [AU]:CH </strong></span>
+<span class="strong"><strong>State or Province Name (full name) [Some-State]:Zurich </strong></span>
+<span class="strong"><strong>Locality Name (eg, city) []:ZH </strong></span>
+<span class="strong"><strong>Organization Name (eg, company) [Internet Widgits Pty Ltd]:Example Company </strong></span>
+<span class="strong"><strong>Organizational Unit Name (eg, section) []: </strong></span>
+<span class="strong"><strong>Common Name (e.g. server FQDN or YOUR name) []:mail.example.com </strong></span>
+<span class="strong"><strong>Email Address []: </strong></span>
+<span class="strong"><strong>Please enter the following 'extra' attributes </strong></span>
+<span class="strong"><strong>to be sent with your certificate request </strong></span>
+<span class="strong"><strong>A challenge password []: </strong></span>
+<span class="strong"><strong>An optional company name []: </strong></span>
+</pre></div><p>You<a id="id391" class="indexterm"/>
+<a id="id392" class="indexterm"/> can get this Certificate Signing Request (mail.example.com.csr) signed by a Certificate Authority such as Verisign or GoDaddy, or you can sign it yourself:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>$ openssl x509 -req -days 365 -in mail.example.com.csr -signkey mail.example.com.key -out mail.example.com.crt</strong></span>
+</pre></div><p>You will see the following response:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>Signature ok </strong></span>
+<span class="strong"><strong>subject=/C=CH/ST=Zurich/L=ZH/O=Example Company/CN=mail.example.com </strong></span>
+<span class="strong"><strong>Getting Private key </strong></span>
+</pre></div></div></div><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="tip06"/>Tip</h3><p>The signed certificate is shown in the following screenshot.</p><p>Please note, though, that a self-signed certificate will generate an error in a client that connects to your server. If you are deploying this certificate on a production server, make sure that you get it signed by a recognized authority.</p><div class="mediaobject"><img src="graphics/7447_03_02.jpg" alt="Using SSL/TLS"/></div></div></div></div><div class="section" title="Complete mail example"><div class="titlepage"><div><div><h2 class="title"><a id="ch03lvl2sec28"/>Complete mail example</h2></div></div></div><p>Mail services<a id="id393" class="indexterm"/> are often combined on one gateway. The following configuration will enable NGINX to service POP3, IMAP, and SMTP traffic (as well as their encrypted variants) from one authentication service, while offering clients the option to use STLS/STARTTLS on unencrypted ports:</p><div class="informalexample"><pre class="programlisting">events {
+    worker_connections 1024;
+}
+
+mail {
+     server_name  mail.example.com;
+     auth_http  localhost:9000/auth;
+
+     proxy on;
+
+
+     ssl_prefer_server_ciphers	on;
+     ssl_protocols    TLSv1 SSLv3;
+     ssl_ciphers      HIGH:!ADH:!MD5:@STRENGTH;
+     ssl_session_cache	  shared:MAIL:10m;
+     ssl_certificate  	/usr/local/etc/nginx/mail.example.com.crt;
+     ssl_certificate_key  /usr/local/etc/nginx/mail.example.com.key;
+
+     pop3_capabilities	  TOP USER;
+     imap_capabilities	  IMAP4rev1 UIDPLUS QUOTA;
+     smtp_capabilities	  PIPELINING 8BITMIME DSN;
+
+     pop3_auth    apop cram-md5;
+     imap_auth    login cram-md5;
+     smtp_auth    login cram-md5;
+
+     server {
+        listen 25;
+        protocol smtp;
+        timeout 120000;
+        }
+     server {
+        listen 465;
+        protocol smtp;
+        ssl on;
+        }
+     server {
+        listen 587;
+        protocol smtp;
+        starttls on;
+        }
+     server {
+        listen 110;
+        protocol pop3;
+        starttls on;
+        }
+     server {
+        listen 995;
+        protocol pop3;
+        ssl on;
+        }
+     server {
+        listen 143;
+        protocol imap;
+        starttls on;
+        }
+     server {
+        listen 993;
+        protocol imap;
+        ssl on;
+        }
+}</pre></div><p>As you can <a id="id394" class="indexterm"/>see, we declared the name of this server at the top of the <code class="literal">mail</code> context. This is because we want each of our mail services to be addressed as <code class="literal">mail.example.com</code>. Even if the actual hostname of the machine on which NGINX runs is different, and each mail server has its own hostname, we want this proxy to be a single point of reference for our users. This hostname will in turn be used wherever NGINX needs to present its own name, for example, in the initial SMTP server greeting.</p><p>The <code class="literal">timeout</code> directive<a id="id395" class="indexterm"/> was used in the <code class="literal">smtp server</code> context in order to double its default value because we knew this particular upstream SMTP relay host inserted an artificial delay in order to dissuade spammers from trying to send mail via this server.</p></div></div></div>
+<div class="section" title="Authentication service"><div class="titlepage"><div><div><h1 class="title"><a id="ch03lvl1sec25"/>Authentication service</h1></div></div></div><p>We have mentioned the <a id="id396" class="indexterm"/>authentication service quite a few times in the previous section, but what exactly is the authentication service and what does it do? When a user makes a POP3, IMAP, or SMTP request to NGINX, authenticating the connection is one of the first steps. NGINX does not perform this authentication itself, but rather makes a query to an authentication service that will fulfill the request. NGINX then uses the response from the authentication service to make the connection to the upstream mail server.</p><p>This authentication service may be written in any language. It need only conform to the authentication protocol required by NGINX. The protocol is similar to HTTP, so it will be fairly easy for us to write our own authentication service.</p><p>NGINX will send the following headers in its request to the authentication service:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Host</li><li class="listitem" style="list-style-type: disc">Auth-Method</li><li class="listitem" style="list-style-type: disc">Auth-User</li><li class="listitem" style="list-style-type: disc">Auth-Pass</li><li class="listitem" style="list-style-type: disc">Auth-Salt</li><li class="listitem" style="list-style-type: disc">Auth-Protocol</li><li class="listitem" style="list-style-type: disc">Auth-Login-Attempt</li><li class="listitem" style="list-style-type: disc">Client-IP</li><li class="listitem" style="list-style-type: disc">Client-Host</li><li class="listitem" style="list-style-type: disc">Auth-SMTP-Helo</li><li class="listitem" style="list-style-type: disc">Auth-SMTP-From</li><li class="listitem" style="list-style-type: disc">Auth-SMTP-To</li></ul></div><p>The meaning <a id="id397" class="indexterm"/>of each of these headers should be fairly self-explanatory, and not each header will be present in every request. We will go over these as we write our authentication service.</p><p>We choose Ruby<a id="id398" class="indexterm"/> as the language for this authentication service implementation. If you do not currently have Ruby installed, don't worry about doing so now. Ruby as a language is very clear to read, so just try to follow along with the commented code below. Adapting it to your environment and running it is outside the scope of this book. This example will give you a good starting point in writing your own authentication service.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note04"/>Note</h3><p>A good resource to help you get Ruby installed easily is located at <a class="ulink" href="https://rvm.io">https://rvm.io</a>.</p></div></div><p>Let us first examine the request part of the HTTP request/response dialogue.</p><p>We first collect the values we need from the headers NGINX sends:</p><div class="informalexample"><pre class="programlisting">      # the authentication mechanism
+      meth = @env['HTTP_AUTH_METHOD']
+      # the username (login)
+      user = @env['HTTP_AUTH_USER']
+      # the password, either in the clear or encrypted, depending on the
+      #  authentication mechanism used
+      pass = @env['HTTP_AUTH_PASS']
+      # need the salt to encrypt the cleartext password, used for some
+      #  authentication mechanisms, not in our example
+      salt = @env['HTTP_AUTH_SALT']
+      # this is the protocol being proxied
+      proto = @env['HTTP_AUTH_PROTOCOL']
+      # the number of attempts needs to be an integer
+      attempt = @env['HTTP_AUTH_LOGIN_ATTEMPT'].to_i
+      # not used in our implementation, but these are here for reference
+      client = @env['HTTP_CLIENT_IP']
+      host = @env['HTTP_CLIENT_HOST']</pre></div><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="tip07"/>Tip</h3><p>
+<span class="strong"><strong>What are all these @'s about?</strong></span>
+</p><p>The <code class="literal">@</code> symbol is used in Ruby to denote a class variable. We'll use them in our example to make it easier to pass around variables. In the preceding snippet, we are referencing the environment <code class="literal">(@env)</code> as passed into the Rack request. Besides all the HTTP headers that we need, the environment contains additional information relating to how the service is being run.</p></div></div><p>Now<a id="id399" class="indexterm"/> that we know how to handle each of the headers NGINX may send, we need to do something with them and send NGINX a response. The following headers are expected in the response from the authentication service:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">Auth-Status</code>: In this header, anything but <code class="literal">OK</code> is an error</li><li class="listitem" style="list-style-type: disc"><code class="literal">Auth-Server</code>: This is the IP address to which the connection is proxied</li><li class="listitem" style="list-style-type: disc"><code class="literal">Auth-Port</code>: This is the port to which the connection is proxied</li><li class="listitem" style="list-style-type: disc"><code class="literal">Auth-User</code>: This is the user that will be used to authenticate with the mail server</li><li class="listitem" style="list-style-type: disc"><code class="literal">Auth-Pass</code>: The plaintext password used for APOP</li><li class="listitem" style="list-style-type: disc"><code class="literal">Auth-Wait</code>: How many seconds to wait before another authentication attempt is made</li><li class="listitem" style="list-style-type: disc"><code class="literal">Auth-Error-Code</code>: An alternative error code to return to the client</li></ul></div><p>The three headers used most often are <code class="literal">Auth-Status</code>, <code class="literal">Auth-Server</code>, and <code class="literal">Auth-Port</code>. The presence of these in a response is typically all that is needed for a successful authentication session.</p><p>As we will see in the following snippet, additional headers may be used, depending on the situation. The response itself consists of simply emitting the relevant headers with the appropriate values substituted in.</p><p>We first check if there have been too many tries:</p><div class="informalexample"><pre class="programlisting">      # fail if more than the maximum login attempts are tried
+      if attempt &gt; @max_attempts
+        @res["Auth-Status"] = "Maximum login attempts exceeded"
+        return
+      end</pre></div><p>Then we return the appropriate headers and set with the values obtained from our authentication mechanism:</p><div class="informalexample"><pre class="programlisting">        @res["Auth-Status"] = "OK"
+        @res["Auth-Server"] = @mailhost
+        # return the correct port for this protocol
+        @res["Auth-Port"] = MailAuth::Port[proto]
+        # if we're using APOP, we need to return the password in cleartext
+        if meth == 'apop' &amp;&amp; proto == 'pop3'
+          @res["Auth-User"] = user
+          @res["Auth-Pass"] = pass
+        end</pre></div><p>If the authentication check has failed, we need to tell NGINX.</p><div class="informalexample"><pre class="programlisting">        # if authentication was unsuccessful, we return an appropriate response
+        @res["Auth-Status"] = "Invalid login or password"
+        # and set the wait time in seconds before the client may make
+        # another authentication attempt
+        @res["Auth-Wait"] = "3"
+        # we can also set the error code to be returned to the SMTP client
+        @res["Auth-Error-Code"] = "535 5.7.8"</pre></div><p>Not<a id="id400" class="indexterm"/> every header is required in the response, but as we can see, some are dependent on the status of the authentication query and/or any error condition that may exist.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note05"/>Note</h3><p>One interesting use of the <code class="literal">Auth-User</code> header is to return a different username than the one given in the request. This can prove useful, for example, when migrating from an older upstream mail server that accepted a username without the domain to a newer upstream mail server that requires the username to have a domain. NGINX will then use this username when connecting to the upstream server.</p></div></div><p>The authentication database may take any form, from a flat text file, to an LDAP directory, to a relational database. It does not have to necessarily be the same store that your mail service uses to access this information, but should be in sync with that store to prevent any errors due to stale data.</p><p>Our example authentication database is a simple hash for this example:</p><div class="informalexample"><pre class="programlisting">      @auths = { "test:1234" =&gt; '127.0.1.1' }</pre></div><p>The mechanism used to verify a user is a simple hash lookup:</p><div class="informalexample"><pre class="programlisting">      # this simply returns the value looked-up by the 'user:pass' key
+      if @auths.key?("#{user}:#{pass}")
+        @mailhost = @auths["#{user}:#{pass}"]
+        return true
+      #  if there is no such key, the method returns false
+      else
+        return false
+      end</pre></div><p>Tying these three parts together, we have the complete authentication service:</p><div class="informalexample"><pre class="programlisting">#!/usr/bin/env rackup
+
+# This is a basic HTTP server, conforming to the authentication protocol
+#  required by NGINX's mail module.
+#
+require 'logger'
+require 'rack'
+
+module MailAuth
+
+  # setup a protocol-to-port mapping
+  Port = {
+    'smtp' =&gt; '25',
+    'pop3' =&gt; '110',
+    'imap' =&gt; '143'
+  }
+
+  class Handler
+
+    def initialize
+      # setup logging, as a mail service
+      @log = Logger.new("| logger -p mail.info")
+      # replacing the normal timestamp by the service name and pid
+      @log.datetime_format = "nginx_mail_proxy_auth pid: "
+      # the "Auth-Server" header must be an IP address
+      @mailhost = '127.0.0.1'
+      # set a maximum number of login attempts
+      @max_attempts = 3
+      # our authentication 'database' will just be a fixed hash for# this example
+      # it should be replaced by a method to connect to LDAP or a # database
+      @auths = { "test:1234" =&gt; '127.0.1.1' }
+    end</pre></div><p>After the <a id="id401" class="indexterm"/>preceding setup and module initialization, we tell Rack which requests we would like to have handled and define a <code class="literal">get</code> method to respond to requests from NGINX.</p><div class="informalexample"><pre class="programlisting">    def call(env)
+      # our headers are contained in the environment
+      @env = env
+      # set up the request and response objects
+      @req = Rack::Request.new(env)
+      @res = Rack::Response.new
+      # pass control to the method named after the HTTP verb
+      #  with which we're called
+      self.send(@req.request_method.downcase)
+      # come back here to finish the response when done
+      @res.finish
+    end
+
+    def get
+      # the authentication mechanism
+      meth = @env['HTTP_AUTH_METHOD']
+      # the username (login)
+      user = @env['HTTP_AUTH_USER']
+      # the password, either in the clear or encrypted, depending on
+      # the authentication mechanism used
+      pass = @env['HTTP_AUTH_PASS']
+      # need the salt to encrypt the cleartext password, used for some
+      #  authentication mechanisms, not in our example
+      salt = @env['HTTP_AUTH_SALT']
+      # this is the protocol being proxied
+      proto = @env['HTTP_AUTH_PROTOCOL']
+      # the number of attempts needs to be an integer
+      attempt = @env['HTTP_AUTH_LOGIN_ATTEMPT'].to_i
+      # not used in our implementation, but these are here forreference
+      client = @env['HTTP_CLIENT_IP']
+      host = @env['HTTP_CLIENT_HOST']
+
+      # fail if more than the maximum login attempts are tried
+      if attempt &gt; @max_attempts
+        @res["Auth-Status"] = "Maximum login attempts exceeded"
+        return
+      end
+
+      # for the special case where no authentication is done
+      #  on smtp transactions, the following is in nginx.conf:
+      #     smtp_auth   none;
+      # may want to setup a lookup table to steer certain senders
+      #  to particular SMTP servers
+      if meth == 'none' &amp;&amp; proto == 'smtp'
+        helo = @env['HTTP_AUTH_SMTP_HELO']
+        # want to get just the address from these two here
+        from = @env['HTTP_AUTH_SMTP_FROM'].split(/: /)[1]
+        to = @env['HTTP_AUTH_SMTP_TO'].split(/: /)[1]
+        @res["Auth-Status"] = "OK"
+        @res["Auth-Server"] = @mailhost
+        # return the correct port for this protocol
+        @res["Auth-Port"] = MailAuth::Port[proto]
+        @log.info("a mail from #{from} on #{helo} for #{to}")
+      # try to authenticate using the headers provided
+      elsif auth(user, pass)
+        @res["Auth-Status"] = "OK"
+        @res["Auth-Server"] = @mailhost
+        # return the correct port for this protocol
+        @res["Auth-Port"] = MailAuth::Port[proto]
+        # if we're using APOP, we need to return the password in cleartext
+        if meth == 'apop' &amp;&amp; proto == 'pop3'
+          @res["Auth-User"] = user
+          @res["Auth-Pass"] = pass
+        end
+        @log.info("+ #{user} from #{client}")
+      # the authentication attempt has failed
+      else
+        # if authentication was unsuccessful, we return an appropriate response
+        @res["Auth-Status"] = "Invalid login or password"
+        # and set the wait time in seconds before the client may make
+        # another authentication attempt
+        @res["Auth-Wait"] = "3"
+        # we can also set the error code to be returned to the SMTPclient
+        @res["Auth-Error-Code"] = "535 5.7.8"
+        @log.info("! #{user} from #{client}")
+      end
+
+    end</pre></div><p>The next <a id="id402" class="indexterm"/>section is declared <code class="literal">private</code> so that only this class may use the methods declared afterwards. The <code class="literal">auth</code> method<a id="id403" class="indexterm"/> is the workhorse of the authentication service, checking the username and password for validity. The <code class="literal">method_missing</code> method<a id="id404" class="indexterm"/> is there to handle invalid methods, responding with a <code class="literal">Not Found</code> error message:</p><div class="informalexample"><pre class="programlisting">    private
+
+    # our authentication method, adapt to fit your environment
+    def auth(user, pass)
+      # this simply returns the value looked-up by the 'user:pass' key
+      if @auths.key?("#{user}:#{pass}")
+        @mailhost = @auths["#{user}:#{pass}"]
+        return @mailhost
+      #  if there is no such key, the method returns false
+      else
+        return false
+      end
+    end
+
+    # just in case some other process tries to access the service
+    #  and sends something other than a GET
+    def method_missing(env)
+      @res.status = 404
+    end
+
+  end # class MailAuthHandler
+end # module MailAuth</pre></div><p>This last section sets up the server to run and routes the <code class="literal">/auth</code> URI to the proper handler:</p><div class="informalexample"><pre class="programlisting"># setup Rack middleware
+use Rack::ShowStatus
+# map the /auth URI to our authentication handler
+map "/auth" do
+  run MailAuth::Handler.new
+end</pre></div><p>This<a id="id405" class="indexterm"/> listing may be saved as a file, <code class="literal">nginx_mail_proxy_auth.ru</code>, and called with a <code class="literal">-p &lt;port&gt;</code> parameter to tell it on which port it should run. For more options and more information about the Rack web server interface, visit <a class="ulink" href="http://rack.github.com">http://rack.github.com</a>.</p></div>
+<div class="section" title="Combining with memcached"><div class="titlepage"><div><div><h1 class="title"><a id="ch03lvl1sec26"/>Combining with memcached</h1></div></div></div><p>Depending on the <a id="id406" class="indexterm"/>frequency of clients accessing the mail services on your proxy and how many resources are available to the authentication service, you may want to introduce a caching layer into the setup. To this end, we will integrate <code class="literal">memcached</code> as an in-memory store for authentication information.</p><p>NGINX can look up a key in <code class="literal">memcached</code>, but only in the context of a location in the <code class="literal">http</code> module<a id="id407" class="indexterm"/>. Therefore, we will have to implement our own caching layer outside of NGINX.</p><div class="mediaobject"><img src="graphics/7447OS_03_03.jpg" alt="Combining with memcached"/></div><p>As the <a id="id408" class="indexterm"/>flowchart shows, we will first check whether or not this username/password combination is already in the cache. If not, we will query our authentication store for the information and place the key/value pair into the cache. If it is, we can retrieve this information directly from the cache.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note06"/>Note</h3><p>Zimbra<a id="id409" class="indexterm"/> has created a <code class="literal">memcache</code> module<a id="id410" class="indexterm"/> for NGINX that takes care of this directly within the context of NGINX. To date, though, this code has not been integrated into the official NGINX sources.</p></div></div><p>The following code will extend our original authentication service by implementing a caching layer (admittedly, a little overkill for our implementation, but this is to provide a basis for working with a networked authentication database):</p><div class="informalexample"><pre class="programlisting"># gem install memcached (depends on libsasl2 and gettext libraries)
+require 'memcached'
+
+# set this to the IP address/port where you have memcached running
+@cache = Memcached.new("localhost:11211")
+
+def get_cache_value(user, pass)
+  resp = ''
+  begin
+    # first, let's see if our key is already in the cache
+    resp = @cache.get("#{user}:#{pass}")
+  rescue Memcached::NotFound
+    # it's not in the cache, so let's call the auth method
+    resp = auth(user, pass)
+    # and now store the response in the cache, keyed on 'user:pass'
+    @cache.set("#{user}:#{pass}",resp)
+  end
+  # explicitly returning the response to the caller
+  return resp
+end</pre></div><p>In order to use this code, you will of course have to install and run <code class="literal">memcached</code>. There should be a pre-built package for your operating system:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc">Linux (deb-based)<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo apt-get install memcached</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">Linux (rpm-based)<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo yum install memcached</strong></span>
+</pre></div></li><li class="listitem" style="list-style-type: disc">FreeBSD<div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>sudo pkg_add -r memcached</strong></span>
+</pre></div></li></ul></div><p>Memcached is <a id="id411" class="indexterm"/>configured simply by passing parameters to the binary when running it. There is no configuration file that is read directly, although your operating system and/or packaging manager may provide a file that is parsed to make passing these parameters easier.</p><p>The most important <a id="id412" class="indexterm"/>parameters for <code class="literal">memcached</code> are as follows:</p><div class="itemizedlist"><ul class="itemizedlist"><li class="listitem" style="list-style-type: disc"><code class="literal">-l</code>: This parameter specifies the address(es) on which <code class="literal">memcached</code> will listen (default is all). It is important to note that for the greatest security, <code class="literal">memcached</code> shouldn't listen on an address that is reachable from the Internet because there is no authentication.</li><li class="listitem" style="list-style-type: disc"><code class="literal">-m</code>: This parameter specifies the amount of RAM to use for the cache (in megabytes).</li><li class="listitem" style="list-style-type: disc"><code class="literal">-c</code>: This parameter specifies the maximum number of simultaneous connections (default is 1024).</li><li class="listitem" style="list-style-type: disc"><code class="literal">-p</code>: This parameter specifies the port on which <code class="literal">memcached</code> will listen (default is 11211).</li></ul></div><p>Setting these to reasonable values will be all you need to do to get <code class="literal">memcached</code> up and running.</p><p>Now, by substituting the <code class="literal">elsif auth(user, pass)</code> with <code class="literal">elsif get_cache_value(user, pass)</code> in our <code class="literal">nginx_mail_proxy_auth.ru</code> service, you should have an<a id="id413" class="indexterm"/> authentication service running with a caching layer, to help serve as many requests as quickly as possible.</p></div>
+<div class="section" title="Interpreting log files"><div class="titlepage"><div><div><h1 class="title"><a id="ch03lvl1sec27"/>Interpreting log files</h1></div></div></div><p>Log files<a id="id414" class="indexterm"/> provide some of the best clues as to what is going on when a system doesn't act as expected. Depending on the verbosity level configured and whether or not NGINX was compiled with debugging support (<code class="literal">--enable-debug</code>), the log files will help you understand what is going on in a particular session.</p><p>Each line in the error log corresponds to a particular log level, configured using the <code class="literal">error_log</code> directive.  The <a id="id415" class="indexterm"/>different levels are <code class="literal">debug</code>, <code class="literal">info</code>, <code class="literal">notice</code>, <code class="literal">warn</code>, <code class="literal">error</code>, <code class="literal">crit</code>, <code class="literal">alert</code>, and <code class="literal">emerg</code>, in order of increasing severity. Configuring a particular level will include messages for all of the more severe levels above it. The default log level is <code class="literal">error</code>.</p><p>In the context of the <code class="literal">mail</code> module, we <a id="id416" class="indexterm"/>would typically want to configure a log level of <code class="literal">info</code>, so that we can get as much information about a particular session as possible without having to configure debug logging. Debug logging in this case would be useful only for following function entry points, or seeing what password was used for a particular connection.</p><div class="note" title="Note" style=""><div class="inner"><h3 class="title"><a id="note07"/>Note</h3><p>Since mail is extremely dependent upon a correctly-functioning DNS, many errors can be traced back to invalid DNS entries or expired cache information. If you believe you may have a case that could be explained by a name resolution error, you can get NGINX to tell you what IP address a particular hostname is resolved to by configuring debug logging. Unfortunately, this requires a recompile if your <code class="literal">nginx</code> binary was not initially compiled with debugging support.</p></div></div><p>A typical proxy connection is logged as in the following example of a POP3 session.</p><p>First, the client establishes a connection to the proxy:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [info] &lt;worker pid&gt;#0: *&lt;connection id&gt; client &lt;ip address&gt; connected to 0.0.0.0:110 </pre></div><p>Then, once the client has completed a successful login, a statement listing all relevant connection information is logged:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [info] &lt;worker pid&gt;#0: *&lt;connection id&gt; client logged in, client: &lt;ip address&gt;, server: 0.0.0.0:110, login: "&lt;username&gt;", upstream: &lt;upstream ip&gt;:&lt;upstream port&gt;, [&lt;client ip&gt;:&lt;client port&gt;-&lt;local ip&gt;:110] &lt;=&gt; [&lt;local ip:&lt;high port&gt;-&lt;upstream ip&gt;:&lt;upstream port&gt;] </pre></div><p>You will notice that the section before the double arrows <code class="literal">&lt;=&gt;</code> relates to the client-to-proxy side of the connection, whereas the section after the double arrows describes the proxy-to-upstream part of the connection. This information is again repeated once the session is terminated:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [info] &lt;worker pid&gt;#0: *&lt;connection id&gt; proxied session done, client: &lt;ip address&gt;, server: 0.0.0.0:110, login: "&lt;username&gt;", upstream: &lt;upstream ip&gt;:&lt;upstream port&gt;, [&lt;client ip&gt;:&lt;client port&gt;-&lt;local ip&gt;:110] &lt;=&gt; [&lt;local ip:&lt;high port&gt;-&lt;upstream ip&gt;:&lt;upstream port&gt;] </pre></div><p>In this way, we see which ports are in use on all sides of the connection, to help debug any potential problems or to perhaps correlate the log entry with what may appear in a firewall log.</p><p>Other log entries at the <code class="literal">info</code> level pertain to timeouts or invalid commands/responses sent by either the client or upstream.</p><p>Entries at the <code class="literal">warn</code> log level are typically configuration errors:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [warn] &lt;worker pid&gt;#0: *&lt;connection id&gt; "starttls" directive conflicts with "ssl on"</pre></div><p>Many <a id="id417" class="indexterm"/>errors that are reported at the <code class="literal">error</code> log level are indicative of problems with the authentication service. You will notice the text <code class="literal">while in http auth state</code> in the following entries. This shows where in the connection state the error has occurred:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [error] &lt;worker pid&gt;#0: *&lt;connection id&gt; auth http server 127.0.0.1:9000 timed out while in http auth state, client: &lt;client ip&gt;, server: 0.0.0.0:25
+&lt;timestamp&gt; [error] &lt;worker pid&gt;#0: *&lt;connection id&gt; auth http server 127.0.0.1:9000 sent invalid response while in http auth state, client: &lt;client ip&gt;, server: 0.0.0.0:25</pre></div><p>If the authentication query is not successfully answered for any reason, the connection is terminated. NGINX doesn't know to which upstream the client should be proxied, and thereby closes the connection with an <code class="literal">Internal server error</code> with the protocol-specific response code.</p><p>Depending on whether or not the username is present, the information will appear in the log file. Here's an entry from an authenticated SMTP connection:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [error] &lt;worker pid&gt;#0: *&lt;connection id&gt; auth http server 127.0.0.1:9000 did not send server or port while in http auth state, client: &lt;client ip&gt;, server: 0.0.0.0:25, login: "&lt;login&gt;"</pre></div><p>Note the previous two entries are missing in the <code class="literal">login</code> information.</p><p>An <code class="literal">alert</code> log level event will indicate that NGINX was not able to set a parameter as expected, but will otherwise operate normally.</p><p>Any log entry at the <code class="literal">emerg</code> level, however, will prevent NGINX from starting: either the situation has to be corrected or the configuration must be changed. If NGINX is already running, it will not restart any worker process until the change has been made:</p><div class="informalexample"><pre class="programlisting">&lt;timestamp&gt; [error] &lt;worker pid&gt;#0: *&lt;connection id&gt; no "http_auth" is defined for server in /opt/nginx/conf/nginx.conf:32</pre></div><p>Here we <a id="id418" class="indexterm"/>need to define an authentication service using the<a id="id419" class="indexterm"/> <code class="literal">http_auth</code> directive.</p></div>
+<div class="section" title="Operating system limits"><div class="titlepage"><div><div><h1 class="title"><a id="ch03lvl1sec28"/>Operating system limits</h1></div></div></div><p>You may run into a<a id="id420" class="indexterm"/> situation in which NGINX does not perform as you expect. Either connections are being dropped or warning messages are printed in the log file. This is when it is important to know what limits your operating system may place on NGINX and how to tune them to get the best performance out of your server.</p><p>The area in which a mail proxy is most likely to run into problems is a connection limit. To understand what this means, you first have to know how NGINX handles client connections. The NGINX master process starts a number of workers, each of which runs as a separate process. Each process is able to handle a fixed number of connections, set by the<a id="id421" class="indexterm"/> <code class="literal">worker_connections</code> directive. For each proxied connection, NGINX opens a new connection to the mail server. Each of these connections requires a file descriptor and per mail server IP/port combination, a new TCP port from the ephemeral port range (see the following explanation).</p><p>Depending on your operating system, the maximum number of open file descriptors is tunable in a resource file or by sending a signal to a resource-management daemon. You can see what the current value is set to by entering the following command at the prompt:</p><div class="informalexample"><pre class="programlisting">
+<span class="strong"><strong>ulimit -n</strong></span>
+</pre></div><p>If by your calculations, this limit is too low, or you see a message in your error log that <code class="literal">worker_connections exceed open file resource limit</code>, you'll know that you need to increase this value. First tune the maximum number of open file descriptors at the operating system level, either for just the user that NGINX runs as or globally. Then, set the <code class="literal">worker_rlimit_nofile</code> directive<a id="id422" class="indexterm"/> to the new value in the main context of the<a id="id423" class="indexterm"/> <code class="literal">nginx.conf</code> file. Sending <code class="literal">nginx</code> a configuration reload signal (HUP) will then be enough to raise this limit without restarting the main process.</p><p>If you observe a connection limit due to exhaustion of available TCP ports, you will need to increase the ephemeral port range. This is the range of TCP ports which your operating system maintains for outgoing connections. It can default to as few as 5000, but is typically set to a range <a id="id424" class="indexterm"/>of 16384 ports. A good description of how to increase this range for various operating systems is provided at <a class="ulink" href="http://www.ncftp.com/ncftpd/doc/misc/ephemeral_ports.html">http://www.ncftp.com/ncftpd/doc/misc/ephemeral_ports.html</a>.</p></div>
+<div class="section" title="Summary"><div class="titlepage"><div><div><h1 class="title"><a id="ch03lvl1sec29"/>Summary</h1></div></div></div><p>In this chapter, we have seen how NGINX can be configured to proxy POP3, IMAP, and SMTP connections. Each protocol may be configured separately, announcing support for various capabilities in the upstream server. Encrypting mail traffic is possible by using TLS and providing the server with an appropriate SSL certificate.</p><p>The authentication service is fundamental to the functioning of the <code class="literal">mail</code> module, as no proxying can be done without it. We have detailed an example of such an authentication service, outlining the requirements of both what is expected in the request and how the response should be formed. With this as a foundation, you should be able to write an authentication service that fits your environment.</p><p>Understanding how to interpret log files is one of the most useful skills a system administrator can develop. NGINX gives fairly detailed log entries, although some may be a bit cryptic. Knowing where to place the various entries within the context of a single connection and seeing the state NGINX is in at that time is helpful to deciphering the entry.</p><p>NGINX, like any other piece of software, runs within the context of an operating system. It is therefore extremely useful to know how to increase any limits the OS may place on NGINX. If it is not possible to increase the limits any further, then an architectural solution must be found by either multiplying the number of servers on which NGINX runs, or using some other technique to reduce the number of connections a single instance must handle.</p><p>In the next chapter, we see how to configure NGINX to proxy HTTP connections.</p></div></body></html>

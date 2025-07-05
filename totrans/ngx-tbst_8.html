@@ -1,0 +1,216 @@
+<html><head></head><body><div class="appendix" title="Appendix&#xA0;A.&#xA0;Rare Nginx Error Messages"><div class="titlepage"><div><div><h1 class="title"><a id="appA"/>Appendix A. Rare Nginx Error Messages</h1></div></div></div><p>We conclude our book with a reference of interesting and not very common error messages that you might encounter in your log files. The table in this appendix may be an emergency reference or another peek into what could go wrong in your setup. In general, Nginx is pretty good at reporting its own problems. The messages usually have a standard format with common items, such as severity, function name, and pointers to external data that caused the problem.</p><p>We would <a class="indexterm" id="id317"/>recommend against leaving this table unread until a problem occurs because the notes column may contain interesting insights into how Nginx works and help you understand it better. Some of these messages you might not see in your real working experience, which is okay, as the error conditions are exceptions by definition.</p><div class="informaltable"><table border="1"><colgroup><col style="text-align: left"/><col style="text-align: left"/></colgroup><tbody><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>could not open error log file: open() "/var/log/nginx/error.log" failed</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This is a very common error, which usually indicates problems with permissions on either the actual log files or the directory structure. You will see this in the <code class="literal">stderr</code> of the Nginx process because, obviously, it is an error in the error reporting mechanism.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>rewrite or internal redirection cycle while internally redirecting</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This message means you have a cycle in the rewrite/redirection logic. They may be introduced by complex regular expressions that match too much, for example.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>invalid PID number $pid in $file</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The saved PID number is garbled. There is a problem with the file that is mentioned in the <code class="literal">pid</code> directive of your <code class="literal">nginx.conf file</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>getpwnam($user) failed</strong></span>
+</p>
+<p>
+<span class="strong"><strong>getgrnam($group) failed</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>These two mean that there are problems with the user and group that your Nginx is supposed to run as. This may happen when you try to use configuration files imported from other machines without corrections. See<a class="indexterm" id="id318"/> the documentation for the directive at <a class="ulink" href="http://nginx.org/en/docs/ngx_core_module.html#user">http://nginx.org/en/docs/ngx_core_module.html#user</a>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>could not build $hash, you should increase $hash_max_size:</strong></span>
+</p>
+<p>and</p>
+<p>
+<span class="strong"><strong>could not build $hash, you should increase $hash_bucket_size:</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>These are the messages that Nginx emits when a hash table hits one of two limits—the total hash size and the size of each individual bucket. There are a number of hash tables used throughout the Nginx code, and all of them have the correspondent pairs of directives that look like <code class="literal">*_max_size</code> and <code class="literal">*_bucket_size</code>. You have to increase one of those values to get rid of the errors.</p>
+<p>Also, see <a class="indexterm" id="id319"/>the special document about hashes in Nginx at <a class="ulink" href="http://nginx.org/en/docs/hash.html">http://nginx.org/en/docs/hash.html</a>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>read()/pread() read only $count of $size from $source</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This<a class="indexterm" id="id320"/> message means that, unexpectedly, a reading syscall returned less bytes than it should have. There are a number of places where this kind of error may originate.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>the configured event method cannot be used with thread pools</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Thread pools require the epoll, eventport or the kqueue event subsystem.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>pthread_create() failed</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This and a number of similar errors come from the thread pool code that uses POSIX threads.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>pcre_compile() failed:</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Nginx uses the <a class="indexterm" id="id321"/>
+<span class="strong"><strong>Perl Compatible Regular Expressions</strong></span> (<span class="strong"><strong>PCRE</strong></span>) library to implement regexps. PCRE is fine and <code class="literal">pcre_compile()</code> is the function to compile a regular expression before matching it. Its failure indicates a bad regular expression.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>pcre_study() failed:</strong></span>
+</p>
+<p>and</p>
+<p>
+<span class="strong"><strong>JIT compiler does not support pattern:</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Besides simple compilation, PCRE implements several heuristics to optimize the matching of some patterns. That is what <code class="literal">pcre_study()</code> does. There are very few ways for it to fail, but the JIT compiler, which is one of the optimizations, is a complex piece of software doing much work. Failure inside it probably means either a bug in PCRE or a very weird regular expression.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>could not change the accept filter to $value</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Accept filters are a feature of BSD kernels that allow postponing the return from the blocking <code class="literal">accept()</code> calls until there's a meaningful and expected piece of incoming data ready in the buffer.</p>
+<p>This is an internal error most probably indicating a bug.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>$number worker_connections are not enough</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>You need to increase the number in the directive <code class="literal">worker_connections</code>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>rename() $filename1 to $filename2 failed before executing new binary process</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>During the very elaborate process of a graceful executable upgrade, Nginx tried to rename the <code class="literal">pid</code> file and failed. You may read about how <a class="indexterm" id="id322"/>Nginx manages to restart itself without losing connections at <a class="ulink" href="http://nginx.org/en/docs/control.html">http://nginx.org/en/docs/control.html</a>.</p>
+<p>See the USR2 signal.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>the number of "worker_processes" is not equal to the number of "worker_cpu_affinity" masks, using last mask for remaining worker processes</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>CPU affinity is a concept of tying worker processes to particular CPUs. The idea is to be able to say, for example, that the first worker should only run on the first four cores and the second worker should run on the second four cores, respectively.</p>
+<p>The number of affinity masks that you specify should correspond to the number of worker processes. If it is less, you get this warning message.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>no "events" section in configuration</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Your<a class="indexterm" id="id323"/> configuration file misses one of the most important sections, which is <span class="emphasis"><em>Events</em></span>. See <a class="link" href="ch01.html" title="Chapter 1. Searching for Problems in Nginx Configuration">Chapter 1</a>, <span class="emphasis"><em>Searching for Problems in Nginx Configuration</em></span>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>$number worker_connections exceed open file resource limit: $number</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>The resource limit on the number of open files (file descriptors limit) does not allow having as many worker connections as you wanted by specifying it with the <code class="literal">worker_connections</code> directive.</p>
+<p>See the ulimit manpage and also login.conf manpage if you are on FreeBSD.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>"ssl_stapling" ignored, issuer certificate not found</strong></span>
+</p>
+<p>
+<span class="strong"><strong>"ssl_stapling" ignored, no OCSP responder URL in the certificate</strong></span>
+</p>
+<p>
+<span class="strong"><strong>certificate status not found in the OCSP response</strong></span>
+</p>
+<p>
+<span class="strong"><strong>OCSP responder timed out</strong></span>
+</p>
+<p>
+<span class="strong"><strong>OCSP responder sent invalid "Content-Type" header:</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>A number of different messages all mentioning either SSL stapling (and the <code class="literal">ssl_stapling</code> directive) or OCSP may indicate that your HTTPS works not as efficiently as it could.</p>
+<p>One of the most complex parts of all X.509 PKI is the issue of certificate revocation. OCSP is the newer attempt at providing online information about the revocation status of certificates, and in the worst case, it requires the client to regularly check the server certificate with an OCSP responder.</p>
+<p>When OCSP stapling is on, Nginx contacts the responder by itself and provides the clients with a signed, time-stamped OCSP ticket.</p>
+<p>Basically, a modern HTTPS website should have SSL stapling on and working. Fix these by following all the recommendations in the documentation closely.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>nginx was built with Session Tickets support, however, now it is linked dynamically to an OpenSSL library which has no tlsext support, therefore Session Tickets are not available</strong></span>
+</p>
+<p>and also the same about "SNI" instead of Session Tickets</p>
+</td><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>Server Name Indication</strong></span> (<span class="strong"><strong>SNI</strong></span>) is an HTTP request <code class="literal">Host:</code> header counterpart<a class="indexterm" id="id324"/> for HTTPS. It is a newer TLS/SSL feature, which permits name-based virtual hosting for HTTPS.</p>
+<p>The<a class="indexterm" id="id325"/> online Nginx documentation has a separate section on SNI at <a class="ulink" href="http://nginx.org/en/docs/http/configuring_https_servers.html#sni">http://nginx.org/en/docs/http/configuring_https_servers.html#sni</a>.</p>
+<p>Session Tickets is a TLS feature-optimizing handshake count.</p>
+<p>Both of these require OpenSSL support at compile time and at runtime.</p>
+<p>You may see these error messages when you run Nginx from a binary package on a box with bad OpenSSL.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>open(/dev/poll) failed</strong></span>
+</p>
+<p>
+<span class="strong"><strong>kqueue() failed</strong></span>
+</p>
+<p>
+<span class="strong"><strong>port_create() failed</strong></span>
+</p>
+<p>
+<span class="strong"><strong>eventfd() failed</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>These<a class="indexterm" id="id326"/> are all different indications that<a class="indexterm" id="id327"/> you have chosen the wrong event subsystem with the directive <code class="literal">use</code> in the events context. See <a class="ulink" href="http://nginx.org/en/docs/events.html">http://nginx.org/en/docs/events.html</a>.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>no servers in upstream</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Upstreams are groups of backends (whether they are separate hosts or just server software instances running locally) and you specified an empty group.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>client intended to send too large body: $number bytes</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Well-behaved HTTP clients indicate the size of the requests they send in the <code class="literal">Content-Length:</code> header. When this size exceeds the value from the <code class="literal">client_max_body_size</code> directive, Nginx will reject the request with a 413 code.</p>
+<p>The default value of this limit is only 1 MB, so you may face the problem very often if your website has a function of file uploads.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>not well formed XML document</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This very vague message is emitted from the rarely used XSLT module. It uses libxml2 and therefore needs valid XML documents.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>FastCGI sent in stderr:</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>This is a message generated by the FastCGI upstream. FastCGI, as a protocol for communications with external processes, provides channels for both <code class="literal">stdout</code> and <code class="literal">stderr</code> of the backend software. So this is where <code class="literal">stderr</code> ends up.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>no "proxy_ssl_certificate_key" is defined</strong></span>
+</p>
+<p>
+<span class="strong"><strong>no proxy_ssl_trusted_certificate for proxy_ssl_verify</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>Modern Nginx has the feature of being a good HTTPS client as well as a server. The HTTP proxy upstream is able to present a client certificate to an HTTPS upstream server. You will need to provide the key to the certificate as well.</p>
+<p>The client part also can verify the certificate of the server and even check it<a class="indexterm" id="id328"/> against a <span class="strong"><strong>Certificate Revokation List</strong></span> (<span class="strong"><strong>CRL</strong></span>).</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>cache $zone uses the $path cache path while previously it used the $path cache path</strong></span>
+</p>
+<p>
+<span class="strong"><strong>cache $zone had previously different levels</strong></span>
+</p>
+<p>
+<span class="strong"><strong>cache file $file is too small</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>These messages indicate that the Nginx file cache directory was moved or otherwise tampered with.</p>
+<p>You should probably clean it and get ready to start again with a cold cache.</p>
+</td></tr><tr><td style="text-align: left" valign="top">
+<p>
+<span class="strong"><strong>duplicate location $location</strong></span>
+</p>
+</td><td style="text-align: left" valign="top">
+<p>You <a class="indexterm" id="id329"/>have two exactly equal location selectors. Nginx will give you the line number of the second instance, but you will have to find the first yourself.</p>
+</td></tr></tbody></table></div></div></body></html>

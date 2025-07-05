@@ -1,0 +1,909 @@
+<html><head></head><body>
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Reverse Proxy</h1>
+                </header>
+            
+            <article>
+                
+<p>In this chapter, we will cover the following recipes:</p>
+<ul>
+<li>Configuring NGINX as a simple reverse proxy</li>
+<li>Content caching with NGINX</li>
+<li>Monitoring cache status</li>
+<li>Microcaching</li>
+<li>Serving from cache when your backend is down</li>
+<li>SSL termination proxy</li>
+<li>Rate limiting</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Introduction</h1>
+                </header>
+            
+            <article>
+                
+<p>One of the most powerful features of NGINX is its ability to act as a reverse proxy. As opposed to a forward proxy, which sits between the client and the internet, a reverse proxy sits between a server and the internet.</p>
+<p>Here's a visual representation:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class="image-border" height="286" src="assets/4848ed4f-ec12-4425-92da-4c6ca9e05f76.png" width="484"/></div>
+<p>A reverse proxy can provide a multitude of features. It can load balance requests, cache content, rate limit, provide an interface to a <strong>Web Application Firewall</strong> (<strong>WAF</strong>), and lots more. Basically, you can greatly increase the number of features available to your system by running it through an advanced reverse proxy.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Configuring NGINX as a simple reverse proxy</h1>
+                </header>
+            
+            <article>
+                
+<p>In this recipe, we'll look at the basic configuration of a simple reverse proxy scenario. If you've read the first few chapters, then this is how NGINX was configured in front of PHP-FPM and similar anyway.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>Before you can configure NGINX, you'll first need to ensure your application is listening on a different port than port <kbd>80</kbd>, and ideally on the <kbd>loopback</kbd> interface, to ensure it's properly protected from direct access.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Here's our <kbd>server</kbd> block directive to proxy all requests through to port <kbd>8000</kbd> on the localhost:</p>
+<pre>server { 
+    listen       80; 
+    server_name  proxy.nginxcookbook.com; 
+    access_log  /var/log/nginx/proxy-access.log  combined; 
+ 
+    location / { 
+        proxy_pass http://127.0.0.1:8000; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>For all requests, the <kbd>location</kbd> block directive is set to proxy all connections to a specified address (<kbd>127.0.0.1:8000</kbd> in this instance). With the basic settings, NGINX doesn't manipulate any of the data, nor does it cache or load balance. Testing with a basic proxy method is always a good step before moving to a complicated configuration to ensure that your application or program will work as expected.</p>
+<p>To get around the fact that you don't want private information cached (and therefore potential information leakage), NGINX will check for both cookies and cache headers. For example, when you log in to a WordPress system, this login will return a <kbd>Set-Cookie</kbd> header and NGINX will therefore exclude this from being cached.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>One thing to note when using a reverse proxy is that the headers back to your application will be based on the IP of the proxy. There are two choices here. The first is to use the logs from NGINX as the authoritative for reporting purposes. The second is to manipulate the headers so that we pass the correct IP through to the application. Here's what our updated block directive looks like:</p>
+<pre>server { 
+    listen       80; 
+    server_name  proxy.nginxcookbook.com; 
+    access_log  /var/log/nginx/proxy-access.log  combined; 
+ 
+    location / { 
+        proxy_pass http://127.0.0.1:8000; 
+        proxy_set_header X-Forwarded-For <br/>         $proxy_add_x_forwarded_for;                 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header Host $host; 
+    } 
+} </pre>
+<p>The <kbd>X-Forwarded-For</kbd> header shows the full chain of servers which have proxied the packet, which could be multiple forward proxies. This is why we also have <kbd>X-Real-IP</kbd>, so that we ensure we have the real IP address of the client.</p>
+<p>To ensure that the upstream hostname is sent through, we set the <kbd>Host</kbd> header field. This allows the upstream server to be name-based and can allow multiple hosts (that is, multiple websites) to be proxied under one configuration or one server.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>Official NGINX proxy help: <a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_proxy_module.html</span></a></li>
+<li>The NGINX proxy guide: <a href="https://www.nginx.com/resources/admin-guide/reverse-proxy/"><span class="URLPACKT">https://www.nginx.com/resources/admin-guide/reverse-proxy/</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Content caching with NGINX</h1>
+                </header>
+            
+            <article>
+                
+<p>In addition to simply proxying the data through, we can use NGINX to cache the proxied content. By doing this, we can reduce the amount of calls to your backend service, assuming that the calls are able to be cached.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>As the caching is part of the standard NGINX platform, no additional prerequisites are required.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>In order to enable the cache, first we need to define where to store the cached files. This needs to be set outside the <kbd>server</kbd> block directive and is best stored in the main <kbd>nginx.conf</kbd> file. Here's the directive required:</p>
+<pre>proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=cache:2m </pre>
+<div class="packt_tip">Make sure you create the directory and that NGINX has write access.</div>
+<p>Then, we can create a block directive to use this cache:</p>
+<pre>server { 
+    listen       80; 
+    server_name  cached.nginxcookbook.com; 
+    access_log  /var/log/nginx/cache-access.log  combined; 
+ 
+    location / { 
+        proxy_pass http://localhost:8080; 
+        proxy_cache cache; 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header X-Forwarded-For $remote_addr; 
+        proxy_set_header Host $host; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>Firstly, the first parameter to the <kbd>proxy_cache_path</kbd> directive is the location of the cache files. You can choose any directory which makes sense to your server structure, but ensure that the NGINX user on your server has write access.</p>
+<p>The <kbd>levels</kbd> parameter specifies how the cache is written to the system. In our recipe, we have specified <kbd>1:2</kbd>. This means that the files are stored in a two-level hierarchy. The reason this is configurable is due to potential slowdowns when there are thousands of files within a single directory. Having two levels is a good way to ensure this never becomes an issue.</p>
+<p>The third parameter, <kbd>keys_zone</kbd>, sets aside memory to store metadata about the cached content. Rather than a potentially expensive (system resource wise) call to see whether the file exists or not, NGINX will map the file and use in-memory metadata for tracking. In our recipe, we have allocated 2 MB and this should be sufficient for up to 16,000 records.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>While writing the cache to disk may seem counter-intuitive from a performance perspective, you need to take into account that the Linux kernel will cache file access to memory. With enough free memory, the file will be read once and then each subsequent calls will be direct from RAM. While this may take more memory than a standard configuration, a typical website can be as little as 64 MB in total, which is trivial by modern standards.</p>
+<p>Having the cache disk-based means that it's also persistent between reboots or restarts of NGINX. One of the biggest issues with the cold start of a server is the load on the system until it has had a chance to warm the cache. If you need to ensure that the loading of any cache file from disk is as fast as possible, I'd recommend ensuring that the cache is stored on a high-speed <strong>Solid State Drive</strong> (<strong>SSD</strong>).</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>The NGINX caching guide: <a href="https://www.nginx.com/blog/nginx-caching-guide/"><span class="URLPACKT">https://www.nginx.com/blog/nginx-caching-guide/﻿</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Monitoring cache status</h1>
+                </header>
+            
+            <article>
+                
+<p>When developing complex sites or rapidly changing content, one key aspect is to monitor where the content was served from. Essentially, we need to know whether we hit the cache or whether it was a miss.</p>
+<p>This helps us ensure that, if there are issues, or on seeing incorrect content, we know where to look. It can also be used to ensure the caching is working on pages where it's expected and being bypassed for areas where it shouldn't be.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>As the caching is part of the standard NGINX platform, no additional prerequisites are required.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>One of the easiest ways is to simply add an additional header. To do this, we add the additional directive to our existing proxy configuration within the <kbd>location</kbd> block directive:</p>
+<pre>proxy_set_header X-Cache-Status $upstream_cache_status; </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>NGINX internally tracks the status of the request (<kbd>$upstream_cache_status</kbd>), so by exposing it as a header, we can now see it from the client side. If we use Google DevTools or a utility such as <kbd>httpstat</kbd> to see the headers, you should see an output like this:</p>
+<pre>httpstat http://proxy.nginxcookbook.com/ 
+ 
+HTTP/1.1 200 OK 
+Server: nginx/1.11.2 
+Date: Sun, 09 Oct 2016 12:18:54 GMT 
+Content-Type: text/html; charset=UTF-8 
+Transfer-Encoding: chunked 
+Connection: keep-alive 
+Vary: Accept-Encoding 
+X-Powered-By: PHP/7.0.12 
+X-Cache-Status: HIT </pre>
+<p>We can see by the <kbd>X-Cache-Status</kbd> header that the request was a hit, meaning it was served from the cache not the backend. Other than the basic hit and miss, there are also a number of other statuses which could be returned:</p>
+<table>
+<tbody>
+<tr>
+<td>
+<p><strong>Status</strong></p>
+</td>
+<td>
+<p><strong>Meaning</strong></p>
+</td>
+</tr>
+<tr>
+<td><kbd>HIT</kbd></td>
+<td>The request was a hit and therefore served from cache</td>
+</tr>
+<tr>
+<td><kbd>MISS</kbd></td>
+<td>The request wasn't found in cache and therefore had to be requested from the backend server</td>
+</tr>
+<tr>
+<td><kbd>BYPASS</kbd></td>
+<td>The request was served from the backend server, as NGINX was explicitly told to bypass the cache for the request</td>
+</tr>
+<tr>
+<td><kbd>EXPIRED</kbd></td>
+<td>The request had expired in cache, so NGINX had to get a new copy from the backend server</td>
+</tr>
+<tr>
+<td><kbd>STALE</kbd></td>
+<td>NGINX couldn't talk to the backend server, but instead has been told to serve stale content</td>
+</tr>
+<tr>
+<td><kbd>UPDATING</kbd></td>
+<td>NGINX is currently awaiting an updated copy from the backend server, but has also been told to serve stale content in the interim</td>
+</tr>
+<tr>
+<td>
+<p><kbd>REVALUATED</kbd></p>
+</td>
+<td>This relies on the use of <kbd>proxy_cache_revalidate</kbd> being enabled and checks the cache control headers from the backend server to determine if the content has expired</td>
+</tr>
+</tbody>
+</table>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>NGINX HTTP upstream variables: <a href="http://nginx.org/en/docs/http/ngx_http_upstream_module.html#variables"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_upstream_module.html#variables</span></a></li>
+<li>The <kbd>httpstat</kbd> utility: <a href="https://github.com/reorx/httpstat"><span class="URLPACKT">https://github.com/reorx/httpstat</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Microcaching</h1>
+                </header>
+            
+            <article>
+                
+<p>Caching is a great way to speed up performance, but some situations mean that you will be either continually invalidating the content (which means you'll need more server resources) or serving stale content. Neither scenario is ideal, but there's an easy way to get a good compromise between performance and functionality.</p>
+<p>With microcaching, you can set the timeout to be as low as one second. While this may not sound like a lot, if you're running a popular site, then trying to dynamically serve 50+ requests per second can easily bring your server to its knees. Instead, microcaching will ensure that the majority of your requests (that is, 49 out of the 50) are served direct from cache, yet will only be 1 second old.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>As the caching is part of the standard NGINX platform, no additional prerequisites are required.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>To take advantage of microcaching, we expand on our previous recipe to reduce the timeout of the cache.</p>
+<pre>server { 
+    listen       80; 
+    server_name  micro.nginxcookbook.com; 
+ 
+    access_log  /var/log/nginx/micro-access.log  combined; 
+ 
+    location / { 
+        proxy_pass http://127.0.0.1:8080; 
+        proxy_cache micro; 
+        proxy_cache_valid 200 10s; 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header X-Forwarded-For $remote_addr; 
+        proxy_set_header Host $host; 
+    } 
+} </pre>
+<p>When you first look at it, 1 second timeouts seem like they won't provide any help. For a busy site, the reduction of requests which have to hit the backend server can be significantly dropped. It also means that your burst ability is greatly increased, allowing your site to handle a spike in traffic without issue.</p>
+<p>As shown in the following diagram, the higher the <strong>Requests Per Second</strong> (<strong>RPS</strong>) the greater the advantage microcaching will provide:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class="image-border" height="164" src="assets/80d07109-3a18-4ff1-9454-a70063ed70d8.png" width="719"/></div>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>We set the <kbd>proxy_cache_valid</kbd> directive to cache the <kbd>200</kbd> responses and set them to be valid for 1 second (<kbd>1s</kbd>).</p>
+<p>The validation value can be as low as your minimum content refresh. If you need changes to be live instantly, a 1 second timeout for the validation can be used. If you have less frequent changes, then setting 10-20 seconds can also be acceptable for many sites.</p>
+<p>HTTP response codes of <kbd>200</kbd> represent an OK response, meaning it was a successful response from the server. We could also cache <kbd>404</kbd> requests (Not Found) as well, especially knowing that some of these can be quite resource intensive if they involve database searches.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Serving from cache when your backend is down</h1>
+                </header>
+            
+            <article>
+                
+<p>While we don't want to see a scenario where your backend server is down, expecting to maintain 100 percent uptime simply isn't realistic. Whether it's unexpected or planned upgrades, having the ability to still serve content is a great feature.</p>
+<p>With NGINX, we can tell it to serve stale cache data when it can't reach your backend server. Having a page which is slightly out-of-date is (in most scenarios) a far better outcome than sending the client a <kbd>502</kbd> HTTP error (Bad Gateway).</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>As the caching is part of the standard NGINX platform, no additional prerequisites are required.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Building on our previous recipes, we take the existing proxy setup and add an additional directive:</p>
+<pre>server { 
+    listen       80; 
+    server_name  proxystale.nginxcookbook.com; 
+    access_log  /var/log/nginx/proxy-access.log  combined; 
+ 
+    location / { 
+        proxy_pass http://127.0.0.1:8000; 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header X-Forwarded-For $remote_addr; 
+        proxy_set_header Host $host; 
+        proxy_cache_use_stale error timeout http_500 http_502 <br/>         http_503 http_504; 
+    } 
+} </pre>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>With the <kbd>proxy_cache_use_stale</kbd> directive, we specify which cases should use a stale copy of the cache. For this recipe, we've specified that when we have an error, timeout, <kbd>500</kbd> (Internal Server Error), <kbd>502</kbd> (Bad Gateway), <kbd>503</kbd> (Service Unavailable), and <kbd>504</kbd> (Gateway Timeout) errors from the backend server that the stale copy can be used.</p>
+<p>If any of these scenarios trigger, we take the less abrupt option of serving the content. Especially, if you've got short cache times (such as microcaching), the users of the site won't even notice the difference.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>One thing you don't want to do is queue thousands of requests as your backend system comes online. With a busy site, it's easy to overwhelm your system the moment it becomes available again. Especially since a big update or restart usually means local object caches within the backend are also cold, care needs to be taken when bringing it back online.</p>
+<p>One great feature NGINX has is to lock the cache to ensure only one request per unique key is sent through. Here's an updated configuration to use this lock:</p>
+<pre>location / { 
+        proxy_pass http://www.verifiedparts.com:80; 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header X-Forwarded-For $remote_addr; 
+        proxy_set_header X-Cached $upstream_cache_status; 
+        proxy_set_header Host www.verifiedparts.com; 
+        proxy_cache_use_stale error updating timeout http_500 http_502 <br/>        http_503 http_504; 
+        proxy_cache_lock on; 
+        proxy_cache_lock_timeout 60s; 
+    }  </pre>
+<p>The <kbd>proxy_cache_lock</kbd> directive ensures that only one request (if there's a cache <kbd>MISS</kbd>) is sent through to the backend/upstream server. All other requests are either served from the cache (and stale if using this recipe) until the timeout directive (<kbd>proxy_cache_lock_timeout</kbd>) is triggered, and if the cache status is still a <kbd>MISS</kbd>, then it will try again. The timeout value needs to be sufficient to allow the backend to be ready to serve pages; for some .NET-based or Java systems, this could be as high as 120 seconds.</p>
+<p>This combination greatly lowers the peak impact on the backend after a cold start and helps to avoid overwhelming the system. By ensuring only one request per URI can be directed at the backend, we help ensure it has time to properly process requests as the cache warms again.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<ul>
+<li>The proxy module: <a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_use_stale"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_use_stale</span></a></li>
+<li>The cache lock documentation: <a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock</span></a></li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">SSL termination proxy</h1>
+                </header>
+            
+            <article>
+                
+<p>One of the first use cases that I tried NGINX out for was simply as an SSL termination proxy. If you have an application which can't directly produce HTTPS (encrypted) output, you can use NGINX as a proxy to do this. Content is served from your backend in plain text, then the connection between NGINX and the browser is encrypted. To help explain, here's a diagram covering the scenario:</p>
+<div class="packt_figure CDPAlignCenter CDPAlign"><img class="image-border" src="assets/57ae3cf9-82dc-4504-a75b-f546c45e6088.png"/></div>
+<p>The advantage is that you also get to make use of all the other NGINX feature sets too, especially when it comes to caching. In fact, if you've used the Cloudflare service to achieve a similar outcome, then you may be surprised to know that it's NGINX-based as well.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Getting ready</h1>
+                </header>
+            
+            <article>
+                
+<p>This recipe involves the use of SSL certificates. If you haven't currently generated any for your deployment, see <span class="KeyPACKT"><a href="ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml">Chapter 4</a>, <em>All About SSLs</em></span>, for hints and tips.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Similar to some of our previous recipes, we use NGINX to combine the SSL encryption side and the proxy components:</p>
+<pre>server { 
+    listen              443 ssl; 
+    server_name         ssl.nginxcookbook.com; 
+    ssl_certificate     /etc/ssl/public.pem; 
+    ssl_certificate_key /etc/ssl/private.key; 
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2; 
+    ssl_ciphers         HIGH:!aNULL:!MD5; 
+ 
+    access_log  /var/log/nginx/ssl-access.log  combined; 
+ 
+    location / { 
+        proxy_pass http://localhost:8000; 
+        proxy_set_header X-Real-IP  $remote_addr; 
+        proxy_set_header X-Forwarded-For $remote_addr; 
+        proxy_set_header Host $host; 
+    } 
+} </pre>
+<p>The following are some useful tips you should keep in mind:</p>
+<ul>
+<li>One thing to note is that most SSL certificates are only valid for a single domain, unless they're a wildcard or <strong>Subject Alternative Name</strong> (<strong>SAN</strong>). If you're intending to use NGINX as an SSL terminator to multiple hosts, you'll need to have a <kbd>server</kbd> block or a SAN certificate mapped for each host.</li>
+<li>Be careful with internal redirects within your application, especially if you tell it to enforce HTTPS. When using NGINX for SSL termination, this needs to be done at the NGINX level to avoid redirect loops.</li>
+</ul>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>The NGINX SSL termination guide: <a href="https://www.nginx.com/resources/admin-guide/nginx-ssl-termination/"><span class="URLPACKT">https://www.nginx.com/resources/admin-guide/nginx-ssl-termination/</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">Rate limiting</h1>
+                </header>
+            
+            <article>
+                
+<p>If you have an application or site where there's a login or you want to ensure fair use between different clients, rate limiting can help to help protect your system from being overloaded.</p>
+<p>By limiting the number of requests (done per IP with NGINX), we lower the peak resource usage of the system, as well as limit the effectiveness of attacks which are attempting to brute force your authentication system.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How to do it...</h1>
+                </header>
+            
+            <article>
+                
+<p>Follow these steps for rate limiting:</p>
+<ol>
+<li>Firstly, we need to define a shared memory space to use for tracking the IP addresses. This needs to be added in the main configuration file, outside the standard <kbd>server</kbd> block directive. Here's our code:</li>
+</ol>
+<pre>      limit_req_zone $binary_remote_addr zone=basiclimit:10m rate=10r/s; </pre>
+<ol start="2">
+<li>Then, within the <kbd>server</kbd> block, you can set which location you wish to limit. Here's what our <kbd>server</kbd> block directive looks like:</li>
+</ol>
+<pre>      server { 
+          listen       80; 
+          server_name  limit.nginxcookbook.com; 
+          access_log  /var/log/nginx/limit-access.log  combined; 
+ 
+          location / { 
+              limit_req zone=basiclimit burst=5; 
+              proxy_pass http://127.0.0.1:8000; 
+              proxy_set_header X-Forwarded-For <br/>               $proxy_add_x_forwarded_for;                 
+              proxy_set_header X-Real-IP  $remote_addr; 
+              proxy_set_header Host $host; 
+          } 
+      } </pre>
+<ol start="3">
+<li>We can run Apache Benchmark (a simple web benchmarking tool) under a few different scenarios to test the effectiveness. The first is to use a single connection and make 200 requests:</li>
+</ol>
+<pre>      <strong>ab -c 1 -n 200 http://limit.nginxcookbook.com/</strong></pre>
+<p style="padding-left: 60px">This gives us the following results:</p>
+<pre>      Concurrency Level:      1
+      Time taken for tests:   20.048 seconds
+      Complete requests:      200
+      Failed requests:        0
+      Total transferred:      5535400 bytes
+      HTML transferred:       5464000 bytes 
+      Requests per second:    9.98 [#/sec] (mean) 
+      Time per request:       100.240 [ms] (mean) 
+      Time per request:       100.240 [ms] (mean, across all concurrent <br/>      requests) 
+      Transfer rate:          269.64 [Kbytes/sec] received </pre>
+<p style="padding-left: 60px">As the results show, we didn't receive any errors and averaged 9.98 requests per second.</p>
+<ol start="4">
+<li>In the next test, we'll increase the number of concurrent requests to <kbd>4</kbd> at a time:</li>
+</ol>
+<pre>      <strong>ab -c 4 -n 200 http://limit.nginxcookbook.com/</strong></pre>
+<p style="padding-left: 60px">This gives us the following results:</p>
+<pre>      Concurrency Level:      4 
+      Time taken for tests:   20.012 seconds 
+      Complete requests:      200 
+      Failed requests:        0 
+      Total transferred:      5535400 bytes 
+      HTML transferred:       5464000 bytes 
+      Requests per second:    9.99 [#/sec] (mean) 
+      Time per request:       400.240 [ms] (mean) 
+      Time per request:       100.060 [ms] (mean, across all concurrent <br/>      requests) 
+      Transfer rate:          270.12 [Kbytes/sec] received </pre>
+<p>Even with the increased request rate, we still received responses at a rate of 10 requests per second.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">How it works...</h1>
+                </header>
+            
+            <article>
+                
+<p>There are a number of aspects to this recipe to consider. The first is the <kbd>limit_req_zone</kbd> directive within the main NGINX configuration file. We can create multiple zones for tracking and base them on different tracking parameters. In our recipe, we used <kbd>$binary_remote_addr</kbd> to track the remote IP address. The second parameter is then the name of the zone and the memory to allocate. We called the <kbd>basiclimit</kbd> zone and allocated 10 MB to it, which is sufficient to track up to 160,000 IP addresses. The third parameter is the rate, which we set to 10 requests per second (<kbd>10r/s</kbd>).</p>
+<div class="packt_tip">If you need to have different rate limits for different sections (for example, a lower rate limit for an admin login area), you can define multiple zones with different names.</div>
+<p>To utilize the zone, we then added it to one of the existing location directives using <kbd>limit_req</kbd>. For our recipe, we specified the zone we created (<kbd>basiclimit</kbd>) and also gave it a burst ability of <kbd>5</kbd>. This burst allows for a small buffer over the specified limit before errors are returned and helps to smooth out responses.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">There's more...</h1>
+                </header>
+            
+            <article>
+                
+<p>The soft delay is a nice way to handle rate limiting in a way which is the least disruptive to most users. However, if you're running an API-based service and want to ensure the requesting application is notified of any request which hits the limit, you can add the <kbd>nodelay</kbd> parameter to the <kbd>limit_req</kbd> directive. Consider this example:</p>
+<pre>limit_req zone=basiclimit burst=5 nodelay; </pre>
+<p>Instead of seeing the connections queued, they're immediately returned with a 503 (Service Unavailable) HTTP error. If we rerun the same initial Apache Benchmark call (even with a single connection), we now see this:</p>
+<pre>Concurrency Level:      1 
+Time taken for tests:   4.306 seconds 
+Complete requests:      200 
+Failed requests:        152 
+   (Connect: 0, Receive: 0, Length: 152, Exceptions: 0) 
+Non-2xx responses:      152 
+Total transferred:      1387016 bytes 
+HTML transferred:       1343736 bytes 
+Requests per second:    46.45 [#/sec] (mean) 
+Time per request:       21.529 [ms] (mean) 
+Time per request:       21.529 [ms] (mean, across all concurrent requests) 
+Transfer rate:          314.58 [Kbytes/sec] received </pre>
+<p>Not all our requests returned with a status of <kbd>200</kbd>, and instead any requests over the limit immediately received a <kbd>503</kbd>. This is why our benchmark only shows 46 successful requests per second, as 152 of these were <kbd>503</kbd> errors.</p>
+
+
+            </article>
+
+            
+        </section>
+    
+
+        <section>
+
+                            <header>
+                    <h1 class="header-title">See also</h1>
+                </header>
+            
+            <article>
+                
+<p>The NGINX <kbd>ngx_http_limit_req_module</kbd>: <a href="http://nginx.org/en/docs/http/ngx_http_limit_req_module.html"><span class="URLPACKT">http://nginx.org/en/docs/http/ngx_http_limit_req_module.html</span></a></p>
+
+
+            </article>
+
+            
+        </section>
+    </body></html>
