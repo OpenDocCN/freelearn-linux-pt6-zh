@@ -127,6 +127,7 @@
   id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_keepalive` 指令用于配置 `keepalive` 参数。其语法如下：'
 - en: '[PRE3]'
   id: totrans-19
   prefs: []
@@ -146,21 +147,29 @@
   id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，`max` 参数决定了 `keepalive` 连接的最大数量。`mode` 参数有两个可能的值，分别是 `multi` 和 `single`。`single`
+    模式意味着连接池不会区分当前块中的多个 `postgres_server` 定义，并且将对所有的 `postgres_server` 定义应用相同的池，即所有的
+    `postgres_server` 定义共享同一个池。在 `multi` 模式下，连接池会重用具有相同服务器主机名和端口的连接。默认值是 `single`。`overflow`
+    选项指定了当连接池已满且需要新数据库连接时该怎么办。可以指定 `reject` 或 `ignore`。如果选择 `reject`，则会拒绝当前请求并返回 **503
+    服务不可用** 错误页面。如果选择 `ignore`，该模块将创建一个新的数据库连接。
 - en: postgres_pass
   id: totrans-21
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_pass
 - en: The `postgres_pass` directive holds the name of the upstream block that contains
     the PostgreSQL connection's configurations. It can also contain variables.
   id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_pass` 指令保存包含 PostgreSQL 连接配置的上游块名称。它还可以包含变量。'
 - en: postgres_query
   id: totrans-23
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_query
 - en: 'The `postgres_query` directive is used to specify a PostgreSQL query. If an
     HTTP method such as `GET`, `POST`, `PUT`, or `DELETE` is specified, the query
     is used only for the specified methods; otherwise, it will run for all the methods.
@@ -169,6 +178,8 @@
   id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_query` 指令用于指定 PostgreSQL 查询。如果指定了 `GET`、`POST`、`PUT` 或 `DELETE` 等
+    HTTP 方法，则查询仅适用于指定的方法；否则，它将在所有方法中运行。查询可以包含变量，并且你可以在一个位置指定多个查询指令。一个示例配置如下：'
 - en: '[PRE4]'
   id: totrans-25
   prefs: []
@@ -179,37 +190,44 @@
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_rewrite
 - en: 'The `postgres_rewrite` directive should be used to send a specific response
     code when a condition is met. The condition can be one of the following:'
   id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_rewrite` 指令应在满足某个条件时发送特定的响应代码。条件可以是以下之一：'
 - en: '`no_changes`: This is the condition when no rows are affected by the query'
   id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no_changes`：这是指查询没有影响任何行时的条件'
 - en: '`changes`: This is the condition when at least one row is affected by the query'
   id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`changes`：这是指查询至少影响一行时的条件'
 - en: '`no_rows`: This is the condition when no rows are returned in the result set'
   id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no_rows`：这是指结果集中没有返回任何行时的条件'
 - en: '`rows`: This is the condition when at least one row is returned in the result
     set'
   id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rows`：这是指查询返回至少一行时的条件'
 - en: 'If you want to send the original response body to the client, prefix the code
     with `=` as shown in the following example configuration:'
   id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想将原始响应体发送到客户端，可以在代码前加上 `=`，如以下示例配置所示：
 - en: '[PRE5]'
   id: totrans-33
   prefs: []
@@ -220,6 +238,7 @@
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_output
 - en: The `postgres_output` directive determines the output type of the response.
     The possible values are `rds`, `text`, `binary`, `value`, and `none`. The `none`
     value is used when you don't want any output. `value` is used when you want a
@@ -228,17 +247,21 @@
   id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_output` 指令决定响应的输出类型。可能的值包括 `rds`、`text`、`binary`、`value` 和 `none`。当你不希望有任何输出时，使用
+    `none` 值。`value` 用于当你希望以文本格式输出单个值时。所有响应类型都会设置适当的 HTTP 头。'
 - en: postgres_set
   id: totrans-36
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_set
 - en: 'The `postgres_set` directive is used to set a variable from a single value
     from the result set. You can specify the row and column to pick the value from.
     An example configuration is as follows:'
   id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_set` 指令用于从结果集中设置一个变量的值。你可以指定行和列来选择值。一个示例配置如下：'
 - en: '[PRE6]'
   id: totrans-38
   prefs: []
@@ -249,11 +272,13 @@
   id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你将该指令设置为 `required`，则当要设置的值为 null 或超出范围时，模块将生成 `500 内部服务器错误`。
 - en: postgres_escape
   id: totrans-40
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_escape
 - en: 'The `postgres_escape` directive will escape, quote a value in the `$unquoted`
     variable, and store the result in the `$escaped` variable, which can be safely
     used in SQL queries. An example configuration is given as follows:'
@@ -848,11 +873,13 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**消息处理器**：如果你启用了并为`MessageBufferSize`参数指定了大小，则此处理器将包含来自`pagespeed`的服务器范围内的最近日志输出历史记录，包括那些根据日志级别从服务器日志文件中省略的消息。'
 - en: '**Console handler**: This handler shows graphs of issue metrics over time.'
   id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**控制台处理器**：这个处理器显示了问题指标随时间变化的图表。'
 - en: '**Beacon handler**: This handler can be used by the `add_instrumentation` filter
     to report the loading time of pages for your sites, which you can then view via
     the statistics page.'
@@ -860,11 +887,13 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**信标处理器**：这个处理器可以被`add_instrumentation`过滤器用来报告页面加载时间，你可以通过统计页面查看这些数据。'
 - en: 'The following is an example configuration from the module''s documentation
     page:'
   id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是模块文档页面中的一个示例配置：
 - en: '[PRE16]'
   id: totrans-129
   prefs: []
@@ -876,6 +905,7 @@
   id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了检查模块是否正在处理你的页面，你可以检查页面的源代码，并通过以下代码行查看`X-Page-Speed`头部：
 - en: '[PRE17]'
   id: totrans-131
   prefs: []
@@ -886,11 +916,13 @@
   id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在[https://developers.google.com/speed/pagespeed/module/using](https://developers.google.com/speed/pagespeed/module/using)的在线文档中找到完整的PageSpeed过滤器列表。
 - en: Lua scripting (ngx_lua)
   id: totrans-133
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Lua脚本（ngx_lua）
 - en: 'If you want the ability to write scripts in your Nginx configuration file,
     then utilizing the power of Lua by using the `ngx_lua` module can be a great move.
     This is a very powerful module with a large number of uses, and provides you with
@@ -899,112 +931,136 @@
   id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你希望在Nginx配置文件中编写脚本，那么通过使用`ngx_lua`模块来利用Lua的强大功能可能是一个不错的选择。这个模块非常强大，有着广泛的应用，能够为你提供在Nginx配置内的完整编程能力。它具有以下优点和特点：
 - en: This will allow you to perform complicated processing on the incoming request
     before it's executed, or change the response afterwards
   id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这将允许你在请求执行之前对其进行复杂的处理，或者在请求处理后更改响应。
 - en: You can add new headers or remove the existing ones
   id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以添加新的头部，或者移除现有的头部。
 - en: You can perform redirects and routing based on complicated program-like logic
   id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以根据复杂的程序逻辑执行重定向和路由操作。
 - en: You can create a sophisticated logging framework entirely based on Lua scripts
   id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以完全基于Lua脚本创建一个复杂的日志记录框架。
 - en: You can either block or allow IP addresses
   id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以阻止或允许特定的IP地址。
 - en: You can build your own authentication or preprocessing layer on top, without
     having to write your own C modules and recompiling the Nginx code
   id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以在此基础上构建自己的认证或预处理层，而无需编写自己的C模块或重新编译Nginx代码。
 - en: Lua is a lightweight, embeddable scripting language, which makes it very suitable
     for scripting in the configuration file.
   id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: Lua是一种轻量级、可嵌入的脚本语言，非常适合在配置文件中进行脚本编写。
 - en: This module allows you to run the Lua code during different phases in the Nginx
     request handling. Before we look at more details of Lua scripting, it is worth
     looking at the different phases of Nginx request handling.
   id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块允许你在Nginx请求处理的不同阶段运行Lua代码。在深入了解Lua脚本之前，值得先看看Nginx请求处理的不同阶段。
 - en: 'Each request handled by Nginx goes through the following phases:'
   id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个由Nginx处理的请求都会经历以下阶段：
 - en: '| Sl. No. | Nginx request-handling phase | Description |'
   id: totrans-144
   prefs: []
   type: TYPE_TB
+  zh: '| 序号 | Nginx请求处理阶段 | 描述 |'
 - en: '| --- | --- | --- |'
   id: totrans-145
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| 1 | server selection | A server block is selected based on the request. |'
   id: totrans-146
   prefs: []
   type: TYPE_TB
+  zh: '| 1 | 服务器选择 | 根据请求选择一个服务器块。 |'
 - en: '| 2 | post read | This phase is executed after a request is read. This allows
     you to perform actions on the request before it is processed. For example, `HttpRealIpModule`
     can use this phase to add IP addresses in the request headers. |'
   id: totrans-147
   prefs: []
   type: TYPE_TB
+  zh: '| 2 | 请求读取后 | 这个阶段在请求读取后执行，允许你在请求处理之前对其进行操作。例如，`HttpRealIpModule`可以使用此阶段在请求头中添加IP地址。
+    |'
 - en: '| 3 | server rewrite | During this phase, URL rewriting can take place. You
     can select the configuration based on variable values. The `HttpRewrite` module
     allows you to do so. |'
   id: totrans-148
   prefs: []
   type: TYPE_TB
+  zh: '| 3 | 服务器重写 | 在此阶段，可以进行URL重写。你可以基于变量值选择配置。`HttpRewrite`模块允许你这样做。 |'
 - en: '| 4 | location selection | During this phase, a location configuration block
     is selected or matched based on the requested URL. |'
   id: totrans-149
   prefs: []
   type: TYPE_TB
+  zh: '| 4 | 位置选择 | 在此阶段，根据请求的URL选择或匹配一个位置配置块。 |'
 - en: '| 5 | location rewrite | This phase allows you to do rewrites within a selected
     location-configuration block. |'
   id: totrans-150
   prefs: []
   type: TYPE_TB
+  zh: '| 5 | 位置重写 | 此阶段允许你在选定的配置块内进行重写。 |'
 - en: '| 6 | preaccess | This phase allows you to carry out certain filters, that
     is, limit the number of requests per session. |'
   id: totrans-151
   prefs: []
   type: TYPE_TB
+  zh: '| 6 | 预访问 | 此阶段允许你进行某些过滤，即限制每个会话的请求次数。 |'
 - en: '| 7 | access | This phase runs authentications, such as `auth_basic` or `auth_digest`.
     You can also allow or deny requests based on criteria, such as IP addresses. |'
   id: totrans-152
   prefs: []
   type: TYPE_TB
+  zh: '| 7 | 访问 | 此阶段运行身份验证，例如`auth_basic`或`auth_digest`。你还可以根据一些条件（如IP地址）允许或拒绝请求。
+    |'
 - en: '| 8 | try files | The core module''s `try_files` directive is executed in this
     phase. |'
   id: totrans-153
   prefs: []
   type: TYPE_TB
+  zh: '| 8 | 尝试文件 | 核心模块的`try_files`指令在此阶段执行。 |'
 - en: '| 9 | content | The actual content generation takes place in this phase. All
     upstream modules are executed in this phase. |'
   id: totrans-154
   prefs: []
   type: TYPE_TB
+  zh: '| 9 | 内容 | 实际的内容生成发生在此阶段。所有上游模块都在此阶段执行。 |'
 - en: '| 10 | log | During this phase, information is logged in the logfiles. Modules
     such as `access_log` operate within this phase. |'
   id: totrans-155
   prefs: []
   type: TYPE_TB
+  zh: '| 10 | 日志 | 在此阶段，信息会记录到日志文件中。像`access_log`这样的模块在此阶段运行。 |'
 - en: '| 11 | post action | During this phase, the `post_action` directive of the
     core module is executed, which allows you to send subrequests to a location or
     upstream when a request is finished, for example, logging competed requests in
@@ -1012,6 +1068,8 @@
   id: totrans-156
   prefs: []
   type: TYPE_TB
+  zh: '| 11 | 后操作 | 在此阶段，核心模块的`post_action`指令会执行，它允许你在请求完成后向某个位置或上游发送子请求，例如，将完成的请求记录到远程MySQL数据库中。
+    |'
 - en: The `nginx_lua` module embeds Lua via the standard Lua interpreter or LuaJIT
     into Nginx. Please note that you need to install Lua or LuaJIT before you can
     use this module. This module also has a dependency on another Nginx module called
@@ -1022,76 +1080,92 @@
   id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: '`nginx_lua`模块通过标准的Lua解释器或LuaJIT将Lua嵌入到Nginx中。请注意，你需要先安装Lua或LuaJIT，才能使用此模块。此模块还依赖于另一个名为`ngx_devel_kit`的Nginx模块，它促进了新Nginx模块的开发。我们将在本章以及[第5章](ch05.html
+    "第5章：创建自己的模块")，*创建自己的模块*中详细了解该模块，在那里我们将学习如何编写自己的Nginx模块。'
 - en: Using the Lua API for Nginx, you can communicate with upstream servers in a
     non-blocking manner in your Lua script. The Lua VM is shared across all the requests
     handled by a single Nginx worker process to minimize memory usage.
   id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用Nginx的Lua API，你可以在Lua脚本中以非阻塞的方式与上游服务器通信。Lua虚拟机在所有由单个Nginx工作进程处理的请求之间共享，以最小化内存使用。
 - en: 'It is possible to use a number of upstream Nginx modules with the `nginx_lua`
     module. These modules are as follows:'
   id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以与`nginx_lua`模块一起使用许多上游Nginx模块。这些模块如下：
 - en: '`lua-resty-memcached`'
   id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lua-resty-memcached`'
 - en: '`lua-resty-mysql`'
   id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lua-resty-mysql`'
 - en: '`lua-resty-redis`'
   id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lua-resty-redis`'
 - en: '`lua-resty-dns`'
   id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lua-resty-dns`'
 - en: '`lua-resty-upload`'
   id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`lua-resty-upload`'
 - en: '`ngx_memc`'
   id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ngx_memc`'
 - en: '`ngx_postgres`'
   id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ngx_postgres`'
 - en: '`ngx_redis2`'
   id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ngx_redis2`'
 - en: '`ngx_redis`'
   id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ngx_redis`'
 - en: '`ngx_proxy`'
   id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ngx_proxy`'
 - en: '`ngx_fastcgi`'
   id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ngx_fastcgi`'
 - en: 'An example configuration of the `ngx_lua` module is as follows:'
   id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_lua`模块的一个示例配置如下：'
 - en: '[PRE18]'
   id: totrans-172
   prefs: []
@@ -1102,36 +1176,43 @@
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: 'Some of the most important directives of `ngx_lua` are as follows:'
   id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_lua`的一些重要指令如下：'
 - en: lua_package_path
   id: totrans-175
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: lua_package_path
 - en: The `lua_package_path` directive is used to specify the path of the Lua scripts.
     This value is used by the directives such as `set_by_lua` and `content_by_lua`.
   id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: '`lua_package_path`指令用于指定Lua脚本的路径。此值被`set_by_lua`和`content_by_lua`等指令使用。'
 - en: You can use the special notation $prefix or ${prefix} in the search path string
     to indicate the path of the server prefix usually determined by the `-p PATH`
     command-line option while starting the Nginx server.
   id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在搜索路径字符串中使用特殊符号$prefix或${prefix}来表示服务器前缀路径，通常该路径是通过启动Nginx服务器时的`-p PATH`命令行选项来确定的。
 - en: The default value is taken from the `LUA_PATH` environment variable. If this
     variable is not defined, then the default search path is used to locate Lua scripts.
   id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认值来自`LUA_PATH`环境变量。如果此变量未定义，则使用默认搜索路径来定位Lua脚本。
 - en: set_by_lua or set_by_lua_file
   id: totrans-179
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: set_by_lua或set_by_lua_file
 - en: The `set_by_lua` or `set_by_lua_file` directives are used to execute a small
     embedded and blocked Lua script provided as a string. This script can take two
     parameters as an input and return the result through a `return` variable. The
@@ -1140,12 +1221,15 @@
   id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: '`set_by_lua` 或 `set_by_lua_file` 指令用于执行一个小型的嵌入式且阻塞的 Lua 脚本，该脚本作为字符串提供。该脚本可以接受两个输入参数，并通过
+    `return` 变量返回结果。当执行该代码时，Nginx 事件循环会被阻塞。因此，不应使用此指令执行长时间运行的代码。'
 - en: 'Note that the following API functions are currently disabled within this context.
     This directive can only write out a value to a single Nginx variable at a time,
     as shown in the following code snippet:'
   id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，以下 API 函数在此上下文中当前被禁用。此指令一次只能将一个值写入单个 Nginx 变量，如以下代码片段所示：
 - en: '[PRE19]'
   id: totrans-182
   prefs: []
@@ -1158,6 +1242,7 @@
   id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 此指令可以与 `HttpRewriteModule`、`HttpSetMiscModule` 和 `HttpArrayVarModule` 模块的所有指令自由混用。所有这些指令将按照它们在配置文件中出现的顺序执行。以下是一个示例配置：
 - en: '[PRE20]'
   id: totrans-184
   prefs: []
@@ -1169,18 +1254,22 @@
   id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在此指令中提供的 Lua 脚本中自由使用 `$` 符号，因为 Nginx 变量插值已被禁用。此指令需要 `ngx_devel_kit` 模块。
 - en: The `set_by_lua_file` directive is similar to the `set_by_lua` directive. The
     only difference is that the Lua script here is provided in a file. This file can
     also contain Lua or LuaJIT bytecode instead of a text script.
   id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: '`set_by_lua_file` 指令类似于 `set_by_lua` 指令。唯一的区别是，这里提供的 Lua 脚本是一个文件。该文件也可以包含 Lua
+    或 LuaJIT 字节码，而不仅仅是文本脚本。'
 - en: When a relative path such as `path/file.lua` is given, it will be turned into
     an absolute path relative to the server prefix path determined by the `-p PATH`
     command-line option while starting the Nginx server.
   id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 当给出诸如 `path/file.lua` 这样的相对路径时，它将转换为相对于通过 `-p PATH` 命令行选项在启动 Nginx 服务器时确定的服务器前缀路径的绝对路径。
 - en: 'By default, the Lua code cache is turned on. This means that the script file
     is loaded the first time. If you make changes, Nginx configuration will be reloaded.
     If you are in a development cycle, the code cache can be turned off by using the
@@ -1189,6 +1278,8 @@
   id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，Lua 代码缓存是启用的。这意味着脚本文件会在第一次加载时被加载。如果你进行更改，Nginx 配置将会重新加载。如果你处于开发周期中，可以通过在配置文件中使用
+    `lua_code_cache_off` 参数来关闭代码缓存。以下是一个示例配置：
 - en: '[PRE21]'
   id: totrans-189
   prefs: []
@@ -1199,6 +1290,7 @@
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: '`content_by_lua` 或 `content_by_lua_file`'
 - en: The `content_by_lua` or `content_by_lua_file` directives are used to specify
     a Lua script to execute for every request during the content phase. You can use
     API calls in this script, and the script is executed in an independent global
@@ -1206,12 +1298,15 @@
   id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: '`content_by_lua` 或 `content_by_lua_file` 指令用于指定在内容阶段为每个请求执行的 Lua 脚本。你可以在该脚本中使用
+    API 调用，且该脚本会在独立的全局沙盒中执行。'
 - en: Since this directive is a content handler, do not use it and the other content
     handler directives at the same location. For example, this directive and the `proxy_pass`
     directive should not be used at the same location.
   id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于该指令是一个内容处理器，避免在同一位置使用它和其他内容处理器指令。例如，`proxy_pass` 指令和此指令不应在同一位置使用。
 - en: 'The `content_by_lua_file` directive is equivalent to `content_by_lua`, except
     that in this directive you have to provide the path to a Lua script file instead
     of writing inline codes. The code in this file is loaded only once if the code
@@ -1220,6 +1315,7 @@
   id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: '`content_by_lua_file` 指令与 `content_by_lua` 等效，不同之处在于此指令要求你提供一个 Lua 脚本文件的路径，而不是编写内联代码。该文件中的代码如果启用了代码缓存，将仅加载一次，并且相对路径会解析为相对于服务器前缀的绝对路径。以下是一个示例配置：'
 - en: '[PRE22]'
   id: totrans-194
   prefs: []
@@ -1230,17 +1326,20 @@
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: '`rewrite_by_lua` 或 `rewrite_by_lua_file`'
 - en: The `rewrite_by_lua` or `rewrite_by_lua_file` directive executes the Lua code
     during the rewrite phase. The Lua code can use API calls and is run in a spawned
     global sandbox.
   id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rewrite_by_lua` 或 `rewrite_by_lua_file` 指令在重写阶段执行 Lua 代码。Lua 代码可以使用 API 调用，并在一个独立的全局沙盒中运行。'
 - en: 'Note that this handler always runs after the standard HTTP rewrite. So, the
     following piece of code will not work as expected:'
   id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，该处理程序总是在标准的 HTTP 重写之后运行。因此，以下代码将无法按预期工作：
 - en: '[PRE23]'
   id: totrans-198
   prefs: []
@@ -1251,10 +1350,12 @@
   id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是因为 `if` 条件会在 `rewrite_by_lua` 之前运行，即使它在配置脚本中位于 `rewrite_by_lua` 之后。
 - en: 'The correct way of doing this by using Nginx API calls is as follows:'
   id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 正确的方法是通过使用 Nginx API 调用，方式如下：
 - en: '[PRE24]'
   id: totrans-201
   prefs: []
@@ -1265,12 +1366,14 @@
   id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rewrite_by_lua` 代码将在重写请求处理阶段的最后运行，除非将 `rewrite_by_lua_no_postpone` 设置为 `on`。'
 - en: 'The `rewrite_by_lua_file` directive also runs in the rewrite phase after the
     standard HTTP rewrite. However, the code is executed from a Lua script file or
     a bytecode file as shown in the following configuration script:'
   id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rewrite_by_lua_file` 指令也会在标准的 HTTP 重写阶段后运行。然而，代码是从 Lua 脚本文件或字节码文件中执行的，配置脚本如下所示：'
 - en: '[PRE25]'
   id: totrans-204
   prefs: []
@@ -1281,27 +1384,32 @@
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: access_by_lua 或 access_by_lua_file
 - en: The `access_by_lua` or `access_by_lua_file` directive executes the Lua code
     during the access phase. This means that the code in this directive will run once
     per request, and no subrequest will be able to trigger the code.
   id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: '`access_by_lua` 或 `access_by_lua_file` 指令在访问阶段执行 Lua 代码。这意味着该指令中的代码会在每次请求时运行，且没有子请求能够触发该代码。'
 - en: The Lua code is run after the standard `HttpAccessModule`. Therefore, if you
     have any blacklisted IPs, they will be denied before this code is executed.
   id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: Lua 代码会在标准的 `HttpAccessModule` 之后运行。因此，如果有任何黑名单 IP，它们将在执行此代码之前被拒绝。
 - en: You can use these directives to implement more complex access mechanisms, that
     is, the ones that communicate with upstream servers, such as a database.
   id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用这些指令来实现更复杂的访问机制，也就是与上游服务器通信的机制，例如数据库。
 - en: 'Let us now have a look at a sample ngx_lua configuration to understand the
     usage of access_by_lua:'
   id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们来看一个示例 ngx_lua 配置，来理解 `access_by_lua` 的使用：
 - en: '[PRE26]'
   id: totrans-210
   prefs: []
@@ -1314,20 +1422,24 @@
   id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述示例配置中，Lua 代码会运行名为 `ldap_auth` 的配置，该配置将用户与 LDAP 服务器进行身份验证，并根据返回值，决定请求是正常返回还是以适当的错误代码（403）退出。
 - en: The `access_by_lua` directive allows you to run a Lua script or bytecode using
     a file. You need to specify the path of the script file in the directive.
   id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '`access_by_lua` 指令允许你通过文件运行 Lua 脚本或字节码。你需要在指令中指定脚本文件的路径。'
 - en: Nginx variables can be used in the file to provide flexibility. This, however,
     carries some risks, and is not ordinarily recommended.
   id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以在文件中使用 Nginx 变量来提供灵活性。然而，这也带来了一些风险，通常不推荐这样做。
 - en: Relative file paths are converted to absolute paths using the server prefix.
   id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 相对文件路径会使用服务器前缀转换为绝对路径。
 - en: It is recommended that you turn on the code cache in the production environment,
     so that the Lua code is loaded only once. This can provide performance benefits.
     However, in a development environment, you should not enable the code cache in
@@ -1335,6 +1447,7 @@
   id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 建议在生产环境中开启代码缓存，以便 Lua 代码仅加载一次，从而提升性能。然而，在开发环境中，应该关闭代码缓存，以避免每次代码更改时都重载服务器。
 - en: The `ngx_lua` module provides complete scripting capabilities while offering
     very high performance levels. This is especially true if you use the Just In Time
     (**JIT**)compilation using LuaJIT. This allows you a very wide range of use-cases
@@ -1342,28 +1455,33 @@
   id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_lua` 模块提供了完整的脚本能力，同时也提供了非常高的性能。这尤其适用于使用 LuaJIT 进行即时编译（**JIT**）。这使得该模块可以在非常广泛的用例中派上用场。'
 - en: Reverse IP lookup using the GeoIP module (ngx_http_geoip_module)
   id: totrans-217
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 GeoIP 模块（ngx_http_geoip_module）进行反向 IP 查找
 - en: The `ngx_http_geoip_module` does a reverse lookup on the IP of the client using
     the MaxMind IP database. It resolves the IP address to the place of origin and
     sets a number for the variables.
   id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_http_geoip_module` 使用 MaxMind IP 数据库对客户端的 IP 进行反向查找。它将 IP 地址解析到来源地并为变量设置一个值。'
 - en: This module is not built by default; it should be enabled with the `--with-http_geoip_module`
     configuration parameter. As already mentioned, this module has dependency on the
     MaxMind GeoIP library.
   id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 此模块默认未构建；应通过`--with-http_geoip_module`配置参数启用。如前所述，模块依赖于MaxMind GeoIP库。
 - en: You need an account with MaxMind and will also need to download several database
     files that map IP addresses to countries, cities, and even organizations.
   id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 您需要拥有MaxMind的账户，并且需要下载几个数据库文件，将IP地址映射到国家、城市甚至组织。
 - en: 'One of the key applications, in addition to providing you with more information
     about the clients, can also be against DDOS attacks. Using the information looked
     up by this module, you can block or allow traffic coming from countries, cities,
@@ -1373,6 +1491,7 @@
   id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了为您提供有关客户端的更多信息外，这个模块的一个关键应用还可以防御DDoS攻击。通过该模块查询的信息，您可以阻止或允许来自不同国家、城市、地区等的流量。这虽然有点粗糙，但它有效。您可以将此模块作为`HttpLimitReqModule`和`HttpLimitZoneModule`的补充。以下是一个示例配置：
 - en: '[PRE27]'
   id: totrans-222
   prefs: []
@@ -1383,44 +1502,52 @@
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: 'The following is a list of directives you can use for configuring this module:'
   id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是您可以用于配置此模块的指令列表：
 - en: geoip_country
   id: totrans-225
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: geoip_country
 - en: 'The `geoip_country` directive allows you to specify the name and path of the
     database file that contains the IP for a country''s lookup information. The following
     variables are available (as well as set by this module) while using this database:'
   id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: '`geoip_country`指令允许您指定包含国家IP查询信息的数据库文件的名称和路径。在使用此数据库时，以下变量可用（并且由此模块设置）：'
 - en: '`$geoip_country_code`: This is a two-letter country code, for example, DE or
     US. These codes correspond to ISO 3166-1 alpha-2 standard.'
   id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_country_code`：这是一个两位字母的国家代码，例如，DE或US。这些代码符合ISO 3166-1 alpha-2标准。'
 - en: '`$geoip_country_code3`: This is a three-letter country code, for example, DEU
     or USA. These codes correspond to ISO 3166-1 alpha-3 standard.'
   id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_country_code3`：这是一个三位字母的国家代码，例如，DEU或USA。这些代码符合ISO 3166-1 alpha-3标准。'
 - en: '`$geoip_country_name`: This gives the complete country name, for example, Russian
     Federation or United States.'
   id: totrans-229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_country_name`：这是完整的国家名称，例如，俄罗斯联邦或美国。'
 - en: geoip_city
   id: totrans-230
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: geoip_city
 - en: 'The `geoip_city` directive allows you to set the name and path of a database
     file to lookup the city''s and region''s information based on the client''s IP
     address. The following variables are available and set as well while using this
@@ -1428,6 +1555,7 @@
   id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: '`geoip_city`指令允许您设置用于根据客户端IP地址查询城市和地区信息的数据库文件的名称和路径。在使用此数据库时，以下变量也可用并已设置：'
 - en: '`$geoip_area_code`: This gives the telephone area code (US only) associated
     with the client''s IP address. This field in the MaxMind database has been depreciated,
     so you might not get any information or get outdated information.'
@@ -1435,52 +1563,61 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_area_code`：这是与客户端IP地址相关的电话区号（仅限美国）。MaxMind数据库中的此字段已被弃用，因此您可能无法获取任何信息或获取过时的信息。'
 - en: '`$geoip_city_continent_code`: This is a two-letter continent code, for example,
     EU or AS.'
   id: totrans-233
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city_continent_code`：这是一个两位字母的洲代码，例如，EU或AS。'
 - en: '`$geoip_city_country_code`: This is a two-letter country code, for example,
     DE or US. These codes correspond to ISO 3166-1 alpha-2 standard.'
   id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city_country_code`：这是一个两位字母的国家代码，例如，DE或US。这些代码符合ISO 3166-1 alpha-2标准。'
 - en: '`$geoip_city_country_code3`: This is a three-letter country code, for example,
     DEU or USA. These codes correspond to ISO 3166-1 alpha-3 standard.'
   id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city_country_code3`：这是一个三位字母的国家代码，例如，DEU或USA。这些代码符合ISO 3166-1 alpha-3标准。'
 - en: '`$geoip_city_country_name`: This gives the country name, for example, Russian
     Federation or United States.'
   id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city_country_name`：这是国家名称，例如，俄罗斯联邦或美国。'
 - en: '`$geoip_dma_code`: This gives the DMA region code in the US (also known as
     metro code), which can be found at [https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions](https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions).'
   id: totrans-237
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_dma_code`：这是美国的DMA区域代码（也称为地铁代码），可以在[https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions](https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions)找到。'
 - en: '`$geoip_latitude`: This gives the latitudinal value of the city.'
   id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_latitude`：这是城市的纬度值。'
 - en: '`$geoip_longitude`: This gives the longitudinal value of the city.'
   id: totrans-239
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_longitude`：这是城市的经度值。'
 - en: '`$geoip_region`: This is a two-symbol country region code (region, territory,
     state, province, federal land, and the like), for example, 48 or DC.'
   id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_region`：这是一个两字符的国家区域代码（区域、领土、州、省、联邦土地等），例如48或DC。'
 - en: '`$geoip_region_name`: This gives the country''s region name (region, territory,
     state, province, federal land, and the like), for example, Bavaria or District
     of Columbia.'
@@ -1488,21 +1625,25 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_region_name`：此项提供国家的区域名称（区域、领土、州、省、联邦土地等），例如巴伐利亚或哥伦比亚特区。'
 - en: '`$geoip_city`: This gives the full city name, for example, Munich or London.'
   id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_city`：此项提供完整的城市名称，例如慕尼黑或伦敦。'
 - en: '`$geoip_postal_code`: This gives the postal code information if available.'
   id: totrans-243
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_postal_code`：如果可用，此项提供邮政编码信息。'
 - en: geoip_org
   id: totrans-244
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: geoip_org
 - en: 'The `geoip_org` directive allows you to specify the name and path of the database
     file to resolve the IP address to an organization. This can be a company name
     or an institution. Normally, this kind of information is available through the
@@ -1511,17 +1652,20 @@
   id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: '`geoip_org`指令允许您指定数据库文件的名称和路径，用于将IP地址解析为组织名称。这可以是公司名称或机构名称。通常，这类信息可以通过`whois`数据库获取。使用此选项时，还可以使用以下变量：'
 - en: '`$geoip_org`: This contains the organization''s name, for example, Facebook,
     Inc.'
   id: totrans-246
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$geoip_org`：此项包含组织名称，例如Facebook公司。'
 - en: geoip_proxy
   id: totrans-247
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: geoip_proxy
 - en: The `geoip_proxy` directive allows you to specify the IP addresses or CIDR of
     the proxy servers that you "trust". If the client IP address matches this trusted
     address, the IP address sent in the HTTP header `X-Forwarded-For` is used to do
@@ -1534,37 +1678,44 @@
   id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: '`geoip_proxy`指令允许您指定“信任”的代理服务器的IP地址或CIDR。如果客户端IP地址与此信任的地址匹配，则会使用HTTP头部`X-Forwarded-For`中发送的IP地址进行IP查找。`X-Forwarded-For`头部是代理服务器发送的标准头部，用于揭示客户端的真实IP地址。如果代理服务器选择不这么做，它实际上充当了一个匿名化工具。此头部中发送的IP地址的正确性完全取决于代理服务器；因此，如果您信任特定的代理服务器发送正确的信息，您可以使用此指令启用对`X-Forwarded-For`头部中发送的IP地址的查找。'
 - en: geoip_proxy_recursive
   id: totrans-249
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: geoip_proxy_recursive
 - en: The `geoip_proxy_recursive` directive allows you to enable recursive IP lookup.
     If recursive lookup is enabled, the last untrusted address sent in the `X-Forwarded-For`
     header will be used for the IP lookup.
   id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: '`geoip_proxy_recursive`指令允许您启用递归IP查找。如果启用了递归查找，则`X-Forwarded-For`头部中发送的最后一个不受信任的地址将用于IP查找。'
 - en: If Nginx is working behind a proxy, you can also use `HttpRealIpModule`. This
     module allows you to change the client's IP address to a value from the request
     header (for example, `X-Real-IP` or `X-Forwarded-For`).
   id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果Nginx在代理后面工作，您还可以使用`HttpRealIpModule`。此模块允许您将客户端的IP地址更改为请求头中的某个值（例如`X-Real-IP`或`X-Forwarded-For`）。
 - en: Doing healthchecks
   id: totrans-252
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进行健康检查
 - en: Here we will learn about various modules to keep a track of the healthy upstreams.
   id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们将学习如何通过各种模块跟踪健康的上游服务器。
 - en: ngx_http_healthcheck_module
   id: totrans-254
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: ngx_http_healthcheck_module
 - en: If your Nginx server works with a lot of upstream servers for providing various
     services and content, keeping track of which upstream servers are still healthy
     and working is very important, especially if they are third-party or external
@@ -1572,6 +1723,7 @@
   id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您的Nginx服务器与许多上游服务器一起工作，提供各种服务和内容，那么跟踪哪些上游服务器仍然健康和工作非常重要，尤其是当它们是第三方或外部服务器时。此模块允许您跟踪健康的后端。
 - en: This is how it works. When an upstream server responds with a 200+ status code,
     and the response optionally comes back with a body, it is marked as good; otherwise,
     it is marked as bad. This module also has an HTTP healthcheck page where you can
@@ -1580,6 +1732,7 @@
   id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 它的工作原理是：当上游服务器响应一个200+的状态码时，并且响应可选地返回一个正文，则标记为“良好”；否则，标记为“不良”。此模块还有一个HTTP健康检查页面，您可以查看当前的后端状态。这与`haproxy`或`varnish`健康检查非常相似。
 - en: 'This module inserts a healthcheck event into Nginx''s event tree. When that
     triggers, it starts a peer connection with the backend and sends as well as receives
     data. When the heathcheck is over or gets timed out, it updates the health of
@@ -1587,6 +1740,7 @@
   id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块将健康检查事件插入到Nginx的事件树中。当该事件触发时，它会与后端建立对等连接，并发送和接收数据。当健康检查完成或超时后，它会在共享内存区域更新后端的健康状态。以下是示例配置：
 - en: '[PRE28]'
   id: totrans-258
   prefs: []
@@ -1597,37 +1751,44 @@
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: 'Some of the most important directives of the `ngx_http_healthcheck_module`
     are as follows:'
   id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_http_healthcheck_module`的一些重要指令如下：'
 - en: healthcheck_enabled
   id: totrans-261
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: healthcheck_enabled
 - en: The `healthcheck_enabled` module's context is upstream and enables health checking
     on the upstream servers defined in the specific upstream block. This, in the preceding
     example, would be `server1` and `server2`.
   id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: '`healthcheck_enabled`模块的上下文是upstream，并启用对特定upstream块中定义的上游服务器的健康检查。在前面的示例中，上游服务器是`server1`和`server2`。'
 - en: healthcheck_delay
   id: totrans-263
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: healthcheck_delay
 - en: For each upstream server, the `healthcheck_delay` directive defines the delay
     between two healthchecks. The default value is `1000 ms`.
   id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个上游服务器，`healthcheck_delay`指令定义了两次健康检查之间的延迟时间。默认值为`1000 ms`。
 - en: healthcheck_timeout
   id: totrans-265
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: healthcheck_timeout
 - en: The `healthcheck_timeout` directive defines the timeout value for the healthcheck
     operation. If the healthcheck operation is taking too long because the backend
     is slow in responding, the process will stop after the timeout has elapsed. The
@@ -1635,22 +1796,27 @@
   id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: '`healthcheck_timeout`指令定义了健康检查操作的超时值。如果健康检查操作由于后端响应慢而花费过长时间，则在超时后该操作将停止。默认值为`2000
+    ms`。'
 - en: healthcheck_failcount
   id: totrans-267
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: healthcheck_failcount
 - en: The `healthcheck_failcount` directive gives the number of good or bad healthchecks
     in a row it takes to switch the current health status (good to bad or bad to good).
     The default value is `2`.
   id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: '`healthcheck_failcount`指令定义了需要连续多少次健康检查结果为好或坏，才能切换当前的健康状态（从好到坏或从坏到好）。默认值为`2`。'
 - en: healthcheck_send
   id: totrans-269
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: healthcheck_send
 - en: 'The `healthcheck_send` directive is a required directive that allows you to
     decide what to send to do a healthcheck. This can be a simple HTTP `GET` command
     or something more complex. Each argument is appended by `\r\n` and the entire
@@ -1658,6 +1824,7 @@
   id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: '`healthcheck_send`指令是一个必需指令，允许你决定发送什么内容来进行健康检查。这可以是一个简单的HTTP `GET`命令或更复杂的命令。每个参数后面跟随`\r\n`，整个块末尾再加上一个`\r\n`。以下是示例配置：'
 - en: '[PRE29]'
   id: totrans-271
   prefs: []
@@ -1668,11 +1835,13 @@
   id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: '请注意，你可能希望以某个指令结束健康检查，该指令会关闭连接，例如，`Connection: close`。'
 - en: healthcheck_expected
   id: totrans-273
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: healthcheck_expected
 - en: The `healthcheck_expected` directive allows you to specify what to expect in
     return from the upstream server as a response to mark it as healthy. Any other
     response or no response will mark the host as down. This refers to the response
@@ -1681,11 +1850,13 @@
   id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: '`healthcheck_expected`指令允许你指定期望从上游服务器返回的响应，以将其标记为健康。如果返回任何其他响应或没有响应，将把该主机标记为不可用。此指令仅指HTTP体中的响应，而不是响应头。如果缺少此指令，则简单的200响应码足够。'
 - en: healthcheck_buffer
   id: totrans-275
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: healthcheck_buffer
 - en: The `healthcheck_buffer` directive gives the size of the buffer where the response
     from the backend will be temporarily stored for checking. Make sure you allocate
     enough memory not only for the body but also for the headers that you expect to
@@ -1693,11 +1864,13 @@
   id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: '`healthcheck_buffer`指令定义了用于临时存储后端响应以供检查的缓冲区大小。确保你分配足够的内存，不仅用于响应体，还包括你预期接收的响应头。'
 - en: Load balancing
   id: totrans-277
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 负载均衡
 - en: There are a number of third-party Nginx modules available, which allow you to
     distribute load among upstream servers based on a hashing mechanism or on a least-busy
     basis. There are various hashing mechanisms available for load balancing, some
@@ -1706,11 +1879,13 @@
   id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 有许多第三方Nginx模块可以使用，它们允许你基于哈希机制或最少负载原则在上游服务器之间分配负载。负载均衡有多种哈希机制，其中一些通过第三方模块可用。在这里，我们将简要了解一些可用的选项。
 - en: Consistent hashing
   id: totrans-279
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 一致性哈希
 - en: The `ngx_http_upstream_consistent_hash` module allows you to load balance using
     a consistent hash ring. Consistent hashing is a special hashing algorithm that
     is quite good when you have to rehash frequently because a new machine or server
@@ -1718,44 +1893,53 @@
   id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_http_upstream_consistent_hash` 模块允许你使用一致性哈希环进行负载均衡。一致性哈希是一种特殊的哈希算法，当你需要频繁重哈希时特别有效，比如当一个新机器或服务器被添加到池中或从池中移除时。'
 - en: This module is compatible with the `php-memcached` module, and you can store
     values in the `memcached` cluster that this module can read from. You can find
     more details about this module at [http://wiki.nginx.org/HttpUpstreamConsistentHash](http://wiki.nginx.org/HttpUpstreamConsistentHash).
   id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块与 `php-memcached` 模块兼容，你可以将值存储在该模块可以读取的 `memcached` 集群中。你可以在 [http://wiki.nginx.org/HttpUpstreamConsistentHash](http://wiki.nginx.org/HttpUpstreamConsistentHash)
+    找到更多关于此模块的详细信息。
 - en: There is another similar module that uses the Ketama consistent hashing library
     to compute a hash on a configuration variable, that is, Request URI. Check out
     more information about this at [http://wiki.nginx.org/HttpUpstreamKetamaCHashModule](http://wiki.nginx.org/HttpUpstreamKetamaCHashModule).
   id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有另一个类似的模块，它使用 Ketama 一致性哈希库来计算配置变量的哈希值，即请求 URI。有关更多信息，请访问 [http://wiki.nginx.org/HttpUpstreamKetamaCHashModule](http://wiki.nginx.org/HttpUpstreamKetamaCHashModule)。
 - en: Least busy
   id: totrans-283
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 最不忙
 - en: The `ngx_http_upstream_fair_module` module allows you to do load balancing based
     on which upstream is least busy.
   id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_http_upstream_fair_module` 模块允许你根据哪个上游最不忙来进行负载均衡。'
 - en: This module also provides a status page where you can view the current status
     of load balancing.
   id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块还提供了一个状态页面，你可以在此页面查看负载均衡的当前状态。
 - en: This module uses **Weighted Least-Connection Round Robin** (**WLC-RR**) with
     a number of possible variations. More information on this module is available
     at [http://wiki.nginx.org/HttpUpstreamFairModule](http://wiki.nginx.org/HttpUpstreamFairModule).
   id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块使用**加权最小连接轮询**（**WLC-RR**）算法，并提供了多种可能的变体。更多关于此模块的信息，请访问 [http://wiki.nginx.org/HttpUpstreamFairModule](http://wiki.nginx.org/HttpUpstreamFairModule)。
 - en: Configuration variable hashing
   id: totrans-287
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 配置变量哈希
 - en: Configuration variable hashing is probably the most random hashing you can do.
     You can choose to do a hash on one of the available variables, that is, `$request_uri`
     or HTTP headers or a combination of both. This module uses CRC-32 to compute the
@@ -1763,15 +1947,19 @@
   id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置变量哈希可能是你能做的最随机的哈希。你可以选择对可用的某个变量进行哈希，即 `$request_uri` 或 HTTP 头部，或者两者的组合。该模块使用
+    CRC-32 算法对指定变量进行哈希计算。
 - en: More information on this is available at [http://wiki.nginx.org/HttpUpstreamRequestHashModule](http://wiki.nginx.org/HttpUpstreamRequestHashModule).
   id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 更多信息请访问 [http://wiki.nginx.org/HttpUpstreamRequestHashModule](http://wiki.nginx.org/HttpUpstreamRequestHashModule)。
 - en: Summary
   id: totrans-290
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we looked at various useful third-party Nginx modules that
     are not distributed with the source code by default. There are many more useful
     modules available that you can find on GitHub. Please do pay attention to the
@@ -1782,8 +1970,11 @@
   id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们查看了各种有用的第三方 Nginx 模块，这些模块默认不随源代码分发。还有许多其他有用的模块可供使用，你可以在 GitHub 上找到它们。请注意，确保模块足够稳定以用于生产环境。务必先进行一些测试，然后再将模块谨慎地应用到生产环境中。Nginx
+    社区不对使用这些模块可能遇到的任何问题承担责任。
 - en: In the next chapter, we will discuss developing our own Nginx module, which
     will be the first step into the world of custom module development.
   id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将讨论如何开发我们自己的 Nginx 模块，这将是进入自定义模块开发世界的第一步。

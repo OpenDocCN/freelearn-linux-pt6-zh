@@ -1,21 +1,28 @@
 - en: Preface
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 前言
 - en: You will learn how to notes problems before your boss calls you about some pages
     not loading. You will learn how to find those problems using logs and your usual
     Linux toolbox. You will also learn how to minimize the probability of problems
     happening again.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将学习如何在老板因为某些页面无法加载而联系你之前，先记录问题。你将学习如何通过日志和你常用的 Linux 工具箱来找到这些问题。你还将学习如何最大程度地减少问题再次发生的概率。
 - en: Nginx started as a web accelerator reverse proxy inside one of the big Russian
     web companies of the early 2000s. The main web server software was Apache 1.3,
     and it started to show architectural problems serving thousands of relatively
     slow clients using the old process-based model. Smart web engineers were already
     building two-tier systems of light frontends based on the `mod_proxy` Apache module
     or even used the squid caching proxy in the reverse proxy mode.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 最初作为一个 Web 加速反向代理，诞生于2000年代初期的一家大型俄罗斯互联网公司。主要的 Web 服务器软件是 Apache 1.3，它开始在处理成千上万的相对慢速客户端时暴露出架构问题，这个问题在使用基于旧的进程模型时尤为明显。聪明的
+    Web 工程师们已经开始构建基于`mod_proxy` Apache 模块的二层系统，甚至在反向代理模式下使用 squid 缓存代理。
 - en: The early predecessor of Nginx was named `mod_accel`, and it was also implemented
     as an Apache module. The `mod_accel` module gained some popularity among the administrators
     of some of the busiest websites, but it is nothing compared with what Nginx later
@@ -23,267 +30,391 @@
     on the server side of a busy website is a good thing, providing both the extra
     flexibility and separating the job of serving slow clients from the actual response
     generation.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 的早期前身名为`mod_accel`，它也作为一个 Apache 模块实现。`mod_accel`模块在一些繁忙网站的管理员中获得了一些人气，但与
+    Nginx 后来获得的地位相比简直微不足道。两者都建立在这样的思想上：在一个繁忙网站的服务器端增加额外的代理层是件好事，它既能提供额外的灵活性，又能将服务慢速客户端的任务与实际的响应生成分离开来。
 - en: Nginx took the idea of `mod_proxy` module to the extreme by being a self-sufficient
     separate HTTP server with a goal to solve the so-called C10K problem, that is,
     serving 10,000 concurrent connections. The numbers do not look impressive at all
     in 2016, but they did in 2007 when Nginx first claimed a significant share of
     1% of the Web according to Netcraft.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 将 `mod_proxy` 模块的理念推向极致，成为一个自给自足的独立 HTTP 服务器，旨在解决所谓的 C10K 问题，即处理 10,000
+    个并发连接。2016年，这个数字看起来并不令人印象深刻，但在2007年，当 Nginx 首次宣称占据了1%的 Web 市场份额时，这个数字却非常引人注目，Netcraft
+    的数据支持了这一点。
 - en: Since that time, the share grew manifold while Nginx steadily gained new functionality
     and remained the ideal open source success story project with a single, talented
     developer devoting his genius to producing free quality software, which the whole
     Web could benefit from.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 自那时以来，Nginx 的市场份额增长了数倍，同时 Nginx 稳步增加了新功能，依然是理想的开源成功故事项目，唯一的天才开发者将他的才华献给了开发免费优质的软件，整个互联网都能从中受益。
 - en: In 2011, a commercial enterprise named Nginx, Inc. was founded, which allowed
     even more freedom for the developers (now a team). The firm provides both support
     services and a special subscription-based extended version of the software named
     Nginx Plus. We will mention some of the Nginx Plus features in the sixth chapter.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 2011年，一家名为 Nginx, Inc. 的商业公司成立，这为开发者（如今是一个团队）提供了更多的自由。该公司不仅提供支持服务，还提供名为 Nginx
+    Plus 的软件特别订阅版。我们将在第六章提到一些 Nginx Plus 的功能。
 - en: In 2016, Nginx is a great tool many businesses are built upon. However, it is
     still just a tool which requires a master to show its full potential. If you want
     to understand what is going on in your web server, to be able to write correct
     Nginx configuration files and read Nginx logs, and if you want your web server
     to be very fast, you will have to become that master.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 到了2016年，Nginx已成为许多企业的基础工具。然而，它仍然只是一个需要高手才能展现其全部潜力的工具。如果你想了解你的网页服务器发生了什么，能够编写正确的
+    Nginx 配置文件并读取 Nginx 日志，并且希望你的网页服务器运行得非常快，你必须成为那个高手。
 - en: What this book covers
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书内容
 - en: '[Chapter 1](ch01.html "Chapter 1. Searching for Problems in Nginx Configuration"),
     *Searching for Problems in Nginx Configuration*, briefly describes the configuration
     language of Nginx and presents some of the corner cases and several techniques
     to search for problems.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第1章](ch01.html "第1章 搜索 Nginx 配置中的问题")，*搜索 Nginx 配置中的问题*，简要描述了 Nginx 配置语言，并展示了一些特殊情况和几种搜索问题的技巧。'
 - en: '[Chapter 2](ch02.html "Chapter 2. Searching for Problems in Log Files"), *Searching
     for Problems in Log Files,* describes the logging subsystem, log syntax, and what
     to look for when you troubleshoot. Nginx provides thorough logs of everything
     it does.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第二章](ch02.html "第二章. 在日志文件中寻找问题"), *在日志文件中寻找问题*，介绍了日志子系统、日志语法以及在故障排除时需要查找的内容。Nginx
+    提供了它所执行的所有操作的详细日志。'
 - en: '[Chapter 3](ch03.html "Chapter 3. Troubleshooting Functionality"), *Troubleshooting
     Functionality,* the central chapter in this book, contains a list of steps you
     will make while investigating a problem. You will find the types of problems people
     generally encounter with their Nginx-powered web servers.'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第三章](ch03.html "第三章. 故障排除功能问题"), *故障排除功能问题*，是本书的核心章节，列出了在调查问题时需要采取的步骤。你将了解人们在使用
+    Nginx 服务器时常遇到的各种问题。'
 - en: '[Chapter 4](ch04.html "Chapter 4. Optimizing Website Performance"), *Optimizing
     Website Performance,* is dedicated to all things about performance. Starting with
     thorough explanation of the basic principles behind the Nginx event-driven processing
     model, it also touches on caching and even gives some advice on possible upstream
     optimization.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第四章](ch04.html "第四章. 优化网站性能"), *优化网站性能*，专门讨论与性能相关的所有内容。从详细解释 Nginx 事件驱动处理模型的基本原理开始，它还涉及缓存，并提供了关于可能的上游优化的一些建议。'
 - en: '[Chapter 5](ch05.html "Chapter 5. Troubleshooting Rare Specific Problems"),
     *Troubleshooting Rare Specific Problems,* is devoted to studies of several real
     cases that you may face, from some of the simplest and easiest cases to fix to
     more problematic cases. The cases described might not be the most frequent, but
     they still provide valuable insight on the internals of the software and the methods
     of troubleshooting.'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第五章](ch05.html "第五章. 故障排除罕见的特定问题"), *故障排除罕见的特定问题*，专门讨论了你可能遇到的几个真实案例，从一些最简单、最容易解决的案例到更复杂的问题。书中描述的案例可能不是最常见的，但它们仍然提供了有关软件内部工作原理和故障排除方法的宝贵见解。'
 - en: '[Chapter 6](ch06.html "Chapter 6. Monitoring Nginx"), *Monitoring Nginx,* is
     devoted to the abundance of tools available today that you may use for monitoring.
     No system is complete without good processes for the detection of emerging problems.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第六章](ch06.html "第六章. 监控 Nginx"), *监控 Nginx*，专门讨论了今天可用的各种监控工具。没有良好的问题检测流程，任何系统都不完整。'
 - en: '[Chapter 7](ch07.html "Chapter 7. Going Forward with Nginx"), *Going Forward
     with Nginx,* the short final chapter, provides a selection of directions you may
     choose for your further development as a specialist. The whole industry is very
     dynamic, and you should never settle.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第七章](ch07.html "第七章. 使用 Nginx 进行进一步发展"), *使用 Nginx 进行进一步发展*，是简短的最后一章，提供了你作为专业人士进一步发展的几个方向。整个行业发展迅速，你永远不应停滞不前。'
 - en: '[Appendix](apa.html "Appendix A. Rare Nginx Error Messages"), *Rare Nginx Error
     Messages*, provides a reference of interesting and not very common error messages
     that you might encounter in your log files.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '[附录](apa.html "附录A. 罕见的 Nginx 错误信息"), *罕见的 Nginx 错误信息*，提供了一个参考，列出了你可能在日志文件中遇到的有趣且不太常见的错误信息。'
 - en: What you need for this book
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书所需的内容
 - en: Although modern versions of Nginx support Windows, this configuration is not
     considered production-ready. Most of the examples in this book will work on your
     Windows machines, but we still recommend having a Linux or FreeBSD server for
     experiments.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管现代版本的 Nginx 支持 Windows，但此配置不被认为是生产环境准备就绪。书中的大部分示例可以在你的 Windows 机器上运行，但我们仍然建议你使用
+    Linux 或 FreeBSD 服务器进行实验。
 - en: Nginx itself is pretty stable, so any version released since 2013 will suffice.
     Some of the newer features are only available in more recent versions, and those
     cases are marked in the book. We always recommend running modern Nginx from the
     stable line in production. As of the start of the year 2016, it is 1.8.1.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 本身非常稳定，因此自 2013 年以来发布的任何版本都足够使用。某些新特性仅在更新版本中提供，这些情况在书中会特别标注。我们始终建议在生产环境中运行稳定版的现代
+    Nginx。截至 2016 年年初，稳定版为 1.8.1。
 - en: Who this book is for
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 本书的适用对象
 - en: The book is for technical specialists who already use Nginx to serve web pages
     for their users. Whether you are an experienced system administrator or a new
     professional, this book will help you do your job in the most efficient way.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 本书适用于已经使用 Nginx 为用户提供网页的技术专家。无论你是经验丰富的系统管理员，还是刚刚入行的专业人士，本书都将帮助你以最有效的方式完成工作。
 - en: Conventions
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 约定
 - en: In this book, you will find a number of text styles that distinguish between
     different kinds of information. Here are some examples of these styles and an
     explanation of their meaning.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本书中，您将看到多种文本样式，用于区分不同类型的信息。以下是一些样式示例及其含义的解释。
 - en: 'Code words in text, database table names, folder names, filenames, file extensions,
     pathnames, dummy URLs, user input, and Twitter handles are shown as follows: "The
     `error_page` directive installs a handler for an HTTP error based on the famous
     HTTP status codes."'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 文本中的代码词、数据库表名、文件夹名、文件名、文件扩展名、路径名、虚拟网址、用户输入和Twitter用户名将如下所示：“`error_page`指令基于著名的HTTP状态码安装一个HTTP错误处理程序。”
 - en: 'A block of code is set as follows:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 一块代码的设置如下：
 - en: '[PRE0]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'When we wish to draw your attention to a particular part of a code block, the
     relevant lines or items are set in bold:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们希望吸引您注意某个代码块的特定部分时，相关行或项目将以粗体显示：
 - en: '[PRE1]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Any command-line input or output is written as follows:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何命令行输入或输出都将如下所示：
 - en: '[PRE2]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '**New terms** and **important words** are shown in bold. Words that you see
     on the screen, for example, in menus or dialog boxes, appear in the text like
     this: "You should have a way to reboot an otherwise unreachable server; every
     sane modern hosting provider has it, whether in the form of a simple menu item
     **Reboot**, such as in Amazon EC2 or a whole IPMI console access."'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '**新术语**和**重要单词**以粗体显示。您在屏幕上看到的词汇，例如在菜单或对话框中，会以以下方式出现在文本中：“您应该有一种方法重新启动无法访问的服务器；每个理智的现代托管提供商都具备此功能，无论是通过简单的菜单项**重启**，例如在Amazon
+    EC2中，还是通过完整的IPMI控制台访问。”'
 - en: Note
+  id: totrans-32
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Warnings or important notes appear in a box like this.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 警告或重要说明会以如下框的形式显示。
 - en: Tip
+  id: totrans-34
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: Tips and tricks appear like this.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示和技巧会以如下形式显示。
 - en: Reader feedback
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 读者反馈
 - en: Feedback from our readers is always welcome. Let us know what you think about
     this book—what you liked or disliked. Reader feedback is important for us as it
     helps us develop titles that you will really get the most out of.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们总是欢迎读者的反馈。让我们知道您对本书的看法——您喜欢或不喜欢什么。读者反馈对我们非常重要，它帮助我们开发出您真正能从中获益的书籍。
 - en: To send us general feedback, simply e-mail `<[feedback@packtpub.com](mailto:feedback@packtpub.com)>`,
     and mention the book's title in the subject of your message.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 若要向我们提供一般反馈，请通过电子邮件发送至`<[feedback@packtpub.com](mailto:feedback@packtpub.com)>`，并在邮件主题中提及书名。
 - en: If there is a topic that you have expertise in and you are interested in either
     writing or contributing to a book, see our author guide at [www.packtpub.com/authors](http://www.packtpub.com/authors).
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您在某个领域有专业知识，并且有兴趣为书籍撰写或贡献内容，请参阅我们的作者指南，网址是[www.packtpub.com/authors](http://www.packtpub.com/authors)。
 - en: Customer support
+  id: totrans-40
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 客户支持
 - en: Now that you are the proud owner of a Packt book, we have a number of things
     to help you to get the most from your purchase.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，您已成为Packt书籍的骄傲拥有者，我们有一些内容帮助您充分利用您的购买。
 - en: Downloading the example code
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下载示例代码
 - en: You can download the example code files for this book from your account at [http://www.packtpub.com](http://www.packtpub.com).
     If you purchased this book elsewhere, you can visit [http://www.packtpub.com/support](http://www.packtpub.com/support)
     and register to have the files e-mailed directly to you.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以从[http://www.packtpub.com](http://www.packtpub.com)账户中下载本书的示例代码文件。如果您从其他地方购买了此书，可以访问[http://www.packtpub.com/support](http://www.packtpub.com/support)，并注册将文件直接发送到您的电子邮件。
 - en: 'You can download the code files by following these steps:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以通过以下步骤下载代码文件：
 - en: Log in or register to our website using your e-mail address and password.
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用您的电子邮件地址和密码登录或注册我们的官方网站。
 - en: Hover the mouse pointer on the **SUPPORT** tab at the top.
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将鼠标指针悬停在顶部的**支持**标签上。
 - en: Click on **Code Downloads & Errata**.
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 点击**代码下载与勘误**。
 - en: Enter the name of the book in the **Search** box.
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在**搜索**框中输入书名。
 - en: Select the book for which you're looking to download the code files.
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 选择您要下载代码文件的书籍。
 - en: Choose from the drop-down menu where you purchased this book from.
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从下拉菜单中选择您购买此书的平台。
 - en: Click on **Code Download**.
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 点击**代码下载**。
 - en: You can also download the code files by clicking on the **Code Files** button
     on the book's webpage at the Packt Publishing website. This page can be accessed
     by entering the book's name in the **Search** box. Please note that you need to
     be logged in to your Packt account.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以通过点击本书在Packt出版网站上的网页上的**代码文件**按钮下载代码文件。您可以通过在**搜索**框中输入书名来访问此页面。请注意，您需要登录您的Packt账户。
 - en: 'Once the file is downloaded, please make sure that you unzip or extract the
     folder using the latest version of:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 下载文件后，请确保使用最新版本的以下软件解压或提取文件夹：
 - en: WinRAR / 7-Zip for Windows
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: WinRAR / 7-Zip for Windows
 - en: Zipeg / iZip / UnRarX for Mac
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Zipeg / iZip / UnRarX for Mac
 - en: 7-Zip / PeaZip for Linux
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 7-Zip / PeaZip for Linux
 - en: Downloading the color images of this book
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下载本书的彩色图像
 - en: We also provide you with a PDF file that has color images of the screenshots/diagrams
     used in this book. The color images will help you better understand the changes
     in the output. You can download this file from [https://www.packtpub.com/sites/default/files/downloads/NginxTroubleshooting_ColorImages.pdf](https://www.packtpub.com/sites/default/files/downloads/NginxTroubleshooting_ColorImages.pdf).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还为您提供了一份包含本书截图/图表彩色图像的PDF文件。这些彩色图像将帮助您更好地理解输出结果的变化。您可以从[https://www.packtpub.com/sites/default/files/downloads/NginxTroubleshooting_ColorImages.pdf](https://www.packtpub.com/sites/default/files/downloads/NginxTroubleshooting_ColorImages.pdf)下载此文件。
 - en: Errata
+  id: totrans-59
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 勘误
 - en: Although we have taken every care to ensure the accuracy of our content, mistakes
     do happen. If you find a mistake in one of our books—maybe a mistake in the text
     or the code—we would be grateful if you could report this to us. By doing so,
@@ -293,37 +424,54 @@
     the details of your errata. Once your errata are verified, your submission will
     be accepted and the errata will be uploaded to our website or added to any list
     of existing errata under the Errata section of that title.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们已经尽一切努力确保内容的准确性，但错误还是可能发生。如果您在我们的书籍中发现错误——可能是文本或代码中的错误——我们将非常感激您向我们报告。通过这样做，您可以帮助其他读者避免困扰，并帮助我们改进后续版本的书籍。如果您发现任何勘误，请通过访问[http://www.packtpub.com/submit-errata](http://www.packtpub.com/submit-errata)，选择您的书籍，点击**勘误提交表单**链接，并输入勘误的详细信息。您的勘误一旦被验证，将被接受并上传到我们的网站或添加到该书籍的勘误部分中。
 - en: To view the previously submitted errata, go to [https://www.packtpub.com/books/content/support](https://www.packtpub.com/books/content/support)
     and enter the name of the book in the search field. The required information will
     appear under the **Errata** section.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 要查看之前提交的勘误信息，请访问[https://www.packtpub.com/books/content/support](https://www.packtpub.com/books/content/support)，并在搜索框中输入书名。所需的信息将在**勘误**部分显示。
 - en: Piracy
+  id: totrans-62
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 盗版
 - en: Piracy of copyrighted material on the Internet is an ongoing problem across
     all media. At Packt, we take the protection of our copyright and licenses very
     seriously. If you come across any illegal copies of our works in any form on the
     Internet, please provide us with the location address or website name immediately
     so that we can pursue a remedy.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 互联网上的版权盗版问题在所有媒体中都普遍存在。在Packt，我们非常重视保护我们的版权和许可。如果您在互联网上遇到我们作品的任何非法复制，请立即提供其位置地址或网站名称，以便我们采取相应的措施。
 - en: Please contact us at `<[copyright@packtpub.com](mailto:copyright@packtpub.com)>`
     with a link to the suspected pirated material.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 请通过 `<[copyright@packtpub.com](mailto:copyright@packtpub.com)>` 联系我们，并提供可疑盗版材料的链接。
 - en: We appreciate your help in protecting our authors and our ability to bring you
     valuable content.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们感谢您在保护我们的作者和我们提供有价值内容方面的帮助。
 - en: Questions
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 问题
 - en: If you have a problem with any aspect of this book, you can contact us at `<[questions@packtpub.com](mailto:questions@packtpub.com)>`,
     and we will do our best to address the problem.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您在本书的任何方面遇到问题，可以通过 `<[questions@packtpub.com](mailto:questions@packtpub.com)>`
+    与我们联系，我们将尽力解决该问题。
