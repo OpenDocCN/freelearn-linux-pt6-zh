@@ -1,633 +1,959 @@
 - en: Common Frameworks
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 常见框架
 - en: 'In this chapter, we will cover the following recipes:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将涵盖以下内容：
 - en: Setting up Django with NGINX
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置Django与NGINX
 - en: Setting up NGINX with Express
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置NGINX与Express
 - en: Running Ruby on Rails with NGINX
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX运行Ruby on Rails
 - en: Easy Flask with NGINX
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX的简单Flask
 - en: Laravel via NGINX
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过NGINX运行Laravel
 - en: Meteor applications with NGINX
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX的Meteor应用程序
 - en: High speed Beego with NGINX
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX的高速Beego
 - en: Introduction
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: The boom of web-based services and websites beyond just static content has spawned
     a number of web frameworks to tackle some of these more complex scenarios. Some
     have started from the newspaper world, where there are very tight deadlines, while
     others have focused on performance as their reasoning.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 网络服务和网站的兴起，超越了单纯的静态内容，催生了许多Web框架来应对这些更复杂的场景。有些框架源自报纸行业，在那里有非常紧迫的截止日期，而其他一些则专注于性能。
 - en: In this chapter, we'll go through the configurations of NGINX to work with each
     of these various frameworks in order to have an easy-to-follow configuration.
     Like the previous chapter, I won't be going through the steps of setting up the
     frameworks themselves, but focusing on the NGINX side only.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将通过配置NGINX来配合这些不同框架，以便提供一个易于跟随的配置。像上一章一样，我不会介绍如何设置这些框架本身，而是专注于NGINX的配置。
 - en: Let's get started.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们开始吧。
 - en: Setting up Django with NGINX
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置Django与NGINX
 - en: Django rose to fame when a small US newspaper firm open sourced their application
     back in 2005\. From there, Django has grown into the most widely used Python-based
     web framework. Still used by companies such as Instagram and Pinterest, the relevancy
     of Django is still as strong as ever.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: Django的崛起始于2005年，一家美国小型报纸公司将其应用开源。从那时起，Django成长为最广泛使用的基于Python的Web框架。如今，Instagram和Pinterest等公司仍在使用Django，Django的相关性依然如此强大。
 - en: '![](img/b05a4bbe-e64f-4ff8-91f2-feb7f627a843.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/b05a4bbe-e64f-4ff8-91f2-feb7f627a843.png)'
 - en: Getting ready
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备开始
 - en: Django interfaces to NGINX through a **Web Server Gateway Interface** (**WSGI**).
     For Django, one of the most commonly used WSGI interfaces is uWSGI.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: Django通过**Web服务器网关接口**（**WSGI**）与NGINX进行交互。对于Django，最常用的WSGI接口之一是uWSGI。
 - en: 'If you haven''t installed uWSGI yet, the best way is to install the latest
     version via `pip`:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你还没有安装uWSGI，最好的方法是通过`pip`安装最新版本：
 - en: '[PRE0]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: We're going to simply use a base install of the latest version of Django, which
     at the time of writing this book was 1.10.5.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将简单地使用最新版本的Django进行基础安装，写本书时的版本是1.10.5。
 - en: '![](img/7dbf0e50-5724-429d-97e1-80bf19330b0e.png)'
+  id: totrans-21
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/7dbf0e50-5724-429d-97e1-80bf19330b0e.png)'
 - en: How to do it...
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'We''ll now configure uWSGI to point to our Django project, which for this example
     I have located at `/var/www/djangodemo`. Here''s the `uwsgi.ini` file:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将配置uWSGI指向我们的Django项目，在本示例中，我将它放置在`/var/www/djangodemo`。这是`uwsgi.ini`文件：
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: For this example, we're also using TCP sockets rather than Unix sockets. Although
     they're slightly more efficient, having a proper socket makes it much easier for
     the initial testing phase. If you're hitting limitations (many thousands of concurrent
     connections), then I'd suggest that you use Unix sockets.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们还使用了TCP套接字，而不是Unix套接字。虽然TCP套接字略微高效，但有一个适当的套接字可以使初期测试阶段更加容易。如果你遇到限制（许多数千个并发连接），那么我建议你使用Unix套接字。
 - en: 'Now for the NGINX configuration, we''ll use a separate configuration file (`/etc/nginx/conf.d/django.conf`)
     to keep things neat and tidy:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将为NGINX配置文件使用一个单独的配置文件(`/etc/nginx/conf.d/django.conf`)，以保持整洁和有序：
 - en: '[PRE2]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: How it works....
+  id: totrans-28
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的....
 - en: 'The first configuration item we tweak is the `favicon`:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们调整的第一个配置项是`favicon`：
 - en: '[PRE3]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: There's a very famous story of Instagram's first deployment (where they had
     10,000 users in the first day) and the load that a missing `favicon` generated
     (since Django had to produce the `404` error) caused significant scaling issues.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个非常著名的故事，讲述了Instagram第一次部署时的情况（他们在第一天就有了10,000个用户），以及缺少`favicon`所引发的负载（因为Django必须产生`404`错误）导致的显著扩展问题。
 - en: 'Next, we serve any of the uploaded and static media directly via NGINX:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们通过NGINX直接提供任何上传的静态媒体：
 - en: '[PRE4]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: These directories are mapped via the `STATIC_ROOT` and `MEDIA_ROOT` configuration
     lines within the `settings.py` file for Django. NGINX is very efficient at serving
     static media, so serving it directly produces as little overhead as possible.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些目录通过`settings.py`文件中的`STATIC_ROOT`和`MEDIA_ROOT`配置行映射。NGINX在服务静态媒体方面非常高效，因此直接提供它产生的开销最小。
 - en: 'We then map app''s all other URL calls via the `uwsgi` protocol:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们通过`uwsgi`协议映射应用程序的所有其他URL调用：
 - en: '[PRE5]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The uWSGI project has a native protocol (called `uwsgi` and in lower case),
     which is built into NGINX by default. It's a binary protocol designed to be highly
     efficient and scalable.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: uWSGI项目有一个本地协议（称为`uwsgi`，并且是小写的），它默认内置于NGINX中。它是一个二进制协议，旨在高度高效和可扩展。
 - en: See also
+  id: totrans-38
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'For more information on the issues and best practices refer to the following
     link:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关问题和最佳实践的更多信息，请参考以下链接：
 - en: '[http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html](http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html)'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '[http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html](http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html)'
 - en: Setting up NGINX with Express
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Express设置NGINX
 - en: Rather than being overly opinionated, Express is a very minimalistic and flexible
     framework suited for web and mobile application deployments based on Node.js.
     It's also one of the most popular bases for some of the more complex and feature-packed
     Node.js frameworks too, which is why it makes a great learning block for Node.js
     web deployments.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: Express是一个极简主义和灵活的框架，适用于基于Node.js的Web和移动应用程序部署。它也是一些功能更复杂且功能更丰富的Node.js框架的流行基础，这也是它成为Node.js
+    Web部署的优秀学习块的原因。
 - en: '![](img/28fda183-a79d-4c1c-8458-30922fd16c1f.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/28fda183-a79d-4c1c-8458-30922fd16c1f.png)'
 - en: Getting ready
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: 'Express is so minimalistic that it doesn''t come with any boilerplate code
     to get you started. There are a number of generators out there which can set up
     a structure for you, however, I''m going to stick to a simple web page and a WebSocket
     for testing. Here''s my Express file:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: Express极简，甚至没有提供任何启动的样板代码。有一些生成器可以为你设置结构，但我将坚持使用一个简单的网页和WebSocket进行测试。这是我的Express文件：
 - en: '[PRE6]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: How to do it...
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'Now that we have a very simple Express application, we''ll place NGINX in front
     of it. Although Node.js is extremely fast, NGINX is not only faster but offers
     far more configurability. Even with WebSockets, we''re still able to proxy this
     through NGINX. Let''s take a look at the configuration:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了一个非常简单的Express应用程序，我们将把NGINX放在它前面。尽管Node.js非常快，但NGINX不仅更快，而且提供更多的可配置性。即使是WebSocket，我们仍然能够通过NGINX代理。让我们看看配置：
 - en: '[PRE7]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: How it works....
+  id: totrans-50
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 工作原理....
 - en: There's only one main block directive to get our simple test working, with a
     few key areas.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 只有一个主要的指令块可以使我们的简单测试工作，并包含几个关键区域。
 - en: '[PRE8]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: The proxy will forward the connection back to our Express-driven test application,
     which we configured to listen on port `3000` of the localhost.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 代理将把连接转发回我们基于Express的测试应用程序，该应用程序已配置为在本地主机的`3000`端口上监听。
 - en: '[PRE9]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: By default, proxied connections back to the Node.js application will be HTTP/1.0
     only. Setting this to HTTP/1.1 allows the use of keep-alive, which means the connection
     between NGINX and the application remains open rather than establishing a new
     connection every time. On a heavily loaded system, this is much more efficient.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，代理连接回Node.js应用程序时将仅使用HTTP/1.0。将其设置为HTTP/1.1允许使用keep-alive，这意味着NGINX和应用程序之间的连接保持打开状态，而不是每次都建立新连接。在负载较重的系统上，这更加高效。
 - en: '[PRE10]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: The WebSocket protocol uses the `Upgrade` and `Connection` headers as part of
     the handshake process. We need to set this at the NGINX level in order to allow
     the handshake process to work as expected. As it's compatible with HTTP/1.1, it
     won't interfere with the standard connections either.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: WebSocket协议在握手过程中使用`Upgrade`和`Connection`头。我们需要在NGINX层设置这些头，以确保握手过程按预期工作。由于它与HTTP/1.1兼容，因此也不会干扰标准连接。
 - en: See also
+  id: totrans-58
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'For more information on WebSocket and the HTTP/1.1 Upgrade header refer to
     following links:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关WebSocket和HTTP/1.1升级头的更多信息，请参考以下链接：
 - en: '[https://www.nginx.com/blog/websocket-nginx/](https://www.nginx.com/blog/websocket-nginx/)'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://www.nginx.com/blog/websocket-nginx/](https://www.nginx.com/blog/websocket-nginx/)'
 - en: '[https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header](https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header)'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header](https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header)'
 - en: Running Ruby on Rails with NGINX
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用NGINX运行Ruby on Rails
 - en: Ruby on Rails is a full web application framework, based on the Ruby programming
     language. As with a more traditional framework such as Django, Rails is based
     around a standard **Model View Controller** (**MVC**) pattern. This makes it well
     suited to rapid development which is also highly performant and feature packed.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: Ruby on Rails是一个完整的Web应用程序框架，基于Ruby编程语言。与传统框架如Django一样，Rails基于标准的**模型视图控制器**（**MVC**）模式。这使得它非常适合快速开发，同时又具有高度的性能和功能丰富性。
 - en: '![](img/f38f4bba-dfa4-4c24-b829-ecd87bc45f92.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/f38f4bba-dfa4-4c24-b829-ecd87bc45f92.png)'
 - en: Getting ready
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备就绪
 - en: Although there are a number of different application servers for Rails, one
     of the more popular is Passenger. With the highest performance and great documentation,
     Passenger's popularity is well deserved. This recipe has been tested with Ruby
     2.3, Rails 4.2, and Passenger 5.0.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管Rails有许多不同的应用服务器，但Passenger是其中最流行的之一。凭借卓越的性能和出色的文档，Passenger的受欢迎程度当之无愧。此配方已在Ruby
+    2.3、Rails 4.2和Passenger 5.0上进行测试。
 - en: 'We can install Passenger via `gem`:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过`gem`安装Passenger：
 - en: '[PRE11]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: To integrate with NGINX, this requires a special module to be enabled. We'll
     compile NGINX from scratch as per our installation in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml),
     *Let's Get Started* and compile Passenger support as a static module.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 要与NGINX集成，需要启用一个特定的模块。我们将按照[第1章](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)中的安装方法从头开始编译NGINX，并将Passenger支持编译为静态模块。
 - en: Make sure you have the mainline repository from [nginx.org](http://nginx.org)
     installed.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保你已安装[nginx.org](http://nginx.org)的主线仓库。
 - en: 'For a Debian- / Ubuntu-based system, you''ll need to create the build environment:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于基于Debian/Ubuntu的系统，你需要创建构建环境：
 - en: '[PRE12]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Then, in the NGINX source directory, edit the `debian/rules` file to add:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，在NGINX源代码目录中，编辑`debian/rules`文件，添加：
 - en: '[PRE13]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'You can confirm the `passenger` directory with the following command:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过以下命令确认`passenger`目录：
 - en: '[PRE14]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'To make the package name unique, you can edit the changelog and add additional
     lines to the changelog. Consider this example:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使包名唯一，你可以编辑更改日志并添加额外的行。参考此示例：
 - en: '[PRE15]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'You can now compile the package with the following command:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 你现在可以使用以下命令编译该包：
 - en: '[PRE16]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'This will take a few minutes to complete. Once we have the updated package,
     we can now install it:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将需要几分钟的时间来完成。一旦更新包准备好，我们就可以安装它：
 - en: '[PRE17]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: How to do it...
+  id: totrans-83
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Passenger comes with a basic tool to help create your NGINX configuration for
     you. To use it, run the following:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: Passenger附带一个基本工具，帮助你创建NGINX配置。使用该工具，运行以下命令：
 - en: '[PRE18]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: I have simplified the generated configuration, simply because many of the directives
     were setting it to the defaults anyway.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 我简化了生成的配置，因为许多指令本来就是将其设置为默认值。
 - en: 'In the main NGINX configuration (generally, `/etc/nginx/nginx.conf`), we need
     to add the following within the `http` directive block:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 在主NGINX配置中（通常是`/etc/nginx/nginx.conf`），我们需要在`http`指令块中添加以下内容：
 - en: '[PRE19]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'We then add a server configuration specific to our demo site, for example,
     `/etc/nginx/conf.d/rails.conf`:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们为我们的演示站点添加一个特定的服务器配置，例如`/etc/nginx/conf.d/rails.conf`：
 - en: '[PRE20]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: How it works...
+  id: totrans-91
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: There are a number of directives which aren't seen elsewhere because this recipe
     uses a specific Passenger module. In the core NGINX configuration file, we set
     the generic Passenger variables to use the correct Ruby version as well as the
     user which will run the Passenger server.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于此配方使用了特定的Passenger模块，因此有一些指令在其他地方未见过。在核心NGINX配置文件中，我们设置了通用的Passenger变量，以使用正确的Ruby版本以及运行Passenger服务器的用户。
 - en: In our `server` block directive, we point Passenger to our demo Rails instance
     and enable Passenger for the server instance. There's also a basic *assets* location
     block directive, so that NGINX will process the static media natively.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的`server`块指令中，我们将Passenger指向我们的演示Rails实例，并为服务器实例启用Passenger。还包含一个基本的*assets*位置块指令，以便NGINX可以本地处理静态媒体。
 - en: Lastly, we call `passenger_pre_start` to automatically start the Passenger application
     server when NGINX starts. This saves you having to start it separately, as is
     the case for most other application servers.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们调用`passenger_pre_start`，在NGINX启动时自动启动Passenger应用服务器。这样你就无需像大多数其他应用服务器那样单独启动它。
 - en: See also
+  id: totrans-95
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'For more information on the configuration and optimization of Passenger server,
     refer to following link:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关Passenger服务器配置和优化的更多信息，请参阅以下链接：
 - en: '[https://www.phusionpassenger.com/library/config/nginx/reference/](https://www.phusionpassenger.com/library/config/nginx/reference/)'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://www.phusionpassenger.com/library/config/nginx/reference/](https://www.phusionpassenger.com/library/config/nginx/reference/)'
 - en: Easy Flask with NGINX
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用NGINX轻松部署Flask
 - en: As one of the more popular Python frameworks, Flask is an extremely lightweight
     yet powerful system for web applications. Seen as more of a *micro* framework,
     a functional Flask application can be as simple as 20 lines of code.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一种流行的Python框架，Flask是一个极其轻量且功能强大的Web应用系统。被视为一种*微型*框架，一个功能齐全的Flask应用程序可以简单到只有20行代码。
 - en: '![](img/7a9cb2e8-ffe7-4c9d-81d1-8c65d70a3c5b.png)'
+  id: totrans-100
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/7a9cb2e8-ffe7-4c9d-81d1-8c65d70a3c5b.png)'
 - en: Getting ready
+  id: totrans-101
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: 'This recipe is based on a very simple, single file Flask application. To show
     the simplicity, here''s the example (`demoapp.py`) we''ll use:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 本食谱基于一个非常简单的单文件Flask应用程序。为了展示其简洁性，下面是我们将使用的示例（`demoapp.py`）：
 - en: '[PRE21]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'Like the Django recipe, we''re going to use uWSGI for the application server
     in this scenario as well. If you haven''t installed uWSGI yet, the best way is
     to install the latest version via `pip`:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 像Django的食谱一样，我们也将使用uWSGI作为本场景中的应用服务器。如果你还没有安装uWSGI，最好的方式是通过`pip`安装最新版本：
 - en: '[PRE22]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: How to do it...
+  id: totrans-106
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现…
 - en: 'First up, we set up our `uwsgi.ini` file, which should be located in the root
     of your Flask application. Here''s the file:'
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，我们设置`uwsgi.ini`文件，该文件应位于Flask应用程序的根目录中。文件内容如下：
 - en: '[PRE23]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: For this demo, we have a single Flask file located in `/var/www/flaskdemo/demoapp.py`.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本示例中，我们有一个位于`/var/www/flaskdemo/demoapp.py`的单一Flask文件。
 - en: 'You can quickly launch your uWSGI service by running the following command:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过运行以下命令快速启动uWSGI服务：
 - en: '[PRE24]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'We now need to configure the NGINX `server` block directive and again I''ve
     included this in a separate file `(/etc/nginx/conf.d/flask.conf`):'
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们现在需要配置NGINX的`server`块指令，再次将其放在一个单独的文件`(/etc/nginx/conf.d/flask.conf)`中：
 - en: '[PRE25]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: How it works...
+  id: totrans-114
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: The Flask applications are so simple that they don't come with all of the boilerplate
     WSGI configurations such as Django and other frameworks. The good news is that
     the flexibility of uWSGI means it's very easy to configure.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: Flask应用程序非常简单，它们不像Django或其他框架那样附带完整的WSGI配置模板。好消息是，uWSGI的灵活性意味着它非常容易配置。
 - en: In order for uWSGI to know what file to call, which we do via the `module` configuration
     entry, set it to `demoapp`. Those familiar with Python will know that this translates
     into loading `demoapp.py`.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让uWSGI知道要调用哪个文件，我们通过`module`配置项来设置，将其设置为`demoapp`。熟悉Python的人会知道，这意味着加载`demoapp.py`。
 - en: Secondly, the `callable` configuration specifies the default WSGI callable name,
     which in our `demoapp.py` is set to `application`.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，`callable`配置项指定了默认的WSGI调用名称，在我们的`demoapp.py`中，这个值设置为`application`。
 - en: Lastly, we have a very simple NGINX `server` block directive. This simply pushes
     all calls to our Flask application using the uWSGI socket.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们有一个非常简单的NGINX`server`块指令。它通过uWSGI套接字将所有调用转发到我们的Flask应用程序。
 - en: Laravel via NGINX
+  id: totrans-119
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Laravel通过NGINX
 - en: Inspired by the CodeIgniter framework, Laravel is a modern PHP framework based
     on the MVC pattern. Focusing on elegant code and modular packaging, Laravel is
     an increasingly popular choice for PHP developers who want to develop custom web
     applications.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: Laravel受CodeIgniter框架的启发，是一个基于MVC模式的现代PHP框架。Laravel专注于优雅的代码和模块化的打包，是越来越多希望开发自定义Web应用程序的PHP开发者的热门选择。
 - en: In this recipe, we'll go through the code required to publish your Laravel application
     using NGINX.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本食谱中，我们将介绍如何通过NGINX发布你的Laravel应用程序所需的代码。
 - en: '![](img/5e3477ad-8fe3-4ff8-a7f5-528ee0684c9d.png)'
+  id: totrans-122
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/5e3477ad-8fe3-4ff8-a7f5-528ee0684c9d.png)'
 - en: Getting ready
+  id: totrans-123
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: This recipe assumes you already have a working Laravel installation as well
     as a working PHP-FPM installation. The following configuration has been tested
     with Laravel 5.2.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 本食谱假设你已经安装并配置好工作中的Laravel和PHP-FPM。以下配置已在Laravel 5.2上进行测试。
 - en: How to do it...
+  id: totrans-125
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现…
 - en: As Laravel is PHP based, we'll be using PHP-FPM to compile the PHP code and
     present to NGINX. If this is new to you, it's worth reading through [Chapter 2](a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml),
     *Common PHP Scenarios* which covers some of the other PHP scenarios and the PHP-FPM
     configuration.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于Laravel是基于PHP的，我们将使用PHP-FPM来编译PHP代码并呈现给NGINX。如果这是你第一次接触，建议阅读[第2章](a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml)，*常见的PHP场景*，其中涵盖了其他一些PHP场景以及PHP-FPM配置。
 - en: 'To get going, we''ll create a separate virtual configuration file for Laravel:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了开始，我们将为Laravel创建一个单独的虚拟配置文件：
 - en: '[PRE26]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: How it works...
+  id: totrans-129
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: Laravel stores the files accessible by PHP-FPM and NGINX in the public folder,
     not the root of the Laravel project. Make sure you point the root to the correct
     directory, otherwise you could expose your configuration files.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: Laravel将PHP-FPM和NGINX可以访问的文件存储在public文件夹中，而不是Laravel项目的根目录。确保将根目录指向正确的目录，否则你可能会暴露配置文件。
 - en: We set a `location` block (`location ~ \.php$`) so that only PHP files are compiled
     by our PHP-FPM configuration. This means that all other files (for example, CSS
     stylesheets) are served directly by NGINX for the greatest efficiency.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们设置了一个 `location` 块（`location ~ \.php$`），以便只有 PHP 文件会被我们的 PHP-FPM 配置编译。这意味着所有其他文件（例如
+    CSS 样式表）将直接由 NGINX 提供，以实现最高效的处理。
 - en: See also
+  id: totrans-132
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参见其他内容
 - en: 'Official Laravel site: [https://laravel.com/](https://laravel.com/)'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 官方 Laravel 网站：[https://laravel.com/](https://laravel.com/)
 - en: Meteor applications with NGINX
+  id: totrans-134
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Meteor 应用程序与 NGINX 配置
 - en: Meteor is a full-stack, JavaScript driven framework designed to rapidly build
     cross-platform applications. It is integrated with the in-house designed **Distributed
     Data Protocol** (**DDP**) and allows for seamless data synchronization to clients;
     it also includes an inbuilt MongoDB data store.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: Meteor 是一个全栈的 JavaScript 驱动框架，旨在快速构建跨平台应用程序。它与公司内部设计的 **分布式数据协议**（**DDP**）集成，允许无缝的数据同步到客户端；它还包括一个内置的
+    MongoDB 数据存储。
 - en: '![](img/625b7381-309d-4fb3-aec7-be9c0e0780b2.png)'
+  id: totrans-136
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/625b7381-309d-4fb3-aec7-be9c0e0780b2.png)'
 - en: Getting ready
+  id: totrans-137
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: This recipe is based on Meteor 1.3 using a basic application with the Blaze
     templating engine.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 本教程基于 Meteor 1.3，使用 Blaze 模板引擎的基本应用程序。
 - en: How to do it...
+  id: totrans-139
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'As Meteor has an inbuilt server, we need to ensure this is running first:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 Meteor 内置了服务器，我们需要先确保它正在运行：
 - en: '[PRE27]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: This will start the Meteor proxy, start MongoDB, and then build the application.
     By default, it'll listen on port `3000` of your localhost. For a production system,
     you'll want to implement a proper init script to start this when the server boots.
     Third-party packages such as Meteor-Up can make this easy to do.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将启动 Meteor 代理，启动 MongoDB，然后构建应用程序。默认情况下，它会监听你本地主机的端口`3000`。对于生产系统，你需要实现一个适当的初始化脚本，在服务器启动时启动此服务。像
+    Meteor-Up 这样的第三方软件包可以简化这一过程。
 - en: 'Like the previous recipes, we''re using a separate NGINX server configuration
     file, for example, `/etc/nginx/conf.d/meteor.conf`:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 和之前的教程一样，我们使用了一个单独的 NGINX 服务器配置文件，例如 `/etc/nginx/conf.d/meteor.conf`：
 - en: '[PRE28]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: How it works...
+  id: totrans-145
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: Like the Express example, we use a proxy to the application and then set the
     headers (`Connection` / `Upgrade`) to ensure WebSockets are passed through correctly.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 和 Express 示例一样，我们使用代理转发应用程序，并设置头部（`Connection` / `Upgrade`），以确保 WebSockets 正常通过。
 - en: High speed Beego with NGINX
+  id: totrans-147
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 高速 Beego 与 NGINX
 - en: Although Go is a relatively new programming language, its popularity has been
     rapidly increasing as the demand for higher performance and greater scalability
     increases. Go is derived from Google's desire to scale rapidly, yet safely, and
     already has a number of web frameworks available.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管 Go 是一种相对较新的编程语言，但随着对更高性能和更大可扩展性需求的增加，其流行度也在迅速上升。Go 源自 Google 对快速、可靠扩展的需求，目前已经有许多可用的
+    Web 框架。
 - en: One of the most popular frameworks is Beego, an easy to use MVC-based web framework
     with integrated REST and code hot compile. By harnessing the performance of Go,
     Beego can outperform other frameworks (using a different programming language)
     by more than ten times in many instances.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 最流行的框架之一是 Beego，这是一个易于使用的基于 MVC 的 Web 框架，集成了 REST 和代码热编译。借助 Go 的性能，Beego 在许多情况下可以比其他框架（使用不同编程语言）提高超过十倍的性能。
 - en: '![](img/be8527ad-8631-413e-8e1b-883eb4079a79.png)'
+  id: totrans-150
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/be8527ad-8631-413e-8e1b-883eb4079a79.png)'
 - en: Getting ready
+  id: totrans-151
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: In this recipe we're going to use the example `todo` code. This is available
     at [https://github.com/beego/samples/tree/master/todo](https://github.com/beego/samples/tree/master/todo).
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我们将使用示例 `todo` 代码。可以在 [https://github.com/beego/samples/tree/master/todo](https://github.com/beego/samples/tree/master/todo)
+    找到。
 - en: 'It''s important to build this rather than just using `go run`, otherwise you''ll
     have issues. Consider the following example:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建这个而不是仅仅使用 `go run` 很重要，否则你会遇到问题。考虑以下示例：
 - en: '[PRE29]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: How to do it...
+  id: totrans-155
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'We''ll create a separate NGINX configuration file with the `server` block in
     it, as follows:'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将创建一个单独的 NGINX 配置文件，并在其中包含 `server` 块，如下所示：
 - en: '[PRE30]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: By default, a Beego application will listen on the localhost to port `8080`.
     We simply proxy all connections though. Like the Express recipe, we also set the
     proxy headers to allow WebSockets to pass through as well.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，Beego 应用程序会监听本地主机的 `8080` 端口。我们只是通过代理所有连接。像 Express 示例一样，我们也设置了代理头，以允许
+    WebSocket 正常通过。

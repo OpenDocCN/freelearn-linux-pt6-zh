@@ -1,89 +1,130 @@
 - en: Common PHP Scenarios
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 常见的PHP场景
 - en: 'In this chapter, we will cover the following recipes:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍以下操作步骤：
 - en: Configuring NGINX for WordPress
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置NGINX以支持WordPress
 - en: WordPress multisite with NGINX
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: WordPress多站点与NGINX
 - en: Running Drupal using NGINX
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX运行Drupal
 - en: Using NGINX with MediaWiki
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX与MediaWiki
 - en: Using Magento with NGINX
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Magento与NGINX
 - en: Configuring NGINX for Joomla
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置NGINX以支持Joomla
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: PHP is a thoroughly tested product to use with NGINX because it is the most
     popular web-based programming language. It powers sites, such as Facebook, Wikipedia,
     and every WordPress-based site, and its popularity hasn't faded as other languages
     have grown.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: PHP是一个经过充分测试的产品，适用于NGINX，因为它是最流行的基于Web的编程语言。它为Facebook、Wikipedia以及所有基于WordPress的网站提供支持，并且随着其他语言的崛起，它的受欢迎程度没有下降。
 - en: In this chapter, we'll go through examples of the more common PHP scenarios
     and how to implement them with NGINX. As WordPress is the most popular of the
     PHP systems, I've included some additional information to help with troubleshooting.
     Even if you're not using WordPress, some of this information may be helpful if
     you run into issues with other PHP frameworks.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍一些更常见的PHP场景，并说明如何使用NGINX实现它们。由于WordPress是最流行的PHP系统，我还添加了一些额外的信息来帮助故障排除。即使您不使用WordPress，这些信息在遇到其他PHP框架问题时也可能会有所帮助。
 - en: Most of the recipes expect that you have a working understanding of PHP systems,
     so not all of the setup steps for the systems will be covered. This is to keep
     the book succinct and allow the focus to be on the NGINX components.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数操作步骤假设您已经对PHP系统有一定了解，因此不会覆盖所有系统的设置步骤。这是为了使本书简洁，并让重点集中在NGINX组件上。
 - en: In order to keep the configurations as simple as possible, I haven't included
     details such as cache headers or SSL configurations in these recipes. This will
     be covered in later chapters and the full working configurations will be made
     available via [https://github.com/timbutler/nginxcookbook/](https://github.com/timbutler/nginxcookbook/).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使配置尽可能简单，我没有在这些操作步骤中包含缓存头或SSL配置等细节。这些内容将在后续章节中介绍，完整的工作配置将通过[https://github.com/timbutler/nginxcookbook/](https://github.com/timbutler/nginxcookbook/)提供。
 - en: Configuring NGINX for WordPress
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置NGINX以支持WordPress
 - en: Covering nearly 30 percent of all websites, WordPress is certainly the **Content
     Management System** (**CMS**) of choice by many. Although it came from a blogging
     background, WordPress is a very powerful CMS for all content types and powers
     some of the world's busiest websites.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 覆盖了几乎30%的所有网站，WordPress无疑是许多人的**内容管理系统**（**CMS**）首选。尽管它起源于博客平台，WordPress现在已成为一个非常强大的CMS，适用于所有类型的内容，并且支持一些全球访问量最大的站点。
 - en: By combining it with NGINX, you can deploy a highly scalable web platform.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 将其与NGINX结合使用，您可以部署一个高度可扩展的Web平台。
 - en: You can view the official WordPress documentation on NGINX at [https://codex.wordpress.org/Nginx](https://codex.wordpress.org/Nginx).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以在[https://codex.wordpress.org/Nginx](https://codex.wordpress.org/Nginx)查看官方的WordPress
+    NGINX文档。
 - en: We'll also cover some of the more complex WordPress scenarios, including multisite
     configurations with subdomains and directories.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将涵盖一些更复杂的WordPress场景，包括使用子域和目录的多站点配置。
 - en: Let's get started.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们开始吧。
 - en: Getting ready
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: To compile PHP code and run it via NGINX, the preferred method is via **PHP-FPM**,
     a high-speed **FastCGI Process Manager**. We'll also need to install PHP itself
     and, for the sake of simplicity, we'll stick with the OS-supplied version. Those
@@ -91,537 +132,814 @@
     December 3, 2015), which can offer a 2-3 times speed improvement for WordPress,
     while at the same time being up to four times more memory efficient compared to
     PHP 5.6.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了编译PHP代码并通过NGINX运行，推荐的方法是通过**PHP-FPM**，即高效的**FastCGI进程管理器**。我们还需要安装PHP本身，并且为了简化操作，我们将使用操作系统提供的版本。那些追求最大性能的用户应该确保运行PHP
+    7（于2015年12月3日发布），它能够为WordPress提供2-3倍的速度提升，同时在内存使用效率上比PHP 5.6高出四倍。
 - en: 'To install PHP-FPM, you should run the following on a Debian/Ubuntu system:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 若要安装PHP-FPM，您应该在Debian/Ubuntu系统上运行以下命令：
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'For those running CentOS/RHEL, you should run the following:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于运行CentOS/RHEL的用户，您应运行以下命令：
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: As PHP itself is a prerequisite for the `php-fpm` packages, it will also be
     installed.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于PHP本身是`php-fpm`包的先决条件，它也将被安装。
 - en: 'Note: Other packages such as MySQL will be required if you''re intending to
     run this on a single VPS instance. Consult the WordPress documentation for a full
     list of requirements.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意：如果你打算在单个 VPS 实例上运行，可能还需要其他包，如 MySQL。请查阅 WordPress 文档以获取完整的要求列表。
 - en: How to do it...
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: In this instance, we're simply using a standalone WordPress site, which would
     be deployed in many personal and business scenarios. This is the typical deployment
     for WordPress.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，我们只是使用一个独立的 WordPress 网站，这在许多个人和商业场景中都会部署。这是 WordPress 的典型部署方式。
 - en: 'For ease of management, I''ve created a dedicated config file just for the
     WordPress site (`/etc/nginx/conf.d/wordpress.conf`):'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了方便管理，我创建了一个专门用于 WordPress 网站的配置文件（`/etc/nginx/conf.d/wordpress.conf`）：
 - en: '[PRE2]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Reload NGINX to read the new configuration file and check your log files if
     there are any errors. If you''re installing WordPress from scratch, you should
     see the following:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 重新加载 NGINX 来读取新的配置文件，并检查你的日志文件是否有任何错误。如果你是从零开始安装 WordPress，你应该看到以下内容：
 - en: '![](img/97343223-e9bd-4a84-a499-29edbe25d83d.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/97343223-e9bd-4a84-a499-29edbe25d83d.png)'
 - en: You can complete the WordPress installation if you haven't already.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你还没有完成 WordPress 安装，可以继续进行。
 - en: How it works...
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: For the most part, the configuration is the same as the static website configuration
     in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml), *Let's Get Started*.
     For the root URL call, we have a new `try_files` directive, which will attempt
     to load the files in the order specified, but will fall back to the last parameter
     if they all fail.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大多数情况下，配置与[第一章](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)中的静态网站配置相同，*让我们开始吧*。对于根
+    URL 调用，我们有一个新的 `try_files` 指令，它将按指定的顺序尝试加载文件，如果都失败，将回退到最后一个参数。
 - en: For this WordPress example, it means that any static files will be served if
     they exist on the system, then fall back to `/index.php?args` if this fails.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个 WordPress 示例，这意味着如果系统上存在任何静态文件，它们将被提供服务，如果失败则回退到`/index.php?args`。
 - en: 'The `args` rewrite allows the permalinks of the site to be in a much more human
     form. For example, if you have a working WordPress installation, you can see links
     such as the one shown in the following screenshot:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`args` 重写使得站点的永久链接可以呈现更人性化的形式。例如，如果你有一个正常工作的 WordPress 安装，你可以看到如下图所示的链接：'
 - en: '![](img/2fe479db-b80f-4f6a-9d61-568023f1b092.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/2fe479db-b80f-4f6a-9d61-568023f1b092.png)'
 - en: Lastly, we process all PHP files via the FastCGI interface to PHP-FPM. In the
     preceding example, we're referencing the Ubuntu/Debian standard; if you're running
     CentOS/RHEL, then the path will be `/var/run/php-fpm.sock`.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们通过 FastCGI 接口将所有 PHP 文件处理到 PHP-FPM。在前面的例子中，我们引用的是 Ubuntu/Debian 标准；如果你运行的是
+    CentOS/RHEL，路径将是 `/var/run/php-fpm.sock`。
 - en: NGINX is simply *proxying* the connection to the PHP-FPM instance, rather than
     being part of NGINX itself. This separation allows for greater resource control,
     especially since the number of incoming requests to the web server doesn't necessarily
     match the number of PHP requests for a typical website.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 只是*代理*连接到 PHP-FPM 实例，而不是 NGINX 自身的一部分。这种分离允许更好的资源控制，尤其是在 web 服务器的传入请求数与典型网站的
+    PHP 请求数不一定匹配时。
 - en: There's more...
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'Take care when copying and pasting any configuration files. It''s very easy
     to miss something and have one thing slightly different in your environment, which
     will cause issues with the website working as expected. Here''s a quick lookup
     table of various other issues which you may come across:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在复制和粘贴任何配置文件时要小心。很容易遗漏某些内容，使得你的环境中有些微小的不同，这会导致网站无法按预期工作。以下是一些你可能会遇到的其他问题的快速查询表：
 - en: '| **Error** | **What to check** |'
+  id: totrans-43
   prefs: []
   type: TYPE_TB
+  zh: '| **错误** | **需要检查的内容** |'
 - en: '| `502 Bad Gateway` | File ownership permissions for the PHP-FPM socket file
     |'
+  id: totrans-44
   prefs: []
   type: TYPE_TB
+  zh: '| `502 Bad Gateway` | PHP-FPM 套接字文件的文件所有权权限 |'
 - en: '| `404 File Not Found` | Check for the missing `index index.php` directive
     |'
+  id: totrans-45
   prefs: []
   type: TYPE_TB
+  zh: '| `404 File Not Found` | 检查缺少的 `index index.php` 指令 |'
 - en: '| `403 Forbidden` | Check for the correct path in the `root` directive and/or
     check for correct file permissions |'
+  id: totrans-46
   prefs: []
   type: TYPE_TB
+  zh: '| `403 Forbidden` | 检查 `root` 指令中的正确路径和/或检查文件权限是否正确 |'
 - en: Your error log (defaults to `/var/log/nginx/error.log`) will generally contain
     a lot more detail regarding the issue you're seeing compared with what's displayed
     in the browser. Make sure you check the error log if you receive any errors.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的错误日志（默认路径为 `/var/log/nginx/error.log`）通常会包含比浏览器显示的更多关于问题的详细信息。如果遇到错误，确保检查错误日志。
 - en: 'Hint: NGINX does not support `.htaccess` files. If you see examples on the
     web referencing a `.htaccess` files, these are Apache specific. Make sure any
     configurations you''re looking at are for NGINX.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示：NGINX 不支持 `.htaccess` 文件。如果您在网络上看到提到 `.htaccess` 文件的示例，这些是 Apache 特有的。确保您查看的任何配置都是针对
+    NGINX 的。
 - en: WordPress multisite with NGINX
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 NGINX 的 WordPress 多站点
 - en: WordPress **multisites** (also referred to as network sites) allow you to run
     multiple websites from the one codebase. This can reduce the management burden
     of having separate WordPress installations when you have similar sites. For example,
     if you have a sporting site with separate news and staff for different regions,
     you can use a multisite installation to accomplish this.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: WordPress **多站点**（也称为网络站点）允许您从一个代码库运行多个网站。当您拥有类似的网站时，这可以减少管理多个独立 WordPress 安装的负担。例如，如果您有一个体育网站，其中包括不同地区的新闻和工作人员，您可以使用多站点安装来实现这一目标。
 - en: How to do it...
+  id: totrans-51
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To convert a WordPress site into a multisite, you need to add the configuration
     variable into your config file `wp-config.php`:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将 WordPress 网站转换为多站点，您需要将配置变量添加到配置文件 `wp-config.php` 中：
 - en: '[PRE3]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Under the Tools menu, you'll now see an extra menu called Network Setup. This
     will present you with two main options, Sub-domains and Sub-directories. These
     are the two different ways the multisite installation will work. The Sub-domains
     option has the sites separated by domain names, for example, `site1.nginxcookbook.com`
     and `site2.nginxcookbook.com`. The Sub-directories option means that the sites
     are separated by directories, for example, `www.nginxcookbook.com/site1` and `www.nginxcookbook.com/site2`.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 在工具菜单下，您现在会看到一个额外的菜单，称为“网络设置”。它会提供两个主要选项：子域和子目录。这是多站点安装的两种不同方式。子域选项将网站按域名分开，例如
+    `site1.nginxcookbook.com` 和 `site2.nginxcookbook.com`。子目录选项则意味着网站按目录分开，例如 `www.nginxcookbook.com/site1`
+    和 `www.nginxcookbook.com/site2`。
 - en: '![](img/e7d47de1-4a62-4648-82cc-38dc9029d73e.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/e7d47de1-4a62-4648-82cc-38dc9029d73e.png)'
 - en: There's no functional difference between the two, it's simply an aesthetic choice.
     However, once you've made your choice, you cannot return to the previous state.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两者在功能上没有区别，纯粹是美学上的选择。然而，一旦做出选择，您就无法返回到之前的状态。
 - en: Once you've made the choice, it will then provide the additional code to add
     to your `wp-config.php` file.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦您做出选择，它将提供额外的代码，供您添加到 `wp-config.php` 文件中。
 - en: 'Here''s the code for my example, which is subdirectory based:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我的示例代码，它基于子目录：
 - en: '[PRE4]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Because NGINX doesn't support `.htaccess` files, the second part of the WordPress
     instructions will *not* work. Instead, we need to modify the NGINX configuration
     to provide the rewrite rules ourselves.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 NGINX 不支持 `.htaccess` 文件，WordPress 指令的第二部分将*无法*工作。相反，我们需要修改 NGINX 配置，以便自己提供重写规则。
 - en: 'In the existing `/etc/nginx/conf.d/wordpress.conf` file, you''ll need to add
     the following just after the `location /` directive:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在现有的 `/etc/nginx/conf.d/wordpress.conf` 文件中，您需要在 `location /` 指令之后添加以下内容：
 - en: '[PRE5]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Although the `if` statements are normally avoided if possible, in this instance,
     it will ensure the subdirectory multisite configuration works as expected. If
     you're expecting a few thousand concurrent users on your site, then it may be
     worthwhile investigating the static mapping of each site. There are plugins to
     assist with the map generations for this, but they are still more complex compared
     to the `if` statement.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然通常尽可能避免使用 `if` 语句，但在此实例中，它将确保子目录多站点配置按预期工作。如果您的网站预计会有几千个并发用户，那么可能值得研究每个站点的静态映射。虽然有插件可以帮助生成映射，但它们比
+    `if` 语句更为复杂。
 - en: Subdomains
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 子域
 - en: 'If you''ve selected subdomains, your code to put in `wp-config.php` will look
     like this:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您选择了子域，则要添加到 `wp-config.php` 中的代码将如下所示：
 - en: '[PRE6]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'You''ll also need to modify the NGINX config as well to add in the wildcard
     for the server name:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还需要修改 NGINX 配置，添加服务器名称的通配符：
 - en: '[PRE7]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: You can now add in the additional sites, such as `site1.wordpressdemo.nginxcookbook.com`,
     and there won't be any changes required for NGINX.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，您可以添加额外的网站，例如 `site1.wordpressdemo.nginxcookbook.com`，并且 NGINX 不需要做任何更改。
 - en: See also
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'NGINX recipe page: [https://www.nginx.com/resources/wiki/start/topics/recipes/wordpress/](https://www.nginx.com/resources/wiki/start/topics/recipes/wordpress/)'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'NGINX 配方页面: [https://www.nginx.com/resources/wiki/start/topics/recipes/wordpress/](https://www.nginx.com/resources/wiki/start/topics/recipes/wordpress/)'
 - en: 'WordPress Codex page: [https://codex.wordpress.org/Nginx](https://codex.wordpress.org/Nginx)'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'WordPress Codex 页面: [https://codex.wordpress.org/Nginx](https://codex.wordpress.org/Nginx)'
 - en: Running Drupal using NGINX
+  id: totrans-73
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 NGINX 运行 Drupal
 - en: With version 8 recently released and a community of over 1 million supporters,
     Drupal remains a popular choice when it comes to a highly flexible and functional
     CMS platform. Version 8 has over 200 new features compared to version 7, aimed
     at improving both the usability and manageability of the system. This cookbook
     will be using version 8.0.5.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: Drupal 8 最近发布，并拥有超过 100 万名支持者，Drupal 仍然是一个非常受欢迎的高度灵活和功能强大的 CMS 平台。与 7 版本相比，8
+    版本增加了超过 200 个新功能，旨在提高系统的可用性和可管理性。本食谱将使用 8.0.5 版本。
 - en: '![](img/cb1217cd-6355-4aaf-b64e-3037736eff35.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/cb1217cd-6355-4aaf-b64e-3037736eff35.png)'
 - en: Getting ready
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: This example assumes you already have a working instance of Drupal or are familiar
     with the installation process. You can also follow the installation guide available
     at [https://www.drupal.org/documentation/install](https://www.drupal.org/documentation/install).
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 本示例假设您已经有一个正在运行的 Drupal 实例，或者熟悉安装过程。您还可以按照 [https://www.drupal.org/documentation/install](https://www.drupal.org/documentation/install)
+    提供的安装指南进行操作。
 - en: How to do it...
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: This recipe is for a basic Drupal configuration, with the Drupal files located
     in `/var/www/html`.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 本食谱适用于基本的 Drupal 配置，Drupal 文件位于 `/var/www/html`。
 - en: 'Here''s the configuration to use:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是要使用的配置：
 - en: '[PRE8]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: How it works...
+  id: totrans-82
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'Based on a simple PHP-FPM structure, we make a few key changes specific to
     the Drupal environment. The first change is as follows:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于简单的 PHP-FPM 结构，我们对 Drupal 环境做了一些特定的关键更改。第一个更改如下：
 - en: '[PRE9]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'We put a block in for any files beginning with a dot, which are normally hidden
     and/or system files. This is to prevent accidental information leakage:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们为任何以点开头的文件添加了一个阻止规则，这些通常是隐藏的和/或系统文件。这样做是为了防止意外的信息泄露：
 - en: '[PRE10]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Any PHP file within the `vendor` directory is also blocked, as they shouldn't
     be called directly. Blocking the PHP files limits any potential exploit opportunity
     which could be discovered in third-party code.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '`vendor` 目录中的任何 PHP 文件也会被阻止，因为它们不应该直接调用。阻止这些 PHP 文件可以限制可能在第三方代码中发现的任何潜在漏洞机会。'
 - en: 'Lastly, Drupal 8 changed the way the PHP functions are called for updates,
     which causes any old configuration to break. The `location` directive for the
     PHP files looks like this:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，Drupal 8 更改了 PHP 函数的调用方式来进行更新，这导致任何旧的配置都会失效。PHP 文件的 `location` 指令如下所示：
 - en: '[PRE11]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: This is to allow the distinct pattern that Drupal uses, where the PHP filename
     could be midway through the URI.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样做是为了适应 Drupal 使用的独特模式，其中 PHP 文件名可能出现在 URI 的中间。
 - en: 'We also modify how the FastCGI process splits the string, so that we ensure
     we always get the correct answer:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还修改了 FastCGI 进程如何分割字符串，以确保我们始终得到正确的答案：
 - en: '[PRE12]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: See also
+  id: totrans-93
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'NGINX recipe: [https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/](https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/)'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 配方： [https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/](https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/)
 - en: Using NGINX with MediaWiki
+  id: totrans-95
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 NGINX 配合 MediaWiki
 - en: 'MediaWiki, most recognized by its use with Wikipedia, is the most popular open
     source wiki platform available. With features heavily focused on the ease of editing
     and sharing content, MediaWiki makes a great system to store information you want
     to continually edit:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: MediaWiki，最著名的用途是与 Wikipedia 一起使用，是最受欢迎的开源 wiki 平台。它的功能主要集中在简化内容编辑和共享，MediaWiki
+    使得存储您想要持续编辑的信息成为一种很好的系统：
 - en: '![](img/b64f4aa7-06a7-4aef-a473-5a411392cff9.png)'
+  id: totrans-97
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/b64f4aa7-06a7-4aef-a473-5a411392cff9.png)'
 - en: Getting ready
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: This example assumes you already have a working instance of MediaWiki or are
     familiar with the installation process. For those unfamiliar with the process,
     it's available online at [https://www.mediawiki.org/wiki/Manual:Installation_guide](https://www.mediawiki.org/wiki/Manual:Installation_guide).
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 本示例假设您已经有一个正在运行的 MediaWiki 实例，或者熟悉安装过程。对于不熟悉该过程的人，可以在线查阅 [https://www.mediawiki.org/wiki/Manual:Installation_guide](https://www.mediawiki.org/wiki/Manual:Installation_guide)。
 - en: How to do it...
+  id: totrans-100
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: The basic NGINX configuration for MediaWiki is very similar to many other PHP
     platforms. It has a flat directory structure which easily runs with basic system
     resources.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: MediaWiki 的基本 NGINX 配置与许多其他 PHP 平台非常相似。它具有一个扁平的目录结构，可以轻松地在基本系统资源下运行。
 - en: 'Here''s the configuration:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是配置：
 - en: '[PRE13]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'The default installation doesn''t use any rewrite rules, which means you''ll
     get URLs such as `index.php?title=Main_Page` instead of the neater (and more readable)
     `/wiki/Main_Page`. To enable this, we need to edit the `LocalSettings.php` file
     and add the following lines:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认安装不使用任何重写规则，这意味着你会得到像 `index.php?title=Main_Page` 这样的 URL，而不是更简洁（更易读的）`/wiki/Main_Page`。为了启用此功能，我们需要编辑
+    `LocalSettings.php` 文件，并添加以下行：
 - en: '[PRE14]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: This allows the URLs to be rewritten in a much neater format.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以让 URL 以更简洁的格式进行重写。
 - en: See also
+  id: totrans-107
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'NGINX recipe: [https://www.nginx.com/resources/wiki/start/topics/recipes/mediawiki/](https://www.nginx.com/resources/wiki/start/topics/recipes/mediawiki/)'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 'NGINX 配置示例: [https://www.nginx.com/resources/wiki/start/topics/recipes/mediawiki/](https://www.nginx.com/resources/wiki/start/topics/recipes/mediawiki/)'
 - en: Using Magento with NGINX
+  id: totrans-109
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Magento 配合 NGINX
 - en: With nearly 30 percent market share, Magento is the most popular e-commerce
     platform in the world. Due to a number of features and complexity, it's also a
     very resource-intensive system to use compared to a lightweight alternative. This
     means that NGINX is an ideal pairing to ensure you have the highest performance
     possible.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: Magento 拥有近 30% 的市场份额，是全球最流行的电子商务平台。由于其众多特性和复杂性，相比轻量级的替代方案，它也是一个非常消耗资源的系统。这意味着
+    NGINX 是一个理想的搭配，能确保你获得尽可能高的性能。
 - en: 'The latest major version of Magento is 2.0, which was nearly a complete rewrite
     compared to the previous versions. There''s still quite a bit of complexity involved
     too, so make sure that you''re ready to take on Magento if you''ve chosen it for
     your e-commerce platform:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: Magento 的最新主要版本是 2.0，相比之前的版本几乎是一次完全重写。它仍然涉及相当复杂的内容，因此如果你选择 Magento 作为你的电子商务平台，请确保你已经准备好迎接挑战：
 - en: '![](img/cae24b63-9891-44bb-bd8a-8efd418dc58c.png)'
+  id: totrans-112
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/cae24b63-9891-44bb-bd8a-8efd418dc58c.png)'
 - en: Getting ready
+  id: totrans-113
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: This guide assumes you're familiar with the installation of Magento 2.0 and
     have a working instance. Although there shouldn't be too many major changes, this
     recipe has been tested with version 2.0.2.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 本指南假设你已经熟悉 Magento 2.0 的安装，并且有一个正常运行的实例。虽然应该不会有太多重大变化，但此配置示例已在 2.0.2 版本中进行过测试。
 - en: How to do it...
+  id: totrans-115
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: Thankfully, Magento provides a fairly functional NGINX sample configuration
     (located in the root of the Magento source folder) to get started with. I've located
     the files within the `/var/www/html` directory, which will be known as `MAGE_ROOT`.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，Magento 提供了一个相当实用的 NGINX 示例配置（位于 Magento 源代码文件夹的根目录），以供启动。我将文件放置在 `/var/www/html`
+    目录下，称其为 `MAGE_ROOT`。
 - en: 'Magento provides a basic configuration out of the box, which only requires
     a few small changes. However, I prefer to use my own configuration which I find
     easier to follow. Here''s how I do it:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: Magento 提供了一个开箱即用的基本配置，只需要做几个小调整。但我更喜欢使用自己的配置，因为我发现这样更容易理解。以下是我使用的配置方法：
 - en: '[PRE15]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: As you can see, this is significantly more complex than a basic WordPress configuration.
     There are four main sections; the first is to handle the setup and updates, the
     second is to handle static media (for example, default Magento, CSS, and JavaScript),
     media files (for example, upload images), and finally how to process PHP files.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所看到的，这比基本的 WordPress 配置复杂得多。这里有四个主要部分；第一部分是处理设置和更新，第二部分是处理静态媒体（例如，默认的 Magento、CSS
+    和 JavaScript）、媒体文件（例如，上传的图片），最后是如何处理 PHP 文件。
 - en: How it works...
+  id: totrans-120
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: We'll go through this one in sections. Magento is different from many flat file
     / single root directory structures, so it requires some slight changes compared
     to a basic PHP site.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将分步进行讲解。Magento 与许多平面文件 / 单一根目录结构不同，因此相比基本的 PHP 网站，需要做一些微小的调整。
 - en: '[PRE16]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'This sets a variable we can easily reference and it means there''s only one
     place we need to update if we move the files:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 这设置了一个我们可以轻松引用的变量，这意味着如果我们移动文件，只有一个地方需要更新：
 - en: '[PRE17]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: All of the main website files sit in the `pub` subdirectory. This is commonly
     overlooked when uploading the files to a shared hosting platform such as CPanel
     or Plesk. Ensure that the main `root` directive points to the `pub` folder, not
     just the directory of the Magento files. The `root` directive is therefore pointed
     at the `pub` folder with the preceding configuration line.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有主要的站点文件都位于 `pub` 子目录中。在将文件上传到共享主机平台（如 CPanel 或 Plesk）时，这一点常常被忽视。确保主 `root`
+    指令指向 `pub` 文件夹，而不仅仅是 Magento 文件的目录。因此，`root` 指令指向了 `pub` 文件夹，前面的配置行即为此目的。
 - en: 'Conversely, the setup and update URLs need to have a separate `root` directive
     to ensure they also point to the correct location:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，设置和更新的 URL 需要有一个单独的 `root` 指令，以确保它们也指向正确的位置：
 - en: '[PRE18]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'This sets the `root` back to the default directory, which sits outside the
     `pub` directory. The easiest way to look at it is to view the setup and upgrade
     sites as separate websites with their own separate structure. This is why the
     directive block also has the following:'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将 `root` 设置回默认目录，该目录位于`pub`目录之外。最简单的理解方式是将设置和升级站点视为具有各自独立结构的独立网站。这就是为什么指令块还包括以下内容：
 - en: '[PRE19]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'We only allow access to `index.php` within the `setup`/`update` directories,
     and then deny access to any *nonpub* file:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们仅允许访问位于`setup`/`update`目录中的`index.php`，然后拒绝访问任何*非公开*文件：
 - en: '[PRE20]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: This will give a 403 error if a malicious user or script attempts to access
     files outside the `pub` directory.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果恶意用户或脚本尝试访问`pub`目录之外的文件，将会返回403错误。
 - en: 'It also ensures that all requests come from the same frame, which will prevent
     clickjacking:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 它还确保所有请求来自同一框架，从而防止点击劫持：
 - en: '[PRE21]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: The static and media sections are both fairly similar in how they operate. Headers
     are set for caching (explained in more detail in [Chapter 7](bc04362e-995f-4550-92b7-183754306d34.xhtml),
     *Reverse Proxy*) and the calls are wrapped through a PHP function (`static.php`
     or `get.php`) to allow Magento to perform tasks such as file merging and minification.
     It can result in a slightly slower first hit, but as it caches the result each
     subsequent request should be very fast.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 静态文件和媒体部分在操作方式上非常相似。为缓存设置了头信息（在[第7章](bc04362e-995f-4550-92b7-183754306d34.xhtml)中详细解释，*反向代理*），并通过
+    PHP 函数（`static.php` 或 `get.php`）包装调用，以便 Magento 执行诸如文件合并和最小化等任务。这可能导致首次访问稍慢，但由于会缓存结果，随后的请求应该非常快速。
 - en: See also
+  id: totrans-136
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'Magento sample configuration: [https://github.com/magento/magento2/blob/develop/nginx.conf.sample](https://github.com/magento/magento2/blob/develop/nginx.conf.sample)'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: Magento 示例配置：[https://github.com/magento/magento2/blob/develop/nginx.conf.sample](https://github.com/magento/magento2/blob/develop/nginx.conf.sample)
 - en: Configuring NGINX for Joomla
+  id: totrans-138
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为 Joomla 配置 NGINX
 - en: 'With the recent release of version 3.5, Joomla is still one of the most popular
     CMS platforms in the world. This latest release features full PHP 7 support, drag-and-drop
     images, and more:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着最近发布的 3.5 版本，Joomla 仍然是世界上最受欢迎的 CMS 平台之一。此次最新版本支持完整的 PHP 7，支持拖放图像等功能：
 - en: '![](img/249e5024-4e56-45a5-ae75-cb4d951f53a9.png)'
+  id: totrans-140
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/249e5024-4e56-45a5-ae75-cb4d951f53a9.png)'
 - en: Getting ready
+  id: totrans-141
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: This assumes you have a working Joomla installation and have located the files
     at `/var/www/html/`. If you need an installation guide, try the official documentation
     available at [https://docs.joomla.org/J3.x:Installing_Joomla](https://docs.joomla.org/J3.x:Installing_Joomla).
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 这假设你已经有了一个正常工作的 Joomla 安装，并且文件位于`/var/www/html/`目录。如果你需要安装指南，可以参考官方文档：[https://docs.joomla.org/J3.x:Installing_Joomla](https://docs.joomla.org/J3.x:Installing_Joomla)。
 - en: How to do it...
+  id: totrans-143
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To use Joomla with NGINX, we need a simple NGINX configuration file. This is
     a very basic PHP-FPM configuration with no changes required:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在 NGINX 上使用 Joomla，我们需要一个简单的 NGINX 配置文件。这是一个非常基础的 PHP-FPM 配置，不需要任何更改：
 - en: '[PRE22]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'To enable clean URLs, you also need to ensure that URL rewriting is enabled:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 要启用干净的 URL，你还需要确保启用了 URL 重写：
 - en: '![](img/862f3d5d-9b3c-4a8e-b9f2-03877fcf2b39.png)'
+  id: totrans-147
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/862f3d5d-9b3c-4a8e-b9f2-03877fcf2b39.png)'
 - en: See also
+  id: totrans-148
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'Joomla docs: [https://docs.joomla.org/Nginx](https://docs.joomla.org/Nginx)'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: Joomla 文档：[https://docs.joomla.org/Nginx](https://docs.joomla.org/Nginx)
