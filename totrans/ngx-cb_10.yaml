@@ -1,139 +1,200 @@
 - en: Docker Containers
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Docker 容器
 - en: 'In this chapter, we will cover the following topics:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将涵盖以下主题：
 - en: NGINX web server via Docker
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过 Docker 使用 NGINX Web 服务器
 - en: NGINX reverse proxy via Docker
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 反向代理通过 Docker
 - en: Docker Compose with NGINX
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 NGINX 的 Docker Compose
 - en: NGINX load balancing with Docker
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 负载均衡与 Docker
 - en: Introduction
+  id: totrans-6
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: While the concept of container technology isn't new, the rise of Docker's popularity
     is simply because it was the first to bring simplicity and scalability to the
     market. For those who don't quite understand what Docker is, on a simplistic level,
     it's just an application container.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然容器技术的概念并不新鲜，但 Docker 流行的崛起只是因为它是第一个将简便性和可扩展性带入市场的工具。对于那些不太理解 Docker 的人，从简单的角度来看，它仅仅是一个应用容器。
 - en: 'Containers themselves are simply another way of virtualizing your environment.
     Rather than having to emulate components such as a **Virtual Machine** (**VM**),
     containers run on a single kernel and rely on software-level abstraction and isolation
     to provide lightweight and faster virtual environments. Docker takes this a step
     further and isolates it right down to a single application, as shown in the following
     diagram:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 容器本身只是虚拟化环境的另一种方式。与其模拟虚拟机（**Virtual Machine**，**VM**）等组件，容器在单一内核上运行，并依赖软件层面的抽象和隔离来提供轻量级且更快速的虚拟环境。Docker
+    进一步简化了这一过程，将其隔离到单个应用程序，如下图所示：
 - en: '![](img/7192fc7f-7ec5-4a92-9e65-8625425e0f5e.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/7192fc7f-7ec5-4a92-9e65-8625425e0f5e.png)'
 - en: The advantage is that this high level of abstraction means that you can provide
     a highly consistent and rapidly deployable service architecture that is simple
     to run. Not only that, Docker has a number of tools to orchestrate and help manage
     the deployment of the containers as well.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 其优点在于，这种高度的抽象意味着你可以提供一个高度一致且可以快速部署的服务架构，并且易于运行。不仅如此，Docker 还有许多工具可以协作并帮助管理容器的部署。
 - en: Installing Docker
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 安装 Docker
 - en: If you haven't installed Docker yet, the easiest way to try it is on your local
     development machine. Rather than running it natively, these environments set up
     a small Linux VM and provide wrappers to directly use it from your existing operating
     system.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你还没有安装 Docker，最简单的尝试方法是在本地开发机器上进行。与本地运行不同，这些环境设置了一个小型的 Linux 虚拟机，并提供了封装器，让你可以直接从现有的操作系统中使用它。
 - en: 'To install it, download and run it through the installers from here:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 要安装它，请从此处下载并通过安装程序运行：
 - en: '**Windows**: [https://www.docker.com/docker-windows](https://www.docker.com/docker-windows)'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Windows**: [https://www.docker.com/docker-windows](https://www.docker.com/docker-windows)'
 - en: '**macOS**: [https://www.docker.com/docker-mac](https://www.docker.com/docker-mac)'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**macOS**: [https://www.docker.com/docker-mac](https://www.docker.com/docker-mac)'
 - en: As Docker is a rapidly evolving platform, always consult the official documentation
     in case there have been any changes since the time of writing.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 Docker 是一个快速发展的平台，安装时请始终参考官方文档，以防自写作时以来发生了任何变化。
 - en: 'If you''re installing Docker on a dedicated server or VPS, this can be done
     using the standard tools. For a CentOS 7 system, this is as simple as the following:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在专用服务器或 VPS 上安装 Docker，可以使用标准工具来完成。对于 CentOS 7 系统，操作非常简单，如下所示：
 - en: '[PRE0]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Those who are running Ubuntu, the commands are just as simple:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于运行 Ubuntu 的用户，命令同样简单：
 - en: '[PRE1]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This gives us a fully working Docker environment, even better if you have a
     local development installation and a staging/production system to test these recipes
     on.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 这为我们提供了一个完全工作的 Docker 环境，如果你有本地开发安装和测试这些配置的预发布/生产系统，那就更好了。
 - en: To familiarize yourself with Docker, we'll go through a few basic commands.
     The first is to simply run the `docker` command. This runs the Docker client and
     will spit out a list of commands that are available. If you see an error at this
     point, double-check the output from your installation or system logs.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了熟悉 Docker，我们将介绍一些基本命令。第一个命令是简单地运行 `docker` 命令。这将启动 Docker 客户端，并列出可用的命令。如果此时出现错误，请重新检查安装或系统日志中的输出。
 - en: 'Next, let''s run `docker ps`, which will list all the containers:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，让我们运行 `docker ps`，它将列出所有容器：
 - en: '![](img/0d57b9d5-ed96-4207-aa74-a3133357da49.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/0d57b9d5-ed96-4207-aa74-a3133357da49.png)'
 - en: 'As this is a brand-new installation, you won''t see any listed here. Lastly,
     we can run `docker version` to list both the server and client versions:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这是一个全新的安装，你此时不会看到任何列出的内容。最后，我们可以运行 `docker version` 来列出服务器和客户端的版本：
 - en: '![](img/080f8fc9-7e42-4b6f-9261-4794ed0c7a38.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/080f8fc9-7e42-4b6f-9261-4794ed0c7a38.png)'
 - en: While the Docker client can run on a different system to the Docker server (or
     Docker Engine as it can also be referred to as), you'll need to ensure that the
     versions are compatible.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
 - en: NGINX web server via Docker
+  id: totrans-28
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: This recipe will step you through the basics of setting up a simple NGINX container
     via Docker. When you see the simplicity of the installation, don't be fooled by
     how easy it is, as that's the point of Docker.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
 - en: Getting ready
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: If you're already running existing Docker containers, make sure they're either
     stopped or are not running on port 80\. Otherwise, they will conflict with this
     recipe.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
 - en: How to do it...
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -141,29 +202,39 @@
     step, it will allow you to see how Docker works in stages for the first time.
     To download the NGINX image (which for the officially packaged version is simply
     called `nginx`), run the following:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'This will then pull down a number of images, each of which will display a series
     of unique image IDs, like the ones displayed in this example:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/2c89f2cc-f5e0-48a2-9c00-ab121372b76e.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
 - en: 'Once our image has finished downloading, we can start creating our first container:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'If this works, you should get a single-line output, which will be the ID of
     the container:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/fd4b9592-b6ff-48f9-99d7-3abecaf09a67.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
 - en: 'This indicates that the container has been created and started. If this is
@@ -171,12 +242,15 @@
     may seem like a fault at first. However, that''s how quickly a container can be
     created and be up and running. To test the site, we can now browse the IP/hostname
     of where your Docker instance is running and connect to port `81` to confirm:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/229b4fc3-c1a6-4be8-aa9f-ba7631ea556f.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
 - en: How it works...
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -185,32 +259,39 @@
     running on Ubuntu with all the system libraries duplicated. Docker will split
     these instances into layers so that you can have a singular base image, and each
     change to this is stored as a layer. Our NGINX image looks like this:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/730c825b-24fe-4fed-844a-18e61293db93.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
 - en: Each layer represents a change, and even the base image itself can be made up
     of multiple layers. Once you have a running container, any changes are then performed
     as **Copy-on-Write** (**COW**); this means the original images are preserved,
     while also allowing the ability to modify instances based on them.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
 - en: 'Our one-line deploy command can be broken down into a number of different parts:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
 - en: '`run`: This tells Docker to create an instance and run the default command.
     As shown in the preceding figure, this is the `nginx` command to start NGINX.'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`--name nginx-basic`: This gives our container a name, which allows you to
     easily identify and link to it from other containers.'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`-d`: This option detaches the container from the command line and runs it
     in the background.'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -218,6 +299,7 @@
     in this format: `<host>:<container>`. For our instance, we''ve opened port `81`
     on our server (or the development machine) and mapped it to port `80` in the container
     (where NGINX listens by default).'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -225,10 +307,12 @@
     tag, or it will select the latest release if no tag is specified. If we wanted
     to run an older version of NGINX, we could specify `nginx:1.9.14` to use the latest
     1.9 release.'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: There's more...
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -237,45 +321,56 @@
     to the host in which Docker is on. This way, we can edit the files locally but
     still have them served from within the Docker container. Here''s our updated `run`
     command:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Docker's filesystems use a union filesystem (for example, OverlayFS); this allows
     you to join two systems at a specified mount point. In our preceding example,
     we mounted `/var/static` on our local server and specified the mount point as
     `/usr/share/nginx/html`. We've also specified that the mount is read-only to prevent
     anything within the container from modifying the files.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
 - en: Changes to the files done within your local server (or the development machine)
     and in the `/var/static` directory will be served by our Docker instance.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: This also means that you can keep your Docker configurations common between
     varying configurations and simply update the content separately. If you're especially
     using a **Revision Control System** (**RCS**) such as Git, it means you have a
     system that can be quickly updated via a **Continuous Integration** (**CI**) system.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
 - en: See also
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'Docker documentation: [https://docs.docker.com/](https://docs.docker.com/)'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Official NGINX Docker hub entry: [https://hub.docker.com/_/nginx/](https://hub.docker.com/_/nginx/)'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Official image build code: [https://github.com/nginxinc/docker-nginx](https://github.com/nginxinc/docker-nginx)'
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: NGINX reverse proxy via Docker
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -288,6 +383,7 @@
     updating system libraries or deploying different PHP versions. As each task is
     a separate container, it remains isolated and, therefore, unaffected by other
     containers.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
 - en: Using a reverse proxy on your local development server can also be a great way
@@ -295,129 +391,165 @@
     (that is, Windows, Apache, MySQL, PHP) style development environment, then you
     may not discover unique issues, which only show when you have a proxy server that
     mimics your production environment.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
 - en: Getting ready
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: This recipe assumes you have some form of web or application server running
     on your local server. Ideally, this could be *Dockerized* as well, but we'll cover
     both scenarios.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here''s how it''s going to look:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/86bfb0f9-8748-456c-9031-c8ee32ed7554.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
 - en: As most real-world deployments are via HTTPS, we're also going to incorporate
     SSL certificate deployments.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
 - en: How to do it...
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Because the standard NGINX image is perfect for more complex deployments, we're
     going to modify it to suit our needs. The great thing about Docker is that this
     process is very simple to do.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
 - en: 'Firstly, we''re going to create a Docker image definition file, which is called
     `Dockerfile`. This is what Docker uses to build an image, and it can reference
     an existing image as the base so that you don''t have to reinvent the wheel. Here''s
     our `Dockerfile`:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE5]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'In the same directory, we will also need our NGINX configuration file. As we
     want to override the default settings, we have called this `default.conf` so that
     it copies over the exiting file. Based on the *Configuring NGINX as a simple reverse
     proxy* recipe back in [Chapter 7](bc04362e-995f-4550-92b7-183754306d34.xhtml),
     *Reverse Proxy*, our configuration will look like this:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Lastly, we also need our SSL certificates and keys copied over as well. If you're
     intending to distribute this image or update the SSL certificates separately to
     the image, you can remove this from the image and use a volume mount to store
     the certificates on the local server.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
 - en: If you need to generate a test SSL certificate, there's a quick guide available
     in [Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml), *All About SSLs*.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: 'Once you have all the configuration files ready, you can now tell Docker to
     build an image. It will store this image locally, based on the tags you provide.
     To create the image, run the following:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE7]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Docker will then go through each of the steps in `Dockerfile` to produce a
     new image. Your output should look similar to this:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/6934f931-bd7d-48e1-aa04-81f4d84ebb2c.png)'
+  id: totrans-82
   prefs: []
   type: TYPE_IMG
 - en: 'We can see that, in the final output, our Docker image has been given the `b4007604b77e`
     ID. We can confirm this by viewing which Docker images we have installed:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE8]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The following is the output listing our Docker image:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/755d1e59-c389-4772-accb-e76611281518.png)'
+  id: totrans-86
   prefs: []
   type: TYPE_IMG
 - en: Although there are a number of intermediate images, by default, Docker doesn't
     display them.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
 - en: 'After building and confirming that we have our Docker image, you can now deploy
     it:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE9]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: This will create a container based on our new image, exposing port `443` via
     the server. Rather than being a bridged network (therefore using docker0), we
     tell NGINX to use the host's network.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
 - en: Currently, there's a longstanding issue with Docker for Mac accessing the host,
     based on the underlying OS limitation. For now, the easiest workaround is to only
     use container to container networking.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
 - en: This is best used for development only, as you're limited to only running one
     instance of each image due to the lack of port mapping.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
 - en: How it works...
+  id: totrans-93
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'Within our `Dockerfile`, we define a number of steps to build the image:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
 - en: '`FROM`: This defines our starter image; for this recipe, we used `nginx:latest`.
     Rather than build the image from scratch, we simply start with the official NGINX
     image. If you want to manually install your own build, you could start with a
     base Linux, such as Debian or Alpine.'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -425,12 +557,14 @@
     of the build process. For this image, we''ve copied over our NGINX configuration
     file as well as the SSL certificates. If the files exist in the base image, they
     will simply be overwritten.'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`RUN`: We can issue commands within the build. In this instance, we symlink
     the default log files through to `/dev/stdout` and `/dev/stderr` so that we can
     view the logs from the standard Docker log tools.'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -438,6 +572,7 @@
     be exposed to the Docker networking subsystem. From here, they can be explicitly
     mapped using `-p` in the `docker run` command or implicitly mapped simply with
     `-P`.'
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -446,10 +581,12 @@
     our NGINX command, it translates to `nginx -g daemon off;`. Because Docker requires
     the application to stay in the foreground, the `-g` option allows us to set an
     additional directive of daemon off to enforce this.'
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: There's more...
+  id: totrans-100
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -457,95 +594,121 @@
     host-deployed services with container-based ones. Most production deployments
     of Docker have 100 percent of services deployed within Docker containers, which
     simplifies networking.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: 'In a typical production deployment, here''s what we might see:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/d301b5a2-2af4-4430-b6e6-9348c1cbcf30.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
 - en: With everything containerized and isolated, we can still connect these without
     having to expose the ports to the world. Previously, this was called **linking**
     containers, and while the linking commands worked, they also had significant limitations.
     Instead, we now create distinct networks within the host.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: These networks allow containers to talk to each other in distinctly named networks
     and you can have multiple networks within one system without any issues. If you've
     previously used Docker and haven't moved to a version higher than 1.9, it's worth
     it for the improvements in this part alone.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
 - en: 'To allow two containers to talk to each other, we will first create a network:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE10]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: I've named this network `webnet`, which will be between NGINX and the application
     only. In the preceding example, we can also create separate networks between the
     Rails application and PostgreSQL, then again for Rails and Redis. This level of
     isolation helps ensure there's no accidental data leakage if there is a security
     fault.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
 - en: 'I have installed a Redmine container (which is a project management application
     based on Ruby on Rails), which will benefit from a reverse proxy in front to provide
     SSL termination. Because of the power of Docker, we can quickly deploy a Redmine
     server and automatically connect it to our `webnet` network:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE11]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'In order for NGINX to proxy the `redmine` container, first we''ll need to update
     the proxy configuration. When added to a network, Docker''s internal DNS server
     will automatically add the entry so that we can simply refer to the container
     by name. In the `default.conf`, update, the `proxy_pass` line will look like this:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE12]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'As previously, we''ll need to rebuild our image and then run a container, this
     time linked to `webnet` instead of the host:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE13]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'When deploying the `nginx-proxy` image this time, we will also join it to the
     `webnet` network and then bind port `443` to the main host. Because the NGINX
     container is on the same network as the Redmine demo, it can explicitly access
     it via port `3000`, whereas the host server can''t. If you have everything configured
     correctly, you should see the proxied connection to Redmine:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/26517725-3105-460f-9b6d-fe00b53fb4c9.png)'
+  id: totrans-116
   prefs: []
   type: TYPE_IMG
 - en: See also
+  id: totrans-117
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'macOS network limitation: [https://docs.docker.com/docker-for-mac/networking/#there-is-no-docker0-bridge-on-macos](https://docs.docker.com/docker-for-mac/networking/#there-is-no-docker0-bridge-on-macos)'
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`Dockerfile` best practices: [https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/)'
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`Dockerfile` reference: [https://docs.docker.com/engine/reference/builder/](https://docs.docker.com/engine/reference/builder/)'
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Docker networking: [https://docs.docker.com/engine/userguide/networking/](https://docs.docker.com/engine/userguide/networking/)'
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Docker Compose with NGINX
+  id: totrans-122
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -556,73 +719,96 @@
     Docker applications for ease of management and ease of deployment. It does this
     via a single configuration file, which defines both the containers to deploy as
     well as the networking.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
 - en: Getting ready
+  id: totrans-124
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Docker Compose is installed by default for all modern Docker installations.
     We'll take our Redmine deployment and convert it back into a one-command deployment
     process again.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
 - en: How to do it...
+  id: totrans-126
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'To get started, we need to create a `docker-compose.yml` file. This is in YAML
     format, which is a simple text-based language with a strong focus on readability.
     Here''s what our `docker-compose.yml` file looks like:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE14]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: This is located in the same directory as `Dockerfile` and the previous NGINX
     configuration files we used. The directory naming is also important, as Docker
     Compose will use it to prepend the names of the containers it creates. For this
     recipe, I have the files located in the `composedemo` directory.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
 - en: 'With our Docker Compose configuration file, we can now build and create the
     containers:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE15]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'This will firstly build our `nginx-proxy` image and then proceed to create
     all the containers. You should see an output like this as the containers start:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE16]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: The naming is reflective of the configuration we used, where it prepends the
     directory name, adds the container name, and then appends a sequence number.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
 - en: 'After the containers have been started, all the logs will output to the screen,
     and the containers will be running in the foreground. If you want to start it
     in the background, you can do this with the following:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE17]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'This starts the containers in the background, much like our previous recipe.
     They can also be stopped with one command:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE18]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: With the ability to cleanly define the multicontainer deployments and then deploy
     with a single command, Docker Compose is an important part of the Docker ecosystem.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
 - en: How it works...
+  id: totrans-140
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -630,12 +816,14 @@
     this recipe. Firstly, we define the version number (`version: ''3''`). This isn''t
     a revision number for the individual file, but tells Docker Compose what format
     to expect the configuration file in.'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
 - en: Next, we define the network (`webnet`). By default, Docker Compose will create
     a separate network for all the containers, but we have explicitly named it in
     this recipe. The reason we do this is to retain compatibility with our previous
     recipe.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
 - en: Lastly, we define our services. The first is the `redmine` service, which we
@@ -643,6 +831,7 @@
     we also alias the name of the container. Again, this is to help maintain compatibility
     and reduce changes. While this isn't necessary to do, the reduction in changes—if
     you've come from a previous configuration—can help with diagnosing any issues.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
 - en: The second service defined is our NGINX container, named `nginx-proxy`. Instead
@@ -651,118 +840,151 @@
     image, Docker Compose does this automatically for us. We then map the host port
     `443` to the container port `443` and, like the Redmine service, we add it to
     the `webnet` network.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
 - en: See also
+  id: totrans-145
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'Docker Compose documentation: [https://docs.docker.com/compose/overview/](https://docs.docker.com/compose/overview/)'
+  id: totrans-146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Docker Compose file format: [https://docs.docker.com/compose/compose-file/](https://docs.docker.com/compose/compose-file/)'
+  id: totrans-147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: NGINX load balancing with Docker
+  id: totrans-148
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Once you've tackled the conversion from complex deploy scripts into neat `Dockerfile`,
     the next step is to deal with scale. As for most other problems, Docker has a
     solution for this too; scaling is one of those.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
 - en: While newer versions of Docker have added native load balancing, it's still
     quite simplistic. This makes NGINX a better choice for many uses. Since you're
     already familiar with the workings of NGINX, it's easily adapted to provide load
     balancing within a Docker environment.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
 - en: In a larger deployment, we'd use a more formal service discovery tool, such
     as `consul` or `etcd`, in order to provide more granular control. This recipe
     will simply use the built-in DNS capability of Docker in order to round-robin
     the requests.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
 - en: Getting ready
+  id: totrans-152
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'This recipe has been simplified to run on a single VM. In most real-world scenarios,
     this would be spread across multiple VMs. Here''s what our test scenario looks
     like:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/65f03933-29ba-4248-b6cc-5a49d93f55b3.png)'
+  id: totrans-154
   prefs: []
   type: TYPE_IMG
 - en: We're using the HTest tool, as covered back in [Chapter 8](4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml),
     *Load Balancing*, as the container we want to scale and load balance.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
 - en: How to do it...
+  id: totrans-156
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'To deploy our load-balanced platform, first we''re going to create an NGINX
     container. Here''s our `default.conf`:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE19]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Additional files, such as the associated SSL certificates and `Dockerfile`,
     are also required.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
 - en: These are also available directly from GitHub at [https://github.com/timbutler/nginxcookbook](https://github.com/timbutler/nginxcookbook).
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
 - en: 'As we''re still using Docker Compose for the deployment, we''ll also need our
     updated `docker-compose.yml` configuration:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE20]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'Again, this is quite similar to our previous recipe, as the structure of what
     we''re trying to achieve is quite similar. Once we have the configuration, we
     can now build and start our containers:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE21]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'This will start both the `nginx` container as well as `htest`; it will also
     start the associated network. If successful, you should see an output like this:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/508b2b3e-efe5-4497-b22f-4e384fdf05f2.png)'
+  id: totrans-166
   prefs: []
   type: TYPE_IMG
 - en: 'By default, however, there''s only one instance of `htest` running. In order
     to scale this, we can simply tell Docker Compose how many instances we want to
     run. Here''s an example of this:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE22]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'This will start an additional three `htest` containers:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
 - en: '![](img/ee88587e-08f0-487b-9cbb-9f571e722db8.png)'
+  id: totrans-170
   prefs: []
   type: TYPE_IMG
 - en: Because we have NGINX set to call the proxy backend by its hostname, these are
     now called in a basic round-robin to each of the containers. If you browse to
     the site, you should see the counter for `htest` jumping around as each instance
     serves a request.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: How it works...
+  id: totrans-172
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -770,11 +992,13 @@
     127.0.0.11 valid=1`) that directs NGINX to use the built-in Docker DNS resolver.
     In order to distribute the load, setting the validity to 1 means any TTL is ignored
     and the result only stays valid for 1 second.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
 - en: Then, we set the variable `$backend` to `http://htestbackend:8000`. The use
     of a variable ensures that it's evaluated each time in order to have the IP address
     updated.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: Within `Dockerfile`, we have set the alias for the `htest` container to `htestbackend`.
@@ -783,17 +1007,21 @@
     the alias ensures that there's a common name. This avoids having to rewrite the
     configuration of NGINX each time a new system is added, giving us the ability
     to add additional backends without reconfiguring them.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
 - en: See also
+  id: totrans-176
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'NGINX `resolver` directive: [http://nginx.org/en/docs/http/ngx_http_core_module.html#resolver](http://nginx.org/en/docs/http/ngx_http_core_module.html#resolver)'
+  id: totrans-177
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'To know more about the `docker compose scale` command: [https://docs.docker.com/compose/reference/scale/](https://docs.docker.com/compose/reference/scale/)'
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL

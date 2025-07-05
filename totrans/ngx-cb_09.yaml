@@ -1,453 +1,681 @@
 - en: Advanced Features
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 高级功能
 - en: 'In this chapter, we will cover the following recipes:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍以下配方：
 - en: Authentication with NGINX
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 NGINX 认证
 - en: WebDAV with NGINX
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 NGINX 的 WebDAV
 - en: Bandwidth management with NGINX
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 NGINX 管理带宽
 - en: Connection limiting with NGINX
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 NGINX 限制连接
 - en: Header modification with NGINX
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 NGINX 修改头部
 - en: Introduction
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: If you've read this cookbook up until this chapter, you'll know that NGINX is
     a very flexible and powerful platform. Even with what we covered so far, you'll
     know that there are a number of additional modules and extra flexibility we can
     use to enhance your current configuration.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你已经读过本书到这一章，你就会知道 NGINX 是一个非常灵活且强大的平台。即使只了解目前为止所讲的内容，你也会知道我们可以使用许多额外的模块和灵活的功能来增强你当前的配置。
 - en: Some of these recipes may be required especially once you start to scale, since
     servers are a finite resource.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些配方中的一些可能在你开始扩展时非常必要，因为服务器是有限资源。
 - en: Authentication with NGINX
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 NGINX 认证
 - en: While many CMSes and advanced web applications have their own authentication
     systems, we can use NGINX to provide a second layer. This can be used to provide
     multifactor authentication and also to limit brute force attempts.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管许多 CMS 和高级 Web 应用程序有自己的认证系统，我们可以使用 NGINX 提供第二层认证。这可以用于提供多因素认证，并且限制暴力破解尝试。
 - en: Alternatively, if you have a very basic application or a system, such as Elasticsearch,
     without any authentication, NGINX is a natural fit to provide for this role.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，如果你有一个非常基础的应用程序或系统，例如 Elasticsearch，且没有任何认证，NGINX 是提供此功能的天然选择。
 - en: Getting ready
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: This recipe assumes that you have an existing web application. This could be
     as simple as static pages or a full CMS such as WordPress.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个配方假设你有一个现有的 Web 应用程序。它可以是简单的静态页面，或者像 WordPress 这样的完整 CMS。
 - en: We'll also need to install Apache utilities (not the full web server), which
     is generally packaged as `apache2-utils` on Debian/Ubuntu-based systems and `httpd-tools`
     on CentOS/RedHat-based distributions.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要安装 Apache 工具（不是完整的 Web 服务器），在 Debian/Ubuntu 系统中通常以 `apache2-utils` 的形式打包，在
+    CentOS/RedHat 系统中则是 `httpd-tools`。
 - en: How to do it...
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: In order to provide basic authentication, we first need to create a password
     file. We can do this with the `htpasswd` utility, which is part of the Apache
     tools. It's important that we don't store this file in a publicly accessible directory,
     otherwise your usernames and passwords will be compromised.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了提供基本认证，我们首先需要创建一个密码文件。我们可以使用 `htpasswd` 工具来实现，它是 Apache 工具的一部分。重要的是我们不要将此文件存储在公开可访问的目录中，否则用户名和密码将会泄露。
 - en: 'Here''s how to create the password file and add the `siteadmin` username to
     it:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是如何创建密码文件并将 `siteadmin` 用户名添加到其中的方法：
 - en: '[PRE0]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The `htpasswd` utility will then prompt you for a password. While we could specify
     this via the command line, it would also mean that your password is logged in
     plain text within your bash history. Ensuring that the password is entered via
     `stdin` reduces the risks of compromise if your log files are exposed.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，`htpasswd` 工具将提示你输入密码。虽然我们可以通过命令行指定密码，但这也意味着你的密码会以明文记录在 bash 历史中。通过 `stdin`
+    输入密码可以减少在日志文件暴露时密码泄露的风险。
 - en: 'Next, we can add additional users to the password file (if they''re required).
     If I want to add one login per user, I can specify it as follows:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们可以向密码文件中添加额外的用户（如果需要的话）。如果我想为每个用户添加一个登录账户，可以按如下方式指定：
 - en: '[PRE1]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'This will again prompt for the password (and the confirmation password). You
     can repeat this for as many users as required. Once we have the password file,
     we can now set the authentication within our NGINX `server` block directive:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将再次提示输入密码（以及确认密码）。你可以为需要的用户重复此操作。一旦我们有了密码文件，就可以在 NGINX `server` 块指令中设置认证：
 - en: '[PRE2]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: If you're not using this on an SSL encrypted site, the credentials will be transmitted
     in plain text. Ensure that you protect your site if you want the username and
     password to remain secure.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你没有在 SSL 加密的网站上使用此方法，凭证将以明文传输。确保保护好你的网站，以便用户名和密码保持安全。
 - en: 'When you visit the site (in this instance, `http://secure.nginxcookbook.com`),
     you''ll see one of the following popups. For Firefox, it should look similar to
     the following screenshot:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你访问该网站（在此例中为 `http://secure.nginxcookbook.com`）时，会看到以下弹出窗口之一。对于 Firefox，它应该与以下截图类似：
 - en: '![](img/6d000565-63df-4559-80f3-8bbc5ebc9701.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/6d000565-63df-4559-80f3-8bbc5ebc9701.png)'
 - en: 'Safari users will also see a similar dialog box, requesting login details:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: Safari 用户也会看到类似的对话框，要求输入登录信息：
 - en: '![](img/05510e2a-a6da-4998-81a7-0cdca8f64617.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/05510e2a-a6da-4998-81a7-0cdca8f64617.png)'
 - en: 'And finally, Chrome will also prompt you with a dialog like the following screenshot:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，Chrome 还会弹出如下截图的对话框：
 - en: '![](img/0e687c8c-f6fb-4997-9169-2a8bb9bec5cc.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/0e687c8c-f6fb-4997-9169-2a8bb9bec5cc.png)'
 - en: If you enter one of the usernames and passwords set in the previous step, you'll
     then be able to browse the website.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你输入在上一步设置的用户名和密码，你就可以浏览网站了。
 - en: How it works...
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'If we take a look at the `.htpasswd` file we created, it should look something
     like this:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们查看我们创建的 `.htpasswd` 文件，它应该像这样：
 - en: '![](img/8ac3d774-7156-47eb-b456-cab9bc1aad03.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/8ac3d774-7156-47eb-b456-cab9bc1aad03.png)'
 - en: This file contains the username, the algorithm used (`$apr1` denotes a specific
     Apache MD5 implementation), the salt, and then the password. While some may be
     worried at the use of MD5, the `htpasswd` application iterates the password for
     1,000 times to limit brute force attempts. This, combined with salting (the addition
     of random data) ensures that the password is very hard to brute force.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 该文件包含用户名、所使用的算法（`$apr1` 表示特定的 Apache MD5 实现）、盐值，然后是密码。尽管一些人可能担心使用 MD5，但 `htpasswd`
+    应用程序会将密码迭代 1,000 次，以限制暴力破解尝试。这与加盐（添加随机数据）结合，确保密码非常难以暴力破解。
 - en: We will then define two extra directives within our `location` block directive
     to enable the basic authentication. The `auth_basic` directive enables authentication
     and the `"Restricted Area"` string is used as a message by some browsers.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们将在 `location` 块指令中定义两个额外的指令，以启用基本认证。`auth_basic` 指令启用认证，而 `"Restricted Area"`
+    字符串被一些浏览器用作消息。
 - en: We will then ask the authentication module to use the file we created (`/var/www/private/.htpasswd`)
     with the `auth_basic_user_file` directive. Again, as a reminder, make sure that
     this isn't in a location that can be publicly accessible from your website. Because
     we have set the location `root` directive to `/var/www/html`, and the password
     file within `/var/www/private`, it cannot be directly accessed.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们将要求认证模块使用我们创建的文件（`/var/www/private/.htpasswd`），并通过 `auth_basic_user_file`
+    指令指定该文件。再次提醒，确保该文件不位于可以公开访问的位置。由于我们已将 `root` 指令设置为 `/var/www/html`，而密码文件位于 `/var/www/private`
+    中，因此无法直接访问。
 - en: There's more...
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'If we want to simply lock down a specific location, we can do this as well.
     Consider this example where we take the `server` block directive from the *Configuring
     NGINX for WordPress* recipe in [Chapter 2](a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml),
     *Common PHP Scenarios* and add additional authentication to the `wp-admin` directory
     and `wp-login.php` location:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们只想锁定一个特定的位置，也可以做到这一点。考虑这个示例，我们从 [第 2 章](a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml)的
+    *为 WordPress 配置 NGINX* 配方中获取 `server` 块指令，*常见的 PHP 场景*，并为 `wp-admin` 目录和 `wp-login.php`
+    位置添加额外的认证：
 - en: '[PRE3]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The configuration matches any request starting with (as denoted by the `^` symbol)
     either `/wp-login.php` or (`|`) `/wp-admin/` and adds basic authentication. All
     other pages on the site don't contain any extra authentication and therefore load
     normally.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置匹配任何以（由 `^` 符号表示）`/wp-login.php` 或（`|`）`/wp-admin/` 开头的请求，并添加基本认证。网站上的其他所有页面不包含额外认证，因此正常加载。
 - en: We also add a nested PHP `location` block, as NGINX won't process the declaration
     outside of the current `location` block. For neatness, you could also define this
     in a separate file once and then include it at each required location. This way,
     if you ever need to make changes, then it's only in one location.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还添加了一个嵌套的 PHP `location` 块，因为 NGINX 不会处理当前 `location` 块外部的声明。为了整洁，你也可以在一个单独的文件中定义它，并在每个需要的位置包含它。这样，如果你需要进行更改，只需在一个地方修改即可。
 - en: See also
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另请参阅
 - en: The NGINX basic authentication module can be found at [http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 基本认证模块可以在 [http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
+    找到
 - en: For the `htpasswd` program, refer to [https://httpd.apache.org/docs/2.4/programs/htpasswd.html](https://httpd.apache.org/docs/2.4/programs/htpasswd.html)
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有关 `htpasswd` 程序，请参考 [https://httpd.apache.org/docs/2.4/programs/htpasswd.html](https://httpd.apache.org/docs/2.4/programs/htpasswd.html)
 - en: WebDAV with NGINX
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 WebDAV 和 NGINX
 - en: '**Web Distributed Authoring and Versioning** (**WebDAV**) is an extension to
     the standard HTTP protocol that allows remote authoring commands, such as the
     ability to lock, upload, delete, and create content.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Web分布式创作与版本控制**（**WebDAV**）是标准 HTTP 协议的一个扩展，允许远程创作命令，例如锁定、上传、删除和创建内容的能力。'
 - en: This content can be in the form of documents, images, objects, and more. While
     its popularity has declined with the rapid update of full CMSes and cloud storage
     platforms such as Dropbox, WebDAV still remains a very simple option to implement
     solutions.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些内容可以是文档、图像、对象等形式。尽管随着完整 CMS 和云存储平台（如 Dropbox）的快速更新，WebDAV 的普及度有所下降，但它仍然是一个非常简单的实现方案选项。
 - en: Getting ready
+  id: totrans-50
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备开始
 - en: The standard NGINX installation only includes basic WebDAV support; however,
     we can extend it to provide the full functionality by compiling a custom module.
     At the time of writing, the extended module hadn't been converted into a dynamic
     module, so we need to recompile all of NGINX.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 标准的 NGINX 安装仅包括基本的 WebDAV 支持；但是，我们可以通过编译自定义模块来扩展它，提供完整的功能。写作时，扩展模块尚未转换为动态模块，因此我们需要重新编译整个
+    NGINX。
 - en: 'Firstly, we will download the source for NGINX and prepare it for compilation:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将下载 NGINX 的源代码并准备编译：
 - en: '[PRE4]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Then, we will download a copy of the extension so that it can be included in
     the source build:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将下载该扩展的副本，以便将其包含在源代码构建中：
 - en: '[PRE5]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'To include the extra module, we modify the `nginx.spec` file to compile the
     additional module to add the additional build requirements, copy the source code,
     and then modify the configure line. To add the extra library for the build process,
     we append the following line after `zlib-devel` and `pcre-devel`:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了包含额外的模块，我们修改`nginx.spec`文件，以编译额外的模块，添加额外的构建要求，复制源代码，然后修改配置行。为了添加构建过程所需的额外库，我们在`zlib-devel`和`pcre-devel`后面追加以下行：
 - en: '[PRE6]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'For the source to be included in the source RPM, we then specify the extra
     directory:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了将源代码包含在源 RPM 中，我们接着指定额外的目录：
 - en: '[PRE7]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Finally, we ensure that it''s compiled in by appending the following to the
     `BASE_CONFIGURE_ARGS` definition:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们通过将以下内容附加到`BASE_CONFIGURE_ARGS`定义中来确保它被编译进来：
 - en: '[PRE8]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: A patch file is available in the official code repository for the book.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 一本补丁文件可以在书籍的官方代码库中找到。
 - en: 'With the build configuration updated, we can now recompile NGINX with our extra
     module:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置更新后，我们现在可以重新编译 NGINX，并添加我们的额外模块：
 - en: '[PRE9]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'This will generate the source RPM, and then the compiled binary RPM, ready
     for installation. We can now install the RPM using `yum`:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将生成源 RPM，然后生成已编译的二进制 RPM，准备安装。我们现在可以使用`yum`安装该 RPM：
 - en: '[PRE10]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: If you need to perform the same for a Debian or Ubuntu distribution, refer to
     the *Compiling from scratch section* covered in the *Quick installation guide*
     recipe in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)*, Let's Get
     Started.*
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你需要对 Debian 或 Ubuntu 发行版执行相同的操作，请参考 *快速安装指南* 章节中 *从头编译部分*，该部分在[第1章](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)的
+    *开始吧* 里有介绍。
 - en: 'To confirm that the updated packages are available, we can run `nginx -V` (note
     the capital `V`) to show the modules that NGINX was compiled with:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 要确认更新后的软件包是否可用，我们可以运行`nginx -V`（注意大写的`V`），以显示 NGINX 编译时使用的模块：
 - en: '![](img/d6b472f2-4bc9-4abf-bd79-edd73b50f4d5.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/d6b472f2-4bc9-4abf-bd79-edd73b50f4d5.png)'
 - en: If you see `nginx-dav-ext-module` in the list, the extra module is available
     and we're ready to proceed.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在列表中看到`nginx-dav-ext-module`，表示额外模块已可用，接下来可以继续操作。
 - en: How to do it...
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Here''s the `server` block directive for our WebDAV configuration:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们 WebDAV 配置的`server`块指令：
 - en: '[PRE11]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: How it works...
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: To ensure that any files transmitted remain secure, we set up NGINX using `HTTPS`
     (which is covered in [Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml),
     *All About SSL**s*) so that all data is encrypted in transit. We also use the
     basic authentication we went through in the previous recipe, so that the files
     are also secured by a username and password.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了确保传输的文件保持安全，我们通过`HTTPS`（在[第4章](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml)，*关于
+    SSL**的部分有介绍）配置 NGINX，以确保所有数据在传输中加密。我们还使用在前面的配方中介绍的基本认证方式，使文件通过用户名和密码得到保护。
 - en: The `root` directive then sets where the files are stored, in this case, `/var/www/webdav`.
     At this stage of the configuration, it's exactly like any other static file serving.
     With the `autoindex` directive explicitly set to `on`, this automatically generates
     an index of the files so that they can be easily browsed.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '`root` 指令接着设置文件存放的位置，在本例中是 `/var/www/webdav`。在这个配置阶段，它与任何其他静态文件提供设置完全相同。将 `autoindex`
+    指令显式设置为 `on`，这会自动生成文件的索引，以便轻松浏览。'
 - en: To allow larger file uploads, `client_max_body_size` is set to `4g`. If you
     need to upload files larger than 4 GB, you need to increase this value. Then,
     `client_body_temp_path` defines where the temporary files will be located while
     they're uploading. For this recipe, we'll set this to `/tmp`, so that any file
     will be temporarily uploaded to this location and then moved into the root location.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了允许更大的文件上传，`client_max_body_size` 设置为 `4g`。如果你需要上传超过 4 GB 的文件，你需要增加这个值。然后，`client_body_temp_path`
+    定义了临时文件上传时存放的位置。对于这个配置，我们将其设置为 `/tmp`，这样任何文件将会被临时上传到该位置，之后再移动到根目录位置。
 - en: Here, `dav_methods` is set to allow the `PUT`, `DELETE`, `MKCOL`, `COPY`, and
     `MOVE` methods, which is all of the available methods. This gives complete control
     to the WebDAV client to upload, create, delete, and move files as they need.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，`dav_methods` 设置为允许 `PUT`、`DELETE`、`MKCOL`、`COPY` 和 `MOVE` 方法，这是所有可用的方法。这让
+    WebDAV 客户端可以完全控制文件的上传、创建、删除和移动，按需操作。
 - en: Using the extra module we compiled, `dav_ext_methods` adds two additional extensions.
     The `PROPFIND` extension adds the ability to return file and directory properties
     in XML, which is used by a number of clients to list the files. The `OPTIONS`
     extension returns a list of available commands to indicate what permissions are
     available.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用我们编译的额外模块，`dav_ext_methods` 添加了两个额外的扩展。`PROPFIND` 扩展使得能够以 XML 格式返回文件和目录的属性，许多客户端使用它来列出文件。`OPTIONS`
+    扩展返回可用命令的列表，以表明有哪些权限可用。
 - en: Lastly, we set `create_full_put_path` to `on`, which means that we can create
     files within subdirectories as well. The default for WebDAV is to only allow existing
     subdirectories, which makes it difficult to move existing data structures.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们将 `create_full_put_path` 设置为 `on`，这意味着我们可以在子目录中创建文件。WebDAV 的默认设置是只允许现有的子目录，这使得移动现有的数据结构变得困难。
 - en: See also
+  id: totrans-81
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: The NGINX WebDAV module is available at [http://nginx.org/en/docs/http/ngx_http_dav_module.html](http://nginx.org/en/docs/http/ngx_http_dav_module.html)
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX WebDAV 模块可以在 [http://nginx.org/en/docs/http/ngx_http_dav_module.html](http://nginx.org/en/docs/http/ngx_http_dav_module.html)
+    查阅
 - en: You can visit WebDAV's official site at [http://www.webdav.org/](http://www.webdav.org/)
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以访问 WebDAV 的官方网站 [http://www.webdav.org/](http://www.webdav.org/)
 - en: Bandwidth management with NGINX
+  id: totrans-84
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 NGINX 管理带宽
 - en: If you're serving large binary files (such as video files), it's important to
     ensure that you fairly distribute your available bandwidth among your users. At
     the same time, you must ensure that this distribution doesn't impact performance
     nor inconvenience users by setting restrictions that are too high.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你正在提供大型二进制文件（如视频文件），确保合理分配可用带宽给你的用户非常重要。同时，你必须确保这种分配不会影响性能，也不会因设置过高的限制而使用户感到不便。
 - en: Getting ready
+  id: totrans-86
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: The modules required are built into the NGINX core, so no upgrades or external
     modules are required. In this recipe, we'll serve static files, but they can be
     easily incorporated into your existing site.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 所需的模块已内置于 NGINX 核心中，因此无需升级或额外的模块。在这个配置中，我们将提供静态文件，但它们可以很容易地被集成到你现有的网站中。
 - en: How to do it...
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'Limiting bandwidth must be done within a `location` directive. It''s important
     to ensure that, if you have multiple `location` block directives which you want
     to limit, you need to adjust each of these. Here''s our basic code:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 限制带宽必须在 `location` 指令中完成。重要的是，如果你有多个 `location` 块指令需要限制，你需要为每一个都进行调整。以下是我们的基本代码：
 - en: '[PRE12]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: How it works...
+  id: totrans-91
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The `limit_rate` directive sets the rate at which each connection can download.
     This rate is set in bytes per second, not bits per second. Most internet connections
     are normally represented in bits per second; so, to convert, you will need to
     divide by eight to set. Our recipe has a limit of 5 **Megabytes per second** (**MBps**),
     so when it comes to bandwidth in bits, we'll see 40 **Megabits per Second** (**Mbps**).
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '`limit_rate`指令设置每个连接的下载速率。这个速率是以字节每秒为单位的，而不是比特每秒。大多数互联网连接通常用比特每秒表示；因此，为了转换，你需要除以8来设置。我们的配方设置了5
+    **兆字节每秒**（**MBps**）的限制，因此换算成比特带宽时，我们会看到40 **兆比特每秒**（**Mbps**）。'
 - en: 'We can test this limit using `wget`:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用`wget`测试这个限制：
 - en: '[PRE13]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'With our limit in place, the result is as follows:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 在设置了限制后，结果如下：
 - en: '![](img/ac998d9e-4ef6-4707-bdc1-b3147ee8dab7.png)'
+  id: totrans-96
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/ac998d9e-4ef6-4707-bdc1-b3147ee8dab7.png)'
 - en: While the rate will fluctuate slightly, we can see that the overall average
     was 4.94 MBps, which matches our specified rate of 5 MBps.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管速率会有轻微波动，但我们可以看到整体平均值为4.94 MBps，这与我们指定的5 MBps速率相符。
 - en: There's more...
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'Another trick we can do is to allow for an initial burst once the download
     starts. This is very helpful if you''re streaming movie files, as it allows the
     initial buffer to be filled quickly and therefore allows movies to start playing
     as quick as possible. To add this, we can update our `location` block directive
     with one additional line:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个技巧是允许在下载开始时进行初始的突发。对于流媒体电影文件，这非常有用，因为它可以快速填充初始缓冲区，从而尽可能快地开始播放电影。为了实现这一点，我们可以在`location`块指令中添加一行：
 - en: '[PRE14]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: The additional `limit_rate_after` directive allows the download to run at full
     speed for the first 20 megabytes (`20m`), and then rate limit after this value.
     Many online streaming services have this implementation in place, not just to
     balance between the rapid start of the streaming but also to ensure that the bandwidth
     is fairly shared among its users.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 额外的`limit_rate_after`指令允许下载在前20兆字节（`20m`）内以最大速度运行，之后再进行速率限制。许多在线视频流服务都采用这种实现方式，不仅平衡了流媒体快速启动的需求，还确保带宽在用户之间公平共享。
 - en: See also
+  id: totrans-102
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: The NGINX `limit_rate` documentation can be found at [http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate](http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate)
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的`limit_rate`文档可以在[http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate](http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate)找到
 - en: Connection limiting with NGINX
+  id: totrans-104
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用NGINX限制连接数
 - en: In addition to limiting bandwidth to ensure fair and equitable access among
     all users, NGINX is able to place limits on the number of connections. Back in
     [Chapter 7](bc04362e-995f-4550-92b7-183754306d34.xhtml), *Reverse Proxy*, we covered
@@ -456,193 +684,282 @@
     where you have long running tasks, such as downloads. The previous recipe covering
     bandwidth limiting only applies per connection, not per IP. We can however combine
     the two to ensure that each IP address can't exceed the specified bandwidth limit.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了限制带宽以确保所有用户之间的公平和均衡访问外，NGINX还可以限制连接数。在[第7章](bc04362e-995f-4550-92b7-183754306d34.xhtml)中，我们讨论了如何限制连接的速率。虽然这两者听起来相似，但连接限制稍有不同，适用的场景也不同。连接限制通常用于长时间运行的任务，比如下载。之前介绍的带宽限制仅适用于每个连接，而不是每个IP地址。不过，我们可以将这两者结合起来，以确保每个IP地址不会超过指定的带宽限制。
 - en: Getting ready
+  id: totrans-106
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: Like the bandwidth limiting, connection limiting is built into the core of NGINX;
     so no further modules are required.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 与带宽限制类似，连接限制是NGINX核心功能的一部分，因此不需要额外的模块。
 - en: How to do it...
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To provide connection limiting, we first need to define a shared memory space
     to use for tracking. This needs to be done outside of the `server` directive and
     generally placed in the main NGINX configuration file (`nginx.conf`). Here''s
     our directive:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 要提供连接限制，我们首先需要定义一个共享内存空间来进行跟踪。这需要在`server`指令之外进行，一般放置在NGINX的主配置文件（`nginx.conf`）中。以下是我们的指令：
 - en: '[PRE15]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Then, we incorporate this into our `server` block directive:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将其整合到`server`块指令中：
 - en: '[PRE16]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'We can confirm this by downloading a large file via the browser and then opening
     another tab. If you navigate to any other page from the same site, you should
     see the following:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过浏览器下载一个大文件来确认这一点，然后打开另一个标签页。如果你从同一网站导航到其他页面，你应该看到以下内容：
 - en: '![](img/d19c68ad-67f6-4e97-8173-17059bfac2d5.png)'
+  id: totrans-114
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/d19c68ad-67f6-4e97-8173-17059bfac2d5.png)'
 - en: Until the first request is completed, all subsequent attempts will display a
     `503` error.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第一个请求完成之前，所有后续的尝试将显示`503`错误。
 - en: How it works...
+  id: totrans-116
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: We create a shared memory space with the `limit_conn_zone` directive so that
     the connections can be tracked. We use `$binary_remote_addr` to track the remote
     (client) IP address and then name our zone `conlimitzone`. Finally, we allocate
     10 MB by appending the zone name with `:10m`. This is the total space allocation,
     which is enough to track up to 160,000 concurrent IP addresses.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用`limit_conn_zone`指令创建一个共享内存空间，以便跟踪连接。我们使用`$binary_remote_addr`来跟踪远程（客户端）IP地址，然后将我们的区域命名为`conlimitzone`。最后，通过在区域名称后添加`:10m`来分配10MB的空间。这是总的空间分配，足以跟踪最多160,000个并发IP地址。
 - en: In our `server` block directive, we then use our zone by setting `limit_conn`
     to the zone name `conlimitzone`. This limit is then set to a total of `1` connection,
     which ensures that each unique IP address is only allowed to make a single connection.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的`server`区块指令中，我们通过将`limit_conn`设置为区域名称`conlimitzone`来使用我们的区域。此限制设置为总共`1`个连接，这确保每个唯一的IP地址只能建立一个连接。
 - en: Finally, we use `limit_rate` (as shown in our previous recipe) to limit the
     bandwidth per connection. As we have set the connection limit to `1`, this means
     that each user can only download one file at a time with a total bandwidth of
     5 MBps.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们使用`limit_rate`（如我们之前的示例中所示）来限制每个连接的带宽。由于我们将连接限制设置为`1`，这意味着每个用户一次只能下载一个文件，总带宽为5MBps。
 - en: There's more...
+  id: totrans-120
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: Tracking connections via the client IP address isn't the only way we can limit
     connections. We can also set a limit for the server as a whole, which can be handy
     for preventing the server from being overloaded. Especially, where the system
     is behind a reverse proxy, this can be a simple yet effective way of ensuring
     that your website or application remains responsive.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过客户端IP地址跟踪连接并不是我们限制连接的唯一方式。我们还可以为整个服务器设置限制，这在防止服务器过载时非常有用。特别是在系统位于反向代理后面时，这是一种简单而有效的方法，确保你的网站或应用程序保持响应。
 - en: 'To track for the server as a whole, we again first set the shared memory zone:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 要为整个服务器进行跟踪，我们再次首先设置共享内存区：
 - en: '[PRE17]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'Then, we set our `server` directive:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们设置我们的`server`指令：
 - en: '[PRE18]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: With this configuration, our server is limited to `500` concurrent connections.
     If there are more connections attempted, a 503 error will be returned to the client.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此配置下，我们的服务器限制为`500`个并发连接。如果尝试更多连接，将返回503错误给客户端。
 - en: See also
+  id: totrans-127
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参见
 - en: The NGINX `limit_conn` module documentation can be found at [http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html](http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html)
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的`limit_conn`模块文档可以在[http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html](http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html)找到。
 - en: Header modification with NGINX
+  id: totrans-129
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用NGINX修改头部
 - en: With more complexities in your system, sometimes some additional debug or information
     sent in the HTTP headers can be invaluable. The HTTP headers can have a specific
     meaning that tells the browser to treat a response a certain way or they could
     simply be to provide extra information, which can be used to trace specific issues
     from your website or applications.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着系统复杂性的增加，有时在HTTP头部发送一些额外的调试或信息可能是非常宝贵的。HTTP头部可以具有特定的含义，告诉浏览器以特定的方式处理响应，或者它们仅仅是提供额外的信息，用于追踪网站或应用程序中的特定问题。
 - en: Getting ready
+  id: totrans-131
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备就绪
 - en: The ability to modify the headers is already inbuilt into the NGINX core, but
     to use the latest features, you'll need version 1.10.0 or higher.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 修改头部的能力已经内置在NGINX核心中，但要使用最新功能，你需要使用版本1.10.0或更高版本。
 - en: How to do it...
+  id: totrans-133
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: There are a number of different ways that we can modify the headers to suit
     different requirements. While the process remains the same for each, specific
     examples of where headers are commonly modified are detailed in the following
     examples.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过多种方式修改头部，以适应不同的需求。虽然每种方法的过程相同，但在以下示例中详细介绍了常见的头部修改示例。
 - en: Caching static content
+  id: totrans-135
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 缓存静态内容
 - en: 'For sites where the static media files (such as CSS, JS, and images) have a
     version number in their filename, we can easily cache the files with a long expiry
     without causing any issues. This means that, unless a user clears their cache,
     they will have a copy of this file to speed up page reloads. To set the caching,
     we will use a `location` block directive (within your main `server` block directive)
     to add the additional headers. Here''s the code required:'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于那些静态媒体文件（如 CSS、JS 和图片）在文件名中包含版本号的站点，我们可以轻松地缓存这些文件，并设置长时间过期，而不会引起任何问题。这意味着，除非用户清除缓存，否则他们将有该文件的副本来加速页面重新加载。为了设置缓存，我们将使用
+    `location` 块指令（在主 `server` 块指令内）来添加额外的头信息。以下是所需的代码：
 - en: '[PRE19]'
+  id: totrans-137
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'To see the headers, we can use Chrome **Developer Tools** (**DevTools**) or
     a command-line tool such as cURL. If you want to run this via cURL, here''s how
     to do it:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 要查看头信息，我们可以使用 Chrome **开发者工具** (**DevTools**) 或命令行工具如 cURL。如果你想通过 cURL 执行，下面是操作方法：
 - en: '[PRE20]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'This will just display the headers from the server response, which will give
     us an output similar to the following screenshot:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将仅显示来自服务器响应的头信息，我们将得到一个类似于以下屏幕截图的输出：
 - en: '![](img/9dfc5c55-3e85-49a9-9685-dc76d124362d.png)'
+  id: totrans-141
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/9dfc5c55-3e85-49a9-9685-dc76d124362d.png)'
 - en: From the cURL output, we can see that the headers (`Expires`, `Pragma`, and
     `Cache-Control`) have been set correctly.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 cURL 输出中，我们可以看到头信息（`Expires`、`Pragma` 和 `Cache-Control`）已被正确设置。
 - en: Removing server name and version
+  id: totrans-143
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 移除服务器名称和版本
 - en: 'By default, NGINX will set a `Server` response header, which will contain the
     product name and version number. While it''s mostly a minor thing, some see this
     as a leakage of information which gives hackers a potential starting point to
     look for attack vectors. We can remove this version number to remove the version
     data from the header. Here''s how to do it:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，NGINX 会设置一个 `Server` 响应头，其中包含产品名称和版本号。虽然这通常是一个小问题，但一些人认为这是信息泄漏，可能为黑客提供潜在的攻击起点。我们可以删除这个版本号，以移除头信息中的版本数据。下面是如何操作：
 - en: '[PRE21]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: The `server_tokens` directive is set to `on` by default, so we set it to `off`
     in order to disable the version number. This also removes the version number from
     the error pages (such as the 404 error page) as well.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '`server_tokens` 指令默认设置为 `on`，所以我们将其设置为 `off`，以禁用版本号。这也会将错误页面（如 404 错误页面）中的版本号去除。'
 - en: If you need to completely remove the `server` header, you'll either need a third-party
     module or the Plus (paid) edition of NGINX, which allows you to override it.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你需要完全移除 `server` 头，你需要使用第三方模块，或者使用 NGINX 的 Plus（付费）版，这允许你覆盖该头信息。
 - en: Extra debug headers
+  id: totrans-148
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 额外的调试头信息
 - en: 'While you may not have looked closely, many of the top websites add additional
     header information to assist with debugging. Facebook adds an `x-fb-debug` header,
     Twitter has an `x-transaction` header, and sites such as [https://www.wired.com/](https://www.wired.com/)
@@ -652,46 +969,71 @@
     much of the low-level debug information can only be produced within your application
     code, at a higher level, you can easily incorporate a few helpful headers. Here''s
     an example:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然你可能没有仔细观察，但许多顶级网站会添加额外的头信息来协助调试。Facebook 添加了 `x-fb-debug` 头，Twitter 有 `x-transaction`
+    头，像 [https://www.wired.com/](https://www.wired.com/) 这样的站点则插入 `x-served-by` 头来帮助追踪你的请求经过了哪些代理。这些信息不会对最终用户产生影响；然而，在试图诊断难以诊断的问题时，这些信息非常宝贵。虽然许多低级别的调试信息只能在你的应用代码中产生，但在更高层次上，你可以轻松地加入一些有用的头信息。下面是一个例子：
 - en: '[PRE22]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'These simply need to be inserted into your existing `server` block directive,
     and they will generate an output like the following:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些信息只需插入到你现有的 `server` 块指令中，它们会生成如下所示的输出：
 - en: '![](img/f66c1733-8e10-4b21-902a-710d4160f543.png)'
+  id: totrans-152
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/f66c1733-8e10-4b21-902a-710d4160f543.png)'
 - en: If you have a meaningful server name (which could include location, variant,
     cloud provider, or anything similar), adding the `$hostname` server (which we
     set as the `X-Host` header) allows you to trace requests down to the exact system
     causing the issue.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一个有意义的服务器名称（其中可以包括位置、变体、云提供商或类似的内容），添加 `$hostname` 服务器（我们将其设置为 `X-Host`
+    头）可以让你追踪到导致问题的确切系统。
 - en: The `$request_id` command generates a 16-byte unique identifier, which can provide
     easy tracing back to a custom log file format (refer to [Chapter 5](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml),
     *Logging*, for more information). This gives us an exact string to match, which
     is much more effective than trying to search log files for a date range.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: '`$request_id` 命令生成一个 16 字节的唯一标识符，可用于轻松追溯到自定义日志文件格式（参见 [第 5 章](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml)，*Logging*，了解更多信息）。这为我们提供了一个确切的字符串匹配，远比尝试在日期范围内搜索日志文件更有效。'
 - en: Lastly, we log the TCP **Round Trip Time** (**RTT**) as `X-TCP-RTT`, which gives
     us an indication of the network performance between the server and the client.
     The RTT is measured in microseconds (not milliseconds) and is based on the underlying
     operating system's `TCP_INFO` data.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们记录 TCP **往返时间** (**RTT**) 作为 `X-TCP-RTT`，这为我们提供了服务器和客户端之间网络性能的指示。RTT 以微秒为单位（而非毫秒），基于底层操作系统的
+    `TCP_INFO` 数据。
 - en: By default, these additional headers will only be inserted for 20x and 30x responses.
     If you want them inserted into your error pages (such as a 404), you need to append
     `always` to the end of the `add_header` directive.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，这些附加头部仅会为 20x 和 30x 响应插入。如果您希望它们插入到您的错误页面（如 404），您需要在 `add_header` 指令的末尾附加
+    `always`。
 - en: See also
+  id: totrans-157
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另请参见
 - en: "The NGINX headers module can be found at [http://nginx.org/en/docs/http/ngx_http_headers_module.html\uFEFF\
     ](http://nginx.org/en/docs/http/ngx_http_headers_module.html)"
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: "NGINX 头部模块可在 [http://nginx.org/en/docs/http/ngx_http_headers_module.html\uFEFF\
+    ](http://nginx.org/en/docs/http/ngx_http_headers_module.html) 找到。"

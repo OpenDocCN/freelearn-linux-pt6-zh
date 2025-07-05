@@ -1,769 +1,1126 @@
 - en: Load Balancing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 负载均衡
 - en: 'In this chapter, we will cover the following:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将涵盖以下内容：
 - en: Basic balancing techniques
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基本负载均衡技术
 - en: Round-robin load balancing
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 轮询负载均衡
 - en: Least connected load balancing
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最少连接负载均衡
 - en: Hash-based load balancing
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于哈希的负载均衡
 - en: Testing and debugging NGINX load balancing
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 测试和调试 NGINX 负载均衡
 - en: TCP / application load balancing
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: TCP / 应用程序负载均衡
 - en: NGINX as an SMTP load balancer
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 作为 SMTP 负载均衡器
 - en: Introduction
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Load balancing serves two main purposes—to provide further fault tolerance and
     to distribute the load. This is achieved by dividing incoming requests against
     one or more backend servers, so that you get the combined output of these multiple
     servers. As most load balancer configurations are generally configured as a reverse
     proxy (as detailed in the previous chapter), this makes NGINX a great choice.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 负载均衡的主要作用有两个——提供更高的容错能力和分配负载。通过将传入请求分发到一个或多个后端服务器，从而实现多个服务器的联合输出。由于大多数负载均衡器配置通常作为反向代理配置（如前一章所述），这使得
+    NGINX 成为一个非常好的选择。
 - en: By increasing your fault tolerance, you can ensure the reliability and uptime
     of your website or application. In the realms of Google or Facebook, where seconds
     of downtime can cause chaos, load balancers are a critical part of their business.
     Likewise, if you have occasional issues with your web server, or want to be able
     to conduct maintenance without bringing your site down, then a load balancer will
     greatly enhance your setup.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过增加容错能力，你可以确保网站或应用程序的可靠性和正常运行时间。在像 Google 或 Facebook 这样的领域中，几秒钟的停机时间可能会造成混乱，负载均衡器是它们业务的关键部分。同样，如果你遇到
+    Web 服务器偶尔出现问题，或者希望在不让网站宕机的情况下进行维护，负载均衡器将大大增强你的设置。
 - en: 'The distributed load side of a load balancer allows you to horizontally scale
     your website or application. This is a much easier way to scale your website rather
     than simply throwing more hardware at a single server, especially when it comes
     to high levels of concurrency. Using a load balancer, we can increase the number
     of servers easily, as shown in the following figure:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 负载均衡器的分布式负载侧允许你水平扩展网站或应用程序。这是一种比单纯增加硬件到单一服务器更容易的扩展方式，尤其是在高并发的情况下。使用负载均衡器，我们可以轻松增加服务器的数量，如下图所示：
 - en: '![](img/ce9f3ba9-1869-4385-851a-b0fab4b5f69d.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/ce9f3ba9-1869-4385-851a-b0fab4b5f69d.png)'
 - en: With the right configuration and monitoring, you can also add and remove these
     web servers on the fly. This is what many refer to as **elastic computing**, where
     resources can be provisioned in an automated fashion. When implemented correctly,
     this can deliver cost savings, while ensuring that you can handle peak loads without
     any issue.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过正确的配置和监控，你还可以动态地添加或移除这些 Web 服务器。这就是许多人所说的**弹性计算**，资源可以自动化配置。当正确实施时，它可以节省成本，同时确保你能够处理高峰负载而不出现问题。
 - en: Of course, there are a few caveats here. The first is that your application
     or website must be able to run in a distributed manner. As your web server doesn't
     have a centralized filesystem by default, handling file uploads must be done in
     a way that all servers still retain access. You can use a clustered filesystem
     to achieve this (for example, GlusterFS) or use a centralized object or file storage
     system, such as AWS S3.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这里有一些注意事项。第一个是你的应用程序或网站必须能够以分布式方式运行。由于你的 Web 服务器默认没有集中式文件系统，文件上传必须以所有服务器仍然能够访问的方式进行处理。你可以使用集群文件系统来实现这一点（例如，GlusterFS），或者使用集中式对象或文件存储系统，例如
+    AWS S3。
 - en: Your database also needs to be accessible by all your web servers. If your users
     log in to your system, you'll also need to ensure that the session tracking uses
     a database so that it's accessible from all servers.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的数据库也需要能够被所有 Web 服务器访问。如果用户登录到你的系统，你还需要确保会话追踪使用数据库，以便它能被所有服务器访问。
 - en: Thankfully though, if you're using a modern framework (as we covered in [Chapter
     3](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml), *Common Frameworks*) or a modern
     **Content Management System** (**CMS**), then these aspects have been previously
     implemented and documented.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而幸运的是，如果你使用的是现代框架（正如我们在[第 3 章](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml)中讨论的，*常见框架*）或现代的**内容管理系统**（**CMS**），那么这些方面已经被实现并记录下来。
 - en: Basic balancing techniques
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基本负载均衡技术
 - en: The three scheduling algorithms which NGINX supports are round-robin, least
     connections, and hashing.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 支持的三种调度算法是轮询、最少连接和哈希。
 - en: 'Load balancers configured in a **round-robin** fashion distribute requests
     across the servers in a sequential basis; the first request goes to the first
     server, the second request to the second server, and so on. This repeats until
     each server in the pool has processed a request and the next will simply be at
     the top again. The following diagram explains the round robin scheduling algorithm:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 以**轮询**方式配置的负载均衡器会按顺序将请求分配到各个服务器；第一个请求分配给第一个服务器，第二个请求分配给第二个服务器，依此类推。这将一直重复，直到池中的每台服务器都处理了一个请求，接下来的请求将再次从顶部开始。下图解释了轮询调度算法：
 - en: '![](img/c3cbe6d3-abea-4e77-bc0e-5843db3e337f.png)'
+  id: totrans-21
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/c3cbe6d3-abea-4e77-bc0e-5843db3e337f.png)'
 - en: This is the most simplistic method to implement, and it has both positive and
     negative sides. The positive is that no configuration is required on the server
     side. The negative is that there's no ability to check the load of the servers
     to even out the requests.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是实现起来最简单的方法，它有正反两面。正面是服务器端无需配置，反面是无法检查服务器的负载以平衡请求。
 - en: When configured to use the **least connection** method of load balancing, NGINX
     distributes the requests to the servers with the least amount of active connections.
     This provides a very rudimentary level of load-based distribution; however, it's
     based on connections rather than actual server load.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 当配置为使用**最少连接数**负载均衡方法时，NGINX会将请求分配给活动连接最少的服务器。这提供了一个非常基础的基于负载的分配方式；然而，它是基于连接数，而非实际的服务器负载。
 - en: This may not always be the most effective method, especially if one particular
     server has the least amount of connections due to a high resource load or an internal
     issue.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法可能并不总是最有效的，尤其是在某个特定的服务器由于高资源负载或内部问题而连接数最少时。
 - en: The third method supported by NGINX is the **hash** method. This uses a key
     to determine how to map the request with one of the upstream servers. Generally,
     this is set to the client's IP address, which allows you to map the requests to
     the same upstream server each time.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX支持的第三种方法是**哈希**方法。它使用一个键来决定如何将请求映射到某个上游服务器。通常，这个键是客户端的IP地址，这样可以确保每次请求都映射到同一个上游服务器。
 - en: If your application doesn't use any form of centralized session tracking, then
     this is one way to make load balancing more compatible.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您的应用程序不使用任何形式的集中式会话跟踪，那么这就是使负载均衡更兼容的一种方式。
 - en: Round robin load balancing
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 轮询负载均衡
 - en: Getting ready
+  id: totrans-28
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: To test the load balancing, you'll need to be able to run multiple versions
     of your app, each on different ports.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 要测试负载均衡，您需要能够运行多个版本的应用程序，每个应用程序运行在不同的端口上。
 - en: How to do it...
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'We''ll start off with a basic round-robin configuration, with our upstream
     servers coming locally. We''ll define the `upstream` block directive at the `http`
     block level, outside of the `server` block:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从一个基本的轮询配置开始，我们的上游服务器来自本地。我们将在`http`块级别定义`upstream`块指令，位于`server`块之外：
 - en: '[PRE0]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Then, we''ll define our `server` block directive:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将定义我们的`server`块指令：
 - en: '[PRE1]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: How it works...
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In our `upstream` block directive, we define the servers and the name of the
     backend servers. In our recipe, we simply defined these as three instances on
     the localhost on ports `8080`, `8081`, and `8082`. In many scenarios, this can
     also be external servers (in order to horizontally balance resources).
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的`upstream`块指令中，我们定义了服务器和后端服务器的名称。在我们的配置中，我们简单地将这些定义为三个本地端口`8080`、`8081`和`8082`上的实例。在许多场景中，这些也可以是外部服务器（以便水平平衡资源）。
 - en: In our `server` block directive, instead of connecting directly to a local application,
     as in the previous recipe, we connect to our upstream directive which we named
     `localapp`.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的`server`块指令中，我们不再像前面的配置那样直接连接到本地应用程序，而是连接到我们命名为`localapp`的上游指令。
 - en: As we didn't specify an algorithm to use for load balancing, NGINX defaults
     to the round-robin configuration. Each of our entries is loaded in sequential
     order as new requests come in, unless one of the servers fails to respond.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们没有指定用于负载均衡的算法，NGINX默认使用轮询配置。每个请求按顺序加载，直到某个服务器未响应。
 - en: There's more...
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'Also, it''s possible to weight the servers, meaning it will preference upstream
     servers with a higher weight. If your servers aren''t exactly the same, you can
     use weighting to preference your higher capacity systems so that they receive
     more requests. Consider this example:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，您还可以对服务器进行加权，这意味着优先选择权重更高的上游服务器。如果您的服务器配置不同，您可以使用加权来偏向容量较大的系统，以便它们接收更多的请求。考虑以下示例：
 - en: '[PRE2]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Because we set the first server with a weighted value of `2`, it will receive
     twice as many requests as the others.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们将第一个服务器的权重设置为 `2`，它将比其他服务器接收两倍的请求。
 - en: See also
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另请参见
 - en: 'The NGINX upstream module: [http://nginx.org/en/docs/http/ngx_http_upstream_module.html](http://nginx.org/en/docs/http/ngx_http_upstream_module.html)'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX upstream 模块：[http://nginx.org/en/docs/http/ngx_http_upstream_module.html](http://nginx.org/en/docs/http/ngx_http_upstream_module.html)
 - en: Least connected load balancing
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 最少连接负载均衡
 - en: While the default load balancing algorithm is round-robin, it doesn't take into
     consideration either the server load or the response times. With the **least connected**
     method, we distribute connections to the upstream server with the least number
     of active connections.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然默认的负载均衡算法是轮询，但它并没有考虑服务器负载或响应时间。使用 **最少连接** 方法时，我们将连接分配给具有最少活跃连接的上游服务器。
 - en: Getting ready
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: To test the load balancing, you'll need to be able to run multiple versions
     of your app, each on different ports.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 要测试负载均衡，您需要能够运行多个版本的应用程序，每个版本监听不同的端口。
 - en: How to do it...
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'The `upstream` block directive looks exactly the same as the round-robin configuration,
     except we now explicitly tell NGINX to use the least connected method—a reminder
     that this needs to remain outside of the `server` block directive. Here''s our
     `upstream` block:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '`upstream` 块指令与轮询配置完全相同，不同之处在于我们现在明确告诉 NGINX 使用最少连接方法——记住，这需要保持在 `server` 块指令之外。以下是我们的
+    `upstream` 块：'
 - en: '[PRE3]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Then, we''ll define our `server` block directive:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将定义 `server` 块指令：
 - en: '[PRE4]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: How it works...
+  id: totrans-54
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: Like the round-robin configuration, we have three upstream servers defined with
     the name `localapp`. For this configuration, we explicitly tell NGINX to use the
     `least_conn` method of load balancing.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 与轮询配置一样，我们定义了三个上游服务器，名称为 `localapp`。在此配置中，我们明确告诉 NGINX 使用 `least_conn` 方法进行负载均衡。
 - en: As each new request comes in, NGINX determines which upstream server has the
     least amount of connections and directs requests to this server.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当有新请求到来时，NGINX 会判断哪个上游服务器的连接最少，并将请求定向到该服务器。
 - en: Hash-based load balancing
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于哈希的负载均衡
 - en: When you need to ensure that hash-based load balancing is the optimal choice,
     commonly, the client's IP address is used as the pattern to match so that any
     issues with cookies and per upstream server session tracking is sticky. This means
     that every subsequent request from the same hash will always route to the same
     upstream server (unless there's a fault with the upstream server).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 当您需要确保哈希负载均衡是最佳选择时，通常会使用客户端的 IP 地址作为匹配模式，这样就可以确保与 Cookies 和每个上游服务器会话的跟踪是粘性的。这意味着，来自相同哈希的每个后续请求将始终路由到相同的上游服务器（除非上游服务器发生故障）。
 - en: How to do it...
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'The `upstream` block directive looks exactly the same as the round-robin configuration,
     except we now explicitly tell NGINX to use the hash method—a reminder that this
     needs to remain outside of the `server` block directive. Here''s our `upstream`
     block:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '`upstream` 块指令与轮询配置完全相同，不同之处在于我们现在明确告诉 NGINX 使用哈希方法——记住，这需要保持在 `server` 块指令之外。以下是我们的
+    `upstream` 块：'
 - en: '[PRE5]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Then, we''ll define our `server` block directive:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将定义 `server` 块指令：
 - en: '[PRE6]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: How it works...
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: For this hash method, we used the client IP (`$remote_addr`) as the determining
     factor to build up the hash map.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于此哈希方法，我们使用客户端 IP (`$remote_addr`) 作为确定因素来构建哈希映射。
 - en: The `consistent` parameter at the end of the hash line implements the Ketama
     consistent hashing method, which helps to minimize the amount or remapping (and
     therefore potential disruption or cache loss) if you need to add or remove servers
     from your `upstream` block directive. If your upstream servers remain constant,
     then you can omit this parameter.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 哈希行末尾的 `consistent` 参数实现了 Ketama 一致性哈希方法，该方法有助于最小化重新映射的数量（因此也减少潜在的中断或缓存丢失），如果您需要从
+    `upstream` 块指令中添加或移除服务器。如果您的上游服务器保持不变，则可以省略此参数。
 - en: There's more...
+  id: totrans-67
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: 'For those who have used older versions of NGINX, the `ip_hash` method is still
     available, but with one distinct difference. The `ip_hash` method uses the first
     three octets of an IPv4 address (for example, `1.2.3.XXX`) to produce the hash
     map. This means that if the requesting IP comes from a different IP within the
     standard class C range, it''ll be sent to the same upstream server. Here''s an
     example of how it''s implemented:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于曾使用过旧版本 NGINX 的用户，`ip_hash` 方法仍然可用，但有一个明显的区别。`ip_hash` 方法使用 IPv4 地址的前三个八位字节（例如，`1.2.3.XXX`）来生成哈希映射。这意味着，如果请求的
+    IP 地址来自同一标准 C 类网络范围内的其他 IP，它将被定向到同一个上游服务器。以下是实现方式的示例：
 - en: '[PRE7]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: While this method still works, if you need better consistency for ip_hash mapping,
     then using `hash $remote_addr` will match the full IP address.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这种方法仍然有效，但如果你需要更好的一致性来进行 ip_hash 映射，则可以使用 `hash $remote_addr` 来匹配完整的 IP 地址。
 - en: See also
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The consistent hashing Wikipedia page: [https://en.wikipedia.org/wiki/Consistent_hashing](https://en.wikipedia.org/wiki/Consistent_hashing)'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一致性哈希的 Wikipedia 页面：[https://en.wikipedia.org/wiki/Consistent_hashing](https://en.wikipedia.org/wiki/Consistent_hashing)
 - en: 'The `hash` directive documentation: [http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash)'
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`hash` 指令文档：[http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash)'
 - en: Testing and debugging NGINX load balancing
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 测试和调试 NGINX 负载均衡
 - en: As load balancing can introduce extra complexities into your environment, it's
     important to ensure that you can test your setup thoroughly. Especially when you're
     trying to debug corner cases, being able to build a test platform becomes critical
     to reproducing faults or issues.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于负载均衡可能会为环境引入额外的复杂性，因此确保能够彻底测试你的设置非常重要。特别是当你在调试边缘案例时，能够构建测试平台对重现故障或问题至关重要。
 - en: Ideally, you want this combined with real-time metrics as well, especially if
     you want to be able to overlay this with data from your upstream servers. As we'll
     cover in [Chapter 13](fff6205a-633e-4c22-bf99-420c274e6379.xhtml), *NGINX Plus
     – The Commercial Offering*, the commercial release of NGINX contains a live monitoring
     module which provides information such as the current connections, upstream server
     statuses, and load information.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，你希望这与实时度量相结合，特别是当你希望能够将其与上游服务器的数据叠加时。正如我们在[第13章](fff6205a-633e-4c22-bf99-420c274e6379.xhtml)中讨论的，*NGINX
+    Plus – 商业版*，NGINX 的商业版包含一个实时监控模块，可以提供当前连接数、上游服务器状态和负载信息等数据。
 - en: While there are a lot of programs and cloud services around which you can generate
     load to test your load balancer from a client perspective, I didn't find many
     tools to have test instances for the upstream side of the problem. So, like any
     programmer, I simply wrote my own!
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管有很多程序和云服务可以生成负载来从客户端角度测试负载均衡器，但我没有找到很多工具能提供测试实例来模拟问题的上游部分。因此，像任何程序员一样，我干脆写了自己的工具！
 - en: HTest is an open source tool, which emulates a web server under varying conditions.
     It is written in Go and is therefore able to take advantage of the high levels
     of concurrency and optimization; HTest can serve more than 150,000 requests a
     second on very modest hardware.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: HTest 是一个开源工具，用于模拟不同条件下的 Web 服务器。它是用 Go 编写的，因此能够充分利用 Go 的高并发和优化特性；HTest 在非常普通的硬件上也能处理每秒超过
+    150,000 个请求。
 - en: Rather than just serving a static page, HTest allows you to vary the response
     times (so that you can emulate your typical application responses), failure rates
     (where a percentage of responses return a `500` error), and can also introduce
     some jitter so that the results are more realistic.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 与其仅提供静态页面，HTest 允许你变化响应时间（以模拟典型应用程序的响应）、故障率（其中一部分响应返回 `500` 错误），并且还能加入一些抖动，使得结果更具真实感。
 - en: Getting ready
+  id: totrans-80
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: No prerequisite steps are required for this recipe.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个食谱不需要任何前置步骤。
 - en: How to do it...
+  id: totrans-82
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'After you have downloaded the latest HTest executable (within the releases
     section of the GitHub page), you can simply call HTest:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 下载最新的 HTest 可执行文件（可以在 GitHub 页面中的发布部分找到）后，你只需运行 HTest 即可：
 - en: '[PRE8]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'By default, HTest will listen on port `8000` on `127.0.0.1` and be ready to
     serve requests. There''s a basic web page, which is returned as part of the result
     and looks like this:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，HTest 将在 `127.0.0.1` 的 `8000` 端口监听，并准备好接收请求。它有一个基本的网页，作为结果的一部分返回，页面内容如下所示：
 - en: '![](img/3eeb6e2d-4e3e-407c-a56c-df333983dff2.png)'
+  id: totrans-86
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/3eeb6e2d-4e3e-407c-a56c-df333983dff2.png)'
 - en: As each request comes in, the hit counter will be incremented, and if any flags
     for delays, failures, or jitter have been set, then these will also be shown.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当请求到达时，命中计数器将增加，如果设置了延迟、失败或抖动的标志，这些信息也会显示出来。
 - en: 'We can easily start HTest on different ports, which when testing a load balancer
     on a single server, is required:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以很容易地在不同端口上启动HTest，这在对单台服务器的负载均衡器进行测试时是必需的：
 - en: '[PRE9]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Details such as the response delay can be set in either of two ways. If you
     want to start HTest with a delay, this can also be done via a command-line flag:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 响应延迟等详细信息可以通过两种方式设置。如果您希望以延迟启动HTest，也可以通过命令行标志来完成：
 - en: '[PRE10]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'This value is in **milliseconds** (**ms**). Alternatively, we can also set
     the delay after the program has started with a simple cURL call:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 此值以**毫秒**（**ms**）为单位。或者，我们也可以通过简单的cURL调用在程序启动后设置延迟：
 - en: '[PRE11]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'The advantage to this is that it can be scripted so that you have a stepped
     test routine, or you can vary it manually to measure the effect it has on your
     overall load balancer configuration. Here''s the full reference table for configuration
     items:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样做的好处在于可以编写脚本，从而拥有分步测试流程，或者您可以手动更改来测量它对整体负载均衡器配置的影响。以下是配置项的完整参考表：
 - en: '| **Field** | **Value** | **Example** |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| **字段** | **值** | **示例** |'
 - en: '| `responsedelay` | Delay time (in ms) | 10 |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| `responsedelay` | 延迟时间（毫秒） | 10 |'
 - en: '| `failurerate` | Failure rate of requests (in percent) | 5 |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '| `failurerate` | 请求失败率（百分比） | 5 |'
 - en: '| `jitter` | Variance of the results (in percent) | 2 |'
+  id: totrans-98
   prefs: []
   type: TYPE_TB
+  zh: '| `jitter` | 结果的方差（百分比） | 2 |'
 - en: There's more...
+  id: totrans-99
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: 'To further aid in tracing and testing load balancer configurations, we can
     add some additional headers in for testing. This allows us to then see further
     information as to which upstream server processed the request, as well as how
     long it took. Here are the additional headers I added for testing:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进一步帮助追踪和测试负载均衡器配置，我们可以为测试添加一些额外的头部信息。这样，我们就能看到更多信息，了解哪个上游服务器处理了请求，以及花费了多长时间。以下是我为测试添加的额外头部：
 - en: '[PRE12]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: If it's a production system, you can enable this only when a conditional flag
     is set, as we detailed in [Chapter 5](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml),
     *Logging*.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果这是一个生产系统，您只能在设置了条件标志时启用此功能，正如我们在[第5章](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml)中详细说明的，*日志记录*。
 - en: This allows us to see which upstream server processed our request (`$upstream_addr`)
     and how long it took to connect to the upstream server (`$upstream_connect_time`).
     This helps to give an indication as to where any possible connection delays are
     occurring, and also from which upstream server.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使我们能够看到哪个上游服务器处理了我们的请求（`$upstream_addr`），以及连接到上游服务器花费了多长时间（`$upstream_connect_time`）。这有助于指示可能的连接延迟发生在哪儿，以及是来自哪个上游服务器。
 - en: If you need to track the upstream server response time (how long it took to
     return data), this needs to be logged and cannot be set as a header. This is because
     headers are sent to the browser before the request from the upstream server has
     returned, and therefore the time at that point is still unknown.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您需要跟踪上游服务器的响应时间（返回数据所需的时间），这需要被记录下来，而不能作为头部设置。因为头部会在上游服务器的请求返回之前发送到浏览器，所以此时的时间仍然是未知的。
 - en: 'For example, here are the results from a very simple test:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，以下是一个非常简单测试的结果：
 - en: '![](img/e45d6bf4-1753-436f-81f8-136dae57453f.png)'
+  id: totrans-106
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/e45d6bf4-1753-436f-81f8-136dae57453f.png)'
 - en: As this is based on our previous recipes, we can see that the connection was
     made to a server running locally on port `8081`, and because the load on the server
     was very low, there was no connection delay (`0.000` seconds). An increase in
     connection times can indicate load or network issues at the load balancer end,
     which is typically hard to diagnose, as the finger is usually pointed at the upstream
     server as the cause of delays.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这是基于我们之前的配方，我们可以看到连接已成功建立到本地端口`8081`上的服务器，并且由于服务器的负载非常低，所以没有出现连接延迟（`0.000`秒）。连接时间的增加可能表明负载均衡器端存在负载或网络问题，这通常很难诊断，因为人们通常会将问题归咎于上游服务器。
 - en: See also
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The HTest repository: [https://github.com/timbutler/htest](https://github.com/timbutler/htest)'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: HTest 仓库：[https://github.com/timbutler/htest](https://github.com/timbutler/htest)
 - en: TCP / application load balancing
+  id: totrans-110
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: TCP / 应用负载均衡
 - en: While most people know NGINX for its outstanding role as a web and proxy server,
     most won't have used it beyond the standard web roles. Some of the key functionalities
     come from the fact that NGINX is incredibly flexible in how it operates. With
     the introduction of the stream module in 1.9, NGINX can also load balance TCP
     and UDP applications as well.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然大多数人知道NGINX因其作为Web和代理服务器的出色表现，但大多数人并没有超出标准Web角色使用它。一些关键功能来自于NGINX在操作上的极大灵活性。随着1.9版本中引入了流模块，NGINX现在也可以对TCP和UDP应用程序进行负载均衡。
 - en: This opens up the possibility to load balance applications which don't have
     either any internal task distribution or any ability to scale beyond one server.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 这为负载均衡那些没有内部任务分配或无法扩展到多个服务器的应用程序开辟了可能性。
 - en: How to do it...
+  id: totrans-113
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To use TCP load balancing, we first need to double-check whether the NGINX
     version has the stream module compiled. To do this, you can run the following
     command:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用TCP负载均衡，首先需要检查NGINX版本是否编译了流模块。你可以运行以下命令来执行此操作：
 - en: '[PRE13]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'This will generate an output, displaying all of the compiled modules. The stream
     module is available if you see `--with-stream` in the output. Consider this example:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将生成一个输出，显示所有编译的模块。如果你在输出中看到`--with-stream`，则表示流模块可用。考虑这个例子：
 - en: '![](img/8a983d25-8ed6-450c-9957-ff08e5582a51.png)'
+  id: totrans-117
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/8a983d25-8ed6-450c-9957-ff08e5582a51.png)'
 - en: If you don't have the required version, we covered how to install an updated
     version in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml), *Let's Get
     Started*.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你没有所需的版本，我们在[第一章](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)中介绍了如何安装更新版本，*让我们开始吧*。
 - en: 'Next, we need to define a `stream` block directive, which must be situated
     outside of the HTTP block directive or replace it altogether. Unlike previous
     examples, where this could be within the `/etc/nginx/conf.d/` directive, this
     `stream` block needs to be set within the main NGINX configuration file (typically
     `/etc/nginx/nginx.conf`) or at least included from there and outside the `http`
     block directive. Here''s our configuration:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们需要定义一个`stream`块指令，它必须位于HTTP块指令之外，或者完全替代它。与之前的例子不同，虽然这些配置可以位于`/etc/nginx/conf.d/`目录内，但这个`stream`块需要放在主NGINX配置文件中（通常是`/etc/nginx/nginx.conf`），或者至少从那里包含，并且位于`http`块指令之外。以下是我们的配置：
 - en: '[PRE14]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: How it works...
+  id: totrans-121
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In our recipe, we define an `upstream` block, which is virtually identical to
     our HTTP load balancer configurations. We also specified a hash against the client's
     IP `($remote_addr`), as any application which only has internal session tracking
     for authentication or similar would require re-authentication against each upstream
     server if new connections are made.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的配置中，我们定义了一个`upstream`块，它与我们的HTTP负载均衡器配置几乎完全相同。我们还根据客户端的IP `($remote_addr)`指定了一个哈希值，因为任何仅具有内部会话跟踪进行身份验证或类似功能的应用程序，如果建立新的连接，就需要对每个上游服务器进行重新身份验证。
 - en: We have three upstream servers specified for this recipe, which again are against
     the loopback interface on the local server. Each instance of your TCP applications
     would need to be listening on `127.0.0.1` on ports `8101`, `8102`, and `8103`
     individually.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此配置中，我们指定了三个上游服务器，这些服务器实际上是在本地服务器上的回环接口。每个TCP应用程序实例都需要在`127.0.0.1`上监听端口`8101`、`8102`和`8103`。
 - en: 'Our `server` block directive then tells NGINX to listen on port `7400`. As
     we haven''t specified a protocol, it will default to TCP. If you require UDP,
     you''ll need to specify the protocol as a parameter. Consider this example:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的`server`块指令告诉NGINX监听`7400`端口。由于我们没有指定协议，它将默认使用TCP。如果你需要UDP，你需要将协议指定为参数。考虑这个例子：
 - en: '[PRE15]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Lastly, we then configure a reverse proxy (`proxy_pass`) to our named upstream
     configuration `tcpapppool`.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们配置了一个反向代理（`proxy_pass`），指向我们命名的上游配置`tcpapppool`。
 - en: Easy testing
+  id: totrans-127
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 简单测试
 - en: If you need an application to help test connections, I'd recommend you try Packet
     Sender. This application is free, cross-platform, and allows you to send and receive
     UDP and TCP data both through a GUI and command-line interface.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你需要一个帮助测试连接的应用程序，我推荐你尝试Packet Sender。这个应用程序是免费的，跨平台的，允许你通过GUI和命令行接口发送和接收UDP和TCP数据。
 - en: 'This makes it perfect when testing new configurations, especially if you need
     either targets for your load balancer, or to test the connections through NGINX.
     Here''s what the GUI application looks like:'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使得它在测试新配置时非常完美，特别是当你需要为负载均衡器提供目标，或者测试通过NGINX的连接时。以下是该GUI应用程序的界面：
 - en: '![](img/befbe629-434d-4519-ac4d-b9542863f521.png)'
+  id: totrans-130
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/befbe629-434d-4519-ac4d-b9542863f521.png)'
 - en: 'As shown in the screenshot, we sent a quick `ABC123` packet to the NGINX server
     and received `I received: ABC123` back from our upstream application (which is
     a simple echo app).'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: '如截图所示，我们快速发送了一个`ABC123`数据包到NGINX服务器，并从我们的上游应用（这是一个简单的回显应用）收到了`I received: ABC123`。'
 - en: There's more...
+  id: totrans-132
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: Just like traditional HTTP based configurations, we can also enable access logs
     for TCP load balancing. We can tailor the logs to suit specific applications,
     which may include fields such as the client IP address, bytes sent, and bytes
     received.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像传统的基于HTTP的配置一样，我们还可以启用TCP负载均衡的访问日志。我们可以定制日志以适应特定应用程序，这可能包括如客户端IP地址、发送字节和接收字节等字段。
 - en: This requires NGINX version 1.11.4 or higher.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 这需要NGINX版本1.11.4或更高版本。
 - en: 'To use the stream logging, we firstly need to define a log format. Here''s
     a basic configuration:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用流日志，我们首先需要定义一种日志格式。这里是一个基本配置：
 - en: '[PRE16]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Then, we add the `access_log` directive to our `server` block:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将`access_log`指令添加到`server`块中：
 - en: '[PRE17]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'This basic log format then gives us an output like this:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种基本的日志格式会给我们一个如下的输出：
 - en: '[PRE18]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: We can see the originating IP (`1.2.3.4`), the time of the connection (28 December),
     the bytes sent and received, and then the total session time. If more detailed
     information is required (such as logging the upstream server used), the log format
     can be tailored to your specific needs.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到来源IP（`1.2.3.4`）、连接时间（12月28日）、发送和接收的字节数，然后是总会话时间。如果需要更详细的信息（例如记录使用的上游服务器），则可以根据具体需求定制日志格式。
 - en: See also
+  id: totrans-142
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The NGINX stream module documentation: [https://nginx.org/en/docs/stream/ngx_stream_core_module.html](https://nginx.org/en/docs/stream/ngx_stream_core_module.html)'
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX流模块文档：[https://nginx.org/en/docs/stream/ngx_stream_core_module.html](https://nginx.org/en/docs/stream/ngx_stream_core_module.html)
 - en: 'The NGINX stream log module documentation: [https://nginx.org/en/docs/stream/ngx_stream_log_module.html](https://nginx.org/en/docs/stream/ngx_stream_log_module.html)'
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX流日志模块文档：[https://nginx.org/en/docs/stream/ngx_stream_log_module.html](https://nginx.org/en/docs/stream/ngx_stream_log_module.html)
 - en: 'Packet Sender: [https://packetsender.com/](https://packetsender.com/)'
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数据包发送器：[https://packetsender.com/](https://packetsender.com/)
 - en: NGINX as an SMTP load balancer
+  id: totrans-146
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: NGINX作为SMTP负载均衡器
 - en: As demonstrated in our previous recipe, NGINX can do pure TCP load balancing.
     Further to this, there are some protocol specific implementations, which have
     some specific items to enhance the implementation.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们之前的示例所演示的，NGINX可以进行纯TCP负载均衡。除此之外，还有一些特定协议的实现，它们有一些特定项目来增强实现效果。
 - en: '**Simple Mail Transport Protocol** (**SMTP**) is the standard protocol used
     to send and receive email at a server level. The most popular SMTP servers for
     a Linux platform include Postfix, Exim, and Sendmail, with Exchange being the
     most popular for Windows.'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '**简单邮件传输协议**（**SMTP**）是用于在服务器级别发送和接收电子邮件的标准协议。在Linux平台上，最流行的SMTP服务器包括Postfix、Exim和Sendmail，而Exchange则是Windows平台上最受欢迎的选择。'
 - en: Load balancing SMTP can help to distribute the sending and receiving of email,
     especially if it's a high-volume environment such as an **Internet Service Provider**
     (**ISP**). By running multiple servers, you can distribute the sending aspect
     as well as provide some fault tolerance when systems have issues.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: SMTP负载均衡可以帮助分担电子邮件的发送和接收，特别是在高流量环境中，比如**互联网服务提供商**（**ISP**）。通过运行多个服务器，您可以分配发送任务，并在系统出现问题时提供一些容错能力。
 - en: While NGINX has a specific mail module, unfortunately, this does not have load
     balancing capabilities. The good news is, the stream module is flexible enough
     that it works seamlessly with SMTP.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然NGINX有一个专门的邮件模块，但遗憾的是该模块没有负载均衡功能。好消息是，流模块足够灵活，可以与SMTP无缝配合使用。
 - en: How to do it...
+  id: totrans-151
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'We''re going to configure three local SMTP applications, which will be used
     to help distribute the load. This is what our configuration looks like:'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将配置三个本地SMTP应用，这些应用将帮助分担负载。我们的配置如下所示：
 - en: '![](img/451c73fd-2d30-4559-93f2-89c9a6e68422.png)'
+  id: totrans-153
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/451c73fd-2d30-4559-93f2-89c9a6e68422.png)'
 - en: 'As this needs the stream module, we need to confirm that we have the right
     NGINX version first. To do this, we run this command:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为这需要使用流模块，我们首先需要确认是否拥有正确版本的NGINX。为此，我们运行以下命令：
 - en: '[PRE19]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: If you see `--with-stream` in the output, you have the required module. Otherwise,
     first start with the instructions in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml),
     *Let's Get Started*, to install an updated version.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在输出中看到`--with-stream`，则说明您拥有所需的模块。否则，请首先按照[第1章](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)中的指示，*让我们开始吧*，安装更新版本。
 - en: Then, we define our `stream` block directive, which must be at the root level
     and not within the `http` block, like most of the other recipes in this book.
     You'll need to add it to the main NGINX configuration file (typically `/etc/nginx/nginx.conf`)
     or at least include the configuration from here.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们定义了我们的`stream`块指令，它必须位于根级别，而不能像本书中的大多数其他配方那样放在`http`块内。你需要将它添加到主NGINX配置文件中（通常是`/etc/nginx/nginx.conf`），或者至少包含来自这里的配置。
 - en: 'Here''s the `stream` block directive:'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是`stream`块指令：
 - en: '[PRE20]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: How it works...
+  id: totrans-160
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: Firstly, we define our `upstream` block directive and call it `smtppool`. There
     are three servers within this directive, which run on the same server as the NGINX
     and therefore listen on `127.0.0.1`. A real-world scenario will have these running
     on external servers to help distribute the load. As there's no explicit load balancing
     method set, this will default to round robin.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们定义了我们的`upstream`块指令，并将其命名为`smtppool`。这个指令内有三台服务器，它们与NGINX运行在同一台服务器上，因此监听`127.0.0.1`。在实际场景中，这些服务器会运行在外部服务器上，帮助分配负载。由于没有明确设置负载均衡方法，因此默认采用轮询方式。
 - en: Next, we defined a custom log format, which we named `smtplog`. Compared to
     the previous recipe's more basic format, this time we added logging for the port
     numbers, as well as the upstream server used.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们定义了一个自定义日志格式，命名为`smtplog`。与前面配方中的简单格式相比，这次我们添加了对端口号以及使用的上游服务器的日志记录。
 - en: 'Here''s an example of what the logs produce:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是日志输出的示例：
 - en: '[PRE21]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: While the upstream SMTP servers themselves should also have detailed logs, these
     logs can help when there are issues occurring and help diagnose if it's a particular
     upstream server at fault. We can also see that the upstream server used is different
     every time and in sequential order. This shows that the round robin load balancing
     is working as expected.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然上游SMTP服务器本身也应有详细的日志，但当发生问题时，这些日志可以帮助诊断是否是某个特定的上游服务器出现了故障。我们还可以看到每次使用的上游服务器是不同的，并且按顺序排列。这表明轮询负载均衡按预期工作。
 - en: Lastly, we have our `server` block directive. We tell NGINX to listen on port
     `25` (the default for SMTP) and proxy connections to our `smtppool` upstream servers.
     We also then log the access using the log format (named `smtplog`) defined earlier.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们定义了我们的`server`块指令。我们告诉NGINX监听`25`端口（SMTP的默认端口），并将连接代理到我们的`smtppool`上游服务器。接着，我们使用之前定义的日志格式（命名为`smtplog`）记录访问。
 - en: There's more...
+  id: totrans-167
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多……
 - en: 'As SMTP can run on multiple ports, we need to tell NGINX to load balance these
     ports as well. To do this, we simply define multiple listen lines within the `server`
     block:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于SMTP可以在多个端口上运行，我们需要告诉NGINX也对这些端口进行负载均衡。为此，我们只需在`server`块中定义多个监听行：
 - en: '[PRE22]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: With the server port (named `$server_port`) logged in our custom log format,
     we're still able to trace issues down to a specific port.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过在自定义日志格式中记录服务器端口（命名为`$server_port`），我们仍然能够将问题追踪到具体的端口。
 - en: See also
+  id: totrans-171
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The NGINX stream module documentation: [https://nginx.org/en/docs/stream/ngx_stream_core_module.html](https://nginx.org/en/docs/stream/ngx_stream_core_module.html)'
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 流模块文档：[https://nginx.org/en/docs/stream/ngx_stream_core_module.html](https://nginx.org/en/docs/stream/ngx_stream_core_module.html)
 - en: 'The NGINX stream log module documentation: [https://nginx.org/en/docs/stream/ngx_stream_log_module.html](https://nginx.org/en/docs/stream/ngx_stream_log_module.html)'
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 流日志模块文档：[https://nginx.org/en/docs/stream/ngx_stream_log_module.html](https://nginx.org/en/docs/stream/ngx_stream_log_module.html)
