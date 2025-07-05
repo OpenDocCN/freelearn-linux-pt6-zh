@@ -376,24 +376,29 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max_fails=N`，其中 `N` 是在 NGINX 放弃并切换到下一个服务器之前，应该在服务器上进行的尝试次数。默认情况下，NGINX 只会尝试一次。如果所有服务器都无法响应，NGINX
+    将等待 `fail_timeout` 到期，然后重置所有服务器失败计数并重新尝试。'
 - en: '`max_conns=N`, where `N` is the number of maximum concurrent connections that
     can be sent to that server. By default, NGINX will not limit concurrent connections.'
   id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max_conns=N`，其中 `N` 是可以发送到该服务器的最大并发连接数。默认情况下，NGINX 不限制并发连接数。'
 - en: '`backup` marks the server as a backup server, instructing NGINX to use it only
     in the case of failure of another server (it is not used otherwise).'
   id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`backup` 将服务器标记为备份服务器，指示 NGINX 仅在另一个服务器故障时使用它（否则不使用）。'
 - en: '`down` marks the server as permanently unavailable, instructing NGINX not to
     use it anymore.'
   id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`down` 将服务器标记为永久不可用，指示 NGINX 不再使用该服务器。'
 - en: 'Finally, NGINX offers plenty of options to achieve session affinity. They come
     in the form of directives that should be inserted within the upstream block. The
     simplest of them is `ip_hash`; this directive instructs NGINX to calculate a hash
@@ -404,6 +409,9 @@
   id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，NGINX 提供了许多选项来实现会话亲和性。它们以指令的形式出现，应该插入到 upstream 块中。最简单的指令是 `ip_hash`；该指令指示
+    NGINX 根据客户端 IPv4 地址的前 3 个字节（或完整的 IPv6 地址）计算一个哈希值，并根据该哈希值将客户端分配到特定服务器。只要客户端 IP
+    地址保持不变，NGINX 将始终将请求转发到上游组中的同一服务器：
 - en: '[PRE4]'
   id: totrans-60
   prefs: []
@@ -418,6 +426,8 @@
   id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些管理员可能认为这种方法不够可靠，因为全球大多数互联网服务提供商仍然提供动态 IP 地址，并且这些地址每 24 小时更新一次。那么为什么不使用你自己的分配密钥呢？通过
+    `hash` 指令，你可以根据自己选择的标准来分隔请求，而不是使用客户端 IP 地址。由于该指令允许使用变量，你可以根据 cookie 值来分隔请求：
 - en: '[PRE5]'
   id: totrans-62
   prefs: []
@@ -428,17 +438,21 @@
   id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据 `username` cookie 中的数据，您的访客将被分配到上游组中的第一个或第二个服务器。
 - en: We have just seen how to use NGINX as an HTTP load balancer. In the next section,
     we’ll look at how to get the NGINX load balancer working, but this time using
     TCP instead of HTTP.
   id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们刚刚看到如何将 NGINX 用作 HTTP 负载均衡器。在接下来的部分，我们将讨论如何使 NGINX 负载均衡器正常工作，不过这次使用的是 TCP
+    而不是 HTTP。
 - en: Using NGINX as a TCP/UDP load balancer
   id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 NGINX 作为 TCP/UDP 负载均衡器
 - en: 'Until recently, the open source version of NGINX would only allow load balancing
     in the context of HTTP requests. In the meantime, the commercial subscription
     NGINX Plus took the concept one step further: using NGINX as a TCP/UDP load balancer.
@@ -451,11 +465,16 @@
   id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 直到最近，NGINX 的开源版本仅允许在 HTTP 请求的上下文中进行负载均衡。与此同时，商业订阅版 NGINX Plus 将这一概念推进了一步：使用
+    NGINX 作为 TCP/UDP 负载均衡器。这为更广泛的可能性铺平了道路；您可以设置 NGINX 来分配负载到任何形式的网络服务器——数据库服务器、邮件服务器，实际上所有通过
+    TCP 通信的服务。2015 年 5 月，开发者决定将 TCP/UDP 负载均衡纳入开源版本。从 NGINX 1.9.0 版本开始，stream 模块已经包含在可以从
+    [https://nginx.org/](https://nginx.org/) 获取的源代码中。
 - en: The stream module
   id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: stream 模块
 - en: 'The way TCP/UDP load balancing works in NGINX is remarkably similar to HTTP
     load balancing. However, since the module that brings forth the new set of directives
     is not included in the default build, you will need to run the `configure` command

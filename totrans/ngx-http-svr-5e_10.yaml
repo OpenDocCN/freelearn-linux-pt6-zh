@@ -1,8 +1,10 @@
 - en: '10'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Case Studies
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -11,6 +13,7 @@
     Your newfound knowledge extends from basic NGINX setup on servers to tailor-fit
     configurations for diverse web applications, enhanced by a variety of advanced
     modules that unlock complex features.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
 - en: Now, it’s time to apply what we’ve learned through a series of real-world scenarios.
@@ -20,46 +23,57 @@
     we’ll not only focus on getting your site live with NGINX but also on utilizing
     the secure channels we’ve established, integrating best practices for optimization
     and caching to enhance performance.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
 - en: As we progress, the chapter will guide you in deploying a Nextcloud instance,
     illustrating how to establish a secure, private cloud storage solution.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
 - en: 'This chapter covers:'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
 - en: SSL certificates and HTTPS by default
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Implementing HTTP/2
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Deploying WordPress, efficient content management
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Deploying NextCloud, a robust personal cloud service
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Exploring SSL Certificates and HTTPS by default
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Digital security is paramount, adopting a *security-first* approach is not just
     best practice—it’s essential. As such, plaintext transmission is no longer acceptable;
     SSL encryption is the new standard.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
 - en: Recognizing this, we turn to `ssl.conf`, which will serve as a reusable component
     in all our secure site configurations. This foundation of SSL by default sets
     a robust stage for all web services we deploy.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
 - en: Certificate Management with acme.sh
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -67,58 +81,76 @@
     simplifying the validation process for certificate issuance. By the end of this
     tutorial, you’ll have the knowledge you need to obtain your first signed wildcard
     certificate.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let’s begin with the installation of acme.sh:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Then add the alias “`alias acme.sh=~/.acme.sh/acme.sh`” into the file “/root/.bashrc”
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
 - en: 'Verify acme.sh has been installed properly. First, make sure to close and reopen
     your terminal (or ssh session), as advised by the installation script:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
 - en: '![Figure 10.1: acme.sh script inviting us to close and reopen the terminal
     session.](img/B21787_10_1.jpg)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
 - en: 'Figure 10.1: acme.sh script inviting us to close and reopen the terminal session.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
 - en: 'Then run `acme.sh --version`:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE1]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Acme.sh has now been installed. We’ll be using acme.sh to generate a wildcard
     certificate but before we do so, let’s have a quick look at what is a wildcard
     certificate, why we want one, and how acme.sh will help us generate one.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
 - en: 'Imagine the following: we own the domain `example.com`. Using acme.sh, we’ll
     be generating one single certificate which will be valid for multiple domains.
     The first domain will be `example.com` and the second domain will be `*.example.com`.
     There are many reasons why we want to do this:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
 - en: First, to make things easier. No need to adapt the NGINX configuration to run
     on port 80 with specific folders. Once you have the certificate for your domain,
     you know you can use it for a subdomain, and reuse the same certificate for a
     different subdomain.
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，为了简化操作。不需要调整 NGINX 配置使其在特定的文件夹下运行 80 端口。一旦你拥有了域名的证书，你可以将其用于子域名，并且复用相同的证书用于其他子域名。
 - en: Second, to enhance the security of your infrastructure by preventing scanners.
     Each signed certificate is publicly available and you can find them with tools
     like [https://crt.sh](https://crt.sh).
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其次，通过防止扫描器来增强你基础设施的安全性。每个签名证书都是公开可用的，你可以通过像 [https://crt.sh](https://crt.sh)
+    这样的工具找到它们。
 - en: To generate wildcard certificates, the fastest way is through DNS API. This
     means that you will be creating a temporary subdomain to let the certificate authority
     know you own the domain. For example, you will be creating “yes-i-own-it-12345.example.com”
@@ -126,93 +158,138 @@
     how to do that automatically, by giving acme.sh the right to create temporary
     subdomains. Once set, your certificates will be renewed automatically, every 90
     days.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 要生成通配符证书，最快的方法是通过 DNS API。这意味着你将创建一个临时子域，以让证书颁发机构知道你拥有该域名。例如，你将创建 “yes-i-own-it-12345.example.com”，作为交换，证书颁发机构将为你颁发证书。我们将学习如何通过授权
+    acme.sh 创建临时子域来自动完成此过程。一旦设置完成，你的证书将每 90 天自动更新。
 - en: 'In this example, we will be using the Cloudflare API but know that acme.sh
     supports many more registrars, over a hundred registrars. The list is available
     in their official github repo, here: [https://github.com/acmesh-official/acme.sh/wiki/dnsapi](https://github.com/acmesh-official/acme.sh/wiki/dnsapi).'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们将使用 Cloudflare API，但要知道 acme.sh 支持更多的注册商，超过一百个注册商。完整列表可以在它们的官方 GitHub
+    仓库中找到，链接如下：[https://github.com/acmesh-official/acme.sh/wiki/dnsapi](https://github.com/acmesh-official/acme.sh/wiki/dnsapi)。
 - en: acme.sh and the DNS API
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: acme.sh 与 DNS API
 - en: 'Using Cloudflare, let’s get the API key:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Cloudflare，我们来获取 API 密钥：
 - en: '![Figure 10.2: Obtaining the Cloudflare API key](img/B21787_10_2.jpg)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![图 10.2：获取 Cloudflare API 密钥](img/B21787_10_2.jpg)'
 - en: 'Figure 10.2: Obtaining the Cloudflare API key'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 10.2：获取 Cloudflare API 密钥
 - en: As shown above, you can get the API key by going to **Profile** and then selecting
     **View** for **Global** **API Key**
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所示，你可以通过进入 **Profile**，然后选择 **View** 来获取 **Global** **API Key**
 - en: 'For this example, let’s say our API Key is `abcd1234`. We will store it in
     `/root/.acme.sh/account.conf` alongside the email address used for your Cloudflare
     account:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，假设我们的 API 密钥是 `abcd1234`。我们将把它存储在 `/root/.acme.sh/account.conf` 文件中，和用于
+    Cloudflare 帐户的电子邮件地址一起：
 - en: '[PRE2]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Issuing a signed certificate
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 签发签名证书
 - en: 'We’re now set to have our first signed certificate. We’ve installed acme.sh
     and we’ve given acme.sh the right to access our domain `example.com`. Our next
     step is to use acme.sh to issue a certificate:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经准备好获得第一个签名证书。我们已经安装了 acme.sh，并且已授权 acme.sh 访问我们的域名 `example.com`。下一步是使用
+    acme.sh 签发证书：
 - en: '[PRE3]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'This command will make acme.sh contact Cloudflare to create temporary subdomains,
     then have a Certificate Authority (default: zerossl) sign the certificate it just
     generated, and will delete the temporary subdomains.'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个命令将让 acme.sh 联系 Cloudflare 创建临时子域，然后让证书颁发机构（默认：zerossl）签署它刚刚生成的证书，并删除临时子域。
 - en: '![Figure 10.3: Confirmation that acme.sh generated and issued a signed certificate.](img/B21787_10_3.jpg)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![图 10.3：确认 acme.sh 已生成并签发了签名证书。](img/B21787_10_3.jpg)'
 - en: 'Figure 10.3: Confirmation that acme.sh generated and issued a signed certificate.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 10.3：确认 acme.sh 已生成并签发了签名证书。
 - en: Congratulations on your first signed wildcard certificate! In the next subsection,
     we will be centralizing NGINX’ SSL configuration within one configuration, using
     our existing certificate.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜你获得了第一个签名通配符证书！在接下来的子章节中，我们将把 NGINX 的 SSL 配置集中到一个配置文件中，并使用我们现有的证书。
 - en: Centralizing SSL Configuration with NGINX
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 NGINX 集中 SSL 配置
 - en: In the last subsection, we’ve learned how to obtain signed certificates. We’re
     going to use these certificates in the NGINX configuration. The challenge we have
     is that depending on our setup, we might need to use the certificate in multiple
     places as it is valid for multiple subdomains. In order to avoid repetition, and
     to manage our configuration in the easiest way possible, we’ll write a configuration
     file that we will include later into other configuration files.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
 - en: 'To begin, let’s write our file `ssl.conf`. This file has to be stored within
     the NGINX configuration folder, such as `/etc/nginx/` for example:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: And that’s it! As we will deploy new projects, we will include this `ssl.conf`
     file to save time.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
 - en: In the next section, we will introduce HTTP/2.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
 - en: Implementing HTTP/2 with SSL
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -223,28 +300,36 @@
     and more resource-efficient. Another key feature is server push, where servers
     preemptively send resources to the client without waiting for a request, further
     optimizing load times.'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here’s how you can enable HTTP/2 in your server block:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE5]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Be sure to activate HTTP/2 when setting up SSL, it is well-supported by modern
     browsers but requires a secure connection.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
 - en: Although HTTP/3 offers promising advancements, it’s not quite ready for widespread
     production use just yet. We encourage you to keep an eye on its development as
     we believe it will be exciting to implement when it’s fully ready.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
 - en: Coming next, we’ll walk through setting up a **WordPress site** with secure
     certificates and HTTP/2 enabled.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
 - en: Deploying a WordPress site
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -253,18 +338,22 @@
     its market share totals 42%. For a lot of web server administrators, setting up
     WordPress sites or blogs has become a common task, whether it is for personal
     or professional use.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: Preparing your server and obtaining WordPress
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: In this section, we will be getting your server ready for downloading and installing
     the WordPress application. There will be a few configuration files to go through
     to make sure WordPress runs smoothly.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
 - en: System requirements
+  id: totrans-60
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -274,75 +363,109 @@
     If you haven’t done so yet, running the following commands will provide a basic
     working environment with minimal PHP extensions. Under a Debian-based Linux operating
     system:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'If your server runs a Red Hat-based OS, such as Fedora:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE7]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: If you have an older version installed on your system, it is recommended that
     you upgrade to the latest available version using the `apt update && apt upgrade`
     or `dnf upgrade --``refresh` commands.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的系统上安装的是较旧版本，建议你使用 `apt update && apt upgrade` 或 `dnf upgrade --refresh`
+    命令升级到最新版本。
 - en: PHP configuration
+  id: totrans-66
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: PHP 配置
 - en: 'After making sure your server components meet the minimum requirements, you
     should edit some of the settings, if you want WordPress to run smoothly. There
     are two main aspects of the PHP configuration you should look into. First, the
     default PHP configuration file (`php.ini`) contains directives that you will probably
     want to update:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在确保服务器组件满足最低要求后，如果希望 WordPress 能顺利运行，你需要编辑一些设置。有两个主要的 PHP 配置方面需要关注。首先，默认的 PHP
+    配置文件(`php.ini`)包含了一些你可能需要更新的指令：
 - en: '`cgi.fix_pathinfo`: Set this value to `0` for security reasons, as we have
     seen in [*Chapter 5*](B21787_05.xhtml#_idTextAnchor557).'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`cgi.fix_pathinfo`：出于安全考虑，将此值设置为`0`，正如我们在[*第5章*](B21787_05.xhtml#_idTextAnchor557)中所看到的那样。'
 - en: '`post_max_size`: By default, the maximum size of the `POST` request body is
     `8` megabytes. Increase the value if necessary; keep in mind that file uploads
     are usually performed via `POST` requests.'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`post_max_size`：默认情况下，`POST` 请求体的最大大小为`8`兆字节。如有必要，可以增大该值；请记住，文件上传通常是通过 `POST`
+    请求进行的。'
 - en: '`upload_max_filesize`: Set to `2` megabytes by default, this will need to be
     increased if you want to allow uploading of large files.'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`upload_max_filesize`：默认设置为`2`兆字节，如果你希望允许上传大文件，需要增加此值。'
 - en: '`date.timezone`: You will get a warning if you leave this blank as it is by
     default. Refer to [https://php.net/manual/en/timezones.php](https://php.net/manual/en/timezones.php)
     to find out the proper value in your situation.'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`date.timezone`：如果你保持此项为空（默认设置），系统将会发出警告。请参阅[https://php.net/manual/en/timezones.php](https://php.net/manual/en/timezones.php)来查找适合你情况的正确值。'
 - en: 'The second aspect of the configuration is the PHP-FPM side. The main `php-fpm.conf`
     file does not require immediate changes, however, if you haven’t done so yet,
     you will need to create a *configuration pool*: a set of configuration directives
     that apply to a particular website or application. This allows you to run the
     PHP processes under a specific user account, and optionally configure a specific
     network interface for communicating with NGINX.'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置的第二个方面是 PHP-FPM 配置。主要的 `php-fpm.conf` 文件不需要立即修改，但如果你还没有操作的话，你需要创建一个*配置池*：这是一组适用于特定网站或应用的配置指令。这样可以让
+    PHP 进程在特定用户账户下运行，并可选地配置一个特定的网络接口与 NGINX 通信。
 - en: 'Create a new pool by declaring its name between brackets:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过在括号中声明其名称来创建一个新的池：
 - en: '[PRE8]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Append the following configuration directives:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加以下配置指令：
 - en: '[PRE9]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Optionally, you may enable *chrooting*: specify a root directory for the PHP
     processes of this pool. For example, if you set the chroot to `/home/wordpress/www`,
     your PHP scripts will only be able to read files and directories within the specified
@@ -351,84 +474,118 @@
     a security breach be discovered in the WordPress code, attackers would only be
     able to exploit files within the reach of your PHP process; the rest of your server
     would not be compromised:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 可选地，你可以启用 *chroot*：为该池的 PHP 进程指定一个根目录。例如，如果你将 chroot 设置为 `/home/wordpress/www`，你的
+    PHP 脚本将只能读取指定路径内的文件和目录（任何尝试读取或写入 `/home/wordpress/www` 以外的文件或目录的操作都会失败）。强烈推荐启用此功能：如果
+    WordPress 代码中发现安全漏洞，攻击者将只能利用 PHP 进程可以访问的文件；服务器的其余部分不会受到威胁：
 - en: '[PRE10]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Other configuration directives are documented at length in the default pool
     file supplied with PHP-FPM; their default values are suitable in most cases.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他配置指令在 PHP-FPM 默认池文件中有详细文档；它们的默认值在大多数情况下是适用的。
 - en: MySQL configuration
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: MySQL 配置
 - en: 'At the time of installing MySQL server, you were asked to set up administrator
     (`root`) credentials. Since these credentials allow full access to the SQL server,
     including permissions on all databases, you should never use them in any of your
     PHP applications. The best practice is to create a separate MySQL user and to
     assign permissions on the database that will be used by your application:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在安装 MySQL 服务器时，你被要求设置管理员（`root`）凭据。由于这些凭据允许完全访问 SQL 服务器，包括对所有数据库的权限，你绝不应在任何
+    PHP 应用程序中使用它们。最佳做法是创建一个单独的 MySQL 用户，并为你的应用程序使用的数据库分配权限：
 - en: 'Log in to your local MySQL server with the following command:'
+  id: totrans-82
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '[PRE11]'
+  id: totrans-83
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Create a new SQL database:'
+  id: totrans-84
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '[PRE12]'
+  id: totrans-85
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'exit command to leave the MySQL console and try logging in to the server using
     the newly created account:'
+  id: totrans-86
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '[PRE13]'
+  id: totrans-87
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-88
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Downloading and extracting WordPress
+  id: totrans-89
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'The last step is to download the latest version of WordPress and extract it
     at the location specified earlier; in our example: `/home/wordpress/www`. The
     latest version can always be found at [https://wordpress.org/latest.tar.gz](https://wordpress.org/latest.tar.gz):'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE15]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Make sure the user and group are properly set, and give write permissions to
     the `wordpress` user over the application files:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE16]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: NGINX configuration
+  id: totrans-94
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Before you can begin setting up WordPress via the user-friendly web installer,
     you will need to finalize your NGINX server configuration. We will go down to
     every last detail in the following subsections.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
 - en: HTTP block
+  id: totrans-96
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -437,12 +594,16 @@
     that the directives placed here will affect all of the websites served by this
     instance of NGINX. Open your NGINX main configuration file (`nginx.conf`) and
     insert or update the following directives:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE17]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Server block
+  id: totrans-99
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -450,99 +611,130 @@
     earlier. For example, create a file called `wordpress.conf` in the `/etc/nginx/sites-available/`
     folder. Define your virtual host configuration by inserting or updating the following
     directives:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE18]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'Once done, create a symlink for /etc/NGINX/sites-available/wordpress.conf in
     /etc/NGINX/sites-enabled/ with the following command: `ln -s /``etc/nginx/sites-available/wordpress.conf
     /etc/nginx/sites-enabled/`'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
 - en: Location blocks
+  id: totrans-103
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Finally, set up your `location` blocks—directives that apply to specific locations
     on your site:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE19]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: WordPress configuration
+  id: totrans-106
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Once your NGINX configuration is finalized and saved, make sure to reload the
     NGINX configuration, either via `systemctl reload nginx` or `/usr/local/nginx/sbin/nginx
     -s reload` (or your usual NGINX binary location).
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
 - en: 'If all goes well, you should be able to run the web-based WordPress installer
     by visiting `https://example.com/wp-admin/install.php` (replacing `example.com`
     by your own domain name). You will be prompted for:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
 - en: 'The name of the database you created earlier, in our example: `wordpress`'
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The SQL username you created earlier, in our example: `wordpress`'
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The password associated to the user: `password`'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The database host: `127.0.0.1`, if your MySQL server is hosted on the same
     server'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'A prefix for all SQL tables created by WordPress: `wp_`'
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '![Figure 10.4: WordPress database installation page](img/B21787_10_4.jpg)'
+  id: totrans-114
   prefs: []
   type: TYPE_IMG
 - en: 'Figure 10.4: WordPress database installation page'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
 - en: Once the installer completes, you can begin configuring and preparing your WordPress
     site. In order to enable pretty URLs, you should check the `https://example.com/post-name/`
     or `https://example.com/year/month/post-name/`.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
 - en: …We’ve deployed Wordpress. In the next section, we’ll be deploying Nextcloud
     alongside Wordpress using Docker to properly isolate our configurations for Wordpress
     and Nextcloud.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: …我们已经部署了 WordPress。在接下来的部分，我们将使用 Docker 在 WordPress 旁边部署 Nextcloud，以便正确隔离 WordPress
+    和 Nextcloud 的配置。
 - en: Deploying Nextcloud
+  id: totrans-118
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 部署 Nextcloud
 - en: '**Nextcloud** represents the pinnacle of self-hosted cloud services, offering
     not just file storage, but also integrated calendars, contacts, and collaboration
     tools. As an open-source solution, it provides transparency and control, ensuring
     that your data is truly yours.'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Nextcloud** 代表了自托管云服务的巅峰，提供的不仅仅是文件存储，还有集成的日历、联系人和协作工具。作为一个开源解决方案，它提供了透明性和控制力，确保您的数据真正属于您。'
 - en: In this section, we will navigate the setup of Nextcloud on an NGINX server,
     emphasizing secure communication through validated SSL certificates. This will
     complement the multi-application hosting environment we’ve cultivated with NGINX,
     where it serves both the dynamic content management of WordPress and the robust
     data ecosystem of Nextcloud.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将介绍如何在 NGINX 服务器上设置 Nextcloud，重点是通过已验证的 SSL 证书确保安全通信。这将补充我们通过 NGINX 构建的多应用托管环境，在该环境中，NGINX
+    同时处理 WordPress 的动态内容管理和 Nextcloud 的强大数据生态系统。
 - en: Getting Nextcloud
+  id: totrans-121
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 获取 Nextcloud
 - en: As we’ve already configured NGINX to serve our WordPress site, optimized specifically
     for WordPress’s unique requirements, we’ll now employ Docker to host Nextcloud.
     This approach ensures isolation and flexibility without disrupting our current
@@ -551,155 +743,234 @@
     an integrated Apache web server, and proxy it through NGINX. Please refer back
     to [*Chapter 8*](B21787_08.xhtml#_idTextAnchor688) for guidance on setting up
     Docker if needed.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们已经配置了 NGINX 来为我们的 WordPress 网站提供服务，并特别优化以满足 WordPress 的独特需求，我们现在将使用 Docker
+    来托管 Nextcloud。这种方法确保了隔离性和灵活性，而不会干扰我们当前的设置。我们将使用 Docker 的容器化功能，将 Nextcloud 与 WordPress
+    无缝集成。更准确地说，我们将部署 NextCloud All-In-One 镜像，它集成了 Apache Web 服务器，并通过 NGINX 进行代理。如果需要设置
+    Docker，请参考[*第 8 章*](B21787_08.xhtml#_idTextAnchor688)的相关指南。
 - en: 'So, let’s get started:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，我们开始吧：
 - en: 'We’ll create a directory `/root/nextcloud` and within this folder, we’ll create
     the file `docker-compose.yml` with the official All-In-One Nextcloud Docker image.
     Please refer to their online github to get the latest docker compose file. Currently,
     it looks like this:'
+  id: totrans-124
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将创建一个目录 `/root/nextcloud`，并在此文件夹中创建文件 `docker-compose.yml`，该文件包含官方的 All-In-One
+    Nextcloud Docker 镜像。请参考他们的在线 GitHub 获取最新的 Docker Compose 文件。目前，它是这样的：
 - en: '[PRE20]'
+  id: totrans-125
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'We’ve saved the file in our `directory /root/nextcloud`. Within this directory,
     let’s start the container:'
+  id: totrans-126
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们已将文件保存在 `directory /root/nextcloud` 中。在此目录下，我们将启动容器：
 - en: '[PRE21]'
+  id: totrans-127
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: server {
+  id: totrans-128
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: server {
 - en: listen 443 ssl http2;
+  id: totrans-129
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: listen 443 ssl http2;
 - en: listen [::]:443 ssl http2;
+  id: totrans-130
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: listen [::]:443 ssl http2;
 - en: include ssl.conf;
+  id: totrans-131
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: include ssl.conf;
 - en: server_name nextcloud.example.com;
+  id: totrans-132
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: server_name nextcloud.example.com;
 - en: location / {
+  id: totrans-133
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: location / {
 - en: proxy_pass http://127.0.0.1:11000$request_uri;
+  id: totrans-134
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_pass http://127.0.0.1:11000$request_uri;
 - en: proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  id: totrans-135
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 - en: proxy_set_header X-Forwarded-Port $server_port;
+  id: totrans-136
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header X-Forwarded-Port $server_port;
 - en: proxy_set_header X-Forwarded-Scheme $scheme;
+  id: totrans-137
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header X-Forwarded-Scheme $scheme;
 - en: proxy_set_header X-Forwarded-Proto $scheme;
+  id: totrans-138
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header X-Forwarded-Proto $scheme;
 - en: proxy_set_header X-Real-IP $remote_addr;
+  id: totrans-139
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header X-Real-IP $remote_addr;
 - en: proxy_set_header Accept-Encoding "";
+  id: totrans-140
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header Accept-Encoding "";
 - en: proxy_set_header Host $host;
+  id: totrans-141
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header Host $host;
 - en: client_body_buffer_size 512k;
+  id: totrans-142
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: client_body_buffer_size 512k;
 - en: proxy_read_timeout 86400s;
+  id: totrans-143
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_read_timeout 86400s;
 - en: client_max_body_size 0;
+  id: totrans-144
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: client_max_body_size 0;
 - en: '# Websocket'
+  id: totrans-145
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '# Websocket'
 - en: proxy_http_version 1.1;
+  id: totrans-146
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_http_version 1.1;
 - en: proxy_set_header Upgrade $http_upgrade;
+  id: totrans-147
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header Upgrade $http_upgrade;
 - en: proxy_set_header Connection $connection_upgrade;
+  id: totrans-148
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: proxy_set_header Connection $connection_upgrade;
 - en: '}'
+  id: totrans-149
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '}'
 - en: '}'
+  id: totrans-150
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '}'
 - en: '[PRE22]'
+  id: totrans-151
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Make sure to test your configuration and reload the NGINX server, before getting
     ready to set up Nextcloud:'
+  id: totrans-152
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在准备设置 Nextcloud 之前，请确保测试您的配置并重新加载 NGINX 服务器：
 - en: '![Figure 10.5: Nextcloud default installation page](img/B21787_10_5.jpg)'
+  id: totrans-153
   prefs: []
   type: TYPE_IMG
+  zh: '![图 10.5：Nextcloud 默认安装页面](img/B21787_10_5.jpg)'
 - en: 'Figure 10.5: Nextcloud default installation page'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 10.5：Nextcloud 默认安装页面
 - en: There you have it, your Nextcloud server is ready for action. For further customization
     and detailed configurations, the Nextcloud official documentation is an excellent
     resource. You can find it at [nextcloud.com](http://nextcloud.com).
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 就这样，您的 Nextcloud 服务器已经准备就绪。如需进一步的自定义和详细配置，Nextcloud 官方文档是一个极好的资源。您可以在 [nextcloud.com](http://nextcloud.com)
+    找到它。
 - en: With the foundations laid, you’re now equipped to deploy numerous servers, utilizing
     Docker for containerization or installing directly on the host. Just remember
     to use compatible software versions.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 在打下基础后，你现在已经具备了部署多个服务器的能力，可以使用 Docker 进行容器化部署，或者直接在主机上安装。只需要记得使用兼容的软件版本。
 - en: In the next section, we’ll recap the key points covered in this chapter.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 在接下来的章节中，我们将回顾本章中涉及的关键点。
 - en: Summary
+  id: totrans-158
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: Throughout this chapter, we’ve mastered the art of generating verified SSL certificates
     with acme.sh, tapping into DNS APIs for efficiency. We’ve explored the enhancements
     offered by HTTP/2 and laid the groundwork for HTTP/3, setting the stage for optimal
@@ -707,19 +978,27 @@
     with SSL and best security practices such as chroot environments. Additionally,
     we’ve taken a deep dive into Docker by deploying a Nextcloud server, demonstrating
     our ability to manage multiple services on a single server seamlessly.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们掌握了使用 acme.sh 生成经过验证的 SSL 证书的技巧，并利用 DNS API 提高效率。我们还探讨了 HTTP/2 带来的增强功能，并为
+    HTTP/3 奠定了基础，为实现最佳网页性能打下了基础。通过这些知识，我们成功部署了一个配备 SSL 和最佳安全实践（如 chroot 环境）的 WordPress
+    网站。此外，我们还深入研究了 Docker，通过部署 Nextcloud 服务器，展示了我们在单台服务器上无缝管理多个服务的能力。
 - en: 'As you may have noticed in the cases we studied in this chapter, the process
     of setting up a web application can sometimes be long and complex. But when it
     comes to the part that concerns NGINX, the configuration is usually pretty simple
     and straightforward: a couple of directives in a server block, reload the server,
     and you’re done.'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你在本章研究的案例中可能已经注意到的，设置一个 web 应用程序的过程有时可能既漫长又复杂。但当涉及到 NGINX 配置时，通常是相当简单直接的：在服务器块中添加几个指令，重载服务器，就完成了。
 - en: Unfortunately, in some cases, while your initial configuration seems to do the
     trick, you realize over time that your visitors run into a variety of problems
     or are presented with unexpected error pages. The next chapter will prepare you
     to face such issues by exploring several leads, should you ever need to troubleshoot
     your web server.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，在某些情况下，尽管你的初始配置看起来能够解决问题，但随着时间的推移，你会发现访客遇到了各种问题或被呈现了意外的错误页面。下一章将帮助你应对这些问题，探讨几种方法，以便你在需要排除服务器故障时能应对自如。

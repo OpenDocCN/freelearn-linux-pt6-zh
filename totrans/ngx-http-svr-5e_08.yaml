@@ -1,11 +1,15 @@
 - en: '8'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '8'
 - en: NGINX within a Cloud Infrastructure
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: NGINX 在云基础设施中的应用
 - en: In the evolving landscape of web infrastructure, the shift from traditional
     server configurations to cloud architectures is undeniable. Traditional deployments,
     where servers were manually configured to host multiple sites or applications,
@@ -13,8 +17,10 @@
     looks at the practical aspects of adopting a cloud infrastructure, highlighting
     the resource management efficiencies, enhanced security, and improved management
     of high traffic demands it offers.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在不断发展的 web 基础设施格局中，从传统服务器配置到云架构的转变是不可否认的。传统部署方式中，服务器被手动配置以托管多个站点或应用程序，而现在正逐步被更灵活、更可扩展的基于云的方法所取代。本章将关注采用云基础设施的实际方面，突出其提供的资源管理效率、增强的安全性和对高流量需求的更好管理。
 - en: In this chapter, we will focus on the role of NGINX within a cloud infrastructure,
     using Docker as the platform of choice. By integrating NGINX with Docker, we’ll
     demonstrate how to orchestrate multiple services seamlessly, fostering a resilient
@@ -22,438 +28,650 @@
     assured that we’ll guide you through your first Docker experience, with NGINX
     as a common thread, ensuring a smooth and understandable journey into containerized
     deployment.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将重点讨论 NGINX 在云基础设施中的角色，使用 Docker 作为首选平台。通过将 NGINX 与 Docker 集成，我们将演示如何无缝地协调多个服务，营造一个具有韧性和适应性的环境。无论
+    Docker 对你来说是一个新概念与否，请放心，我们将通过你第一次使用 Docker 的经历，确保通过 NGINX 这一共同纽带，帮助你顺利而清晰地进入容器化部署的旅程。
 - en: 'This chapter covers the following topics:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章涉及以下主题：
 - en: Understanding cloud infrastructure
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 理解云基础设施
 - en: Using Docker
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Docker
 - en: Setting up NGINX inside Docker
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Docker 中设置 NGINX
 - en: Setting up NGINX inside Docker to proxy host applications
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Docker 中设置 NGINX 来代理主机应用程序
 - en: Understanding cloud infrastructure
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解云基础设施
 - en: Cloud services are an integral part of our online existence. Our mobile applications
     synchronize seamlessly with their desktop counterparts, and the server once familiar
     to us has transformed into today’s cloud—a concept that simplifies life for users
     while making web infrastructure more complex. This digital metamorphosis has revolutionized
     the way we store and interact with our data, moving us toward an always-connected,
     cloud-centric reality.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 云服务是我们在线生活的重要组成部分。我们的移动应用程序与桌面版本无缝同步，而曾经熟悉的服务器已经转变为今天的云——这个概念简化了用户的生活，同时使得 web
+    基础设施变得更加复杂。这种数字化变革彻底改变了我们存储和互动数据的方式，将我们推向了一个始终连接、以云为中心的现实。
 - en: The traditional approach
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 传统方法
 - en: 'To comprehend the intricacies of cloud infrastructure, let’s revisit traditional
     setups with a modern *cloud* lens. Consider the case of WordPress, the renowned
     open source platform for website creation, which runs on a web server, a PHP server,
     and a database server. The classic method is to install each component on a single
     machine—a simple solution for hosting a solitary blog:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了理解云基础设施的复杂性，让我们用现代的*云*视角重新审视传统设置。以 WordPress 为例，这是一个著名的开源网站创建平台，它运行在 web 服务器、PHP
+    服务器和数据库服务器上。经典方法是在一台机器上安装每个组件——这是托管单个博客的简单解决方案：
 - en: '![Figure 8.1: A traditional approach to running your web project](img/B21787_08_1.jpg)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![图 8.1：运行你的 web 项目的传统方法](img/B21787_08_1.jpg)'
 - en: 'Figure 8.1: A traditional approach to running your web project'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 8.1：运行你的 web 项目的传统方法
 - en: However, scaling this model reveals its limitations. Various software dependencies
     may require multiple, sometimes contradictory versions, making coexistence difficult.
     What’s more, as services expand, managing them on a single server becomes more
     and more complicated.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，扩展这个模型揭示了它的局限性。各种软件依赖可能需要多个有时互相矛盾的版本，使得它们的共存变得困难。而且，随着服务的扩展，在单台服务器上管理它们变得越来越复杂。
 - en: The cloud approach
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 云方法
 - en: 'In the pursuit of hosting multiple services on a single server, we often encounter
     a common problem: **conflicting software dependencies**. Imagine needing to run
     two applications, one requiring PHP 7.4 and the other PHP 8.3\. Docker addresses
     this by encapsulating applications in containers, isolated environments that operate
     independently of the underlying Linux distribution’s software versions.'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在追求在单台服务器上托管多个服务的过程中，我们经常遇到一个常见问题：**软件依赖冲突**。假设需要运行两个应用程序，一个需要 PHP 7.4，另一个需要
+    PHP 8.3。Docker 通过将应用程序封装在容器中解决了这个问题，容器是独立于底层 Linux 发行版软件版本的隔离环境。
 - en: 'Advantages of using Docker containers include the following:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Docker 容器的优势包括以下几点：
 - en: '**Version management**: Docker containers simplify the process of maintaining
     and changing software versions, making it easy to go back if necessary'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**版本管理**：Docker 容器简化了软件版本的维护和更改过程，使得必要时可以轻松回退'
 - en: '**Isolation and efficiency**: Containers isolate applications, which not only
     improves portability for easier migration but also ensures that the resource consumption
     of one doesn’t affect the others'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**隔离与效率**：容器隔离应用程序，这不仅提高了可移植性，便于迁移，还确保一个容器的资源消耗不会影响到其他容器'
 - en: '**Deployment streamlining**: By overcoming the Docker learning curve, deployment
     and scaling become easier to manage, offering a degree of flexibility not found
     in traditional configurations'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**部署简化**：通过克服 Docker 的学习曲线，部署和扩展变得更加容易管理，提供了一种传统配置中没有的灵活性'
 - en: 'Let’s revisit the blog hosting scenario, now using Docker:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们重新回顾一下使用 Docker 的博客托管场景：
 - en: '![Figure 8.2: An example of how it would look running WordPress with Docker](img/B21787_08_2.jpg)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![图 8.2：运行 WordPress 与 Docker 的示例](img/B21787_08_2.jpg)'
 - en: 'Figure 8.2: An example of how it would look running WordPress with Docker'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 8.2：运行 WordPress 与 Docker 的示例
 - en: The server runs a Linux distribution and, on top of this, two separate containers
     act as minimal Linux environments, each carrying only what’s needed to run its
     respective applications.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 服务器运行一个 Linux 发行版，并在此基础上，两个独立的容器充当最小化的 Linux 环境，每个容器仅携带运行其应用程序所需的内容。
 - en: 'The addition of a service such as Nextcloud, which could run PHP 8.3, alongside
     WordPress on PHP 7.4, demonstrates the ability of Docker:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 添加一个如 Nextcloud 这样的服务，它可以运行 PHP 8.3，并与运行 PHP 7.4 的 WordPress 一起使用，展示了 Docker
+    的能力：
 - en: '![Figure 8.3: An example of how it would look running multiple containers with
     Docker](img/B21787_08_3.jpg)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![图 8.3：运行多个容器与 Docker 的示例](img/B21787_08_3.jpg)'
 - en: 'Figure 8.3: An example of how it would look running multiple containers with
     Docker'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 8.3：运行多个容器与 Docker 的示例
 - en: As shown, this configuration allows many Docker images, each with its own specific
     software version, to run simultaneously in an isolated environment. If a security
     problem occurs in one container, its effects are confined, protecting the rest
     of the system.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 如图所示，该配置允许许多 Docker 镜像，每个镜像都有其特定的软件版本，能够同时在隔离的环境中运行。如果某个容器出现安全问题，其影响被局限在该容器内部，从而保护了系统的其余部分。
 - en: This chapter won’t cover advanced topics such as Docker Swarm for **high availability**
     (**HA**) or Kubernetes for scalability, but these are important areas to explore
     for the advancement of cloud infrastructure.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章不会涉及高级主题，如 Docker Swarm 用于 **高可用性**（**HA**）或 Kubernetes 用于可扩展性，但这些是云基础设施发展的重要领域，值得进一步探讨。
 - en: Using Docker
+  id: totrans-31
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Docker
 - en: In the previous section, we explored the fundamentals of cloud architectures.
     We’re now going to move on from theory to practice by installing and configuring
     Docker step by step to launch our first container.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节中，我们探讨了云架构的基础知识。现在，我们将从理论走向实践，通过一步步安装和配置 Docker，启动我们的第一个容器。
 - en: '**Docker** is not just a tool but a paradigm shift—a new era where software
     can be packaged and isolated, ensuring consistency across environments. By the
     end of this section, Docker will be more than a concept; it will be an integral
     part of your toolbox, starting with the deployment of an NGINX container.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Docker** 不仅仅是一个工具，而是一种范式转变——一个新的时代，在这个时代，软件可以被打包并隔离，确保环境间的一致性。在本节结束时，Docker
+    不仅仅是一个概念，它将成为您工具箱中的一部分，从部署第一个 NGINX 容器开始。'
 - en: Installing Docker
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安装 Docker
 - en: Fortunately for us, the Docker team has provided a script that simplifies the
     installation process. This script is compatible with a range of Linux distributions,
     including **Red Hat Enterprise Linux** (**RHEL**), CentOS, Fedora, Debian, Ubuntu,
     and their derivatives.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，Docker 团队提供了一个简化安装过程的脚本。该脚本兼容多种 Linux 发行版，包括 **Red Hat 企业 Linux**（**RHEL**）、CentOS、Fedora、Debian、Ubuntu
+    及其衍生版本。
 - en: 'To install Docker, you will need to run the script with root privileges. Open
     your terminal and enter the following command:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 要安装 Docker，您需要以 root 权限运行脚本。打开终端并输入以下命令：
 - en: '[PRE0]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: With this single command, Docker will be installed natively on your system using
     custom repositories adapted to your Linux distribution’s package manager. This
     means that updating Docker will be as easy as updating any other package on your
     system.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这一条命令，Docker 将通过适配你 Linux 发行版包管理器的自定义仓库，原生安装在你的系统上。这意味着更新 Docker 将像更新系统中任何其他包一样简单。
 - en: Your first Docker container
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 你的第一个 Docker 容器
 - en: 'There are many ways to operate Docker containers. For instance, you can launch
     a container using a simple command:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 有许多方法可以操作 Docker 容器。例如，你可以使用一个简单的命令启动容器：
 - en: '[PRE1]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This command pulls the NGINX image from Docker Hub and starts a new container
     in detached mode. However, this container runs with default settings and isn’t
     yet configured for specific use.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 此命令从 Docker Hub 拉取 NGINX 镜像，并以分离模式启动一个新的容器。然而，这个容器使用默认设置，尚未针对特定用途进行配置。
 - en: 'To customize the container, you can pass additional parameters. For example,
     to map the container’s port 80 to the host’s port 80, allowing web traffic to
     reach the container, you would run the following:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 若要自定义容器，可以传递额外的参数。例如，要将容器的端口 80 映射到主机的端口 80，从而允许 Web 流量到达容器，可以运行以下命令：
 - en: '[PRE2]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The first command launches the NGINX container with the default configuration.
     The second command runs the same container, but now it is accessible via the host
     machine’s port 80\. But what if you require a more advanced and complete configuration?
     This is where Docker Compose steps in, offering a solution for managing multi-container
     Docker applications with ease.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个命令启动了具有默认配置的 NGINX 容器。第二个命令运行相同的容器，但现在它可以通过主机的端口 80 访问。如果你需要更高级、更完整的配置怎么办？这时
+    Docker Compose 便能派上用场，提供了一个轻松管理多容器 Docker 应用程序的解决方案。
 - en: In the context of this book, the NGINX image serves as an excellent example
     of Docker’s capabilities as it showcases how containerization simplifies the deployment
     of services that traditionally require dedicated servers.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本书的上下文中，NGINX 镜像作为 Docker 能力的一个优秀示例，展示了容器化如何简化传统上需要专用服务器的服务部署。
 - en: As we explore deeper, we’ll see how to tailor an NGINX container to serve static
     content or act as a reverse proxy, introducing the concept of Docker volumes and
     how to use them to serve custom configuration files and content.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着我们深入探索，我们将看到如何定制 NGINX 容器以提供静态内容或充当反向代理，并引入 Docker 卷的概念，以及如何使用它们来提供自定义配置文件和内容。
 - en: Simplifying with Docker Compose
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 Docker Compose 简化操作
 - en: After running our first Docker container, it became clear that managing a container’s
     parameters directly from the command line can quickly become cumbersome. **Docker
     Compose** simplifies this process by allowing us to define and run multi-container
     Docker applications using a YAML file for configuration.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行了第一个 Docker 容器之后，我们发现直接通过命令行管理容器的参数很快会变得繁琐。**Docker Compose** 通过允许我们使用 YAML
+    文件来定义和运行多容器 Docker 应用程序，简化了这个过程。
 - en: 'Let’s create an equivalent setup to the one we ran in the previous section—an
     NGINX container with port 80 exposed to the host machine:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们创建一个与上一节中运行的设置等效的配置——一个将端口 80 暴露给主机的 NGINX 容器：
 - en: 'Begin by creating a `/root/nginx` directory, and within that directory, save
     a file named `docker-compose.yml` with the following content:'
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先创建一个 `/root/nginx` 目录，并在该目录下保存一个名为 `docker-compose.yml` 的文件，内容如下：
 - en: '[PRE3]'
+  id: totrans-52
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: A reminder
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示
 - en: Although the file format is called *YAML*, the extension needs to be `.yml`.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管文件格式称为 *YAML*，但扩展名需要是 `.yml`。
 - en: In this `docker-compose.yml` file, we’ve defined a service named `nginx`, using
     the official `nginx` image tagged with `latest`, which means it will be updated
     every time we pull it from Docker Hub. If you wish, you can specify a fixed version,
     such as `nginx:1.25.4`. More details can be found on the Docker Hub for NGINX
     page ([https://hub.docker.com/_/nginx/](https://hub.docker.com/_/nginx/)).
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个 `docker-compose.yml` 文件中，我们定义了一个名为 `nginx` 的服务，使用官方的 `nginx` 镜像，并标记为 `latest`，这意味着每次从
+    Docker Hub 拉取时，它都会被更新。如果你愿意，也可以指定固定版本，如 `nginx:1.25.4`。更多详细信息请参见 Docker Hub 上的
+    NGINX 页面（[https://hub.docker.com/_/nginx/](https://hub.docker.com/_/nginx/)）。
 - en: 'Now, with the Docker Compose file saved, run the following command in the same
     directory:'
+  id: totrans-56
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，在保存 Docker Compose 文件后，在相同的目录中运行以下命令：
 - en: '[PRE4]'
+  id: totrans-57
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: root@nginx:~/nginx# docker compose up -d
+  id: totrans-58
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: root@nginx:~/nginx# docker compose up -d
 - en: root@nginx:~/nginx# docker compose down
+  id: totrans-59
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: root@nginx:~/nginx# docker compose down
 - en: '[PRE5]'
+  id: totrans-60
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: With Docker Compose, running NGINX in Docker becomes a matter of defining the
     desired state in a file, which is easier to manage and read than standalone commands.
     In the next section, we’ll explore how to further configure NGINX in Docker, tailoring
     it to our specific needs.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Docker Compose，在 Docker 中运行 NGINX 变成了在一个文件中定义期望状态的任务，这比单独的命令更容易管理和阅读。在接下来的部分，我们将探索如何进一步配置
+    Docker 中的 NGINX，使其更加符合我们的具体需求。
 - en: Setting up NGINX inside Docker
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 Docker 内部设置 NGINX
 - en: Having become familiar with Docker Compose, we’re set to advance our container
     usage. In this section, we’ll improve our NGINX container by adding personalized
     configurations and website content.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 熟悉了 Docker Compose 后，我们准备进一步推进容器的使用。在本节中，我们将通过添加个性化配置和网站内容来改进我们的 NGINX 容器。
 - en: Let’s begin by revisiting the `docker-compose.yml` file we created earlier.
     This file already specifies the NGINX service and maps the container’s port 80
     to port 80 on the host machine, making the web server accessible from the host.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从重新审视之前创建的 `docker-compose.yml` 文件开始。这个文件已经指定了 NGINX 服务，并将容器的端口 80 映射到主机的端口
+    80，使得 Web 服务器可以从主机访问。
 - en: 'Next, we want our NGINX container to serve our website using the actual configuration
     files and content from our host machine. To achieve this, we’ll use Docker volumes.
     Volumes are the preferred mechanism for persisting data generated and used by
     Docker containers. Here’s how you can modify the `docker-compose.yml` file to
     mount a volume:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们希望 NGINX 容器能够使用来自主机的实际配置文件和内容来提供网站服务。为此，我们将使用 Docker 卷。卷是持久化 Docker 容器生成和使用的数据的首选机制。以下是如何修改
+    `docker-compose.yml` 文件以挂载卷的示例：
 - en: '[PRE6]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: In this setup, `./config/nginx.conf` is the path to your custom NGINX configuration
     file on your host machine. `/etc/nginx/nginx.conf` is the path where the NGINX
     container expects to find the configuration file. The second volume, `./html`,
     is the directory on your host machine that contains your website’s content, mounted
     into `/usr/share/nginx/html/` in the Docker container.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个设置中，`./config/nginx.conf` 是主机上自定义的 NGINX 配置文件的路径，`/etc/nginx/nginx.conf`
+    是 NGINX 容器期望找到配置文件的路径。第二个卷 `./html` 是主机上包含网站内容的目录，它会挂载到 Docker 容器的 `/usr/share/nginx/html/`
+    目录中。
 - en: This approach ensures that you can edit your NGINX configuration or website
     content directly on your host machine, and those changes will be reflected inside
     the container.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法确保您可以直接在主机上编辑 NGINX 配置或网站内容，并且这些更改会反映在容器内。
 - en: A note
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 说明
 - en: NGINX is preconfigured; therefore, you can skip mounting the `nginx.conf` volume
     and use the default settings. Do mount the `html` directory as it is where NGINX
     expects to find web content to serve.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 是预配置的，因此您可以跳过挂载 `nginx.conf` 卷，使用默认设置即可。请挂载 `html` 目录，因为它是 NGINX 期望找到并提供的
+    Web 内容。
 - en: Integrating PHP with NGINX using Docker Compose
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 Docker Compose 集成 PHP 与 NGINX
 - en: As we progress, our next step is to elevate our NGINX server to handle dynamic
     content with PHP. This combination is common in the web development world, and
     Docker Compose makes it easy to implement.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着进展，我们的下一步是提升我们的 NGINX 服务器，以处理动态内容和 PHP。这个组合在 Web 开发中很常见，而 Docker Compose 使得这一过程变得容易实现。
 - en: 'We’ll start by extending our existing `docker-compose.yml` file to include
     a PHP service, and then we will ensure NGINX can communicate with the PHP service
     using FastCGI:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将通过扩展现有的 `docker-compose.yml` 文件来添加一个 PHP 服务，然后确保 NGINX 能够使用 FastCGI 与 PHP
+    服务进行通信：
 - en: 'First, we need to add a PHP service that runs `php-fpm`). Here’s how the updated
     `docker-compose.yml` file might look:'
+  id: totrans-74
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，我们需要添加一个运行 `php-fpm` 的 PHP 服务。以下是更新后的 `docker-compose.yml` 文件的示例：
 - en: '[PRE7]'
+  id: totrans-75
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: In this setup, the `php` service uses the official PHP image with `php-fpm`.
     We also mount the `html` directory into the PHP container to ensure it has access
     to the same web files as NGINX.
+  id: totrans-76
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在这个设置中，`php` 服务使用官方 PHP 镜像和 `php-fpm`。我们还将 `html` 目录挂载到 PHP 容器中，以确保它可以访问与 NGINX
+    相同的网页文件。
 - en: 'Before starting the Docker containers, we need to make sure NGINX and PHP communicate.
     Let’s edit the `nginx.conf` file to include FastCGI parameters. Here’s an example
     of `nginx.conf` with included FastCGI parameters:'
+  id: totrans-77
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在启动 Docker 容器之前，我们需要确保 NGINX 和 PHP 可以通信。让我们编辑 `nginx.conf` 文件以包括 FastCGI 参数。以下是包含
+    FastCGI 参数的 `nginx.conf` 示例：
 - en: '[PRE8]'
+  id: totrans-78
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: This configuration instructs NGINX to forward requests for PHP files to the
     PHP-FPM service running in the `php` container.
+  id: totrans-79
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这个配置指示 NGINX 将 PHP 文件的请求转发到在 `php` 容器中运行的 PHP-FPM 服务。
 - en: Note
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: NGINX resolves the `php` service name using Docker’s internal DNS to communicate
     with the `php-fpm` service. If you rename the service in your `docker-compose.yml`
     file, remember to update the `nginx.conf` file accordingly to match the new service
     name.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX通过Docker的内部DNS解析`php`服务名，以与`php-fpm`服务进行通信。如果你在`docker-compose.yml`文件中重命名了服务，请记得相应地更新`nginx.conf`文件，以匹配新的服务名称。
 - en: 'With this `docker-compose.yml` and `nginx.conf` configuration, you can run
     `docker compose up`, and NGINX will serve both your static content and your dynamic
     PHP pages:'
+  id: totrans-82
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用此`docker-compose.yml`和`nginx.conf`配置，你可以运行`docker compose up`，NGINX将同时提供你的静态内容和动态PHP页面：
 - en: '[PRE9]'
+  id: totrans-83
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '![Figure 8.4: phpinfo running within Docker](img/B21787_08_4.jpg)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![图8.4：在Docker中运行的phpinfo](img/B21787_08_4.jpg)'
 - en: 'Figure 8.4: phpinfo running within Docker'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 图8.4：在Docker中运行的phpinfo
 - en: This subsection has guided you through adding a PHP service to your Docker environment
     and configuring NGINX to process PHP scripts via FastCGI. This configuration mimics
     a production environment, providing a solid foundation for building and deploying
     PHP applications with Docker.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 本小节指导你如何在Docker环境中添加PHP服务，并配置NGINX通过FastCGI处理PHP脚本。此配置模拟了生产环境，为使用Docker构建和部署PHP应用程序提供了坚实的基础。
 - en: In the next section, we’ll explore how to configure a Docker-contained NGINX
     to proxy applications running directly on the host server.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一节中，我们将探索如何配置Docker容器内的NGINX来代理直接运行在主机服务器上的应用。
 - en: Setting up NGINX inside Docker to proxy host applications
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在Docker内设置NGINX以代理主机应用
 - en: Fortunately for us, Docker is built with inherent support for container-to-host
     connections. When setting up NGINX inside a container, a special `host.docker.internal`
     hostname is used to target the host machine.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，Docker天生就支持容器与主机之间的连接。在容器内设置NGINX时，会使用一个特殊的`host.docker.internal`主机名来定位主机机器。
 - en: 'Here’s a sample NGINX proxy configuration for interfacing with a web application
     hosted on the server:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个NGINX代理配置示例，用于与托管在服务器上的Web应用进行交互：
 - en: '[PRE10]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: To ensure NGINX can communicate with the host server’s web application, check
     that the host’s firewall allows incoming traffic on the specified ports.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 为确保NGINX能够与主机服务器上的Web应用进行通信，请检查主机防火墙是否允许指定端口上的传入流量。
 - en: Concluding this section, we’ve successfully bridged the containerized NGINX
     with host-resident applications, leveraging Docker’s internal networking features.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结本节内容，我们成功地将容器化的NGINX与主机上的应用程序连接起来，利用了Docker的内部网络功能。
 - en: In the next section, we’ll recap what we learned in this book.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一节中，我们将回顾本书中所学的内容。
 - en: Summary
+  id: totrans-95
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 小结
 - en: In this chapter, we’ve taken our first steps with Docker and Docker Compose,
     set up an NGINX container, added PHP, and learned to proxy traffic to a web app
     on the host server.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们迈出了使用Docker和Docker Compose的第一步，设置了NGINX容器，添加了PHP，并学会了如何将流量代理到主机服务器上的Web应用。
 - en: Combined with the knowledge from the previous chapters, the exercises in this
     chapter have highlighted NGINX’s potential as a key asset in cloud infrastructure,
     strengthening security and managing traffic efficiently, well suited for SSL handling,
     load balancing, and content caching.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 结合前几章的知识，本章的练习突显了NGINX作为云基础设施关键资产的潜力，增强了安全性，并高效地管理流量，非常适合处理SSL、负载均衡和内容缓存。
 - en: In the next chapter, we’ll learn how to deploy and update NGINX with automated
     tasks using orchestration tools.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将学习如何使用编排工具自动化任务来部署和更新NGINX。

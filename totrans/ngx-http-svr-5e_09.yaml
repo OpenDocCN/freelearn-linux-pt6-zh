@@ -1,55 +1,79 @@
 - en: '9'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '9'
 - en: Fully Deploy, Manage, and Auto-Update NGINX with Ansible
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Ansible 完全部署、管理和自动更新 NGINX
 - en: In the previous chapter, we discussed how NGINX works within a cloud infrastructure
     and how to use Docker Compose configuration files. Beyond the cloud, configuration
     management stands out for its ability to strengthen the resilience of any infrastructure
     and streamline compliance with security standards.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一章中，我们讨论了 NGINX 在云基础设施中的工作方式以及如何使用 Docker Compose 配置文件。在云之外，配置管理因其增强任何基础设施的弹性以及简化安全标准的合规性而突出。
 - en: In this chapter, we’ll dive into the practical uses of Ansible, giving you a
     hands-on tour of its capabilities. You’ll learn to employ Ansible for efficient
     configuration management, allowing you to deploy NGINX with precision on any number
     of servers, from a single machine to an entire fleet, all with a unified configuration
     approach.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将深入探讨 Ansible 的实际用途，带您亲身体验其功能。您将学习如何使用 Ansible 进行高效的配置管理，允许您精确地在任意数量的服务器上部署
+    NGINX，从单台机器到整个服务器群，都可以通过统一的配置方法进行管理。
 - en: 'This chapter covers the following topics:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章涵盖以下主题：
 - en: Understanding configuration management
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 理解配置管理
 - en: Your first steps with configuration management using Ansible
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Ansible 进行配置管理的第一步
 - en: Setting up NGINX using Ansible
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Ansible 设置 NGINX
 - en: Setting up automatic updates using Ansible
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Ansible 设置自动更新
 - en: Understanding configuration management
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解配置管理
 - en: '**Configuration management** is like having a master key for your infrastructure’s
     setup, especially when dealing with multiple deployments. We’ve seen a glimpse
     of this with Docker Compose, where all configurations live in Docker, ready to
     be reused. This approach isn’t just tidy; it ensures every part of your system
     walks in step, making it easy to scale or clone configurations when needed. It’s
     all about saving time, staying organized, and automating wherever possible.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '**配置管理**就像是拥有一个主钥匙，可以轻松设置您的基础设施，尤其是在处理多个部署时。我们已经通过 Docker Compose 了解了这一点，所有的配置都在
+    Docker 中，随时可以重复使用。这种方法不仅整洁，而且确保系统的每个部分都协调一致，使得在需要时可以轻松扩展或克隆配置。这一切都关乎节省时间、保持有序和尽可能实现自动化。'
 - en: Stepping into configuration management, we turn to **Ansible**, a tool celebrated
     for its simplicity and efficiency. Unlike other management tools that require
     installing agents on each server, Ansible operates over SSH, minimizing setup
@@ -59,226 +83,331 @@
     the principles and practices are transferable to other distributions such as Debian,
     RHEL, or Fedora, with minor adjustments to adapt to different package managers
     and system layouts.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 进入配置管理领域，我们转向 **Ansible**，这一工具因其简洁性和高效性而广受推崇。与需要在每个服务器上安装代理的其他管理工具不同，Ansible
+    通过 SSH 操作，减少了设置开销并保持了轻量级的存在。它是一个无代理的编排工具，将简洁性和安全性置于服务器自动化的前沿。尽管我们的教程主要集中在 Ubuntu
+    上，因为它的广泛采用，但其原理和实践可以轻松转移到其他发行版，如 Debian、RHEL 或 Fedora，只需做一些小调整，以适应不同的包管理器和系统布局。
 - en: We now have a better idea of what configuration management is. In the next section,
     we will run our first playbook with Ansible.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们对配置管理有了更清晰的了解。在下一节中，我们将使用 Ansible 运行我们的第一个 playbook。
 - en: Running your first Ansible playbook
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 运行您的第一个 Ansible playbook
 - en: Ansible is an orchestration tool organized as playbooks. Each playbook can have
     multiple roles. We’ll start with installing Ansible, to run our first playbook
     for installing NGINX.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: Ansible 是一个通过 playbook 组织的编排工具。每个 playbook 可以包含多个角色。我们将从安装 Ansible 开始，运行我们的第一个
+    playbook 来安装 NGINX。
 - en: 'Ansible orchestrates tasks through playbooks composed of multiple roles. Our
     initial step is installing Ansible to execute our first role: *installing Nginx*.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: Ansible 通过由多个角色组成的 playbook 来协调任务。我们的第一步是安装 Ansible，以执行我们的第一个角色：*安装 Nginx*。
 - en: 'Let’s begin with the installation of Ansible. Ansible can be set up on either
     a remote server or your local Linux system, as long as there is connectivity to
     your NGINX server:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从安装 Ansible 开始。Ansible 可以在远程服务器或本地 Linux 系统上设置，只要能够连接到你的 NGINX 服务器：
 - en: 'We’ll be using the root account every step of the way:'
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将在每一步使用 root 账户：
 - en: '[PRE0]'
+  id: totrans-18
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Ensure Ansible is installed by checking its version:'
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过检查 Ansible 的版本来确保已安装：
 - en: '[PRE1]'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: root@ansible:~# ansible-galaxy init nginx_install
+  id: totrans-21
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: root@ansible:~# ansible-galaxy init nginx_install
 - en: nginx_install with subdirectories for tasks, handlers, templates, and more.
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: nginx_install包含子目录，用于任务、处理程序、模板等。
 - en: '[PRE2]'
+  id: totrans-23
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Next, create the path `roles/nginx_install/tasks` with the `mkdir -p roles/nginx_install/tasks`
     command, then create the `roles/nginx_install/tasks/main.yml` file with the following
     content:'
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，使用命令`mkdir -p roles/nginx_install/tasks`创建路径`roles/nginx_install/tasks`，然后创建`roles/nginx_install/tasks/main.yml`文件，内容如下：
 - en: '[PRE3]'
+  id: totrans-25
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This will define a single task to install NGINX using Ubuntu’s package manager.
+  id: totrans-26
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这将定义一个任务，通过Ubuntu的包管理器安装NGINX。
 - en: 'Next, we’ll create a playbook to use the role. At the root of your `nginx_install`
     project, create the `nginx_install.yml` file, with the following content:'
+  id: totrans-27
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，我们将创建一个playbook来使用这个角色。在`nginx_install`项目的根目录下，创建`nginx_install.yml`文件，内容如下：
 - en: '[PRE4]'
+  id: totrans-28
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'This will apply the role to all the hosts set (group: `webservers`).'
+  id: totrans-29
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这将把角色应用到所有已设置的主机（组：`webservers`）。
 - en: 'Our last file needed for the playbook is the inventory. This is where your
     machine’s addresses are stored. Create the `inventory.ini` file with the following
     content:'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们为playbook所需的最后一个文件是清单文件。这是存储您机器地址的地方。创建`inventory.ini`文件，内容如下：
 - en: '[PRE5]'
+  id: totrans-31
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Please make sure to use an SSH key and replace `server_ip` with the IP of your
     server in order to connect to the server.
+  id: totrans-32
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 请确保使用SSH密钥，并将`server_ip`替换为您服务器的IP地址，以便连接到服务器。
 - en: 'In this inventory, we created a group of hosts called `webservers`. Within
     this group, we added one server, `server_ip`. For scenarios involving multiple
     servers, your inventory would expand to list each one under this group, allowing
     for parallel management across your infrastructure. Here’s another example of
     `inventory.ini` with multiple servers:'
+  id: totrans-33
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在这个清单中，我们创建了一个名为`webservers`的主机组。在这个组内，我们添加了一个服务器`server_ip`。如果涉及多个服务器，您的清单将扩展，列出每个服务器，允许在基础设施中进行并行管理。以下是包含多个服务器的`inventory.ini`示例：
 - en: '[PRE6]'
+  id: totrans-34
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'We now have all the files needed to run our first playbook. Let’s run the playbook:'
+  id: totrans-35
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们已经拥有了运行第一个playbook所需的所有文件。让我们运行playbook：
 - en: '[PRE7]'
+  id: totrans-36
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Great, our first Ansible playbook has successfully installed NGINX. If you run
     the playbook again, it will recognize that NGINX is already installed and won’t
     attempt a reinstallation.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 很棒，我们的第一个Ansible playbook成功地安装了NGINX。如果您再次运行playbook，它会识别出NGINX已经安装，并且不会尝试重新安装。
 - en: 'You can now access your web server on port `80` to check whether NGINX is available:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，您可以通过`80`端口访问您的Web服务器，检查NGINX是否可用：
 - en: '![Figure 9.1: Default Nginx configuration installed by Ansible](img/B21787_09_1.jpg)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![图9.1：Ansible安装的默认Nginx配置](img/B21787_09_1.jpg)'
 - en: 'Figure 9.1: Default Nginx configuration installed by Ansible'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 图9.1：Ansible安装的默认Nginx配置
 - en: We’ve installed Ansible, and installed NGINX on a remote server using Ansible.
     In the next section, we’ll learn how to handle configuration files using Ansible.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经安装了Ansible，并使用Ansible在远程服务器上安装了NGINX。在接下来的章节中，我们将学习如何使用Ansible处理配置文件。
 - en: Setting up NGINX using Ansible
+  id: totrans-42
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Ansible设置NGINX
 - en: 'In the last section, we made a project called `nginx_install`. We’ll continue
     with this project in order to have Ansible write the `nginx.conf` file for us.
     So let’s get started:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节中，我们创建了一个名为`nginx_install`的项目。我们将继续使用该项目，以便让Ansible为我们编写`nginx.conf`文件。现在让我们开始吧：
 - en: First, create a directory at `roles/nginx_install/files` with the `mkdir -p
     roles/nginx_install/files` command, then add your `nginx.conf` file to this folder.
+  id: totrans-44
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，使用命令`mkdir -p roles/nginx_install/files`创建`roles/nginx_install/files`目录，然后将您的`nginx.conf`文件添加到此文件夹中。
 - en: 'Then, make a new task to copy the `nginx.conf` file. Edit the existing `roles/nginx_install/tasks/main.yml`
     file and add the following:'
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，创建一个新的任务来复制`nginx.conf`文件。编辑现有的`roles/nginx_install/tasks/main.yml`文件，并添加如下内容：
 - en: '[PRE8]'
+  id: totrans-46
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: This will send the `nginx.conf` file from your `files` directory to the `/etc/nginx/`
     directory on your remote server.
+  id: totrans-47
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这将把`files`目录中的`nginx.conf`文件发送到远程服务器的`/etc/nginx/`目录。
 - en: Next, we’ll define a handler within Ansible. Handlers are tasks that only run
     when notified by another task. In our case, we’ll set up a handler to restart
     NGINX, but it will only trigger if there’s been a change to the configuration
     file.
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，我们将在Ansible中定义一个处理程序。处理程序是只有在另一个任务通知时才会执行的任务。在我们的案例中，我们将设置一个处理程序来重启NGINX，但只有在配置文件发生更改时才会触发。
 - en: 'Let’s create our handler by creating the `roles/nginx_install/handlers` directory
     with the `mkdir -p roles/nginx_install/handlers` command. Then, let’s create a
     `roles/nginx_install/handlers/main.yml` file with the following content:'
+  id: totrans-49
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 让我们通过运行命令`mkdir -p roles/nginx_install/handlers`来创建`roles/nginx_install/handlers`目录，然后创建一个`roles/nginx_install/handlers/main.yml`文件，内容如下：
 - en: '[PRE9]'
+  id: totrans-50
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Let’s run the playbook again:'
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 让我们再次运行 playbook：
 - en: '[PRE10]'
+  id: totrans-52
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: NGINX has been installed with Ansible. In the next section, we will learn about
     automatic updates and how to secure your server environment directly with Ansible
     configuration files.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 已通过 Ansible 安装。在下一节中，我们将学习自动更新以及如何通过 Ansible 配置文件直接保障服务器环境的安全。
 - en: Setting up automatic updates using Ansible
+  id: totrans-54
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Ansible 设置自动更新
 - en: '`unattended-upgrades` takes care of the update process, providing peace of
     mind that your server remains secure without manual intervention.'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '`unattended-upgrades`负责更新过程，让你无需人工干预就能放心确保服务器的安全。'
 - en: 'To install the `unattended-upgrades` package, you can edit the existing file
     `roles/nginx_install/tasks/main.yml` and add the following:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 要安装`unattended-upgrades`包，你可以编辑现有文件`roles/nginx_install/tasks/main.yml`，并添加以下内容：
 - en: '[PRE11]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Rerun the playbook to install the package:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 重新运行 playbook 以安装该软件包：
 - en: '[PRE12]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: With `unattended-upgrades` installed, your system is configured for automatic
     security updates. For those seeking comprehensive updates beyond security, the
     package’s documentation provides guidance for fine-tuning your settings.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装了`unattended-upgrades`后，你的系统已配置为自动进行安全更新。对于需要更多全面更新的用户，包的文档提供了调整设置的指导。
 - en: Summary
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we explored the power of configuration management with Ansible,
     learning to orchestrate our NGINX setup seamlessly. Through Ansible’s capabilities,
     we’ve initiated package installations, updated configurations, and embraced the
@@ -288,9 +417,15 @@
     TLS certificates, comprehensive firewall setups, and much more. For those interested
     in deepening their understanding of Ansible, a variety of playbooks can be found
     at [docs.ansible.com](http://docs.ansible.com).
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们探索了使用 Ansible 进行配置管理的强大功能，学习了如何无缝地协调我们的 NGINX 设置。通过 Ansible 的能力，我们已经启动了软件包安装、更新了配置，并采用了自动更新的高效性。这些过程的可扩展性为系统管理开辟了新天地。虽然我们仅触及了表面，但进一步探索
+    Ansible 可以解锁动态配置、TLS 证书、全面的防火墙设置等自动化部署。对于那些有兴趣深入了解 Ansible 的人，可以在 [docs.ansible.com](http://docs.ansible.com)
+    找到各种 playbook。
 - en: In the next chapter, we’ll explore the practical applications and real-world
     scenarios for implementing NGINX.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将探讨实现 NGINX 的实际应用和真实场景。
