@@ -1,7 +1,9 @@
 - en: Chapter 4. Installing Third-party Modules
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第4章 安装第三方模块
 - en: In this chapter we will explore the installation of third-party modules. Third-party
     modules are developed by a vast variety of developers around the world and are
     hosted on various open source repositories such as GitHub and SourceForge. Some
@@ -10,38 +12,52 @@
     issues across different Nginx versions. In this chapter, we will talk about some
     of the most well-known Nginx modules. A bigger list of available options can be
     browsed on the Nginx website at [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules).
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将探讨第三方模块的安装。第三方模块是由世界各地的各种开发者开发的，并托管在各种开源代码库中，例如GitHub和SourceForge。其中一些模块经过了充分测试，而其他模块可能还未准备好投入生产使用。这些模块不受Nginx开发者的官方支持，可能在不同的Nginx版本中存在问题。在本章中，我们将讨论一些最著名的Nginx模块。有关可用选项的更完整列表，您可以在Nginx网站上浏览，[http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules)。
 - en: All the configuration directives that we have discussed so far, and the ones
     that we will discuss in this and the remaining chapters, are specified in the
     `nginx.conf` file. The default location of the `nginx.conf` file is `/usr/local/conf/`.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们讨论的所有配置指令，以及在本章和接下来的章节中讨论的指令，都是在`nginx.conf`文件中指定的。`nginx.conf`文件的默认位置是`/usr/local/conf/`。
 - en: Compiling third-party modules
+  id: totrans-3
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 编译第三方模块
 - en: 'None of the third-party modules that we will be covering in this chapter are
     distributed with the source code. You will have to download the source code and
     compile it by specifying its location while compiling Nginx. You can do that by
     specifying the `--add-module` parameters while running `configure`. For example,
     if you downloaded the module''s source code present in `/opt/downloads`, you can
     compile it in the Nginx binary with the following code:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在本章讨论的所有第三方模块都不包含在源代码中。您需要下载源代码并在编译Nginx时指定其位置来进行编译。您可以通过在运行`configure`时指定`--add-module`参数来实现。例如，如果您下载了位于`/opt/downloads`的模块源代码，可以使用以下代码将其编译到Nginx二进制文件中：
 - en: '[PRE0]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Some of these modules may have additional dependencies, which you will have
     to resolve. Please refer to the documentation of the module you are trying to
     install, to make sure you understand the consequences and dependencies of the
     module you are about to compile.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中一些模块可能有额外的依赖关系，您需要自行解决。请参阅您正在尝试安装的模块的文档，以确保您了解即将编译的模块的后果和依赖关系。
 - en: Communicating with PostgreSQL (ngx_postgres)
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 与PostgreSQL通信（ngx_postgres）
 - en: The Nginx PostgreSQL module is currently hosted at [http://labs.frickle.com/nginx_ngx_postgres/](http://labs.frickle.com/nginx_ngx_postgres/)
     and maintained by Frickle Labs. It is an upstream module that allows direct communication
     with the PostgreSQL database. The output of this module is in a custom binary
@@ -52,46 +68,70 @@
     certain conditions by querying a database table. Or you might want to authenticate
     a user from an upstream PostgreSQL database. For all such situations and more,
     the `ngx_postgres` module will be useful.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx PostgreSQL模块目前托管在[http://labs.frickle.com/nginx_ngx_postgres/](http://labs.frickle.com/nginx_ngx_postgres/)并由Frickle
+    Labs维护。它是一个上游模块，允许与PostgreSQL数据库直接通信。该模块的输出以名为**Resty DBD Stream**（**RDS**）的自定义二进制格式呈现。这个模块非常有用，如果您想直接将Nginx连接到PostgreSQL数据库。您可能有多个用例需要这样做。您可能想通过直接查询表中的结果来提供页面。您还可能希望将日志记录到数据库中，或者通过查询数据库表来检查某些条件。或者，您可能想从上游PostgreSQL数据库中验证用户。对于所有这些情况及更多，`ngx_postgres`模块都非常有用。
 - en: 'An example configuration is as follows:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个示例配置如下：
 - en: '[PRE1]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Explaining directives
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: 'Some important directives of the `ngx_postgres` module are as follows:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_postgres`模块的一些重要指令如下：'
 - en: postgres_server
+  id: totrans-13
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_server
 - en: The `postgres_server` directive sets the details of the database server. You
     can specify the hostname or IP address along with a port, username, and password.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_server`指令用于设置数据库服务器的详细信息。您可以指定主机名或IP地址，以及端口、用户名和密码。'
 - en: 'An example configuration is as follows:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个示例配置如下：
 - en: '[PRE2]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: postgres_keepalive
+  id: totrans-17
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_keepalive
 - en: 'The `postgres_keepalive` directive is used to configure `keepalive` parameters.
     The syntax is as follows:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Here, the `max` parameter determines the maximum number of `keepalive` connections.
     The `mode` parameter has two possible values, `multi` and `single`. The `single`
     mode means that the connection pool will not differentiate between multiple `postgres_server`
@@ -103,17 +143,21 @@
     or `ignore` can be specified. In case of `reject`, it will reject the current
     request and return the **503 Service Unavailable** error page. On using `ignore`,
     this module will create a new database connection.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
 - en: postgres_pass
+  id: totrans-21
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `postgres_pass` directive holds the name of the upstream block that contains
     the PostgreSQL connection's configurations. It can also contain variables.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
 - en: postgres_query
+  id: totrans-23
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -122,44 +166,57 @@
     is used only for the specified methods; otherwise, it will run for all the methods.
     A query can contain variables and you can specify multiple query directives in
     one location. An example configuration is as follows:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: postgres_rewrite
+  id: totrans-26
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: 'The `postgres_rewrite` directive should be used to send a specific response
     code when a condition is met. The condition can be one of the following:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
 - en: '`no_changes`: This is the condition when no rows are affected by the query'
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`changes`: This is the condition when at least one row is affected by the query'
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`no_rows`: This is the condition when no rows are returned in the result set'
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`rows`: This is the condition when at least one row is returned in the result
     set'
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'If you want to send the original response body to the client, prefix the code
     with `=` as shown in the following example configuration:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE5]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: postgres_output
+  id: totrans-34
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -168,467 +225,669 @@
     value is used when you don't want any output. `value` is used when you want a
     single value as an output in the text format. All response types set the appropriate
     HTTP header.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
 - en: postgres_set
+  id: totrans-36
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: 'The `postgres_set` directive is used to set a variable from a single value
     from the result set. You can specify the row and column to pick the value from.
     An example configuration is as follows:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: If you set this directive to `required`, the module will generate a `500 internal
     server` error if the value to be set is null or out of range.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
 - en: postgres_escape
+  id: totrans-40
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: 'The `postgres_escape` directive will escape, quote a value in the `$unquoted`
     variable, and store the result in the `$escaped` variable, which can be safely
     used in SQL queries. An example configuration is given as follows:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_escape`指令将转义并引用`$unquoted`变量中的值，并将结果存储在`$escaped`变量中，这样可以在SQL查询中安全使用。以下是一个示例配置：'
 - en: '[PRE7]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: postgres_connect_timeout
+  id: totrans-43
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_connect_timeout
 - en: The `postgres_connect_timeout` directive sets a timeout value for connecting
     to the database.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_connect_timeout`指令设置连接数据库的超时时间。'
 - en: postgres_result_timeout
+  id: totrans-45
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: postgres_result_timeout
 - en: The `postgres_result_timeout` directive sets a timeout value for receiving results
     from the database.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '`postgres_result_timeout`指令设置从数据库接收结果的超时时间。'
 - en: Communicating with MySQL and drizzle (drizzle-nginx)
+  id: totrans-47
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 与MySQL和drizzle进行通信（drizzle-nginx）
 - en: The `drizzle-nginx` module is an upstream module to communicate with a MySQL
     or drizzle server. Drizzle is a fork of MySQL, which is optimized for multicore
     processing and scalability. This module essentially integrates `libdrizzle` into
     an Nginx module. Like the Nginx PostgreSQL module, this module does not create
     human-readable text output, but rather a Resty DB format, which is a custom binary
     format.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle-nginx`模块是一个与MySQL或drizzle服务器通信的上游模块。Drizzle是MySQL的一个分支，经过优化以支持多核处理和可扩展性。此模块实质上是将`libdrizzle`集成到Nginx模块中。与Nginx的PostgreSQL模块类似，这个模块不会产生可读的文本输出，而是生成Resty
+    DB格式，这是一种自定义的二进制格式。'
 - en: You can download the source code for this module from the GitHub repository
     at [https://github.com/chaoslawful/drizzle-nginx-module](https://github.com/chaoslawful/drizzle-nginx-module).
     Please note that you will need to install drizzle and libdrizzle in order to be
     able to successfully compile this module. You can download drizzle from launchpad
     at [https://launchpad.net/drizzle](https://launchpad.net/drizzle).
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以从GitHub仓库下载此模块的源代码，网址为[https://github.com/chaoslawful/drizzle-nginx-module](https://github.com/chaoslawful/drizzle-nginx-module)。请注意，成功编译此模块前，你需要安装drizzle和libdrizzle。你可以从launchpad下载drizzle，网址为[https://launchpad.net/drizzle](https://launchpad.net/drizzle)。
 - en: This module is useful if you want to directly connect Nginx with a MySQL database.
     There can be several use-cases of why you would want to do that. You might want
     to serve pages by directly querying results from a table. You might also want
     to log things in a database or check certain conditions by querying a database
     table. Or else, you might want to authenticate a user from an upstream MySQL database.
     For all such situations and more, this module will be useful.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你希望直接将Nginx与MySQL数据库连接，这个模块会非常有用。你可能有多个原因想要这样做。例如，你可能希望通过直接查询表中的数据来提供页面。你还可能想将日志记录到数据库中，或通过查询数据库表来检查某些条件。或者，你可能希望通过上游MySQL数据库对用户进行身份验证。在所有这些情况下，这个模块都会很有帮助。
 - en: Explaining directives
+  id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: 'The most important directives from the `drizzle-nginx` module are as follows:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle-nginx`模块最重要的指令如下：'
 - en: drizzle_server
+  id: totrans-53
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_server
 - en: 'We use the `drizzle_server` directive to specify the drizzle server''s name
     in the form of an IP address or a domain name, and optionally a port. The default
     port number is `3306`. You can also specify a username and a password. The following
     options are supported by this directive:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用`drizzle_server`指令以IP地址或域名的形式指定drizzle服务器的名称，并可以选择性地指定端口。默认端口号是`3306`。你还可以指定用户名和密码。此指令支持以下选项：
 - en: '`user=`: This option defines the database username for login'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`user=`: 此选项定义数据库登录的用户名。'
 - en: '`password=`: This option defines the database password, optionally enclosed
     in quotes, for special characters as shown in the following example configuration:'
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`password=`: 此选项定义数据库密码，特殊字符可以选择性地用引号括起来，如下所示的示例配置所示：'
 - en: '[PRE8]'
+  id: totrans-57
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '`dbname=`: This option defines the database to be used for the default connection'
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`dbname=`: 此选项定义默认连接所使用的数据库。'
 - en: '`protocol=`: This option defines the target database type, `drizzle`, or `mysql`
     (the default value is `drizzle`)'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`protocol=`: 此选项定义目标数据库类型，可以是`drizzle`或`mysql`（默认值为`drizzle`）。'
 - en: '`charset=`: This option is used to explicitly specify the character set for
     the MySQL connections as shown in the following example configuration:'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`charset=`: 此选项用于明确指定MySQL连接的字符集，如下所示的示例配置所示：'
 - en: '[PRE9]'
+  id: totrans-61
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: drizzle_keepalive
+  id: totrans-62
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_keepalive
 - en: 'The `drizzle_keepalive` directive is used to maintain a `keepalive` pool for
     the target database. The following options are supported by this directive:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_keepalive`指令用于为目标数据库维护一个`keepalive`池。此指令支持以下选项：'
 - en: '`max=`: This option is set to `0` by default, which means that the `keepalive`
     connection pooling is disabled. In order to enable it, you must set this value
     to a value greater than 0.'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max=`：此选项默认为 `0`，意味着禁用 `keepalive` 连接池。要启用连接池，必须将此值设置为大于 0 的数值。'
 - en: '`mode=`: The possible values for this parameter are `multi` and `single`. The
     `single` mode means that the connection pool will not differentiate between multiple
     `drizzle_server` definitions in the current block, and the pool will apply to
     all of them, that is, you have one pool for all the `drizzle_server` definitions.
     In the `multi` mode, the pool will re-use connections that have identical server
     host names and ports. The default value is `single`.'
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`mode=`：此参数的可选值为 `multi` 和 `single`。`single` 模式表示连接池不会区分当前块中的多个 `drizzle_server`
+    定义，池将应用于所有这些定义，也就是说，你有一个池供所有 `drizzle_server` 定义使用。在 `multi` 模式中，池将重用具有相同服务器主机名和端口的连接。默认值为
+    `single`。'
 - en: '`overflow=`: This option specifies what to do when the connection pool is already
     full while a new database connection is required. Either `reject` or `ignore`
     can be specified. In case of `reject`, it will reject the current request and
     return the **503 Service Unavailable** error page. For `ignore`, this module will
     create a new database connection.'
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`overflow=`：此选项指定当连接池已满，而需要新的数据库连接时应该怎么做。可以指定 `reject` 或 `ignore`。如果选择 `reject`，则会拒绝当前请求并返回
+    **503 服务不可用** 错误页面；对于 `ignore`，该模块将创建一个新的数据库连接。'
 - en: drizzle_query
+  id: totrans-67
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_query
 - en: The `drizzle_query` directive defines the SQL query to be run on the database's
     backend.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_query` 指令定义了要在数据库后台运行的 SQL 查询。'
 - en: 'You are allowed to use Nginx variables in place of queries, but you must be
     careful with SQL injection attacks. You are, therefore, advised to properly sanitize
     and quote your SQL queries. An example configuration is as follows:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用 Nginx 变量来替代查询，但必须小心 SQL 注入攻击。因此，建议你适当地清理和加引号 SQL 查询。示例配置如下：
 - en: '[PRE10]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: drizzle_pass
+  id: totrans-71
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_pass
 - en: Using the `drizzle_pass` directive, you can pass the current location to another
     defined MySQL or drizzle-upstream block.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `drizzle_pass` 指令，你可以将当前的位置传递给另一个定义的 MySQL 或 drizzle-upstream 块。
 - en: 'You can use the Nginx variables as values to perform dynamic passing. An example
     configuration is as follows:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用 Nginx 变量作为值进行动态传递。示例配置如下：
 - en: '[PRE11]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: drizzle_connect_timeout
+  id: totrans-75
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_connect_timeout
 - en: The `drizzle_connect_timeout` directive specifies the timeout value for connecting
     to the remote server. The value can be an integer with an optional time unit,
     such as s (second), ms (millisecond), or m (minute). The default time unit is
     s and the default value is `60 s`.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_connect_timeout` 指令指定了连接到远程服务器的超时时间值。该值可以是一个整数，后面可以附加可选的时间单位，例如 s（秒）、ms（毫秒）或
+    m（分钟）。默认时间单位为 s，默认值为 `60 s`。'
 - en: drizzle_send_query_timeout
+  id: totrans-77
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_send_query_timeout
 - en: The `drizzle_send_query_timeout` directive specifies the timeout value for sending
     a SQL query to a remote server. The value can be an integer with an optional time
     unit, such as s (second), ms (millisecond), or m (minute). The default time unit
     is s and the default value is `60 s`.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_send_query_timeout` 指令指定了向远程服务器发送 SQL 查询的超时时间值。该值可以是一个整数，后面可以附加可选的时间单位，例如
+    s（秒）、ms（毫秒）或 m（分钟）。默认时间单位为 s，默认值为 `60 s`。'
 - en: drizzle_recv_cols_timeout
+  id: totrans-79
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_recv_cols_timeout
 - en: The `drizzle_recv_cols_timeout` directive specifies the timeout value for receiving
     the columns' metadata of the result set to a remote server. The value can be an
     integer with an optional time unit, such as s (second), ms (millisecond), or m
     (minute). The default time unit is s and the default value is `60 s`.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_recv_cols_timeout` 指令指定了接收结果集列元数据到远程服务器的超时时间值。该值可以是一个整数，后面可以附加可选的时间单位，例如
+    s（秒）、ms（毫秒）或 m（分钟）。默认时间单位为 s，默认值为 `60 s`。'
 - en: drizzle_recv_rows_timeout
+  id: totrans-81
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_recv_rows_timeout
 - en: The `drizzle_recv_rows_timeout` directive specifies the timeout value for receiving
     the rows' data of the result set (if any) to a remote server. The value can be
     an integer with an optional time unit, such as s (second), ms (millisecond), or
     m (minute). The default time unit is `s` and the default value is `60 s`.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_recv_rows_timeout` 指令指定了接收结果集行数据（如果有的话）到远程服务器的超时时间值。该值可以是一个整数，后面可以附加可选的时间单位，例如
+    s（秒）、ms（毫秒）或 m（分钟）。默认时间单位为 `s`，默认值为 `60 s`。'
 - en: drizzle_buffer_size
+  id: totrans-83
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_buffer_size
 - en: The `drizzle_buffer_size` directive specifies the buffer size for server outputs.
     The default value of this directive depends on the OS page size which would be
     4K/8K normally. Larger buffer sizes can result in lower network overheads. However,
     you have to find the correct value for your workload by experimenting with this
     number.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_buffer_size`指令指定服务器输出的缓冲区大小。此指令的默认值取决于操作系统的页面大小，通常为 4K/8K。较大的缓冲区大小可以减少网络开销。然而，你需要通过实验找到适合你工作负载的正确值。'
 - en: drizzle_module_header
+  id: totrans-85
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: drizzle_module_header
 - en: 'The `drizzle_module_header` directive controls whether to output the drizzle
     header in the response or not. By default, the sending of the header is enabled.
     This directive can be configured with the following script:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '`drizzle_module_header`指令控制是否在响应中输出 drizzle 头部。默认情况下，启用发送头部。可以使用以下脚本配置此指令：'
 - en: '[PRE12]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Digest Authentication (ngx_http_auth_digest)
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要认证（ngx_http_auth_digest）
 - en: In today's world, HTTP basic authentication is too basic and doesn't provide
     adequate security required by the modern web servers. The reason is that usernames
     and passwords are sent in clear text unless you use HTTPS. The `ngx_http_auth_digest`
     module can be used to protect your resources using the HTTP Digest Authentication
     based on RFC 2617.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 在今天的互联网环境中，HTTP 基本认证过于简单，不能为现代 Web 服务器提供足够的安全性。原因是，用户名和密码是明文传输的，除非你使用 HTTPS。`ngx_http_auth_digest`模块可以基于
+    RFC 2617 使用 HTTP 摘要认证来保护你的资源。
 - en: The digest authentication module works, and is considered quite stable. However,
     it is perhaps not tested enough for the real world, so make sure it works in your
     situation. As this module deals with security, it is always a good idea to test
     the software thoroughly.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 摘要认证模块已工作并且被认为相当稳定。然而，它可能没有在实际环境中进行足够的测试，因此确保它在你的环境中有效非常重要。由于这个模块涉及安全性，彻底测试软件总是一个好主意。
 - en: You can download the source code at [https://github.com/samizdatco/nginx-http-auth-digest](https://github.com/samizdatco/nginx-http-auth-digest).
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在[https://github.com/samizdatco/nginx-http-auth-digest](https://github.com/samizdatco/nginx-http-auth-digest)下载源代码。
 - en: 'You can password-protect a directory tree by adding the following code lines
     into a server section in your Nginx configuration file:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过将以下代码行添加到 Nginx 配置文件中的服务器部分来为目录树设置密码保护：
 - en: '[PRE13]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Currently, the digest authentication module works with a file generated through
     the `htdigest` script. The `htdigest` script can be found in your Apache installation
     or source code. There is also an `htdigest.py` script in this module's source
     code, which will help you generate a compatible file.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 当前，摘要认证模块与通过 `htdigest` 脚本生成的文件配合使用。`htdigest` 脚本可以在你的 Apache 安装或源代码中找到。此模块的源代码中也有一个
+    `htdigest.py` 脚本，帮助你生成兼容的文件。
 - en: Explaining directives
+  id: totrans-95
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: 'Some of the most important directives of `ngx_http_auth_digest` are as follows:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_http_auth_digest`模块中一些最重要的指令如下：'
 - en: auth_digest
+  id: totrans-97
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: auth_digest
 - en: The `auth_digest` directive can be defined in the contexts of the server and
     location. This parameter defines the realm name for authentication. This name
     should match the name used in creating the `htdigest` file. To selectively disable
     authentication, set `auth_digest` to `off`. The default value for this directive
     is `off`.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_digest`指令可以在服务器和位置的上下文中定义。此参数定义认证的领域名称。该名称应与创建 `htdigest` 文件时使用的名称相匹配。要选择性地禁用认证，可以将
+    `auth_digest` 设置为 `off`。此指令的默认值为 `off`。'
 - en: auth_digest_user_file
+  id: totrans-99
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: auth_digest_user_file
 - en: The `auth_digest_user_file` directive can be defined in the contexts of the
     server and location. This directive is used to specify the name of the password
     file. The password file should be created by the Apache htdigest command (or the
     included `htdigest.py` script).
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_digest_user_file`指令可以在服务器和位置的上下文中定义。此指令用于指定密码文件的名称。密码文件应通过 Apache 的 htdigest
+    命令（或包含的 `htdigest.py` 脚本）创建。'
 - en: auth_digest_timeout
+  id: totrans-101
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: auth_digest_timeout
 - en: The `auth_digest_timeout` directive can be defined in the contexts of the server
     and location. This timeout value defines the expiry time of the challenge sent
     to the client. If the user does not provide the response within this time, the
     challenge is considered stale, and a new challenge is sent to the client when
     a resource is requested again or the response comes from the client. The default
     timeout value is `60 s`.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_digest_timeout`指令可以在服务器和位置的上下文中定义。此超时值定义了发送给客户端的挑战的过期时间。如果用户未在此时间内提供响应，则挑战被视为过期，并且在资源再次请求或响应来自客户端时，系统将向客户端发送一个新挑战。默认的超时值为
+    `60 s`。'
 - en: auth_digest_expires
+  id: totrans-103
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: auth_digest_expires
 - en: The `auth_digest_expires` directive can be defined in the contexts of the server
     and location. This parameter is used to define the expiry time of the nonce value.
     Once a client successfully authenticates, the nonce value is cached and subsequent
     requests use the cached value. This parameter defines the duration for which a
     client can continue to use the nonce value. The default digest expiry value is
     `10 s`.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_digest_expires`指令可以在服务器和位置的上下文中定义。此参数用于定义nonce值的过期时间。一旦客户端成功认证，nonce值会被缓存，后续的请求将使用缓存的值。此参数定义了客户端可以继续使用nonce值的时长。默认的摘要过期值是`10
+    s`。'
 - en: auth_digest_replays
+  id: totrans-105
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: auth_digest_replays
 - en: The `auth_digest_replays` directive can be defined in the contexts of the server
     and location. The validity of a cached nonce can also be specified in terms of
     the number of requests instead of time, by using this directive. Having a high
     value will increase your shared memory requirements. The default value is 20 replays
     per nonce.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_digest_replays`指令可以在服务器和位置的上下文中定义。可以使用此指令根据请求的数量而非时间来指定缓存的nonce的有效性。较大的值将增加共享内存的需求。默认值为每个nonce
+    20次重放。'
 - en: auth_digest_shm_size
+  id: totrans-107
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: auth_digest_shm_size
 - en: The `auth_digest_shm_size` directive can only be defined in the server's context.
     This directive specifies the fixed size memory cache used to store information
     about the active authenticated requests. Once this cache is full, no further authentication
     will be possible until the active sessions expire. The default size is about 4
     MB. The default value allows around 82,000 non-replay requests every 70 seconds.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_digest_shm_size`指令只能在服务器的上下文中定义。该指令指定用于存储有关活动认证请求的信息的固定大小内存缓存。一旦缓存满了，直到活动会话过期之前将无法进行进一步的认证。默认大小约为4
+    MB。默认值允许每70秒大约处理82,000个非重放请求。'
 - en: 'An example configuration is as follows:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个示例配置如下：
 - en: '[PRE14]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Speeding up web pages (ngx_pagespeed)
+  id: totrans-111
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 加速网页（ngx_pagespeed）
 - en: The `ngx_pagespeed` module optimizes the web pages and associated resources
     to reduce latency and bandwidth. It is capable of rewriting HTML pages and automatically
     eliminates deficiencies that reduce the performance of your website or web pages.
     This module is written by Google and is similar to Apache's `mod_pagespeed` module.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_pagespeed`模块优化网页及相关资源，以减少延迟和带宽。它能够重写HTML页面并自动消除降低网站或网页性能的缺陷。此模块由Google编写，类似于Apache的`mod_pagespeed`模块。'
 - en: 'This module reduces the page''s load time by automatically applying web performance
     best practices to pages and associated assets (CSS, JavaScript, and images). It
     can perform the following types of optimizations:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 此模块通过自动应用网页性能最佳实践来减少页面的加载时间，优化页面及相关资产（CSS、JavaScript和图像）。它可以执行以下类型的优化：
 - en: Image optimization
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图像优化
 - en: CSS and JavaScript optimization
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: CSS和JavaScript优化
 - en: Resource inlining
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 资源内联
 - en: HTML rewriting
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: HTML重写
 - en: Cache lifetime extension
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缓存生命周期延长
 - en: 'In order to enable the module, you have to put p`agespeed On` in the server
     or the HTTP block. In addition, you should define the `FileCache` location and
     specify which rewrite filters you would like to enable. The following is an example
     configuration:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了启用该模块，您必须在服务器或HTTP块中加入`pagespeed On`。此外，您还应该定义`FileCache`位置并指定要启用的重写过滤器。以下是一个示例配置：
 - en: '[PRE15]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: The `FileCachePath` parameter provides the location where rewritten files are
     cached, and should be a valid path. The `EnableFilters` parameter defines which
     optimizations will be enabled for the specific location.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '`FileCachePath`参数提供重写文件缓存的位置，应该是一个有效路径。`EnableFilters`参数定义了特定位置将启用的优化。'
 - en: Configuring handlers
+  id: totrans-122
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 配置处理程序
 - en: 'When the `ngx_pagespeed` module is configured and enabled, a default handler
     is automatically created, but there are additional handlers in order to monitor
     the module''s activity in more details, which are as follows:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 当配置并启用`ngx_pagespeed`模块时，默认处理程序会自动创建，但还有其他处理程序可以更详细地监控该模块的活动，具体如下：
 - en: '**Statistics handler**: This handler shows the statistics related to page or
     resource optimizations, including which pages have been optimized so far, as well
     as various latency and cache-effectiveness metrics. You can also view the summary
     of the current configuration that is active at the moment.'
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**统计处理程序**：此处理程序显示与页面或资源优化相关的统计信息，包括到目前为止已优化的页面，以及各种延迟和缓存有效性指标。您还可以查看当前激活配置的摘要。'
 - en: '**Messages handler**: If you have enabled and specified a size for the `MessageBufferSize`
     parameter, this handler will contain a server-wide history of recent logging output
     from `pagespeed`, including messages that are omitted from the server''s logfile
     based on its log level.'
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Console handler**: This handler shows graphs of issue metrics over time.'
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Beacon handler**: This handler can be used by the `add_instrumentation` filter
     to report the loading time of pages for your sites, which you can then view via
     the statistics page.'
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The following is an example configuration from the module''s documentation
     page:'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE16]'
+  id: totrans-129
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'In order to check if the module is processing your pages or not, you can check
     the source of a page, which you should be able to see at the `X-Page-Speed` header
     through the following code lines:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE17]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: You can find a complete list of pagespeed filters in the online documentation
     available at [https://developers.google.com/speed/pagespeed/module/using](https://developers.google.com/speed/pagespeed/module/using).
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: Lua scripting (ngx_lua)
+  id: totrans-133
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -637,97 +896,120 @@
     This is a very powerful module with a large number of uses, and provides you with
     a full programming capability inside the Nginx configuration. It has the following
     advantages and features:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
 - en: This will allow you to perform complicated processing on the incoming request
     before it's executed, or change the response afterwards
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: You can add new headers or remove the existing ones
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: You can perform redirects and routing based on complicated program-like logic
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: You can create a sophisticated logging framework entirely based on Lua scripts
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: You can either block or allow IP addresses
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: You can build your own authentication or preprocessing layer on top, without
     having to write your own C modules and recompiling the Nginx code
+  id: totrans-140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Lua is a lightweight, embeddable scripting language, which makes it very suitable
     for scripting in the configuration file.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
 - en: This module allows you to run the Lua code during different phases in the Nginx
     request handling. Before we look at more details of Lua scripting, it is worth
     looking at the different phases of Nginx request handling.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
 - en: 'Each request handled by Nginx goes through the following phases:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
 - en: '| Sl. No. | Nginx request-handling phase | Description |'
+  id: totrans-144
   prefs: []
   type: TYPE_TB
 - en: '| --- | --- | --- |'
+  id: totrans-145
   prefs: []
   type: TYPE_TB
 - en: '| 1 | server selection | A server block is selected based on the request. |'
+  id: totrans-146
   prefs: []
   type: TYPE_TB
 - en: '| 2 | post read | This phase is executed after a request is read. This allows
     you to perform actions on the request before it is processed. For example, `HttpRealIpModule`
     can use this phase to add IP addresses in the request headers. |'
+  id: totrans-147
   prefs: []
   type: TYPE_TB
 - en: '| 3 | server rewrite | During this phase, URL rewriting can take place. You
     can select the configuration based on variable values. The `HttpRewrite` module
     allows you to do so. |'
+  id: totrans-148
   prefs: []
   type: TYPE_TB
 - en: '| 4 | location selection | During this phase, a location configuration block
     is selected or matched based on the requested URL. |'
+  id: totrans-149
   prefs: []
   type: TYPE_TB
 - en: '| 5 | location rewrite | This phase allows you to do rewrites within a selected
     location-configuration block. |'
+  id: totrans-150
   prefs: []
   type: TYPE_TB
 - en: '| 6 | preaccess | This phase allows you to carry out certain filters, that
     is, limit the number of requests per session. |'
+  id: totrans-151
   prefs: []
   type: TYPE_TB
 - en: '| 7 | access | This phase runs authentications, such as `auth_basic` or `auth_digest`.
     You can also allow or deny requests based on criteria, such as IP addresses. |'
+  id: totrans-152
   prefs: []
   type: TYPE_TB
 - en: '| 8 | try files | The core module''s `try_files` directive is executed in this
     phase. |'
+  id: totrans-153
   prefs: []
   type: TYPE_TB
 - en: '| 9 | content | The actual content generation takes place in this phase. All
     upstream modules are executed in this phase. |'
+  id: totrans-154
   prefs: []
   type: TYPE_TB
 - en: '| 10 | log | During this phase, information is logged in the logfiles. Modules
     such as `access_log` operate within this phase. |'
+  id: totrans-155
   prefs: []
   type: TYPE_TB
 - en: '| 11 | post action | During this phase, the `post_action` directive of the
     core module is executed, which allows you to send subrequests to a location or
     upstream when a request is finished, for example, logging competed requests in
     a remote MySQL database. |'
+  id: totrans-156
   prefs: []
   type: TYPE_TB
 - en: The `nginx_lua` module embeds Lua via the standard Lua interpreter or LuaJIT
@@ -737,92 +1019,116 @@
     have a detailed look at this module in this chapter as well as in [Chapter 5](ch05.html
     "Chapter 5. Creating Your Own Module"), *Creating Your Own Module*, where we will
     learn to write our own Nginx module.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
 - en: Using the Lua API for Nginx, you can communicate with upstream servers in a
     non-blocking manner in your Lua script. The Lua VM is shared across all the requests
     handled by a single Nginx worker process to minimize memory usage.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
 - en: 'It is possible to use a number of upstream Nginx modules with the `nginx_lua`
     module. These modules are as follows:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
 - en: '`lua-resty-memcached`'
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`lua-resty-mysql`'
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`lua-resty-redis`'
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`lua-resty-dns`'
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`lua-resty-upload`'
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`ngx_memc`'
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`ngx_postgres`'
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`ngx_redis2`'
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`ngx_redis`'
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`ngx_proxy`'
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`ngx_fastcgi`'
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'An example configuration of the `ngx_lua` module is as follows:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE18]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Explaining directives
+  id: totrans-173
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Some of the most important directives of `ngx_lua` are as follows:'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: lua_package_path
+  id: totrans-175
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `lua_package_path` directive is used to specify the path of the Lua scripts.
     This value is used by the directives such as `set_by_lua` and `content_by_lua`.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
 - en: You can use the special notation $prefix or ${prefix} in the search path string
     to indicate the path of the server prefix usually determined by the `-p PATH`
     command-line option while starting the Nginx server.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
 - en: The default value is taken from the `LUA_PATH` environment variable. If this
     variable is not defined, then the default search path is used to locate Lua scripts.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
 - en: set_by_lua or set_by_lua_file
+  id: totrans-179
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -831,38 +1137,48 @@
     parameters as an input and return the result through a `return` variable. The
     Nginx event loop is blocked when this code gets executed. You should, therefore,
     not use this directive to execute long-running codes.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
 - en: 'Note that the following API functions are currently disabled within this context.
     This directive can only write out a value to a single Nginx variable at a time,
     as shown in the following code snippet:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE19]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'This directive can be freely mixed with all directives of the `HttpRewriteModule`,
     `HttpSetMiscModule`, and `HttpArrayVarModule` modules. All these directives will
     be executed in the same order as they appear in the configuration file. An example
     configuration is given as follows:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE20]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: You can freely use the `$` sign inside the Lua scripts provided in this directive
     as the Nginx variable interpolation is disabled. This directive requires the `ngx_devel_kit`
     module.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
 - en: The `set_by_lua_file` directive is similar to the `set_by_lua` directive. The
     only difference is that the Lua script here is provided in a file. This file can
     also contain Lua or LuaJIT bytecode instead of a text script.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
 - en: When a relative path such as `path/file.lua` is given, it will be turned into
     an absolute path relative to the server prefix path determined by the `-p PATH`
     command-line option while starting the Nginx server.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
 - en: 'By default, the Lua code cache is turned on. This means that the script file
@@ -870,12 +1186,16 @@
     If you are in a development cycle, the code cache can be turned off by using the
     `lua_code_cache_off` parameter in the configuration file. The following is an
     example configuration:'
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE21]'
+  id: totrans-189
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: content_by_lua or content_by_lua_file
+  id: totrans-190
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -883,11 +1203,13 @@
     a Lua script to execute for every request during the content phase. You can use
     API calls in this script, and the script is executed in an independent global
     sandbox.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
 - en: Since this directive is a content handler, do not use it and the other content
     handler directives at the same location. For example, this directive and the `proxy_pass`
     directive should not be used at the same location.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
 - en: 'The `content_by_lua_file` directive is equivalent to `content_by_lua`, except
@@ -895,118 +1217,151 @@
     of writing inline codes. The code in this file is loaded only once if the code
     cache is turned on, and the relative paths are resolved to absolute paths using
     the server prefix. An example configuration is shown as follows:'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE22]'
+  id: totrans-194
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: rewrite_by_lua or rewrite_by_lua_file
+  id: totrans-195
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `rewrite_by_lua` or `rewrite_by_lua_file` directive executes the Lua code
     during the rewrite phase. The Lua code can use API calls and is run in a spawned
     global sandbox.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
 - en: 'Note that this handler always runs after the standard HTTP rewrite. So, the
     following piece of code will not work as expected:'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE23]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: This is because the `if` condition runs before `rewrite_by_lua` even if it is
     placed after `rewrite_by_lua` in the configuration script.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
 - en: 'The correct way of doing this by using Nginx API calls is as follows:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE24]'
+  id: totrans-201
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: The `rewrite_by_lua` code will always run at the end of the rewrite-request-processing
     phase unless `rewrite_by_lua_no_postpone` is turned `on`.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
 - en: 'The `rewrite_by_lua_file` directive also runs in the rewrite phase after the
     standard HTTP rewrite. However, the code is executed from a Lua script file or
     a bytecode file as shown in the following configuration script:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE25]'
+  id: totrans-204
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: access_by_lua or access_by_lua_file
+  id: totrans-205
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `access_by_lua` or `access_by_lua_file` directive executes the Lua code
     during the access phase. This means that the code in this directive will run once
     per request, and no subrequest will be able to trigger the code.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
 - en: The Lua code is run after the standard `HttpAccessModule`. Therefore, if you
     have any blacklisted IPs, they will be denied before this code is executed.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
 - en: You can use these directives to implement more complex access mechanisms, that
     is, the ones that communicate with upstream servers, such as a database.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
 - en: 'Let us now have a look at a sample ngx_lua configuration to understand the
     usage of access_by_lua:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE26]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: In the preceding example configuration, the Lua code will run the configuration
     for a defined location called `ldap_auth`, which will authenticate the user against
     an LDAP server, and based on a return value, the request either exits with a proper
     error code (403) or returns normally.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
 - en: The `access_by_lua` directive allows you to run a Lua script or bytecode using
     a file. You need to specify the path of the script file in the directive.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
 - en: Nginx variables can be used in the file to provide flexibility. This, however,
     carries some risks, and is not ordinarily recommended.
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
 - en: Relative file paths are converted to absolute paths using the server prefix.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
 - en: It is recommended that you turn on the code cache in the production environment,
     so that the Lua code is loaded only once. This can provide performance benefits.
     However, in a development environment, you should not enable the code cache in
     order to avoid reloading the server every time there is a code change.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
 - en: The `ngx_lua` module provides complete scripting capabilities while offering
     very high performance levels. This is especially true if you use the Just In Time
     (**JIT**)compilation using LuaJIT. This allows you a very wide range of use-cases
     where this module can be useful.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
 - en: Reverse IP lookup using the GeoIP module (ngx_http_geoip_module)
+  id: totrans-217
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: The `ngx_http_geoip_module` does a reverse lookup on the IP of the client using
     the MaxMind IP database. It resolves the IP address to the place of origin and
     sets a number for the variables.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
 - en: This module is not built by default; it should be enabled with the `--with-http_geoip_module`
     configuration parameter. As already mentioned, this module has dependency on the
     MaxMind GeoIP library.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
 - en: You need an account with MaxMind and will also need to download several database
     files that map IP addresses to countries, cities, and even organizations.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
 - en: 'One of the key applications, in addition to providing you with more information
@@ -1015,43 +1370,54 @@
     regions, and so on. This is a bit crude, but it works. You can use this module
     as a complement to `HttpLimitReqModule` and `HttpLimitZoneModule`. An example
     configuration is as follows:'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE27]'
+  id: totrans-222
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Explaining directives
+  id: totrans-223
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'The following is a list of directives you can use for configuring this module:'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
 - en: geoip_country
+  id: totrans-225
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: 'The `geoip_country` directive allows you to specify the name and path of the
     database file that contains the IP for a country''s lookup information. The following
     variables are available (as well as set by this module) while using this database:'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
 - en: '`$geoip_country_code`: This is a two-letter country code, for example, DE or
     US. These codes correspond to ISO 3166-1 alpha-2 standard.'
+  id: totrans-227
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_country_code3`: This is a three-letter country code, for example, DEU
     or USA. These codes correspond to ISO 3166-1 alpha-3 standard.'
+  id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_country_name`: This gives the complete country name, for example, Russian
     Federation or United States.'
+  id: totrans-229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: geoip_city
+  id: totrans-230
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1059,67 +1425,81 @@
     file to lookup the city''s and region''s information based on the client''s IP
     address. The following variables are available and set as well while using this
     database:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
 - en: '`$geoip_area_code`: This gives the telephone area code (US only) associated
     with the client''s IP address. This field in the MaxMind database has been depreciated,
     so you might not get any information or get outdated information.'
+  id: totrans-232
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_city_continent_code`: This is a two-letter continent code, for example,
     EU or AS.'
+  id: totrans-233
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_city_country_code`: This is a two-letter country code, for example,
     DE or US. These codes correspond to ISO 3166-1 alpha-2 standard.'
+  id: totrans-234
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_city_country_code3`: This is a three-letter country code, for example,
     DEU or USA. These codes correspond to ISO 3166-1 alpha-3 standard.'
+  id: totrans-235
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_city_country_name`: This gives the country name, for example, Russian
     Federation or United States.'
+  id: totrans-236
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_dma_code`: This gives the DMA region code in the US (also known as
     metro code), which can be found at [https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions](https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions).'
+  id: totrans-237
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_latitude`: This gives the latitudinal value of the city.'
+  id: totrans-238
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_longitude`: This gives the longitudinal value of the city.'
+  id: totrans-239
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_region`: This is a two-symbol country region code (region, territory,
     state, province, federal land, and the like), for example, 48 or DC.'
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_region_name`: This gives the country''s region name (region, territory,
     state, province, federal land, and the like), for example, Bavaria or District
     of Columbia.'
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_city`: This gives the full city name, for example, Munich or London.'
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`$geoip_postal_code`: This gives the postal code information if available.'
+  id: totrans-243
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: geoip_org
+  id: totrans-244
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1128,14 +1508,17 @@
     or an institution. Normally, this kind of information is available through the
     `whois` databases. The following variable is available and set as well while using
     this option:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
 - en: '`$geoip_org`: This contains the organization''s name, for example, Facebook,
     Inc.'
+  id: totrans-246
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: geoip_proxy
+  id: totrans-247
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1148,30 +1531,37 @@
     the IP sent in this header is purely up to the proxy server; therefore, if you
     trust a specific proxy server to send correct information, you can use this directive
     to enable lookup on the IP address sent in the `X-Forwarded-For` header.
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
 - en: geoip_proxy_recursive
+  id: totrans-249
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `geoip_proxy_recursive` directive allows you to enable recursive IP lookup.
     If recursive lookup is enabled, the last untrusted address sent in the `X-Forwarded-For`
     header will be used for the IP lookup.
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
 - en: If Nginx is working behind a proxy, you can also use `HttpRealIpModule`. This
     module allows you to change the client's IP address to a value from the request
     header (for example, `X-Real-IP` or `X-Forwarded-For`).
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
 - en: Doing healthchecks
+  id: totrans-252
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: Here we will learn about various modules to keep a track of the healthy upstreams.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
 - en: ngx_http_healthcheck_module
+  id: totrans-254
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1179,6 +1569,7 @@
     services and content, keeping track of which upstream servers are still healthy
     and working is very important, especially if they are third-party or external
     servers. This module allows you to keep track of healthy backends.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
 - en: This is how it works. When an upstream server responds with a 200+ status code,
@@ -1186,43 +1577,54 @@
     it is marked as bad. This module also has an HTTP healthcheck page where you can
     see the current status of the backends. This is quite similar to the `haproxy`
     or `varnish` healthchecks.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
 - en: 'This module inserts a healthcheck event into Nginx''s event tree. When that
     triggers, it starts a peer connection with the backend and sends as well as receives
     data. When the heathcheck is over or gets timed out, it updates the health of
     the backend in a shared memory area. The following is an example configuration:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE28]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Explaining directives
+  id: totrans-259
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: 'Some of the most important directives of the `ngx_http_healthcheck_module`
     are as follows:'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
 - en: healthcheck_enabled
+  id: totrans-261
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `healthcheck_enabled` module's context is upstream and enables health checking
     on the upstream servers defined in the specific upstream block. This, in the preceding
     example, would be `server1` and `server2`.
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
 - en: healthcheck_delay
+  id: totrans-263
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: For each upstream server, the `healthcheck_delay` directive defines the delay
     between two healthchecks. The default value is `1000 ms`.
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
 - en: healthcheck_timeout
+  id: totrans-265
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1230,18 +1632,22 @@
     operation. If the healthcheck operation is taking too long because the backend
     is slow in responding, the process will stop after the timeout has elapsed. The
     default value is `2000 ms`.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
 - en: healthcheck_failcount
+  id: totrans-267
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `healthcheck_failcount` directive gives the number of good or bad healthchecks
     in a row it takes to switch the current health status (good to bad or bad to good).
     The default value is `2`.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
 - en: healthcheck_send
+  id: totrans-269
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1249,16 +1655,21 @@
     decide what to send to do a healthcheck. This can be a simple HTTP `GET` command
     or something more complex. Each argument is appended by `\r\n` and the entire
     block is suffixed with another `\r\n`. The following is an example configuration:'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE29]'
+  id: totrans-271
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'Note that you probably want to end your healthcheck with some directive that
     closes the connection, for example, `Connection: close`.'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
 - en: healthcheck_expected
+  id: totrans-273
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1267,9 +1678,11 @@
     response or no response will mark the host as down. This refers to the response
     in the HTTP body and not the headers. If this directive is missing, a simple response
     code of 200 will be enough.
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
 - en: healthcheck_buffer
+  id: totrans-275
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1277,9 +1690,11 @@
     from the backend will be temporarily stored for checking. Make sure you allocate
     enough memory not only for the body but also for the headers that you expect to
     receive back in response.
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
 - en: Load balancing
+  id: totrans-277
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1288,9 +1703,11 @@
     basis. There are various hashing mechanisms available for load balancing, some
     of which are available via third-party modules. Here, we will just take a brief
     look at some of the options available to you.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
 - en: Consistent hashing
+  id: totrans-279
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1298,36 +1715,44 @@
     a consistent hash ring. Consistent hashing is a special hashing algorithm that
     is quite good when you have to rehash frequently because a new machine or server
     is added or removed from the pool.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
 - en: This module is compatible with the `php-memcached` module, and you can store
     values in the `memcached` cluster that this module can read from. You can find
     more details about this module at [http://wiki.nginx.org/HttpUpstreamConsistentHash](http://wiki.nginx.org/HttpUpstreamConsistentHash).
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
 - en: There is another similar module that uses the Ketama consistent hashing library
     to compute a hash on a configuration variable, that is, Request URI. Check out
     more information about this at [http://wiki.nginx.org/HttpUpstreamKetamaCHashModule](http://wiki.nginx.org/HttpUpstreamKetamaCHashModule).
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
 - en: Least busy
+  id: totrans-283
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The `ngx_http_upstream_fair_module` module allows you to do load balancing based
     on which upstream is least busy.
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
 - en: This module also provides a status page where you can view the current status
     of load balancing.
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
 - en: This module uses **Weighted Least-Connection Round Robin** (**WLC-RR**) with
     a number of possible variations. More information on this module is available
     at [http://wiki.nginx.org/HttpUpstreamFairModule](http://wiki.nginx.org/HttpUpstreamFairModule).
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
 - en: Configuration variable hashing
+  id: totrans-287
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1335,12 +1760,15 @@
     You can choose to do a hash on one of the available variables, that is, `$request_uri`
     or HTTP headers or a combination of both. This module uses CRC-32 to compute the
     hash on a specified variable.
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
 - en: More information on this is available at [http://wiki.nginx.org/HttpUpstreamRequestHashModule](http://wiki.nginx.org/HttpUpstreamRequestHashModule).
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-290
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -1351,9 +1779,11 @@
     Always do some testing first and then carefully move the modules in the production
     environments. The Nginx community will take no responsibility for any problems
     that you may encounter as a result of using these modules.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
 - en: In the next chapter, we will discuss developing our own Nginx module, which
     will be the first step into the world of custom module development.
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL

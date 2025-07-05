@@ -3,6 +3,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第2章 配置核心模块
 - en: In this chapter we will explore the configuration of the `Main` and `Events`
     modules of Nginx, which are also called the core modules. We will discuss the
     module-related configuration options and important points that one needs to remember
@@ -10,99 +11,122 @@
   id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将探讨Nginx的`Main`和`Events`模块的配置，这些模块也称为核心模块。我们将讨论与模块相关的配置选项和使用这些选项时需要记住的重要事项。
 - en: Understanding the Main module
   id: totrans-2
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 了解Main模块
 - en: 'The Nginx `Main` module consists of the following configuration directives
     or commands:'
   id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx的`Main`模块包含以下配置指令或命令：
 - en: '| Name | Value | Default | Example |'
   id: totrans-4
   prefs: []
   type: TYPE_TB
+  zh: '| 名称 | 值 | 默认值 | 示例 |'
 - en: '| --- | --- | --- | --- |'
   id: totrans-5
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- | --- |'
 - en: '| daemon | on, off | on |   |'
   id: totrans-6
   prefs: []
   type: TYPE_TB
+  zh: '| daemon | on, off | on |   |'
 - en: '| master_process | on, off | on |   |'
   id: totrans-7
   prefs: []
   type: TYPE_TB
+  zh: '| master_process | on, off | on |   |'
 - en: '| timer_resolution | interval | 0 | 100ms |'
   id: totrans-8
   prefs: []
   type: TYPE_TB
+  zh: '| timer_resolution | interval | 0 | 100ms |'
 - en: '| pid | file | logs/nginx.pid | /var/log/nginx.pid |'
   id: totrans-9
   prefs: []
   type: TYPE_TB
+  zh: '| pid | file | logs/nginx.pid | /var/log/nginx.pid |'
 - en: '| lock_file | file | logs/nginx.lock | /var/log/nginx.lock |'
   id: totrans-10
   prefs: []
   type: TYPE_TB
+  zh: '| lock_file | file | logs/nginx.lock | /var/log/nginx.lock |'
 - en: '| worker_processes | number, auto | 1 | 2 |'
   id: totrans-11
   prefs: []
   type: TYPE_TB
+  zh: '| worker_processes | number, auto | 1 | 2 |'
 - en: '| debug_points | stop, abort | null | stop |'
   id: totrans-12
   prefs: []
   type: TYPE_TB
+  zh: '| debug_points | stop, abort | null | stop |'
 - en: '| user | user [group] | nobody nobody | www users |'
   id: totrans-13
   prefs: []
   type: TYPE_TB
+  zh: '| user | user [group] | nobody nobody | www users |'
 - en: '| worker_priority | number | 0 | 15 |'
   id: totrans-14
   prefs: []
   type: TYPE_TB
+  zh: '| worker_priority | number | 0 | 15 |'
 - en: '| worker_cpu_affinity | cpu mask |   | 0101 1010 |'
   id: totrans-15
   prefs: []
   type: TYPE_TB
+  zh: '| worker_cpu_affinity | cpu mask |   | 0101 1010 |'
 - en: '| worker_rlimit_nofile | number |   | 1000 |'
   id: totrans-16
   prefs: []
   type: TYPE_TB
+  zh: '| worker_rlimit_nofile | number |   | 1000 |'
 - en: '| worker_rlimit_core | size |   | 500M |'
   id: totrans-17
   prefs: []
   type: TYPE_TB
+  zh: '| worker_rlimit_core | size |   | 500M |'
 - en: '| worker_rlimit_sigpending | number |   | 1000 |'
   id: totrans-18
   prefs: []
   type: TYPE_TB
+  zh: '| worker_rlimit_sigpending | number |   | 1000 |'
 - en: '| working_directory | directory | compile time | /usr/local/nginx |'
   id: totrans-19
   prefs: []
   type: TYPE_TB
+  zh: '| working_directory | directory | 编译时 | /usr/local/nginx |'
 - en: '| env | variable = value |   | PERL5LIB=/data/site/modules |'
   id: totrans-20
   prefs: []
   type: TYPE_TB
+  zh: '| env | variable = value |   | PERL5LIB=/data/site/modules |'
 - en: Explaining directives
   id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: We will now discuss all the `Main` module's directives mentioned in the preceding
     table in detail.
   id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将详细讨论前表中提到的`Main`模块的所有指令。
 - en: daemon
   id: totrans-23
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: daemon
 - en: The `daemon` directive determines if Nginx will run in the daemon mode. A daemon
     (or a service) is a background process that is designed to run autonomously, with
     little or no user intervention. Since Version 1.0.9 of Nginx, it is safe to run
@@ -111,6 +135,7 @@
   id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '`daemon`指令决定了Nginx是否会以守护进程模式运行。守护进程（或服务）是设计为在后台运行的进程，几乎不需要用户干预。从Nginx版本1.0.9开始，关闭此选项是安全的。如果关闭此选项，则无法在不中断Nginx的情况下进行二进制升级。'
 - en: Nginx's master process is responsible for nonstop binary upgrades. The signal
     that is used for this purpose is `SIGUSR2`. However, when the daemon mode is off,
     this signal is ignored because the master process will still have the old binary.
@@ -124,11 +149,14 @@
   id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx的主进程负责不停地进行二进制升级。为此目的使用的信号是`SIGUSR2`。然而，当守护进程模式关闭时，这个信号会被忽略，因为主进程仍会使用旧的二进制文件。这不同于守护进程模式，在这种模式下，新的工作进程的父进程会切换为`Init`进程，因此可以启动一个使用新二进制文件的工作进程。唯一可能希望关闭`master_process`的原因是为了调试。关闭这些选项后，Nginx将在前台运行，且没有主进程，你可以通过按下*Ctrl*
+    + *R*来终止它。然而，你不应在生产环境中关闭守护进程模式和`master_process`。
 - en: master_process
   id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: master_process
 - en: The `master_process` directive determines if Nginx will run with a master process.
     It has many responsibilities in Nginx, including spawning off worker processes.
     Nginx will run in the single-process mode if you set `master_process` off. You
@@ -138,11 +166,13 @@
   id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '`master_process`指令决定了Nginx是否以主进程模式运行。它在Nginx中有许多职责，包括生成工作进程。如果你将`master_process`设为关闭，Nginx将以单进程模式运行。你应该始终在生产环境中开启`master_process`选项。唯一可能关闭`master_process`的原因是调试，因为在单进程模式下调试代码可能更为简单。'
 - en: timer_resolution
   id: totrans-28
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: timer_resolution
 - en: Setting the `timer_resolution` directive will reduce the number of `gettimeofday()`
     system calls. Instead of doing this system call for each kernel event, `gettimeofday()`
     is only called once per specified interval. You might want to turn this option
@@ -277,6 +307,9 @@
   id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_cpu_affinity` 指令允许你设置工作进程的亲和性掩码。亲和性掩码是位掩码，可以将进程绑定到特定的 CPU。这在一些系统上可以提高性能，比如
+    Windows 系统，那里有多个系统进程被限制在第一个 CPU/核心上。因此，排除第一个 CPU/核心可能会带来更好的性能。我们可以使用以下代码片段将每个工作进程绑定到不同的
+    CPU：'
 - en: '[PRE2]'
   id: totrans-48
   prefs: []
@@ -286,11 +319,13 @@
   id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以将 CPU 亲和性值设置为最多 64 个 CPU/核心。
 - en: worker_rlimit_nofile
   id: totrans-50
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: worker_rlimit_nofile
 - en: The `worker_rlimit_nofile` directive sets the maximum limit on open files (`RLIMIT_NOFILE`)
     that a worker process can use. When this directive is set, the `setrlimit()` system
     call is used to set the resource limit. Any attempt to exceed this limit will
@@ -298,11 +333,14 @@
   id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_rlimit_nofile` 指令设置了工作进程可以使用的最大打开文件数限制（`RLIMIT_NOFILE`）。当设置此指令时，`setrlimit()`
+    系统调用会被用来设置资源限制。任何超出此限制的尝试将导致 `EFILE` 错误（表示打开的文件过多）。'
 - en: worker_rlimit_core
   id: totrans-52
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: worker_rlimit_core
 - en: The `worker_rlimit_core` directive sets the maximum size of the core dump file
     created by a worker process. When this option is set, the `setrlimit()` system
     call is used to set the resource limit of the file size. When this option is `0`,
@@ -310,11 +348,14 @@
   id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_rlimit_core` 指令设置了工作进程创建的核心转储文件的最大大小。当设置此选项时，`setrlimit()` 系统调用会用来设置文件大小的资源限制。当此选项为
+    `0` 时，将不会创建核心转储文件。'
 - en: worker_rlimit_sigpending
   id: totrans-54
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: worker_rlimit_sigpending
 - en: The `worker_rlimit_sigpending` directive specifies the limit on the number of
     signals that may be queued for the real user ID of the calling process. If you
     are using a Linux kernel version newer than 2.6.6, it will support real-time signals
@@ -325,22 +366,28 @@
   id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_rlimit_sigpending` 指令指定了调用进程的真实用户 ID 可以排队的信号数量限制。如果你使用的是版本大于 2.6.6
+    的 Linux 内核，它将支持实时信号（`rtsig`），并且每个进程将拥有自己的信号队列，而不是早期实现中的系统范围队列。当设置此选项时，`setrlimit()`
+    系统调用会用来设置资源限制 `RLIMIT_SIGPENDING`。为了执行此限制，标准信号和实时信号都会被计数。'
 - en: working_directory
   id: totrans-56
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: working_directory
 - en: The `working_directory` directive specifies the path where the core dump files
     are created. This path should be an absolute path. You must make sure that the
     user or group specified via the `user` option has a write permission in this folder.
   id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '`working_directory` 指令指定了核心转储文件创建的路径。此路径应为绝对路径。你必须确保通过 `user` 选项指定的用户或组在此文件夹中具有写入权限。'
 - en: env
   id: totrans-58
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: env
 - en: The `env` directive allows you to set some environment variables, which will
     be inherited by the worker processes. If you set some environment variables on
     a shell, they will be erased by Nginx, except `TZ`. This directive allows you
@@ -350,12 +397,15 @@
   id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '`env` 指令允许你设置一些环境变量，这些变量将被工作进程继承。如果你在 shell 中设置了一些环境变量，它们将被 Nginx 清除，除了 `TZ`。此指令允许你保留一些继承的变量，修改它们的值，或创建新的环境变量。环境变量
+    `NGINX` 是服务器内部使用的，不应由用户设置。'
 - en: If you specify an environment variable's name without specifying its value,
     the value from the parent process, that is, the shell will be retained by Nginx.
     But if you specify a value as well, this new value will be used by the server.
   id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你只指定了环境变量的名称，而没有指定其值，Nginx 将保留来自父进程的值，即来自 shell 的值。但如果你也指定了一个值，则服务器将使用这个新值。
 - en: '[PRE3]'
   id: totrans-61
   prefs: []
@@ -367,100 +417,123 @@
   id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的代码片段中，环境变量 `MALLOC_OPTIONS` 的值将从父进程保留，而其他两个环境变量则会被定义或重新定义，父进程设置的任何值将被清除。
 - en: Understanding the Events module
   id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解事件模块
 - en: 'The `Events` module deals with the configuration of `epoll`, `kqueue`, `select`,
     `poll`, and more. This module consists of the following directives:'
   id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Events` 模块处理 `epoll`、`kqueue`、`select`、`poll` 等的配置。此模块包含以下指令：'
 - en: '| Name | Value | Default | Example |'
   id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| 名称 | 值 | 默认值 | 示例 |'
 - en: '| --- | --- | --- | --- |'
   id: totrans-66
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- | --- |'
 - en: '| accept_mutex | on, off | on | off |'
   id: totrans-67
   prefs: []
   type: TYPE_TB
+  zh: '| accept_mutex | 开启，关闭 | 开启 | 关闭 |'
 - en: '| accept_mutex_delay | interval (ms) | 500ms | 500ms |'
   id: totrans-68
   prefs: []
   type: TYPE_TB
+  zh: '| accept_mutex_delay | 间隔（毫秒） | 500毫秒 | 500毫秒 |'
 - en: '| debug_connection | ip, cidr | none | 192.168.1.1 |'
   id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '| debug_connection | ip, cidr | 无 | 192.168.1.1 |'
 - en: '| devpoll_changes | number | 32 | 64 |'
   id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| devpoll_changes | 数字 | 32 | 64 |'
 - en: '| devpoll_events | number | 32 | 64 |'
   id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '| devpoll_events | 数字 | 32 | 64 |'
 - en: '| kqueue_changes | number | 512 | 512 |'
   id: totrans-72
   prefs: []
   type: TYPE_TB
+  zh: '| kqueue_changes | 数字 | 512 | 512 |'
 - en: '| kqueue_events | number | 512 | 512 |'
   id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| kqueue_events | 数字 | 512 | 512 |'
 - en: '| epoll_events | number | 512 | 512 |'
   id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '| epoll_events | 数字 | 512 | 512 |'
 - en: '| multi_accept | on, off | off | on |'
   id: totrans-75
   prefs: []
   type: TYPE_TB
+  zh: '| multi_accept | 开启，关闭 | 关闭 | 开启 |'
 - en: '| rtsig_signo | signal number | SIGRTMIN+10 |   |'
   id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '| rtsig_signo | 信号编号 | SIGRTMIN+10 |   |'
 - en: '| rtsig_overflow_events | number | 16 | 24 |'
   id: totrans-77
   prefs: []
   type: TYPE_TB
+  zh: '| rtsig_overflow_events | 数字 | 16 | 24 |'
 - en: '| rtsig_overflow_test | number | 32 | 40 |'
   id: totrans-78
   prefs: []
   type: TYPE_TB
+  zh: '| rtsig_overflow_test | 数字 | 32 | 40 |'
 - en: '| rtsig_overflow_threshold | number | 10 | 3 |'
   id: totrans-79
   prefs: []
   type: TYPE_TB
+  zh: '| rtsig_overflow_threshold | 数字 | 10 | 3 |'
 - en: '| use | Kqueue, rtsig, epoll, /dev/poll, select | decided by the configure
     script | rtsig |'
   id: totrans-80
   prefs: []
   type: TYPE_TB
+  zh: '| use | Kqueue, rtsig, epoll, /dev/poll, select | 根据配置脚本决定 | rtsig |'
 - en: '| worker_connections | number | 512 | 200 |'
   id: totrans-81
   prefs: []
   type: TYPE_TB
+  zh: '| worker_connections | 数字 | 512 | 200 |'
 - en: Explaining directives
   id: totrans-82
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解释指令
 - en: We will now discuss the `Events` module's directives summarized in the preceding
     table, in detail.
   id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将详细讨论前面表格中总结的 `Events` 模块的指令。
 - en: accept_mutex
   id: totrans-84
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: accept_mutex
 - en: The `accept_mutex` directive tries to prevent workers from competing over `accept()`
     for listing sockets (in the kernel). In other words, without `accept_mutex`, workers
     may try to simultaneously check for new events on sockets, which may lead to a
@@ -470,11 +543,14 @@
   id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '`accept_mutex` 指令尝试防止工作进程在 `accept()` 时竞争用于监听套接字的资源（内核中的套接字）。换句话说，如果没有 `accept_mutex`，工作进程可能会同时检查套接字上的新事件，这可能会导致
+    CPU 使用率略有上升。根据操作系统和事件通知机制的不同，结果可能会有所不同。如果你使用 `rtsig` 作为信号处理机制，必须启用此选项。'
 - en: accept_mutex_delay
   id: totrans-86
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: accept_mutex_delay
 - en: As enabling `accept_mutex` serializes the `accept()` call from worker processes,
     that is, one worker process does one `accept` at a time, the `accept_mutex_delay`
     directive determines how long the other worker processes will wait before they
@@ -482,11 +558,14 @@
   id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 启用 `accept_mutex` 会使工作进程的 `accept()` 调用串行化，也就是说，只有一个工作进程每次处理一个 `accept`。`accept_mutex_delay`
+    指令决定了当另一个进程正在进行 `accept` 时，其他工作进程等待多长时间才准备接受新连接。
 - en: debug_connection
   id: totrans-88
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: debug_connection
 - en: 'In order to use the `debug_connection` directive, Nginx needs to be built with
     the -- `debug-enabled` option while running the configure script. You can specify
     the IPv4 or IPv6 address of the clients for which the debugging log will be enabled.
@@ -497,6 +576,9 @@
   id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使用 `debug_connection` 指令，Nginx 需要在运行配置脚本时以 `--debug-enabled` 选项构建。你可以指定启用调试日志的客户端的
+    IPv4 或 IPv6 地址，也可以提供域名或 unix:（用于 Unix 域套接字连接）。其余客户端的日志级别通过 `error_log` 选项确定。调试日志将写入在
+    `error_log` 选项中指定的日志文件，具体代码如下：
 - en: '[PRE4]'
   id: totrans-90
   prefs: []
@@ -507,6 +589,7 @@
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: devpoll_changes 和 devpoll_events
 - en: The `/dev/poll` directive is an efficient method used in Solaris 7 11/99+, HP/UX
     11.22+ (eventport), IRIX 6.5.15+, and Tru64 UNIX 5.1A+. The `devpoll_changes`
     and `devpoll_events` parameters define the number of changes and events that can
@@ -515,11 +598,15 @@
   id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '`/dev/poll` 指令是一种高效的方法，用于 Solaris 7 11/99+、HP/UX 11.22+（eventport）、IRIX 6.5.15+
+    和 Tru64 UNIX 5.1A+。`devpoll_changes` 和 `devpoll_events` 参数定义了可以从内核传入和传出的变更和事件数量。在处理事件时，Nginx
+    每次只会将 `devpoll_changes` 或 `devpoll_events` 数量的事件和变更写入 `/dev/poll`。'
 - en: kqueue_changes and kqueue_events
   id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: kqueue_changes 和 kqueue_events
 - en: The `kqueue` directive is an efficient event-notification interface used in
     FreeBSD 4.1+, OpenBSD 2.9+, NetBSD 2.0, and Mac OS X. It provides efficient input
     and output event pipelines between the `kernel` and `user` processes. It is possible
@@ -531,16 +618,19 @@
   id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '`kqueue`指令是一个高效的事件通知接口，支持FreeBSD 4.1+、OpenBSD 2.9+、NetBSD 2.0和Mac OS X。它提供了一个高效的输入输出事件管道，在`kernel`和`user`进程之间进行数据交换。使用单个系统调用`kevent()`即可接收挂起的事件。这与较旧的传统轮询系统调用（如`poll`和`select`）形成对比，后者在轮询大量文件描述符上的事件时效率较低。其他先进的事件机制，如`/dev/poll`和`epoll`，也可以实现类似的功能。'
 - en: These parameters control how many changes and events are passed at a time to
     the `kevent()` system call.
   id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些参数控制在一次调用`kevent()`系统调用时传递的更改和事件的数量。
 - en: epoll_events
   id: totrans-96
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: epoll_events
 - en: The `epoll_events` directive is an efficient event-notification method used
     in Linux 2.6+. There are patches present to port this functionality to older kernels
     as well. This parameter determines the buffer size where the events are returned
@@ -548,11 +638,13 @@
   id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '`epoll_events`指令是Linux 2.6+中使用的一种高效的事件通知方法。也有补丁可以将此功能移植到旧版本的内核中。此参数确定在事件处理之前，一次返回的事件的缓冲区大小。'
 - en: multi_accept
   id: totrans-98
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: multi_accept
 - en: The worker process will try to accept all or as many incoming connections as
     possible when the `multi_accept` directive is enabled. Turning this option off
     will result in worker processes only accepting one connection at a time. This
@@ -565,11 +657,13 @@
   id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 当启用`multi_accept`指令时，工作进程会尽可能接受所有或尽可能多的传入连接。关闭此选项将导致工作进程一次只接受一个连接。如果使用`kqueue_events`通知方法，此选项将被忽略。如果使用`rtsig`方法，此选项会自动启用。默认情况下，此选项是关闭的。它可以是一个高性能的调整选项；然而，`multi_accept`的缺点是，如果你有一个恒定且高频率的传入连接流，它可能会在没有任何机会处理已接受连接的情况下，溢出`worker_connections`指令。
 - en: rtsig_signo
   id: totrans-100
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: rtsig_signo
 - en: Linux supports 32 real-time signals, numbered from 32 (`SIGRTMIN`) to 63 (`SIGRTMAX`).
     Programs should always refer to real-time signals using the notation `SIGRTMIN+n`,
     since the range of real-time signal numbers varies across *nix platforms. Nginx
@@ -580,11 +674,13 @@
   id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: Linux支持32个实时信号，编号从32（`SIGRTMIN`）到63（`SIGRTMAX`）。程序应始终使用`SIGRTMIN+n`的表示法来引用实时信号，因为实时信号编号的范围在*nix平台上是不同的。Nginx在使用`rtsig`方法时会使用两个信号。该指令指定第一个信号编号。第二个信号编号比第一个信号编号大1。默认情况下，`rtsig_signo`是SIGRTMIN+10（42），在这种情况下，第二个信号编号为43。
 - en: rtsig_overflow_events, rtsig_overflow_test, and rtsig_overflow_threshold
   id: totrans-102
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: rtsig_overflow_events、rtsig_overflow_test和rtsig_overflow_threshold
 - en: The `rtsig_overflow_events`, `rtsig_overflow_test`, and `rtsig_overflow_threshold`
     directives define how the queue overflow is handled while using real-time signals.
     When overflow occurs, Nginx flushes the `rtsig` queue, then handles the switching
@@ -595,11 +691,14 @@
   id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rtsig_overflow_events`、`rtsig_overflow_test`和`rtsig_overflow_threshold`指令定义了在使用实时信号时如何处理队列溢出。当溢出发生时，Nginx会刷新`rtsig`队列，然后处理`poll()`和`rtsig
+    poll()`之间事件的切换，并连续处理所有未处理的事件，同时`rtsig`会定期清空队列，以防止新的溢出。当溢出完全处理完毕后，Nginx会重新切换回`rtsig`方法。'
 - en: The `rtsig_overflow_events` directive specifies the number of events to be passed
     via `poll()`.
   id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rtsig_overflow_events`指令指定通过`poll()`传递的事件数量。'
 - en: The `rtsig_overflow_test` directive specifies the number of events handled by
     `poll()`, after which, Nginx will drain the `rtsig` queue.
   id: totrans-105
