@@ -1,48 +1,73 @@
 - en: Appendix D. Persisting Solaris Network Tunings
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 附录 D. 持久化 Solaris 网络调优
 - en: In [Chapter 8](ch08.html "Chapter 8. Troubleshooting Techniques"), *Troubleshooting
     Techniques*, we saw how to change different network tuning parameters for different
     operating systems. This appendix details what is necessary to persist these changes
     under Solaris 10 and above.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[第8章](ch08.html "第8章 故障排除技术")，*故障排除技术*中，我们看到了如何为不同的操作系统更改不同的网络调优参数。此附录详细说明了在
+    Solaris 10 及以上版本中使这些更改持久化所需的步骤。
 - en: 'The following script is what is actually run by the **Service Management Framework**
     (**SMF**) to set the network parameters with ndd. Save it as `/lib/svc/method/network-tuning.sh`
     and make it executable, so that it can be run at any time on the command line
     to test:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下脚本是**服务管理框架**（**SMF**）实际运行的内容，用于通过 ndd 设置网络参数。将其保存为`/lib/svc/method/network-tuning.sh`并使其具有可执行权限，这样就可以随时在命令行运行以进行测试：
 - en: '[PRE0]'
+  id: totrans-3
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The following snippet is the content of the `/lib/svc/method/network-tuning.sh`
     file:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码片段是`/lib/svc/method/network-tuning.sh`文件的内容：
 - en: '[PRE1]'
+  id: totrans-5
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The following manifest serves to define the network-tuning service and will
     run the script at boot time. Note that we specify a duration of *transient* to
     let SMF know that this is a run-once script and not a persistent daemon.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下清单用于定义网络调优服务，并将在启动时运行该脚本。请注意，我们指定了*临时*的持续时间，以便 SMF 知道这是一个只运行一次的脚本，而不是一个持久的守护进程。
 - en: 'Place it in `/var/svc/manifest/site/network-tuning.xml` and import with the
     following command:'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 将其放置在`/var/svc/manifest/site/network-tuning.xml`中，并使用以下命令导入：
 - en: '[PRE2]'
+  id: totrans-8
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'You should see the following output:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 您应该看到以下输出：
 - en: '[PRE3]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This service is intentionally kept simple, for demonstration purposes. The interested
     reader can explore SMF in the Solaris man pages and online resources.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 此服务故意保持简单，旨在演示。感兴趣的读者可以通过 Solaris 手册页和在线资源进一步探索 SMF。

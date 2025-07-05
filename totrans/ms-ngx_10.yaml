@@ -1,28 +1,40 @@
 - en: Appendix B. Rewrite Rule Guide
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 附录 B. 重写规则指南
 - en: 'This appendix is meant to introduce the `rewrite` module in NGINX and serve
     as a guide for creating new rules as well as translating legacy Apache rewrite
     rules into NGINX''s format. In this appendix, we will discuss the following:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本附录旨在介绍 NGINX 的 `rewrite` 模块，并作为创建新规则以及将旧版 Apache 重写规则转换为 NGINX 格式的指南。在本附录中，我们将讨论以下内容：
 - en: Introducing the rewrite module
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 介绍重写模块
 - en: Creating new rewrite rules
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建新的重写规则
 - en: Translating from Apache
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从 Apache 转换
 - en: Introducing the rewrite module
+  id: totrans-5
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍重写模块
 - en: 'NGINX''s rewrite module is a simple regular expression matcher combined with
     a virtual stack machine. The first part of any rewrite rule is a regular expression.
     As such, it is possible to use parentheses to define certain parts as "captures",
@@ -31,11 +43,16 @@
     They are labeled by number, so positional variable `$1` references what is matched
     by the first set of parentheses, `$2` the second set, and so on. For example,
     refer to the following regular expression:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 的重写模块是一个简单的正则表达式匹配器，结合了虚拟栈机。任何重写规则的第一部分是一个正则表达式。因此，可以使用括号定义某些部分为“捕获”，以后可以通过位置变量引用。位置变量是其值依赖于正则表达式中捕获顺序的变量。它们按数字标记，因此位置变量
+    `$1` 引用第一个括号匹配的内容，`$2` 引用第二个括号，依此类推。例如，参考以下正则表达式：
 - en: '[PRE0]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The first positional variable, `$1`, references a two-letter string which comes
     immediately after the string `/images/` at the beginning of the URI. The second
     positional variable, `$2`, refers to a five character string composed of lowercase
@@ -43,33 +60,50 @@
     presumably the name of a file. And the last variable to be extracted from this
     regular expression, `$4`, is one of `png`, `jpg`, or `gif`, which appears at the
     very end of the URI.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个位置变量 `$1` 引用紧跟在 URI 开头的 `/images/` 字符串后面的一个两字母字符串。第二个位置变量 `$2` 引用一个由小写字母和数字
+    0 到 9 组成的五个字符的字符串。第三个位置变量 `$3` 大概是文件名。而从这个正则表达式中提取的最后一个变量 `$4` 是 `png`、`jpg` 或
+    `gif` 中的一个，出现在 URI 的最后。
 - en: 'The second part of a `rewrite` rule is the URI to which the request is rewritten.
     The URI may contain any positional variable captured in the regular expression
     indicated by the first argument, or any other variable valid at this level of
     NGINX''s configuration:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rewrite` 规则的第二部分是请求被重写的 URI。URI 可以包含由第一个参数指定的正则表达式中捕获的任何位置变量，或者任何在此层级的 NGINX
+    配置中有效的其他变量：'
 - en: '[PRE1]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: If this URI does not match any of the other locations in the NGINX configuration,
     then it is returned to the client in the `Location` header with either a 301 (Moved
     Permanently) or a 302 (Found) HTTP status code indicating the type of redirect
     that is to be performed. This status code may be specified explicitly if `permanent`
     or `redirect` is the third parameter.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果该 URI 不匹配 NGINX 配置中的其他位置，则它将作为 `Location` 头部返回给客户端，并附带 301（永久移动）或 302（找到）HTTP
+    状态码，指示将执行的重定向类型。如果第三个参数为 `permanent` 或 `redirect`，则此状态码可以明确指定。
 - en: This third parameter to the rewrite rule may also be either `last` or `break`,
     indicating that no further `rewrite` module directives will be processed. Using
     the `last` flag will cause NGINX to search for another `location` matching the
     rewritten URI.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rewrite` 规则的第三个参数也可以是 `last` 或 `break`，表示不会再处理任何 `rewrite` 模块的指令。使用 `last`
+    标志将导致 NGINX 搜索另一个与重写后的 URI 匹配的 `location`。'
 - en: '[PRE2]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The `break` parameter may also be used as a directive on its own, to stop `rewrite`
     module directive processing within an `if` block or other context in which the
     `rewrite` module is active. The following snippet presumes that some external
@@ -77,11 +111,17 @@
     when a client has used too much bandwidth. The `limit_rate` directive will then
     enforce a lower transfer rate. `break` is used here because we entered the `rewrite`
     module with `if`, and we don''t want to process any further such directives:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break` 参数也可以单独作为指令使用，用来停止 `rewrite` 模块在 `if` 块或其他 `rewrite` 模块处于活动状态时的指令处理。以下代码假设某些外部方法被用来在客户端使用过多带宽时将
+    `$bwhog` 变量设置为非空且非零的值。然后，`limit_rate` 指令将强制执行较低的传输速率。这里使用 `break` 是因为我们通过 `if`
+    进入了 `rewrite` 模块，我们不希望继续处理此类指令：'
 - en: '[PRE3]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Another way to stop the processing of the `rewrite` module directives is to
     `return` control to the main `http` module processing the request. This may mean
     that NGINX returns information directly to the client, but `return` is often combined
@@ -92,276 +132,412 @@
     to be a 302\. When the text is placed after the status code, that text becomes
     the body of the response. If a URI is used instead, then that URI becomes the
     value of the `Location` header, to which the client will then be redirected.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种停止处理`rewrite`模块指令的方式是将控制权`return`到主`http`模块来处理请求。这可能意味着NGINX直接将信息返回给客户端，但`return`通常与`error_page`结合使用，要么向客户端展示一个格式化的HTML页面，要么激活其他模块来完成请求的处理。`return`指令可以指示状态码、带有一些文本的状态码，或者带有URI的状态码。如果仅使用URI作为唯一参数，那么状态码默认为302。当文本位于状态码之后时，这些文本成为响应的主体。如果使用URI，则该URI成为`Location`头的值，客户端将被重定向到该位置。
 - en: 'As an example, we want to set a short text as the output for a file not found
     error in a particular location. We specify the location with an equals sign (=)
     to exactly match just this URI:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为示例，我们希望设置一个短文本作为某个位置的文件未找到错误的输出。我们使用等号（=）指定该位置，以精确匹配此URI：
 - en: '[PRE4]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Any call to this URI would then be answered with an HTTP code of 404, and the
     text **image not found\n**. So, we can use `/image404.html` at the end of a `try_files`
     directive or as an error page for image files.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 对该URI的任何调用将返回HTTP代码404，并显示文本**image not found\n**。因此，我们可以在`try_files`指令的末尾或作为图像文件的错误页面使用`/image404.html`。
 - en: In addition to directives relating to the act of rewriting a URI, the `rewrite`
     module also includes the `set` directive to create new variables and set their
     values. This is useful in a number of ways, from creating flags when certain conditions
     are present, to passing named arguments on to other `locations` and logging what
     was done.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了与重写URI相关的指令外，`rewrite`模块还包括`set`指令，用于创建新变量并设置其值。这在多种情况下很有用，从在某些条件满足时创建标志，到将命名参数传递给其他`locations`并记录所做的操作。
 - en: 'The following example demonstrates some of these concepts and the usage of
     the corresponding directives:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下示例演示了这些概念的一些应用以及相应指令的使用：
 - en: '[PRE5]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'The following table summarizes the `rewrite` module directives we discussed
     in this section:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下表格总结了我们在本节中讨论的`rewrite`模块指令：
 - en: 'Table: Rewrite module directives'
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：重写模块指令
 - en: '| Directive | Explanation |'
+  id: totrans-25
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-26
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `break` | Ends the processing of the `rewrite` module directives found within
     the same context. |'
+  id: totrans-27
   prefs: []
   type: TYPE_TB
+  zh: '| `break` | 结束在同一上下文中找到的`rewrite`模块指令的处理。 |'
 - en: '| `if` | Evaluates a condition, and if true follows the `rewrite` module directives
     specified within the context set up using the following format:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `if` | 评估一个条件，如果为真，则遵循使用以下格式在上下文中指定的`rewrite`模块指令： |'
 - en: '[PRE6]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The condition may be any of the following:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 条件可以是以下任意之一：
 - en: 'a variable name: `false` if empty or any string starting with `0`'
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 变量名：`false`，如果为空或任何以`0`开头的字符串
 - en: 'string comparison: using the `=` and `!=` operators'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字符串比较：使用`=`和`!=`运算符
 - en: 'regular expression matching: using the `~` (case-sensitive) and the `~*` (case-insensitive)
     positive operators and their negative counterparts `!~` and `!~*`'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正则表达式匹配：使用`~`（区分大小写）和`~*`（不区分大小写）正向运算符及其负向运算符`!~`和`!~*`
 - en: 'file existence: using the `-f` and `! -f` operators'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件存在性：使用`-f`和`! -f`运算符
 - en: 'directory existence: using the `-d` and `! -d` operators'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目录存在性：使用`-d`和`! -d`运算符
 - en: 'file, directory, or symbolic link existence: using the `-e` and `! -e` operators'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件、目录或符号链接存在性：使用`-e`和`! -e`运算符
 - en: 'file executability: using the `-x` and `! -x` operators'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 文件可执行性：使用`-x`和`! -x`运算符
 - en: '|'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `return` | Stops processing and returns the specified code to the client.
     The non-standard code 444 will close the connection without sending any response
     headers. If a code additionally has text accompanying it, the text will be placed
     in the response body. If instead, a URL is given after the code, that URL will
     be the value of the `Location` header. A URL without a code is treated as a code
     302. |'
+  id: totrans-39
   prefs: []
   type: TYPE_TB
+  zh: '| `return` | 停止处理并将指定的代码返回给客户端。非标准代码 444 会在不发送任何响应头的情况下关闭连接。如果代码后面附带文本，该文本将被放入响应体中。如果在代码后给出了
+    URL，那么该 URL 将作为 `Location` 头的值。如果没有代码，URL 被视为代码 302。 |'
 - en: '| `rewrite` | Changes the URI from one matched by the regular expression in
     the first parameter to the string in the second parameter. If a third parameter
     is given, it is one of the following flags:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `rewrite` | 将 URI 从第一个参数中匹配的正则表达式所匹配的内容更改为第二个参数中的字符串。如果给定第三个参数，它是以下标志之一：'
 - en: '`last`: stops processing the `rewrite` module directives and searches for a
     location matched by the changed URI'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`last`：停止处理 `rewrite` 模块的指令，并搜索与更改后的 URI 匹配的位置'
 - en: '`break`: stops processing the `rewrite` module directives'
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`break`：停止处理 `rewrite` 模块的指令'
 - en: '`redirect`: returns a temporary redirect (code 302), used when the URI does
     not begin with a scheme'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`redirect`：返回临时重定向（代码 302），用于 URI 不以方案开头的情况'
 - en: '`permanent`: returns a permanent redirect (code 301)'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`permanent`：返回永久重定向（代码 301）'
 - en: '|'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `rewrite_log` | Activates the `notice` level logging of `rewrite` to `error_log`.
     |'
+  id: totrans-46
   prefs: []
   type: TYPE_TB
+  zh: '| `rewrite_log` | 启用 `rewrite` 的 `notice` 级别日志记录，记录到 `error_log` 中。 |'
 - en: '| `set` | Sets a given variable to a specific value. |'
+  id: totrans-47
   prefs: []
   type: TYPE_TB
+  zh: '| `set` | 将给定的变量设置为特定值。 |'
 - en: '| `unitialized_variable_warn` | Controls whether or not warnings about uninitialized
     variables are logged. |'
+  id: totrans-48
   prefs: []
   type: TYPE_TB
+  zh: '| `unitialized_variable_warn` | 控制是否记录关于未初始化变量的警告。 |'
 - en: Creating new rewrite rules
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 创建新的重写规则
 - en: 'When creating new rules from scratch, just as with any configuration block,
     plan out exactly what needs to be done. Some questions to ask yourself are as
     follows:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 在从头创建新规则时，和任何配置块一样，首先要规划好确切需要做什么。你可以问自己以下一些问题：
 - en: What pattern(s) do I have in my URLs?
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我在 URL 中使用的是什么模式？
 - en: Is there more than one way to reach a particular page?
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 是否有多种方式可以访问特定页面？
 - en: Do I want to capture any parts of the URL into variables?
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我是否想将 URL 的某些部分捕获到变量中？
 - en: Am I redirecting to a site not on this server, or could my rule be seen again?
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我是否正在重定向到本服务器以外的网站，或者我的规则是否可能再次被看到？
 - en: Do I want to replace the query string arguments?
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我是否想替换查询字符串参数？
 - en: In examining the layout of your website or application, it should be clear what
     patterns you have in your URLs. If there is more than one way to reach a certain
     page, create a rewrite rule to send a permanent redirect back to the client. Using
     this knowledge, you can construct a canonical representation of your website or
     application. This not only makes for cleaner URLs, but also helps your site to
     be found more easily.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 在检查你的网站或应用的布局时，应该清楚地了解你在 URL 中使用的模式。如果有多种方式可以访问某个页面，创建一个重写规则，将请求永久重定向回客户端。利用这些知识，你可以构建你网站或应用的规范表示。这不仅使
+    URL 更加简洁，而且有助于你的网站更容易被发现。
 - en: 'For example, if you have a `home` controller to handle default traffic, but
     can also reach that controller through an index page, you could have users getting
     to the same information using the following URIs:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果你有一个 `home` 控制器来处理默认流量，但也可以通过索引页面访问该控制器，那么用户可以通过以下 URI 访问相同的信息：
 - en: '[PRE7]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'It would be more efficient to direct requests containing the name of the controller
     and/or the index page back to the root:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 将包含控制器名称和/或索引页面的请求直接重定向回根目录会更加高效：
 - en: '[PRE8]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: We specified the `$scheme` and `$host` variables because we're making a permanent
     redirect (code 301) and want NGINX to construct the URL using the same parameters
     that reached this configuration line in the first place.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们指定了 `$scheme` 和 `$host` 变量，因为我们正在进行永久重定向（代码 301），并希望 NGINX 使用最初到达此配置行的相同参数来构造
+    URL。
 - en: 'If you would like to be able to log individual parts of the URL separately,
     you can use captures on the URI in the regular expression. Then, assign the positional
     variables to named variables, which are then part of a `log_format` definition.
     We saw an example of this in the previous section. The components are essentially
     as follows:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你希望能够单独记录 URL 的各个部分，可以在正则表达式中对 URI 使用捕获。然后，将位置变量赋值给命名变量，这些命名变量将成为`log_format`定义的一部分。我们在前一节中看到过一个例子。各个组件基本如下：
 - en: '[PRE9]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: When your rewrite rule leads to an internal redirect or instructs the client
     to call a location in which the rule itself is defined, special care must be taken
     to avoid a rewrite loop. For example, a rule may be defined in the server context
     with the `last` flag, but must use the `break` flag when defined within the location
     it references.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你的重写规则导致内部重定向或指示客户端调用包含该规则的定位时，必须特别小心以避免重写循环。例如，规则可能在服务器上下文中定义，并使用 `last` 标志，但在它引用的位置中定义时必须使用
+    `break` 标志。
 - en: '[PRE10]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Passing new query string arguments as part of a rewrite rule is one of the objectives
     of using rewrite rules. However, when the initial query string arguments should
     be discarded, and only the ones defined in the rule should be used, a `?` character
     needs to be placed at the end of the list of new arguments.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 将新的查询字符串参数作为重写规则的一部分传递是使用重写规则的目标之一。然而，当初始的查询字符串参数应被丢弃，且仅应使用规则中定义的参数时，必须在新参数列表的末尾添加一个
+    `?` 字符。
 - en: '[PRE11]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Translating from Apache
+  id: totrans-68
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从 Apache 转换
 - en: There is a long history of writing rewrite rules for Apache's powerful `mod_rewrite`
     module, and most resources on the Internet are focused on these. When encountering
     rewrite rules in Apache's format, they can be translated into a form that NGINX
     can parse by following a few simple rules.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: Apache 的强大 `mod_rewrite` 模块有着悠久的重写规则编写历史，互联网上的大多数资源都集中在这些内容上。当遇到 Apache 格式的重写规则时，可以通过遵循一些简单规则将其转换为
+    NGINX 可解析的形式。
 - en: 'Rule #1: Replace directory and file existence checks with try_files'
+  id: totrans-70
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '规则 #1：用 try_files 替代目录和文件存在性检查'
 - en: 'When encountering an Apache rewrite rule of the following form:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 当遇到如下形式的 Apache 重写规则时：
 - en: '[PRE12]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'This can best be translated into an NGINX configuration as follows:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以最好地转换为如下 NGINX 配置：
 - en: '[PRE13]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: These rules state that when the filename specified in the URI is neither a file
     nor a directory on disk, the request should be passed to the `index.php` file
     lying in the current context's root and given the argument `q` with a value matching
     the original URI.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些规则规定，当 URI 中指定的文件名既不是文件也不是磁盘上的目录时，应该将请求传递给当前上下文根目录中的 `index.php` 文件，并将参数 `q`
+    设置为与原始 URI 匹配的值。
 - en: 'Before NGINX had the `try_files` directive, there would be no choice but to
     use `if` to test for the existence of the URI:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 NGINX 拥有 `try_files` 指令之前，不得不使用 `if` 来测试 URI 的存在性：
 - en: '[PRE14]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Don't do this. You may see configurations on the Internet that recommend you
     do exactly this, but they are outdated or are copies of an outdated configuration.
     While not strictly a rewrite rule, because `try_files` belongs to the core `http`
     module, the `try_files` directive is much more efficient at performing this task
     and this is exactly what it was created for.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 不要这样做。你可能会在互联网上看到建议你这样做的配置，但它们已经过时，或者是过时配置的复制。虽然严格来说这不是重写规则，因为 `try_files` 属于核心的
+    `http` 模块，但 `try_files` 指令在执行此任务时更加高效，这正是它的设计目的。
 - en: 'Rule #2: Replace matches against REQUEST_URI with a location'
+  id: totrans-79
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '规则 #2：用位置替换对 REQUEST_URI 的匹配'
 - en: Many Apache rewrite rules are made to be placed into `.htaccess` files because,
     historically, users would most likely have access to these files themselves. A
     typical shared hoster would not enable their users direct access to the virtual
@@ -369,140 +545,212 @@
     the ability to place nearly any kind of configuration into an `.htaccess` file.
     This led to the situation we have today, with a proliferation of .htaccess-file-specific
     rewrite rules.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多 Apache 重写规则是为了放入 `.htaccess` 文件中，因为历史上用户最有可能自己访问这些文件。典型的共享主机提供商不会允许用户直接访问负责其网站的虚拟主机配置上下文，而是提供将几乎任何类型的配置放入
+    `.htaccess` 文件的能力。这导致了我们今天的情况，出现了大量针对 `.htaccess` 文件的重写规则。
 - en: 'While Apache also has a `Location` directive, it is rarely used to solve the
     problem of matching against the URI because it may only be used in either the
     main server configuration or the configuration of a virtual host. So, instead
     we will see a proliferation of rewrite rules that match against `REQUEST_URI`:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然 Apache 也有 `Location` 指令，但它很少用来解决与 URI 匹配的问题，因为它只能在主服务器配置或虚拟主机的配置中使用。因此，我们会看到大量匹配
+    `REQUEST_URI` 的重写规则。
 - en: '[PRE15]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'This is best handled in NGINX by using a location:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 最好通过在 NGINX 中使用 `location` 来处理此问题：
 - en: '[PRE16]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Of course, what is inside the `location` context is dependent upon your setup,
     but the principle remains the same; matches against the URI are best served by
     a `location`.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，`location`上下文内的内容取决于你的配置，但原则是相同的；与URI的匹配最好通过`location`来提供。
 - en: 'This principle also applies to `RewriteRules` that have an implicit `REQUEST_URI`.
     These are typically bare `RewriteRules` that transform the URI from an older format
     to a newer one. In the following example, we see that the `show.do` is no longer
     necessary:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个原则同样适用于有隐式`REQUEST_URI`的`RewriteRules`。这些通常是裸露的`RewriteRules`，它们将URI从旧格式转换为新格式。在以下示例中，我们看到`show.do`不再是必要的：
 - en: '[PRE17]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'This translates to an NGINX configuration as follows:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以转化为如下的NGINX配置：
 - en: '[PRE18]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Not to get too carried away with creating locations whenever we see a `RewriteRule`,
     we should keep in mind that regular expressions translate directly.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们看到`RewriteRule`时，不要过于激动地创建新的位置，我们应记住正则表达式是直接转换的。
 - en: 'Rule #3: Replace matches against HTTP_HOST with a server'
+  id: totrans-91
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 规则#3：用服务器替换与HTTP_HOST匹配的规则
 - en: 'Related closely to *Rule #2*, this rule takes configurations into account that
     try to either remove or add a `www` onto a domain name. These types of rewrite
     rules are often found in `.htaccess` files or in virtual hosts with overloaded
     `ServerAliases`:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 与*规则#2*密切相关，该规则考虑了试图去除或添加`www`到域名上的配置。这类重写规则通常出现在`.htaccess`文件中或在有重载`ServerAliases`的虚拟主机中：
 - en: '[PRE19]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'Here, we translate the case where no `www` is found at the beginning of the
     `Host` part of the URL to the variant with a `www` there:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里，我们将没有`www`的URL中的`Host`部分转换为带有`www`的变体：
 - en: '[PRE20]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'In the opposite case, where no `www` is desired, we enter the following rule:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在不需要`www`的情况下，我们输入以下规则：
 - en: '[PRE21]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'This translates to the following NGINX configuration:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以转化为如下的NGINX配置：
 - en: '[PRE22]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: What is not shown is the `server` context for the variant that has been redirected.
     This has been left out because it's not relevant to the rewriting itself.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 未显示的是已经被重定向的变体的`server`上下文。之所以没有展示，是因为它与重写本身无关。
 - en: This same principle applies to more than just matching a `www` or lack of one.
     It can be used in dealing with any `RewriteCond` that uses `%{HTTP_HOST}`. These
     rewrites are best done in NGINX by using multiple `server` contexts, one each
     to match the desired condition.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个相同的原则不仅适用于匹配`www`或缺失`www`的情况，它还可以用于处理任何使用`%{HTTP_HOST}`的`RewriteCond`。这些重写最好在NGINX中通过使用多个`server`上下文来完成，每个上下文匹配一个所需的条件。
 - en: 'For example, we have the following multisite configuration in Apache:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，我们有以下的Apache多站点配置：
 - en: '[PRE23]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: This basically translates to a configuration that matches on hostname and has
     a different `root` configuration per host.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 这基本上转化为一个根据主机名进行匹配，并且每个主机有不同`root`配置的配置。
 - en: '[PRE24]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: These are essentially different virtual hosts, so it is best to treat them as
     such in the configuration as well.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些基本上是不同的虚拟主机，因此最好在配置中也将它们视为不同的虚拟主机。
 - en: 'Rule #4: Replace RewriteCond with if for variable checks'
+  id: totrans-107
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 规则#4：用`if`替代`RewriteCond`进行变量检查
 - en: This rule applies only after having applied rules 1 to 3\. If there are any
     remaining conditions not covered by those rules, then `if` may be applied to test
     the values of variables. Any HTTP variable may be used by prefixing the lowercased
     name of the variable with `$http_`. If there are hyphens (-) in the name, these
     are translated into underscores (_).
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 该规则仅在应用了规则1到规则3之后生效。如果仍有未被这些规则覆盖的条件，那么可以使用`if`来测试变量的值。任何HTTP变量都可以通过将变量名的小写形式加上`$http_`前缀来使用。如果变量名中有连字符（-），它们会被转换成下划线（_）。
 - en: 'The following example (taken from Apache''s documentation on the `mod_rewrite`
     module at [http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html](http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html))
     is used to decide which page should be delivered to a client based on the `User-Agent`
     header:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下示例（摘自Apache关于`mod_rewrite`模块的文档，网址为[http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html](http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html)）用于根据`User-Agent`头决定应该向客户端提供哪个页面：
 - en: '[PRE25]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'This can be translated to an NGINX configuration as follows:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以转化为如下的NGINX配置：
 - en: '[PRE26]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: If there are any special variables that are available only under Apache's `mod_rewrite`,
     then these of course can't be checked in NGINX.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果有些特殊变量只在Apache的`mod_rewrite`中可用，那么这些在NGINX中当然无法检查。
 - en: Summary
+  id: totrans-114
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: We explored NGINX's `rewrite` module in this appendix. There are only a few
     directives associated with the module, but these can be used to create some complex
     configurations. Taking the process of creating new rewrite rules step-by-step
@@ -512,5 +760,7 @@
     to translate Apache-style rewrite rules into a configuration that NGINX can parse.
     In doing so, we discovered that quite a few Apache rewrite rule scenarios can
     be solved differently in NGINX.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在本附录中探讨了NGINX的`rewrite`模块。与该模块相关的指令并不多，但这些指令可以用来创建一些复杂的配置。希望通过逐步创建新的重写规则的过程，演示了如何轻松制作重写规则。在创建任何复杂规则之前，需要理解正则表达式的构建和阅读方法。我们最后讨论了如何将Apache风格的重写规则转换为NGINX可解析的配置。通过这样做，我们发现在NGINX中可以以不同的方式解决相当多的Apache重写规则场景。

@@ -3000,11 +3000,14 @@
   id: totrans-385
   prefs: []
   type: TYPE_TB
+  zh: '| `uninitialized_variable_warn` | 控制是否记录未初始化变量的警告。 | 有效上下文：`http`，`server`，`location`，`if`
+    默认值：`on` |'
 - en: '| `upstream` | Sets up a named context in which a group of servers is defined.
     | Valid context: `http`Default value: - |'
   id: totrans-386
   prefs: []
   type: TYPE_TB
+  zh: '| `upstream` | 设置一个命名上下文，在该上下文中定义一组服务器。 | 有效上下文：`http` 默认值：- |'
 - en: '| `use` | The `use` directive indicates which connection processing method
     should be used. This will overwrite the compiled-in default, and must be contained
     in an `events` context, if used. It is especially useful when the compiled-in
@@ -3013,6 +3016,8 @@
   id: totrans-387
   prefs: []
   type: TYPE_TB
+  zh: '| `use` | `use`指令表示应使用哪种连接处理方法。若使用此指令，它将覆盖已编译的默认值，并且必须包含在`events`上下文中。如果使用时，尤其在发现已编译的默认值随着时间的推移产生错误时非常有用。
+    | 有效上下文：`events` 默认值：- |'
 - en: '| `user` | The `user` and `group` under which the worker processes will run
     is configured using this parameter. If the `group` is omitted, a group name equal
     to that of the `user` will be used. | Valid context: `main`Default value: `nobody
@@ -3020,66 +3025,85 @@
   id: totrans-388
   prefs: []
   type: TYPE_TB
+  zh: '| `user` | 配置worker进程运行的`user`和`group`。如果省略`group`，则使用与`user`相同的组名。 | 有效上下文：`main`
+    默认值：`nobody nobody` |'
 - en: '| `userid` | Activates the module according to the following parameters:'
   id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `userid` | 根据以下参数激活模块：'
 - en: '`on`: Sets Version 2 cookies and logs those received'
   id: totrans-390
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`on`: 设置版本2的cookie并记录接收到的cookie'
 - en: '`v1`: Sets Version 1 cookies and logs those received'
   id: totrans-391
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`v1`: 设置版本1的cookie并记录接收到的cookie'
 - en: '`log`: Disables setting of cookies, but enables logging them'
   id: totrans-392
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`log`: 禁用设置cookie，但启用记录cookie'
 - en: '`off`: Disables both the setting of cookies and the logging of them'
   id: totrans-393
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`: 禁用设置cookie和记录cookie'
 - en: '| Valid contexts: `http`, `server`, `location`Default value: `off` |'
   id: totrans-394
   prefs: []
   type: TYPE_TB
+  zh: '| 有效上下文：`http`，`server`，`location` 默认值：`off` |'
 - en: '| `userid_domain` | Configures a domain to be set in the cookie. | Valid contexts:
     `http`, `server`, `location`Default value: `none` |'
   id: totrans-395
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_domain` | 配置要设置在cookie中的域名。 | 有效上下文：`http`，`server`，`location` 默认值：`none`
+    |'
 - en: '| `userid_expires` | Sets the age of the cookie. If the keyword `max` is used,
     this translates to `31 Dec 2037 23:55:55 GMT`. | Valid contexts: `http`, `server`,
     `location`Default value: - |'
   id: totrans-396
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_expires` | 设置cookie的过期时间。如果使用`max`关键字，则表示`31 Dec 2037 23:55:55 GMT`。
+    | 有效上下文：`http`，`server`，`location` 默认值：- |'
 - en: '| `userid_mark` | Sets the first character of the tail of the `userid_name`
     cookie''s base64 representation. | Valid contexts: `http`, `server`, `location`Default
     value: `off` |'
   id: totrans-397
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_mark` | 设置`userid_name` cookie的base64表示形式尾部的第一个字符。 | 有效上下文：`http`，`server`，`location`
+    默认值：`off` |'
 - en: '| `userid_name` | Sets the name of the cookie. | Valid contexts: `http`, `server`,
     `location`Default value: `uid` |'
   id: totrans-398
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_name` | 设置cookie的名称。 | 有效上下文：`http`，`server`，`location` 默认值：`uid`
+    |'
 - en: '| `userid_p3p` | Configures the P3P header. | Valid contexts: `http`, `server`,
     `location`Default value: - |'
   id: totrans-399
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_p3p` | 配置P3P头部。 | 有效上下文：`http`，`server`，`location` 默认值：- |'
 - en: '| `userid_path` | Defines the path set in the cookie. | Valid contexts: `http`,
     `server`, `location`Default value: `/` |'
   id: totrans-400
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_path` | 定义cookie中设置的路径。 | 有效上下文：`http`，`server`，`location` 默认值：`/`
+    |'
 - en: '| `userid_service` | Identity of the service that set the cookie. For example,
     the default value for Version 2 cookies is the IP address of the server that set
     the cookie. | Valid contexts: `http`, `server`, `location`Default value: IP address
@@ -3087,39 +3111,47 @@
   id: totrans-401
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_service` | 设置cookie的服务身份。例如，版本2的cookie默认值是设置cookie的服务器的IP地址。 | 有效上下文：`http`，`server`，`location`
+    默认值：服务器的IP地址 |'
 - en: '| `valid_referers` | Defines which values of the `Referer` header will cause
     the `$invalid_referer` variable to be set to an empty string. Otherwise it will
     be set to `1`. The parameters can be one or more of the following:'
   id: totrans-402
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `valid_referers` | 定义哪些`Referer`头部的值将导致`$invalid_referer`变量被设置为空字符串，否则将设置为`1`。参数可以是以下之一或多个：'
 - en: '`none`: There is no `Referer` header'
   id: totrans-403
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`none`: 没有`Referer`头部'
 - en: '`blocked`: The `Referer` header is present, but empty or lacking a scheme'
   id: totrans-404
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`blocked`: `Referer`头部存在，但为空或缺少方案'
 - en: '`server_names`: The `Referer` value is one of the `server_names`'
   id: totrans-405
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`server_names`: `Referer`值是`server_names`之一'
 - en: 'arbitrary string: the value of the `Referer` header is a server name with or
     without URI prefixes and `*` at the beginning or end'
   id: totrans-406
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 任意字符串：`Referer`头部的值是服务器名称，可以带有或不带有URI前缀，并且`*`出现在开头或结尾
 - en: 'regular expression: matches the text after the scheme in the `Referer` header''s
     value'
   id: totrans-407
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正则表达式：匹配`Referer`头部值中的方案后的文本
 - en: '| Valid context: `server`, `location`Default value: - |'
   id: totrans-408
   prefs: []
