@@ -1,158 +1,233 @@
 - en: Chapter 1. Installing NGINX and Third-Party Modules
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第1章 安装NGINX和第三方模块
 - en: NGINX was first conceived to be an HTTP server. It was created to solve the
     C10K problem, described by Daniel Kegel at [http://www.kegel.com/c10k.html](http://www.kegel.com/c10k.html),
     of designing a web server to handle 10,000 simultaneous connections. NGINX is
     able to do this through its event-based connection-handling mechanism, and will
     use the OS-appropriate event mechanism in order to achieve this goal.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX最初被设计为一个HTTP服务器。它的诞生是为了解决Daniel Kegel在[http://www.kegel.com/c10k.html](http://www.kegel.com/c10k.html)中描述的C10K问题，即设计一个能够处理10,000个并发连接的Web服务器。NGINX能够通过其基于事件的连接处理机制来实现这一点，并将使用适合操作系统的事件机制来实现这一目标。
 - en: Before we begin exploring how to configure NGINX, we will first install it.
     This chapter details how to install NGINX itself and how to get the correct modules
     installed and configured. NGINX is modular by design, and there is a rich community
     of third-party module developers who have added functionality to the core NGINX
     server by creating modules that can be compiled into the server and installed
     along with it.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始探讨如何配置NGINX之前，我们首先需要安装它。本章详细介绍了如何安装NGINX及如何正确安装和配置所需的模块。NGINX是模块化设计的，且有一个活跃的第三方模块开发者社区，他们通过创建可以编译到服务器中并与之一起安装的模块，扩展了NGINX核心服务器的功能。
 - en: 'In this chapter, we will cover:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将涵盖：
 - en: Installing NGINX using a package manager
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用包管理器安装NGINX
 - en: Installing NGINX from source
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从源代码安装NGINX
 - en: Configuring for web or mail service
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置Web或邮件服务
 - en: Enabling various modules
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 启用各种模块
 - en: Finding and installing third-party modules
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查找并安装第三方模块
 - en: Putting it all together
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 整合所有内容
 - en: Installing NGINX using a package manager
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用包管理器安装NGINX
 - en: 'Chances are that your operating system of choice already provides `nginx` as
     a package. Installing it is as simple as using your package manager''s commands:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 很可能你的操作系统已经提供了`nginx`作为包管理的一部分。安装它就像使用包管理器的命令一样简单：
 - en: Linux (deb-based)
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Linux（基于deb的系统）
 - en: '[PRE0]'
+  id: totrans-13
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Linux (rpm-based)
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Linux（基于rpm的系统）
 - en: '[PRE1]'
+  id: totrans-15
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: FreeBSD
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FreeBSD
 - en: '[PRE2]'
+  id: totrans-17
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Note
+  id: totrans-18
   prefs:
   - PREF_IND
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: The `sudo` command is representative of what you need to execute on your operating
     system to achieve superuser ('root') privileges. If your operating system supports
     **RBAC** (**Role-based access control**), then you would use a different command,
     such as 'pfexec' to achieve the same goal.
+  id: totrans-19
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`sudo`命令代表你在操作系统上需要执行的命令，以获得超级用户（''root''）权限。如果你的操作系统支持**RBAC**（**基于角色的访问控制**），则你需要使用其他命令，如''pfexec''，来达到相同的目的。'
 - en: These commands will install NGINX into standard locations, specific to your
     operating system. This is the preferred installation method if you need to use
     your operating system's packages.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些命令将把NGINX安装到操作系统特定的标准位置。如果你需要使用操作系统的包，这是首选的安装方法。
 - en: The NGINX core team also provides binaries of the stable version, available
     from [http://nginx.org/en/download.html](http://nginx.org/en/download.html). Users
     of distributions without an `nginx` package (such as CentOS), can use the following
     instructions to install pre-tested, pre-compiled binaries.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX核心团队还提供了稳定版本的二进制文件，可以从[http://nginx.org/en/download.html](http://nginx.org/en/download.html)下载。没有`nginx`包的发行版（如CentOS）用户，可以使用以下说明安装经过预先测试和编译的二进制文件。
 - en: CentOS
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: CentOS
 - en: 'Add the NGINX repository to your yum configuration by creating the following
     file:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过创建以下文件，将NGINX仓库添加到你的yum配置中：
 - en: '[PRE3]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Then install `nginx` by executing the following command:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后执行以下命令安装`nginx`：
 - en: '[PRE4]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Alternative instructions for installing an `nginx-release` package are available
     at the preceding URL.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关安装`nginx-release`包的替代说明，请参阅上述URL。
 - en: Debian
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Debian
 - en: 'Install the NGINX signing key by downloading it from [http://nginx.org/keys/nginx_signing.key](http://nginx.org/keys/nginx_signing.key)
     and adding it to the apt keyring:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过从[http://nginx.org/keys/nginx_signing.key](http://nginx.org/keys/nginx_signing.key)下载NGINX签名密钥，并将其添加到apt密钥环中来安装NGINX签名密钥：
 - en: '[PRE5]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Append the `nginx.org` repository to the end of `/etc/apt/sources.list`:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 将`nginx.org`仓库添加到`/etc/apt/sources.list`的末尾：
 - en: '[PRE6]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Then install `nginx` by executing the following command:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后执行以下命令安装`nginx`：
 - en: '[PRE7]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: If your operating system does not include `nginx` in its list of available packages,
     the version there is too old for what you would like to do, the packages at [nginx.org](http://nginx.org)
     don't serve your needs, or you would like to use the "development" release of
     NGINX, then compiling NGINX from source is the only other option.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的操作系统没有在其可用软件包列表中包含 `nginx`，或者列表中的版本太旧，不满足你的需求，或者 [nginx.org](http://nginx.org)
+    提供的包不能满足你的需求，或者你希望使用 NGINX 的“开发版”，那么从源代码编译 NGINX 将是唯一的选择。
 - en: Installing NGINX from source
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从源代码安装 NGINX
 - en: NGINX downloads are available for two separate branches of NGINX code—stable
     and development. The development branch is the one in which active development
     is taking place. Here is where new features will be found and integrated before
@@ -163,12 +238,17 @@
     API may change in the development release, whereas it stays the same on the stable
     branch, so backward compatibility for third-party modules is only available for
     stable releases.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 提供了两个独立版本的下载——稳定版和开发版。开发版是正在进行活跃开发的版本，新功能会在此分支中实现，并在集成之后转移到稳定版中。当发布“开发版”时，它已经经过了与稳定版相同的质量保证和类似的功能测试，因此两个分支都可以在生产系统中使用。两者之间的主要区别在于对第三方模块的支持。开发版中的内部
+    API 可能会发生变化，而稳定版中的 API 保持不变，因此，只有稳定版才支持第三方模块的向后兼容性。
 - en: Preparing a build environment
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 准备构建环境
 - en: In order to compile NGINX from source, certain requirements need to be met on
     your system. Besides a compiler, you also need the OpenSSL and **PCRE** (**Perl
     Compatible Regular Expressions**) libraries and development headers, if you want
@@ -177,8 +257,12 @@
     installation. If not, you will need to either locate the appropriate package and
     install it, or download the source, unpack it, and point NGINX's configure script
     to this location.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了从源代码编译 NGINX，你的系统需要满足某些要求。除了编译器外，如果你希望启用 SSL 支持并能够使用 `rewrite` 模块，你还需要 OpenSSL
+    和 **PCRE**（**Perl 兼容正则表达式**）库以及开发头文件。根据你的系统，这些要求可能已经在默认安装中满足。如果没有，你需要找到相应的包并安装，或者下载源代码并解压，然后将
+    NGINX 的配置脚本指向该位置。
 - en: NGINX will attempt to build a dependent library statically if you include a
     `–with-<library>=<path>` option to configure. You might want this if you would
     like to ensure that NGINX is not dependent on any other part of the system and/or
@@ -187,8 +271,12 @@
     certain version onwards (for example, the Next Protocol Negotiation TLS extension
     available from OpenSSL Version 1.0.1), then you would have to specify the path
     to the unpacked sources of that particular version.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在配置时包含 `–with-<library>=<path>` 选项，NGINX 会尝试静态构建依赖的库。如果你希望确保 NGINX 不依赖系统的其他部分，或希望从
+    `nginx` 二进制文件中挤出额外的性能，你可能需要这么做。如果你使用的是外部库的某些功能，而这些功能只有在某个特定版本及之后的版本中才可用（例如，OpenSSL
+    1.0.1 版本及以后的 Next Protocol Negotiation TLS 扩展），那么你必须指定该版本的源代码路径。
 - en: There are other, optional, packages that you may provide support for if you
     like. These include MD5 and SHA-1 hashing algorithm support, zlib compression,
     and libatomic library support. The hashing algorithms are used in many places
@@ -196,127 +284,196 @@
     The zlib compression library is used for delivering gzipped content. If the `atomic_ops`
     library is available, NGINX will use its atomic memory update operations to implement
     high-performance memory-locking code.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一些其他可选的软件包，你可以根据需要提供支持。这些包括 MD5 和 SHA-1 哈希算法支持、zlib 压缩和 libatomic 库支持。哈希算法在
+    NGINX 的许多地方使用，例如，用来计算 URI 的哈希值，以确定缓存键。zlib 压缩库用于传输压缩过的内容。如果 `atomic_ops` 库可用，NGINX
+    将使用它的原子内存更新操作来实现高性能的内存锁定代码。
 - en: Compiling from source
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从源代码编译
 - en: 'NGINX may be downloaded from [http://nginx.org/en/download.html](http://nginx.org/en/download.html).
     Here you will find the source of either branch in the `.tar.gz` or `.zip` format.
     Unpack the archive into a temporary directory as follows:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 可以从 [http://nginx.org/en/download.html](http://nginx.org/en/download.html)
+    下载。在这里，你将找到 `.tar.gz` 或 `.zip` 格式的源代码。将归档文件解压到临时目录，操作如下：
 - en: '[PRE8]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Configure it using the following command:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用以下命令进行配置：
 - en: '[PRE9]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'And compile it as follows:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后按如下方式编译：
 - en: '[PRE10]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: When compiling your own `nginx` binary, you are much more free to include only
     what you need. Can you already say under which user NGINX should run? Do you want
     to specify the default logfile locations so that they don't need to be explicitly
     set in the configuration? The following table of configure options will help you
     design your own binary. These are options that are valid for NGINX independent
     of which module is activated.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 在编译自己的 `nginx` 二进制文件时，你可以更自由地只包含需要的部分。你是否已经确定了 NGINX 应该以哪个用户身份运行？你是否想指定默认的日志文件位置，这样就不需要在配置中显式设置？以下配置选项表将帮助你设计自己的二进制文件。这些选项在
+    NGINX 中有效，与启用的模块无关。
 - en: 'Table: Common configure options'
+  id: totrans-50
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：常见配置选项
 - en: '| Option | Explanation |'
+  id: totrans-51
   prefs: []
   type: TYPE_TB
+  zh: '| 选项 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-52
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `--prefix=<path>` | The root of the installation. All other installation
     paths are relative to this one. |'
+  id: totrans-53
   prefs: []
   type: TYPE_TB
+  zh: '| `--prefix=<path>` | 安装的根路径，所有其他安装路径都相对于此路径。 |'
 - en: '| `--sbin-path=<path>` | The path to the `nginx` binary. If not specified,
     this will be relative to the prefix. |'
+  id: totrans-54
   prefs: []
   type: TYPE_TB
+  zh: '| `--sbin-path=<path>` | `nginx` 二进制文件的路径。如果未指定，将相对于前缀路径。 |'
 - en: '| `--conf-path=<path>` | The path to where `nginx` will look for its configuration
     file, if not specified on the command line. |'
+  id: totrans-55
   prefs: []
   type: TYPE_TB
+  zh: '| `--conf-path=<path>` | 指定 `nginx` 查找其配置文件的路径，如果命令行中未指定该路径。 |'
 - en: '| `--error-log-path=<path>` | This is where `nginx` will write its error logfile,
     unless configured otherwise. |'
+  id: totrans-56
   prefs: []
   type: TYPE_TB
+  zh: '| `--error-log-path=<path>` | `nginx` 将在此路径下写入错误日志文件，除非另行配置。 |'
 - en: '| `--pid-path=<path>` | This is where nginx will write the pid file of the
     master process, usually under `/var/run`. |'
+  id: totrans-57
   prefs: []
   type: TYPE_TB
+  zh: '| `--pid-path=<path>` | 指定 `nginx` 将在此路径下写入主进程的 PID 文件，通常位于 `/var/run` 下。 |'
 - en: '| `--lock-path=<path>` | The path to the shared memory mutex lock file. |'
+  id: totrans-58
   prefs: []
   type: TYPE_TB
+  zh: '| `--lock-path=<path>` | 共享内存互斥锁文件的路径。 |'
 - en: '| `--user=<user>` | The user under which the worker processes should run. |'
+  id: totrans-59
   prefs: []
   type: TYPE_TB
+  zh: '| `--user=<user>` | 指定工作进程应该运行的用户。 |'
 - en: '| `--group=<group>` | The group under which the worker processes should run.
     |'
+  id: totrans-60
   prefs: []
   type: TYPE_TB
+  zh: '| `--group=<group>` | 指定工作进程应该运行的用户组。 |'
 - en: '| `--with-file-aio`. | Enables asynchronous I/O for FreeBSD 4.3+ and Linux
     2.6.22+ |'
+  id: totrans-61
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-file-aio` | 启用 FreeBSD 4.3+ 和 Linux 2.6.22+ 的异步 I/O。 |'
 - en: '| `--with-debug` | This option will enable debug logging. Not recommended for
     production systems. |'
+  id: totrans-62
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-debug` | 启用调试日志记录的选项。建议不要在生产环境中使用。 |'
 - en: 'You are also able to compile with optimizations that you may not get in a packaged
     installation. This is where the following options can be especially useful:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以使用某些优化选项，这些选项在打包安装时可能无法获得。以下选项在这种情况下尤其有用：
 - en: 'Table: Configure options for optimization'
+  id: totrans-64
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：优化配置选项
 - en: '| Option | Explanation |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| 选项 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-66
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `--with-cc=<path>` | If you would like to set a C compiler that is not in
     your default PATH. |'
+  id: totrans-67
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-cc=<path>` | 如果你想设置一个不在默认 PATH 中的 C 编译器，可以使用此选项。 |'
 - en: '| `--with-cpp=<path>` | This is the corresponding path to the C preprocessor.
     |'
+  id: totrans-68
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-cpp=<path>` | 指定 C 预处理器的路径。 |'
 - en: '| `--with-cc-opt=<options>` | Here is where the path to the necessary `include`
     files may be indicated (`-I<path>`), as well as optimizations (`-O4`) and specifying
     a 64-bit build. |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-cc-opt=<options>` | 在此处可以指定必要的 `include` 文件路径（`-I<path>`），以及优化选项（`-O4`）和指定
+    64 位构建。 |'
 - en: '| `--with-ld-opt=<options>` | The options to the linker include library path
     (`-L<path>`) and run path (`-R<path>`). |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-ld-opt=<options>` | 链接器的选项，包括库路径（`-L<path>`）和运行路径（`-R<path>`）。 |'
 - en: '| `--with-cpu-opt=<cpu>` | A build specific to a particular CPU family may
     be specified with this option. |'
+  id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-cpu-opt=<cpu>` | 可以通过此选项指定特定 CPU 家族的构建。 |'
 - en: Configuring for web or mail service
+  id: totrans-72
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置 Web 或邮件服务
 - en: NGINX is unique among high-performing web servers in that it was also designed
     to be a mail proxy server. Depending on your goals in building NGINX, you can
     configure it for web acceleration, a web server, a mail proxy, or all of them.
@@ -324,404 +481,615 @@
     your infrastructure and be able to set NGINX's role through configuration, or
     it may serve your needs better to have a slimmed-down binary to use in high-performance
     environments where every extra KB counts.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX在高性能Web服务器中独树一帜，因为它还被设计为邮件代理服务器。根据你构建NGINX的目标，可以将其配置为Web加速、Web服务器、邮件代理或三者兼顾。通过配置可以使得安装在基础架构中任何服务器的单一软件包发挥作用，或许将NGINX的角色通过配置进行设置会更有益，或者在高性能环境下，如果每多出的KB都很重要，使用精简的二进制文件也许更符合你的需求。
 - en: Configure options for a mail proxy
+  id: totrans-74
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 邮件代理的配置选项
 - en: 'The following table specifies configuration options that are unique to the
     mail module:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 下表列出了与邮件模块相关的独特配置选项：
 - en: 'Table: Mail configure options'
+  id: totrans-76
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：邮件配置选项
 - en: '| Option | Explanation |'
+  id: totrans-77
   prefs: []
   type: TYPE_TB
+  zh: '| 选项 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-78
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `--with-mail` | This will enable the `mail` module, which is not activated
     by default. |'
+  id: totrans-79
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-mail` | 启用`mail`模块，该模块默认未启用。 |'
 - en: '| `--with-mail_ssl_module` | In order to proxy any kind of `mail` transaction
     that uses SSL/TLS, this module will need to be activated. |'
+  id: totrans-80
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-mail_ssl_module` | 为了代理任何使用SSL/TLS的`mail`事务，需要启用此模块。 |'
 - en: '| `--without-mail_pop3_module` | When enabling the `mail` module, the POP3
     module may be disabled separately. |'
+  id: totrans-81
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-mail_pop3_module` | 启用`mail`模块时，可以单独禁用POP3模块。 |'
 - en: '| `--without-mail_imap_module` | When enabling the `mail` module, the IMAP
     module may be disabled separately. |'
+  id: totrans-82
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-mail_imap_module` | 启用`mail`模块时，可以单独禁用IMAP模块。 |'
 - en: '| `--without-mail_smtp_module` | When enabling the `mail` module, the SMTP
     module may be disabled separately. |'
+  id: totrans-83
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-mail_smtp_module` | 启用`mail`模块时，可以单独禁用SMTP模块。 |'
 - en: '| `--without-http` | This option will completely disable the `http` module;
     use it if you know you only want to compile in `mail` support. |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http` | 该选项将完全禁用`http`模块；如果只想编译`mail`支持，可以使用此选项。 |'
 - en: 'For a typical mail proxy, I would recommend configuring NGINX as follows:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于典型的邮件代理，我建议按如下方式配置NGINX：
 - en: '[PRE11]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: SSL/TLS is needed nowadays on almost every mail installation and not having
     it enabled on a mail proxy robs users of expected functionality. I've recommended
     compiling OpenSSL statically so that there are no dependencies on the operating
     system's OpenSSL library. The `BUILD_DIR` variable referenced in the preceding
     command would of course have to be set beforehand.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前几乎所有邮件安装都需要SSL/TLS，如果在邮件代理上未启用SSL/TLS，会剥夺用户预期的功能。我推荐将OpenSSL静态编译，以避免依赖操作系统的OpenSSL库。前面命令中提到的`BUILD_DIR`变量当然需要预先设置。
 - en: Configure the options to specify paths
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 配置选项以指定路径
 - en: 'The following table shows what configuration options are available to the `http`
     module, from activating the Perl module to specifying the location of temporary
     directories:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 下表展示了`http`模块的可用配置选项，从激活Perl模块到指定临时目录的位置：
 - en: 'Table: HTTP configure options'
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：HTTP配置选项
 - en: '| Option | Explanation |'
+  id: totrans-91
   prefs: []
   type: TYPE_TB
+  zh: '| 选项 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-92
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `--without-http-cache` | When using the upstream module, NGINX can be configured
     to cache the contents locally. This option disables that cache. |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http-cache` | 使用上游模块时，NGINX可以配置为本地缓存内容。此选项禁用该缓存。 |'
 - en: '| `--with-http_perl_module` | NGINX configuration can be extended by using
     Perl code. This option activates that module. (Use of this module, however, degrades
     performance.) |'
+  id: totrans-94
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_perl_module` | 可以通过使用Perl代码扩展NGINX配置。此选项激活该模块。（不过，使用此模块会降低性能。）
+    |'
 - en: '| `--with-perl_modules_path=<path>` | This option specifies the path to additional
     Perl modules needed for using the embedded Perl interpreter. It may also be specified
     as a configuration option. |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-perl_modules_path=<path>` | 该选项指定了用于嵌入式Perl解释器所需的附加Perl模块的路径。也可以作为配置选项指定。
+    |'
 - en: '| `--with-perl=<path>` | The path to Perl (Version 5.6.1 and higher), if not
     found on the default path. |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-perl=<path>` | Perl的路径（版本5.6.1及以上），如果在默认路径中没有找到。 |'
 - en: '| `--http-log-path=<path>` | The default path to the HTTP access log. |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '| `--http-log-path=<path>` | HTTP访问日志的默认路径。 |'
 - en: '| `--http-client-body-temp-path=<path>` | When receiving the request from the
     client, this is the directory used as a temporary location for the body of that
     request. If the WebDAV module is enabled, it is recommended to set this path to
     be on the same filesystem as the final destination. |'
+  id: totrans-98
   prefs: []
   type: TYPE_TB
+  zh: '| `--http-client-body-temp-path=<path>` | 在接收客户端请求时，这是用于存储该请求主体的临时目录。如果启用了WebDAV模块，建议将此路径设置为与最终目的地位于同一文件系统中。
+    |'
 - en: '| `--http-proxy-temp-path=<path>` | When proxying, this is the directory used
     as a location to store temporary files. |'
+  id: totrans-99
   prefs: []
   type: TYPE_TB
+  zh: '| `--http-proxy-temp-path=<path>` | 在代理时，这是用来存储临时文件的目录。 |'
 - en: '| `--http-fastcgi-temp-path=<path>` | The location for FastCGI temporary files.
     |'
+  id: totrans-100
   prefs: []
   type: TYPE_TB
+  zh: '| `--http-fastcgi-temp-path=<path>` | FastCGI临时文件的存储位置。 |'
 - en: '| `--http-uwsgi-temp-path=<path>` | The location for uWSGI temporary files.
     |'
+  id: totrans-101
   prefs: []
   type: TYPE_TB
+  zh: '| `--http-uwsgi-temp-path=<path>` | uWSGI临时文件的存储位置。 |'
 - en: '| `--http-scgi-temp-path=<path>` | The location for SCGI temporary files. |'
+  id: totrans-102
   prefs: []
   type: TYPE_TB
+  zh: '| `--http-scgi-temp-path=<path>` | SCGI临时文件的存储位置。 |'
 - en: Enabling various modules
+  id: totrans-103
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 启用各种模块
 - en: Besides the `http` and `mail` modules, there are a number of other modules included
     in the NGINX distribution. These modules are not activated per default, but may
     be enabled by setting the appropriate configuration option `--with-<module-name>_module`.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了 `http` 和 `mail` 模块，NGINX发行版中还包含了许多其他模块。这些模块默认情况下是未激活的，但可以通过设置适当的配置选项 `--with-<module-name>_module`
+    来启用它们。
 - en: 'Table: HTTP module configure options'
+  id: totrans-105
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：HTTP模块配置选项
 - en: '| Option | Explanation |'
+  id: totrans-106
   prefs: []
   type: TYPE_TB
+  zh: '| 选项 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-107
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `--with-http_ssl_module` | If you need to encrypt web traffic, you will need
     this option to be able to use URLs beginning with `https`. (Requires the OpenSSL
     library.) |'
+  id: totrans-108
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_ssl_module` | 如果需要加密Web流量，则需要启用此选项，以便能够使用以`https`开头的URL。（需要OpenSSL库。）
+    |'
 - en: '| `--with-http_realip_module` | If your NGINX will be behind a L7 load balancer
     or other device that passes the client''s IP address in an HTTP header, you will
     need to enable this module. For use in situations where multiple clients appear
     to come from one IP address. |'
+  id: totrans-109
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_realip_module` | 如果你的NGINX位于L7负载均衡器或其他将客户端IP地址传递到HTTP头中的设备之后，则需要启用此模块。用于多个客户端似乎来自同一IP地址的情况。
+    |'
 - en: '| `--with-http_addition_module` | This module works as an output filter, enabling
     you to add content of a different location before or after that of the location
     itself. |'
+  id: totrans-110
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_addition_module` | 该模块作为输出过滤器工作，允许你在指定位置之前或之后添加来自其他位置的内容。 |'
 - en: '| `--with-http_xslt_module` | This module will handle transformations of XML
     responses, based on one or more XSLT stylesheets. (Requires the libxml2 and libxslt
     libraries.) |'
+  id: totrans-111
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_xslt_module` | 该模块将处理基于一个或多个XSLT样式表的XML响应转换。（需要libxml2和libxslt库。）
+    |'
 - en: '| `--with-http_image_filter_module` | This module is able to act as a filter
     on images, processing them before handing them over to the client. (Requires the
     libgd library.) |'
+  id: totrans-112
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_image_filter_module` | 该模块能够对图像进行过滤，在将其交给客户端之前进行处理。（需要libgd库。）
+    |'
 - en: '| `--with-http_geoip_module` | With this module, you are able to set various
     variables to use in configuration blocks to make decisions based on the geographic
     location found for a client''s IP address. (Requires the MaxMind GeoIP library
     and the corresponding precompiled database files.) |'
+  id: totrans-113
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_geoip_module` | 通过该模块，你可以设置多个变量，在配置块中根据客户端IP地址的地理位置做出决策。（需要MaxMind
+    GeoIP库和相应的预编译数据库文件。） |'
 - en: '| `--with-http_sub_module` | This module implements a substitution filter,
     replacing one string in the response with another. |'
+  id: totrans-114
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_sub_module` | 该模块实现了一个替换过滤器，将响应中的一个字符串替换为另一个字符串。 |'
 - en: '| `--with-http_dav_module` | Enabling this module will activate the configuration
     directives for using WebDAV. Note that this module should only be enabled on a
     need-to-use basis, as it could present security problems if configured incorrectly.
     |'
+  id: totrans-115
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_dav_module` | 启用此模块将激活用于使用WebDAV的配置指令。请注意，仅在需要使用时启用此模块，因为如果配置不当，可能会带来安全问题。
+    |'
 - en: '| `--with-http_flv_module` | If you need to be able to stream Flash video files,
     this module will provide for pseudo-streaming. |'
+  id: totrans-116
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_flv_module` | 如果你需要能够流式传输Flash视频文件，启用此模块将提供伪流式传输功能。 |'
 - en: '| `--with-http_mp4_module` | This module supports pseudo-streaming for H.264/AAC
     files. |'
+  id: totrans-117
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_mp4_module` | 该模块支持H.264/AAC文件的伪流式传输。 |'
 - en: '| `--with-http_gzip_static_module` | Use this module if you would like to support
     sending pre-compressed versions of static files when the resource is called without
     the `.gz` ending. |'
+  id: totrans-118
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_gzip_static_module` | 如果您希望在调用资源时无需 `.gz` 后缀就能发送预先压缩的静态文件版本，请使用此模块。
+    |'
 - en: '| `--with-http_gunzip_module` | This module will decompress pre-compressed
     content for clients that do not support gzip encoding. |'
+  id: totrans-119
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_gunzip_module` | 该模块将为不支持 gzip 编码的客户端解压预先压缩的内容。 |'
 - en: '| `--with-http_random_index_module` | If you would like to serve an index file
     chosen at random from the files in a directory, then this module needs to be enabled.
     |'
+  id: totrans-120
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_random_index_module` | 如果您希望从目录中的文件中随机选择一个索引文件进行服务，则需要启用此模块。
+    |'
 - en: '| `--with-http_secure_link_module` | This module provides a mechanism to hash
     a link to a URL, so that only those with the proper password would be able to
     calculate the link. |'
+  id: totrans-121
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_secure_link_module` | 该模块提供了一种机制，用于将 URL 链接进行哈希处理，使得只有拥有正确密码的人才能计算该链接。
+    |'
 - en: '| `--with-http_stub_status_module` | Enabling this module will help you gather
     statistics from NGINX itself. The output can be graphed using RRDtool or something
     similar. |'
+  id: totrans-122
   prefs: []
   type: TYPE_TB
+  zh: '| `--with-http_stub_status_module` | 启用此模块将帮助您从 NGINX 本身收集统计信息。可以使用 RRDtool
+    或类似工具对输出进行图表化处理。 |'
 - en: As you can see, these are all modules that build upon the `http` module, providing
     extra functionality. Enabling the modules at compile time should not affect runtime
     performance at all. Using the modules later in the configuration is where performance
     may be impacted.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，这些都是在 `http` 模块基础上构建的模块，提供了额外的功能。在编译时启用这些模块应该不会影响运行时性能。后续在配置中使用这些模块时，才可能会影响性能。
 - en: 'I would therefore recommend the following `configure` options for a web accelerator/proxy:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我建议针对 Web 加速器/代理使用以下 `configure` 选项：
 - en: '[PRE12]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'And the following for a web server:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 以及以下针对 Web 服务器的配置：
 - en: '[PRE13]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The difference lies in where NGINX will be faced with clients. The web acceleration
     role would take care of terminating SSL requests as well as dealing with proxied
     clients and making decisions based on where a client came from. The web server
     role would need only provide default file serving capability.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 区别在于 NGINX 面向客户端的角色。Web 加速角色会处理 SSL 请求终止，处理代理客户端，并根据客户端来源做出决策。而 Web 服务器角色只需要提供默认的文件服务能力。
 - en: I would recommend always enabling the `stub_status` module, as it provides a
     means of gathering metrics on how your NGINX is performing.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 我建议始终启用 `stub_status` 模块，因为它提供了一种收集有关 NGINX 性能指标的手段。
 - en: Disabling unused modules
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 禁用未使用的模块
 - en: There are also a number of `http` modules that are normally activated, but may
     be disabled by setting the appropriate configuration option `--without-<module-name>_module`.
     If you have no use for these modules in your configuration, you can safely disable
     them.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一些通常启用的 `http` 模块，但可以通过设置相应的配置选项 `--without-<module-name>_module` 来禁用它们。如果您在配置中没有使用这些模块，您可以安全地禁用它们。
 - en: 'Table: Disable configure options'
+  id: totrans-132
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：禁用配置选项
 - en: '| Option | Explanation |'
+  id: totrans-133
   prefs: []
   type: TYPE_TB
+  zh: '| 选项 | 解释 |'
 - en: '| --- | --- |'
+  id: totrans-134
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `--without-http_charset_module` | The charset module is responsible for setting
     the `Content-Type` response header, as well as converting from one charset to
     another. |'
+  id: totrans-135
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_charset_module` | charset 模块负责设置 `Content-Type` 响应头，并进行字符集之间的转换。
+    |'
 - en: '| `--without-http_gzip_module` | The `gzip` module works as an output filter,
     compressing content as it''s delivered to the client. |'
+  id: totrans-136
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_gzip_module` | `gzip` 模块作为输出过滤器工作，在将内容交付给客户端时进行压缩。 |'
 - en: '| `--without-http_ssi_module` | This module is a filter that processes Server
     Side Includes. If the Perl module is enabled, an additional SSI command (`perl`)
     is available. |'
+  id: totrans-137
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_ssi_module` | 该模块是一个处理服务器端包含（SSI）的过滤器。如果启用了 Perl 模块，还可以使用额外的
+    SSI 命令（`perl`）。 |'
 - en: '| `--without-http_userid_module` | The `userid` module enables NGINX to set
     cookies that can be used for client identification. The variables `$uid_set` and
     `$uid_got` can then be logged for user tracking. |'
+  id: totrans-138
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_userid_module` | `userid` 模块使 NGINX 能够设置可以用于客户端识别的 cookies。然后，可以记录变量
+    `$uid_set` 和 `$uid_got` 进行用户跟踪。 |'
 - en: '| `--without-http_access_module` | The `access` module controls access to a
     location based on IP address. |'
+  id: totrans-139
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_access_module` | `access` 模块控制基于 IP 地址访问某个位置。 |'
 - en: '| `--without-http_auth_basic_module` | This module limits access via HTTP Basic
     Authentication. |'
+  id: totrans-140
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_auth_basic_module` | 该模块通过 HTTP 基本认证限制访问。 |'
 - en: '| `--without-http_autoindex_module` | The `autoindex` module enables NGINX
     to generate a directory listing for directories that have no index file. |'
+  id: totrans-141
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_autoindex_module` | `autoindex` 模块使 NGINX 能够为没有索引文件的目录生成目录列表。
+    |'
 - en: '| `--without-http_geo_module` | This module enables you to set up configuration
     variables based on a client''s IP address and then take action on the value of
     those variables. |'
+  id: totrans-142
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_geo_module` | 此模块使您能够根据客户端的 IP 地址设置配置变量，然后根据这些变量的值采取相应的操作。
+    |'
 - en: '| `--without-http_map_module` | The map module enables you to map one variable
     to another. |'
+  id: totrans-143
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_map_module` | `map` 模块使您能够将一个变量映射到另一个变量。 |'
 - en: '| `--without-http_split_clients_module` | This module creates variables that
     can be used for A/B testing. |'
+  id: totrans-144
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_split_clients_module` | 此模块创建可用于 A/B 测试的变量。 |'
 - en: '| `--without-http_referer_module` | This module enables NGINX to block requests
     based on the Referer HTTP header. |'
+  id: totrans-145
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_referer_module` | 该模块使 NGINX 能够根据 Referer HTTP 头部阻止请求。 |'
 - en: '| `--without-http_rewrite_module` | The `rewrite` module allows you to change
     URIs based on various conditions. |'
+  id: totrans-146
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_rewrite_module` | `rewrite` 模块允许您根据各种条件更改 URI。 |'
 - en: '| `--without-http_proxy_module` | The `proxy` module allows NGINX to pass requests
     on to another server or group of servers. |'
+  id: totrans-147
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_proxy_module` | `proxy` 模块允许 NGINX 将请求转发到另一个服务器或服务器组。 |'
 - en: '| `--without-http_fastcgi_module` | The FastCGI module enables NGINX to pass
     requests to a FastCGI server. |'
+  id: totrans-148
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_fastcgi_module` | FastCGI 模块使 NGINX 能够将请求转发到 FastCGI 服务器。
+    |'
 - en: '| `--without-http_uwsgi_module` | This module enables NGINX to pass requests
     to a uWSGI server. |'
+  id: totrans-149
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_uwsgi_module` | 此模块使 NGINX 能够将请求转发到 uWSGI 服务器。 |'
 - en: '| `--without-http_scgi_module` | The SCGI module enables NGINX to pass requests
     to an SCGI server. |'
+  id: totrans-150
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_scgi_module` | SCGI 模块使 NGINX 能够将请求转发到 SCGI 服务器。 |'
 - en: '| `--without-http_memcached_module` | This module enables NGINX to interact
     with a memcached server, placing responses to queries into a variable. |'
+  id: totrans-151
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_memcached_module` | 此模块使 NGINX 能够与 memcached 服务器交互，将查询响应存储在变量中。
+    |'
 - en: '| `--without-http_limit_conn_module` | This module enables NGINX to set connection
     limits based on certain keys, usually an IP address. |'
+  id: totrans-152
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_limit_conn_module` | 此模块使 NGINX 能够基于某些键（通常是 IP 地址）设置连接限制。
+    |'
 - en: '| `--without-http_limit_req_module` | With this module, NGINX can limit the
     request rate per key. |'
+  id: totrans-153
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_limit_req_module` | 使用此模块，NGINX 可以按键限制请求速率。 |'
 - en: '| `--without-http_empty_gif_module` | The empty GIF module produces a 1 x 1-pixel
     in-memory transparent GIF. |'
+  id: totrans-154
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_empty_gif_module` | 空 GIF 模块生成一个 1 x 1 像素的内存透明 GIF。 |'
 - en: '| `--without-http_browser_module` | The browser module allows for configurations
     based on the `User-Agent` HTTP request header. Variables are set based on the
     version found in this header. |'
+  id: totrans-155
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_browser_module` | 浏览器模块允许根据 `User-Agent` HTTP 请求头部进行配置。变量根据此头部中的版本进行设置。
+    |'
 - en: '| `--without-http_upstream_ip_hash_module` | This module defines a set of servers
     that may be used in conjunction with the various proxy modules. |'
+  id: totrans-156
   prefs: []
   type: TYPE_TB
+  zh: '| `--without-http_upstream_ip_hash_module` | 该模块定义了一组服务器，可以与各种代理模块一起使用。 |'
 - en: Finding and installing third-party modules
+  id: totrans-157
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 寻找和安装第三方模块
 - en: As with many open source projects, there is an active developer community surrounding
     NGINX. Thanks to NGINX's modular nature, this community is able to develop and
     publish modules to provide additional functionality. They cover a wide range of
     applications, so it pays to take a look at what is available before embarking
     on developing your own module.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 与许多开源项目一样，NGINX 周围有一个活跃的开发者社区。得益于 NGINX 的模块化特性，该社区能够开发并发布模块，提供额外的功能。它们涵盖了广泛的应用，因此在开发自己的模块之前，查看可用的模块是值得的。
 - en: 'The procedure for installing a third-party module is fairly straightforward:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装第三方模块的过程相当直接：
 - en: Locate the module you would like to use (either search on [https://github.com](https://github.com)
     or see [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules)).
+  id: totrans-160
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '查找您想使用的模块（可以在 [https://github.com](https://github.com) 搜索，或者查看 [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules)）。 '
 - en: Download the module.
+  id: totrans-161
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下载模块。
 - en: Unpack the source.
+  id: totrans-162
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 解压源代码。
 - en: Read the README file, if included. See if there are any dependencies that you
     will need to install.
+  id: totrans-163
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 阅读 README 文件（如果有）。查看是否有需要安装的依赖项。
 - en: Configure NGINX to use the module as follows. `/configure –add-module=<path>`.
+  id: totrans-164
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 按如下方式配置 NGINX 使用该模块：`/configure –add-module=<path>`。
 - en: This procedure will give you an `nginx` binary with the additional functionality
     of that module.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程将为你提供一个带有额外模块功能的`nginx`二进制文件。
 - en: Keep in mind that many third-party modules are of an experimental nature. Test
     using a module first before rolling it out on production systems. And remember
     that the development releases of NGINX may have API changes that can cause problems
     with third-party modules.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，许多第三方模块都是实验性质的。在将某个模块投入生产系统之前，先进行测试。还要记住，NGINX的开发版本可能会有API变动，导致第三方模块出现问题。
 - en: Special mention should be made here of the `ngx_lua` third-party module. The
     `ngx_lua` module serves to enable Lua instead of Perl as a configuration time
     embedded scripting language. The great advantage this module has over the `perl`
@@ -729,46 +1097,66 @@
     modules. The installation instructions are fully described at [http://wiki.nginx.org/HttpLuaModule#Installation](http://wiki.nginx.org/HttpLuaModule#Installation).
     We will be using this module as an example of installing a third-party module
     in the next section.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里特别提到`ngx_lua`第三方模块。`ngx_lua`模块用于在配置时启用Lua，而不是Perl作为嵌入式脚本语言。这个模块相较于`perl`模块的巨大优势在于其非阻塞特性以及与其他第三方模块的紧密集成。安装说明在[http://wiki.nginx.org/HttpLuaModule#Installation](http://wiki.nginx.org/HttpLuaModule#Installation)中有详细描述。接下来我们将以这个模块为例，介绍如何安装第三方模块。
 - en: Putting it all together
+  id: totrans-168
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 整合全部内容
 - en: 'Now that you have gotten a glimpse at what all the various configuration options
     are for, you can design a binary that precisely fits your needs. The following
     example specifies the prefix, user, group, certain paths, disables some modules,
     enables some others, and includes a couple of third-party modules:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你已经初步了解了各种配置选项的作用，你可以设计一个完全符合你需求的二进制文件。以下示例指定了前缀、用户、组、某些路径，禁用了部分模块，启用了其他模块，并包含了几个第三方模块：
 - en: '[PRE14]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Following a lot of output showing what `configure` was able to find on your
     system, a summary is printed out as follows:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 在显示了`configure`在你的系统上找到的所有信息后，接下来会输出一个总结：
 - en: '[PRE15]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: As you can see, `configure` found all the items we were looking for, and acknowledged
     our preferences for certain paths. Now, you can build your `nginx` and install
     it, as mentioned at the beginning of the chapter.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，`configure`找到了我们需要的所有项目，并确认了我们对于某些路径的偏好。现在，你可以按照本章开头所述构建并安装你的`nginx`。
 - en: Summary
+  id: totrans-174
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: This chapter has introduced you to the various modules available for NGINX.
     By compiling your own binary, you are able to tailor what functionality your `nginx`
     will provide. Building and installing software will not be new to you, so not
     a lot of time was spent on creating a build environment or making sure that all
     dependencies were present. An NGINX installation should be one that fits your
     needs, so feel free to enable or disable modules as you see fit.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍了NGINX可用的各种模块。通过编译自己的二进制文件，你可以定制`nginx`提供的功能。构建和安装软件对你来说应该不陌生，因此在创建构建环境或确保所有依赖项到位的部分上并未花费太多时间。NGINX的安装应该符合你的需求，因此可以根据需要随意启用或禁用模块。
 - en: Next up we will present an overview of basic NGINX configuration, to get a feel
     for how to configure NGINX in general.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来我们将介绍NGINX基础配置的概述，以便让你了解如何进行一般的NGINX配置。

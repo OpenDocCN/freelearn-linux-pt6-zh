@@ -1,37 +1,54 @@
 - en: Chapter 3. Using the Mail Module
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 3 章：使用邮件模块
 - en: 'NGINX was designed to not only serve web traffic, but also to provide a means
     of proxying mail services. In this chapter you will learn how to configure NGINX
     as a mail proxy for POP3, IMAP, and SMTP services. We will examine running NGINX
     as a mail proxy server in the following sections:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 设计不仅是为了处理 web 流量，还提供了代理邮件服务的功能。在本章中，您将学习如何将 NGINX 配置为 POP3、IMAP 和 SMTP
+    服务的邮件代理。我们将在以下部分中探讨如何运行 NGINX 作为邮件代理服务器：
 - en: Basic proxy service
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基本代理服务
 - en: Authentication service
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 认证服务
 - en: Combining with memcached
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与 memcached 结合使用
 - en: Interpreting log files
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解读日志文件
 - en: Operating system limits
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 操作系统限制
 - en: Basic proxy service
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基本代理服务
 - en: The NGINX mail proxy module was originally developed for FastMail. They had
     a need to provide a single IMAP endpoint for their users, while hosting the actual
     mail account on one of a number of upstream mail servers. Typical proxying programs
@@ -45,14 +62,23 @@
     provides the ability to communicate one endpoint to customers, while scaling the
     number of mailbox servers up with the number of users. Both commercial and open-source
     mail solutions, such as Atmail and Zimbra, are built around this model.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 邮件代理模块最初是为 FastMail 开发的。他们需要为用户提供单一的 IMAP 端点，同时将实际的邮件账户托管在多个上游邮件服务器中的某一台。那个时期的典型代理程序使用经典的
+    Unix 分叉模型，这意味着每个连接都要为其分叉一个新的进程。由于 IMAP 连接非常持久，这些进程会持续很长时间。这会导致代理服务器变得非常迟钝，因为它们必须在每个连接的生命周期内管理这些进程。NGINX
+    的基于事件的进程模型更适合这种服务。作为邮件代理，NGINX 能够将流量引导到多个邮箱服务器，在这些服务器上托管实际的邮件账户。这使得可以向客户提供一个端点，同时根据用户数量扩展邮箱服务器的数量。商业邮件解决方案和开源邮件解决方案，如
+    Atmail 和 Zimbra，都是基于这一模型构建的。
 - en: 'The following diagram will help visualize how this works:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下图表将帮助您理解这一过程：
 - en: '![Basic proxy service](img/7447OS_03_01.jpg)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![基本代理服务](img/7447OS_03_01.jpg)'
 - en: An incoming request will be handled on a per-protocol basis. The mail proxy
     module may be configured differently for POP3, IMAP, or SMTP. For each protocol,
     NGINX queries an authentication service with the username and password. If the
@@ -62,123 +88,177 @@
     which clients can use POP3 / IMAP / SMTP services and which mail server they may
     use. As any number of mail servers may be handled in this way, NGINX can provide
     a proxy service for all of them through one central gateway.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个传入请求将按协议分别处理。邮件代理模块可能会为 POP3、IMAP 或 SMTP 配置不同的设置。对于每个协议，NGINX 会使用用户名和密码查询认证服务。如果认证成功，连接会被代理到认证服务响应中指定的邮件服务器。如果认证失败，客户端连接将被终止。因此，认证服务决定哪些客户端可以使用
+    POP3 / IMAP / SMTP 服务以及它们可以使用哪个邮件服务器。由于可以通过这种方式处理任意数量的邮件服务器，NGINX 可以通过一个中央网关为所有这些邮件服务器提供代理服务。
 - en: A proxy acts on behalf of someone or something else. In this case, NGINX is
     acting on behalf of the mail client, terminating the connection and opening a
     new one to the upstream server. This means that there is no direct communication
     between the mail client and the actual mailbox server or SMTP relay host.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 代理代表其他人或事物行事。在这种情况下，NGINX 代表邮件客户端行事，终止连接并重新连接到上游服务器。这意味着邮件客户端与实际的邮箱服务器或 SMTP
+    中继主机之间没有直接的通信。
 - en: Note
+  id: totrans-13
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: If there are any mail rules based on information contained in the client connection,
     these rules will not work, unless the mail software is able to support an extension,
     such as XCLIENT for SMTP.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果有任何基于客户端连接中包含的信息的邮件规则，这些规则将无法生效，除非邮件软件能够支持扩展，例如 SMTP 的 XCLIENT。
 - en: This is an important point in designing an architecture that contains a proxy
     server—the proxy host will need to be able to support more connections than a
     typical upstream server. Not as much processing power or memory as a mailbox server
     would be needed, but the number of persistent connections needs to be taken into
     account.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是设计包含代理服务器的架构时的一个重要点——代理主机需要支持比典型上游服务器更多的连接。尽管不像邮箱服务器那样需要大量的处理能力或内存，但需要考虑持久连接的数量。
 - en: POP3 service
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: POP3服务
 - en: The **Post Office Protocol** is an Internet standard protocol used to retrieve
     mail messages from a mailbox server. The current incarnation of the protocol is
     Version 3, thus **POP3** . Mail clients will typically retrieve all new messages
     on a mailbox server in one session, then close the connection. After closing,
     the mailbox server will delete all messages that have been marked as retrieved.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '**邮局协议**（**Post Office Protocol**）是一个用于从邮箱服务器检索邮件消息的互联网标准协议。该协议的当前版本是3，因此称为**POP3**。邮件客户端通常会在一个会话中检索邮箱服务器上的所有新消息，然后关闭连接。关闭后，邮箱服务器将删除所有已标记为已检索的消息。'
 - en: 'In order for NGINX to act as a POP3 proxy, some basic directives need to be
     configured:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让NGINX作为POP3代理，一些基本的指令需要被配置：
 - en: '[PRE0]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: This configuration snippet enables the mail module and configures it for POP3
     service, querying an authentication service running on port 9000 on the same machine.
     NGINX will listen on port 110 on all local IP addresses, providing a POP3 proxy
     service. You will notice that we do not configure the actual mail servers here—it
     is the job of the authentication service to tell NGINX which server a particular
     client should be connected to.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个配置片段启用了邮件模块，并将其配置为POP3服务，查询在同一台机器上运行的9000端口上的认证服务。NGINX将监听所有本地IP地址上的110端口，提供POP3代理服务。你会注意到，我们在这里没有配置实际的邮件服务器——这是认证服务的工作，负责告诉NGINX特定客户端应该连接到哪个服务器。
 - en: 'If your mail server only supports certain capabilities (or you only want to
     advertise certain capabilities), NGINX is flexible enough to announce these:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的邮件服务器仅支持某些能力（或你只想公布某些能力），NGINX足够灵活，可以宣布这些能力：
 - en: '[PRE1]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Capabilities are a way of advertising support for optional commands. For POP3,
     the client can request the supported capabilities before or after authentication,
     so it is important to configure these correctly in NGINX.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 能力是用来宣传支持可选命令的一种方式。对于POP3，客户端可以在认证前或认证后请求支持的能力，因此正确配置这些能力在NGINX中非常重要。
 - en: 'You may also specify which authentication methods are supported:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以指定支持哪些认证方法：
 - en: '[PRE2]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: If the APOP authentication method is supported, the authentication service needs
     to provide NGINX with the user's password in clear text, so that it can generate
     the MD5 digest.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果支持APOP认证方法，认证服务需要提供用户的明文密码给NGINX，以便它能够生成MD5摘要。
 - en: IMAP service
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: IMAP服务
 - en: The **Internet Message Access Protocol** is also an Internet-standard protocol
     used to retrieve mail messages from a mailbox server. It provides quite a bit
     of extended functionality over the earlier POP protocol. Typical usage leaves
     all messages on the server, so that multiple mail clients can access the same
     mailbox. This also means that there may be many more, persistent connections to
     an upstream mailbox server from clients using IMAP than those using POP3.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '**互联网邮件访问协议**（**Internet Message Access Protocol**）也是一个互联网标准协议，用于从邮箱服务器检索邮件消息。它提供了比早期的POP协议更多的扩展功能。典型使用情况下，所有邮件都保留在服务器上，以便多个邮件客户端可以访问同一个邮箱。这也意味着使用IMAP的客户端与使用POP3的客户端相比，可能会有更多的持久连接到上游邮箱服务器。'
 - en: 'To proxy IMAP connections, a configuration similar to the POP3 NGINX snippet
     used before can be used:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了代理IMAP连接，可以使用类似于之前使用的POP3 NGINX配置片段的配置：
 - en: '[PRE3]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Note that we did not need to specify the `protocol`, as `imap` is the default
     value. It is included here for clarity.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我们不需要指定`protocol`，因为`imap`是默认值。这里包括它是为了清晰起见。
 - en: The `imap_capabilities` and `imap_auth` directives function similarly to their
     POP3 counterparts.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '`imap_capabilities`和`imap_auth`指令的功能与其POP3对应项类似。'
 - en: SMTP service
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: SMTP服务
 - en: The **Simple Mail Transport Protocol** is the Internet-standard protocol for
     transferring mail messages from one server to another or from a client to a server.
     Although authentication was not at first conceived for this protocol, SMTP-AUTH
     is supported as an extension.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '**简单邮件传输协议**（**Simple Mail Transport Protocol**）是用于将邮件消息从一个服务器传输到另一个服务器或从客户端传输到服务器的互联网标准协议。尽管最初没有为该协议设计认证，但SMTP-AUTH作为扩展得到了支持。'
 - en: 'As you have seen, the logic of configuring the `mail` module is fairly straightforward.
     This holds for SMTP proxying as well:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如您所见，配置 `mail` 模块的逻辑相当简单。对于 SMTP 代理也是如此：
 - en: '[PRE4]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Our proxy server will only advertise the `smtp_capabilities` that we set, otherwise
     it will only list which authentication mechanisms it accepts, because the list
     of extensions is sent to the client when it sends the `HELO`/`EHLO` command. This
@@ -186,104 +266,160 @@
     You could configure NGINX to list only the capabilities that all of these servers
     have in common. It is important to set these to only the extensions that the SMTP
     server itself supports.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的代理服务器只会公布我们设置的`smtp_capabilities`，否则它只会列出它接受的身份验证机制，因为扩展列表会在客户端发送`HELO`/`EHLO`命令时发送给客户端。当代理多个具有不同能力的
+    SMTP 服务器时，这可能会有用。您可以配置 NGINX，仅列出所有这些服务器共同拥有的能力。重要的是只设置 SMTP 服务器本身支持的扩展。
 - en: Due to SMTP-AUTH being an extension to SMTP, and not necessarily supported in
     every configuration, NGINX is capable of proxying an SMTP connection that does
     no authentication whatsoever. In this case, only the `HELO`, `MAIL FROM`, and
     `RCPT TO` parts of the protocol are available to the authentication service for
     determining which upstream should be chosen for a given client connection. For
     this setup, ensure that the `smtp_auth` directive is set to `none`.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 SMTP-AUTH 是 SMTP 的一个扩展，并非每种配置都支持它，NGINX 能够代理一个不进行任何身份验证的 SMTP 连接。在这种情况下，只有协议的`HELO`、`MAIL
+    FROM`和`RCPT TO`部分会提供给身份验证服务，以便确定为给定客户端连接选择哪个上游服务器。对于此设置，确保将`smtp_auth`指令设置为`none`。
 - en: Using SSL/TLS
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 SSL/TLS
 - en: 'If your organization requires mail traffic to be encrypted, or if you yourself
     want more security in your mail transfers, you can enable NGINX to use TLS to
     provide POP3 over SSL, IMAP over SSL, or SMTP over SSL. To enable TLS support,
     either set the `starttls` directive to `on` for STLS/STARTTLS support or set the
     `ssl` directive to `on` for pure SSL/TLS support and configure the appropriate
     `ssl_*` directives for your site:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您的组织要求邮件流量加密，或者您自己希望在邮件传输中增加更多的安全性，您可以启用 NGINX 使用 TLS 提供 SSL 上的 POP3、SSL 上的
+    IMAP 或 SSL 上的 SMTP。要启用 TLS 支持，可以将 `starttls` 指令设置为 `on` 来支持 STLS/STARTTLS，或者将
+    `ssl` 指令设置为 `on` 来支持纯 SSL/TLS，并为您的站点配置适当的 `ssl_*` 指令：
 - en: '[PRE5]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: See [https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html](https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html)
     for a description of the differences between a pure SSL/TLS connection and upgrading
     a plain connection to an encrypted one with SSL/TLS.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 请查看 [https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html](https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html)，了解纯
+    SSL/TLS 连接与使用 SSL/TLS 升级普通连接到加密连接之间的区别。
 - en: Tip
+  id: totrans-43
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: '**Using OpenSSL to generate an SSL certificate**'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '**使用 OpenSSL 生成 SSL 证书**'
 - en: 'If you have never generated an SSL certificate before, the following steps
     will help you create one:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您以前从未生成过 SSL 证书，以下步骤将帮助您创建一个：
 - en: 'Create a certificate request:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建证书请求：
 - en: '[PRE6]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Tip
+  id: totrans-48
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: 'This should generate the following output:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该会生成以下输出：
 - en: '[PRE7]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'You can get this Certificate Signing Request (mail.example.com.csr) signed
     by a Certificate Authority such as Verisign or GoDaddy, or you can sign it yourself:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以将此证书签名请求（mail.example.com.csr）由像 Verisign 或 GoDaddy 这样的证书授权机构签署，或者您也可以自己签署：
 - en: '[PRE8]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'You will see the following response:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 您将看到以下响应：
 - en: '[PRE9]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Tip
+  id: totrans-55
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: The signed certificate is shown in the following screenshot.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 签名证书显示在下面的屏幕截图中。
 - en: Please note, though, that a self-signed certificate will generate an error in
     a client that connects to your server. If you are deploying this certificate on
     a production server, make sure that you get it signed by a recognized authority.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，自签名证书会在连接到您的服务器的客户端中生成错误。如果您在生产服务器上部署此证书，请确保由一个受认可的证书机构签署。
 - en: '![Using SSL/TLS](img/7447_03_02.jpg)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 SSL/TLS](img/7447_03_02.jpg)'
 - en: Complete mail example
+  id: totrans-59
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 完整的邮件示例
 - en: 'Mail services are often combined on one gateway. The following configuration
     will enable NGINX to service POP3, IMAP, and SMTP traffic (as well as their encrypted
     variants) from one authentication service, while offering clients the option to
     use STLS/STARTTLS on unencrypted ports:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 邮件服务通常会在一个网关上组合。以下配置将使 NGINX 为 POP3、IMAP 和 SMTP 流量（以及其加密变种）提供服务，同时为客户端提供使用未加密端口上的
+    STLS/STARTTLS 的选项：
 - en: '[PRE10]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: As you can see, we declared the name of this server at the top of the `mail`
     context. This is because we want each of our mail services to be addressed as
     `mail.example.com`. Even if the actual hostname of the machine on which NGINX
@@ -291,18 +427,26 @@
     to be a single point of reference for our users. This hostname will in turn be
     used wherever NGINX needs to present its own name, for example, in the initial
     SMTP server greeting.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，我们在 `mail` 上下文的顶部声明了该服务器的名称。这是因为我们希望每个邮件服务都被称为 `mail.example.com`。即使 NGINX
+    运行的机器的实际主机名不同，并且每个邮件服务器有自己的主机名，我们希望这个代理成为我们用户的单一参考点。这个主机名将会在 NGINX 需要展示自己名称的地方使用，例如，在初始的
+    SMTP 服务器问候中。
 - en: The `timeout` directive was used in the `smtp server` context in order to double
     its default value because we knew this particular upstream SMTP relay host inserted
     an artificial delay in order to dissuade spammers from trying to send mail via
     this server.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '`timeout` 指令在 `smtp server` 上下文中使用，以将其默认值加倍，因为我们知道这个特定的上游 SMTP 转发主机会插入人为延迟，以劝阻垃圾邮件发送者通过该服务器发送邮件。'
 - en: Authentication service
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 认证服务
 - en: We have mentioned the authentication service quite a few times in the previous
     section, but what exactly is the authentication service and what does it do? When
     a user makes a POP3, IMAP, or SMTP request to NGINX, authenticating the connection
@@ -310,478 +454,707 @@
     but rather makes a query to an authentication service that will fulfill the request.
     NGINX then uses the response from the authentication service to make the connection
     to the upstream mail server.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在前一部分提到了认证服务很多次，但到底什么是认证服务，它又是做什么的呢？当用户向 NGINX 发出 POP3、IMAP 或 SMTP 请求时，认证连接是第一步之一。NGINX
+    不会自己执行这个认证，而是向一个认证服务发起查询，该服务会完成认证请求。然后，NGINX 使用认证服务的响应来建立与上游邮件服务器的连接。
 - en: This authentication service may be written in any language. It need only conform
     to the authentication protocol required by NGINX. The protocol is similar to HTTP,
     so it will be fairly easy for us to write our own authentication service.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个认证服务可以用任何语言编写，只要它符合 NGINX 所要求的认证协议即可。该协议类似于 HTTP，因此我们编写自己的认证服务会比较容易。
 - en: 'NGINX will send the following headers in its request to the authentication
     service:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 会在其请求中向认证服务发送以下头信息：
 - en: Host
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Host
 - en: Auth-Method
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-Method
 - en: Auth-User
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-User
 - en: Auth-Pass
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-Pass
 - en: Auth-Salt
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-Salt
 - en: Auth-Protocol
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-Protocol
 - en: Auth-Login-Attempt
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-Login-Attempt
 - en: Client-IP
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Client-IP
 - en: Client-Host
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Client-Host
 - en: Auth-SMTP-Helo
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-SMTP-Helo
 - en: Auth-SMTP-From
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-SMTP-From
 - en: Auth-SMTP-To
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Auth-SMTP-To
 - en: The meaning of each of these headers should be fairly self-explanatory, and
     not each header will be present in every request. We will go over these as we
     write our authentication service.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些头信息的含义应该是相当直观的，并且并非每个请求都会包含所有这些头信息。我们将在编写认证服务时逐一讲解这些内容。
 - en: We choose Ruby as the language for this authentication service implementation.
     If you do not currently have Ruby installed, don't worry about doing so now. Ruby
     as a language is very clear to read, so just try to follow along with the commented
     code below. Adapting it to your environment and running it is outside the scope
     of this book. This example will give you a good starting point in writing your
     own authentication service.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们选择 Ruby 作为这次认证服务实现的语言。如果你当前没有安装 Ruby，也不用担心现在安装它。Ruby 作为一种语言，阅读起来非常清晰，所以只需要跟随下面带注释的代码即可。将其适配到你的环境并运行超出了本书的范围。这个示例将为你编写自己的认证服务提供一个很好的起点。
 - en: Note
+  id: totrans-82
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Note
 - en: A good resource to help you get Ruby installed easily is located at [https://rvm.io](https://rvm.io).
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个帮助你轻松安装 Ruby 的好资源可以在 [https://rvm.io](https://rvm.io) 找到。
 - en: Let us first examine the request part of the HTTP request/response dialogue.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们首先看看 HTTP 请求/响应对话中的请求部分。
 - en: 'We first collect the values we need from the headers NGINX sends:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先从 NGINX 发送的头信息中收集我们需要的值：
 - en: '[PRE11]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Tip
+  id: totrans-87
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Tip
 - en: '**What are all these @''s about?**'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '**这些 @ 符号是什么意思？**'
 - en: The `@` symbol is used in Ruby to denote a class variable. We'll use them in
     our example to make it easier to pass around variables. In the preceding snippet,
     we are referencing the environment `(@env)` as passed into the Rack request. Besides
     all the HTTP headers that we need, the environment contains additional information
     relating to how the service is being run.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '`@` 符号在 Ruby 中用于表示类变量。在我们的示例中，我们将使用它们来更容易地传递变量。在前面的代码片段中，我们引用了作为 Rack 请求传入的环境
+    `(@env)`。除了我们需要的所有 HTTP 头部外，环境还包含与服务运行方式相关的附加信息。'
 - en: 'Now that we know how to handle each of the headers NGINX may send, we need
     to do something with them and send NGINX a response. The following headers are
     expected in the response from the authentication service:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们知道如何处理 NGINX 可能发送的每个头部，我们需要对它们进行处理，并向 NGINX 发送响应。以下是身份验证服务中响应时预期的头部：
 - en: '`Auth-Status`: In this header, anything but `OK` is an error'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Auth-Status`：在这个头部中，任何不是 `OK` 的值都表示错误。'
 - en: '`Auth-Server`: This is the IP address to which the connection is proxied'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Auth-Server`：这是连接代理的 IP 地址。'
 - en: '`Auth-Port`: This is the port to which the connection is proxied'
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Auth-Port`：这是连接代理的端口。'
 - en: '`Auth-User`: This is the user that will be used to authenticate with the mail
     server'
+  id: totrans-94
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Auth-User`：这是将用于与邮件服务器进行身份验证的用户。'
 - en: '`Auth-Pass`: The plaintext password used for APOP'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Auth-Pass`：用于 APOP 的明文密码。'
 - en: '`Auth-Wait`: How many seconds to wait before another authentication attempt
     is made'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Auth-Wait`：在再次进行身份验证尝试之前，应该等待多少秒。'
 - en: '`Auth-Error-Code`: An alternative error code to return to the client'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Auth-Error-Code`：返回给客户端的替代错误代码。'
 - en: The three headers used most often are `Auth-Status`, `Auth-Server`, and `Auth-Port`.
     The presence of these in a response is typically all that is needed for a successful
     authentication session.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 最常用的三个头部是 `Auth-Status`、`Auth-Server` 和 `Auth-Port`。这些头部的存在通常是成功身份验证会话所需的全部。
 - en: As we will see in the following snippet, additional headers may be used, depending
     on the situation. The response itself consists of simply emitting the relevant
     headers with the appropriate values substituted in.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在以下代码片段中看到的，根据情况可能会使用额外的头部。响应本身只需发出相关的头部，并用适当的值进行替换。
 - en: 'We first check if there have been too many tries:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先检查是否尝试次数过多：
 - en: '[PRE12]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Then we return the appropriate headers and set with the values obtained from
     our authentication mechanism:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们返回适当的头部，并使用从身份验证机制中获取的值进行设置：
 - en: '[PRE13]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: If the authentication check has failed, we need to tell NGINX.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果身份验证检查失败，我们需要告诉 NGINX。
 - en: '[PRE14]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Not every header is required in the response, but as we can see, some are dependent
     on the status of the authentication query and/or any error condition that may
     exist.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 不是每个头部在响应中都是必需的，但正如我们所看到的，有些头部取决于身份验证查询的状态和/或可能存在的任何错误条件。
 - en: Note
+  id: totrans-107
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: One interesting use of the `Auth-User` header is to return a different username
     than the one given in the request. This can prove useful, for example, when migrating
     from an older upstream mail server that accepted a username without the domain
     to a newer upstream mail server that requires the username to have a domain. NGINX
     will then use this username when connecting to the upstream server.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Auth-User` 头部的一个有趣用途是返回与请求中给定的用户名不同的用户名。例如，当从一个较旧的上游邮件服务器迁移到一个新的上游邮件服务器时，旧服务器接受没有域的用户名，而新服务器要求用户名必须包含域。在这种情况下，NGINX
+    将使用这个用户名连接到上游服务器。'
 - en: The authentication database may take any form, from a flat text file, to an
     LDAP directory, to a relational database. It does not have to necessarily be the
     same store that your mail service uses to access this information, but should
     be in sync with that store to prevent any errors due to stale data.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 身份验证数据库可以采取任何形式，从平面文本文件到 LDAP 目录，再到关系型数据库。它不必是邮件服务用来访问这些信息的存储，但应该与该存储同步，以防止由于陈旧数据导致的错误。
 - en: 'Our example authentication database is a simple hash for this example:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的示例身份验证数据库是一个简单的哈希：
 - en: '[PRE15]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'The mechanism used to verify a user is a simple hash lookup:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于验证用户的机制是简单的哈希查找：
 - en: '[PRE16]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Tying these three parts together, we have the complete authentication service:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 将这三个部分结合起来，我们就有了完整的身份验证服务：
 - en: '[PRE17]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: After the preceding setup and module initialization, we tell Rack which requests
     we would like to have handled and define a `get` method to respond to requests
     from NGINX.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的设置和模块初始化之后，我们告诉 Rack 我们希望处理哪些请求，并定义一个 `get` 方法来响应来自 NGINX 的请求。
 - en: '[PRE18]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'The next section is declared `private` so that only this class may use the
     methods declared afterwards. The `auth` method is the workhorse of the authentication
     service, checking the username and password for validity. The `method_missing`
     method is there to handle invalid methods, responding with a `Not Found` error
     message:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一部分声明为`private`，以便只有这个类可以使用后面声明的方法。`auth`方法是身份验证服务的核心，负责检查用户名和密码的有效性。`method_missing`方法用于处理无效的方法，并返回`Not
+    Found`错误信息：
 - en: '[PRE19]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'This last section sets up the server to run and routes the `/auth` URI to the
     proper handler:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后一部分设置服务器运行并将`/auth` URI路由到正确的处理程序：
 - en: '[PRE20]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: This listing may be saved as a file, `nginx_mail_proxy_auth.ru`, and called
     with a `-p <port>` parameter to tell it on which port it should run. For more
     options and more information about the Rack web server interface, visit [http://rack.github.com](http://rack.github.com).
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 该列表可以保存为文件`nginx_mail_proxy_auth.ru`，并使用`-p <port>`参数来指定运行的端口。有关更多选项和有关Rack
+    Web服务器接口的更多信息，请访问[http://rack.github.com](http://rack.github.com)。
 - en: Combining with memcached
+  id: totrans-123
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 与memcached结合使用
 - en: Depending on the frequency of clients accessing the mail services on your proxy
     and how many resources are available to the authentication service, you may want
     to introduce a caching layer into the setup. To this end, we will integrate `memcached`
     as an in-memory store for authentication information.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据客户端访问代理上邮件服务的频率以及身份验证服务可用的资源，您可能希望在配置中引入缓存层。为此，我们将集成`memcached`作为身份验证信息的内存存储。
 - en: NGINX can look up a key in `memcached`, but only in the context of a location
     in the `http` module. Therefore, we will have to implement our own caching layer
     outside of NGINX.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX可以在`memcached`中查找键，但仅限于`http`模块中的某个位置。因此，我们将不得不在NGINX外部实现自己的缓存层。
 - en: '![Combining with memcached](img/7447OS_03_03.jpg)'
+  id: totrans-126
   prefs: []
   type: TYPE_IMG
+  zh: '![与memcached结合使用](img/7447OS_03_03.jpg)'
 - en: As the flowchart shows, we will first check whether or not this username/password
     combination is already in the cache. If not, we will query our authentication
     store for the information and place the key/value pair into the cache. If it is,
     we can retrieve this information directly from the cache.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 如流程图所示，我们将首先检查此用户名/密码组合是否已在缓存中。如果没有，我们将查询身份验证存储以获取信息，并将键/值对放入缓存。如果有，我们可以直接从缓存中检索该信息。
 - en: Note
+  id: totrans-128
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Zimbra has created a `memcache` module for NGINX that takes care of this directly
     within the context of NGINX. To date, though, this code has not been integrated
     into the official NGINX sources.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: Zimbra为NGINX创建了一个`memcache`模块，直接在NGINX的上下文中处理此问题。然而，到目前为止，这段代码还没有被集成到官方的NGINX源代码中。
 - en: 'The following code will extend our original authentication service by implementing
     a caching layer (admittedly, a little overkill for our implementation, but this
     is to provide a basis for working with a networked authentication database):'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码将通过实现缓存层扩展我们原来的身份验证服务（虽然对于我们的实现来说有点过度，但这是为了提供与网络身份验证数据库交互的基础）：
 - en: '[PRE21]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'In order to use this code, you will of course have to install and run `memcached`.
     There should be a pre-built package for your operating system:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用此代码，您当然需要安装并运行`memcached`。应该有一个适用于您的操作系统的预构建软件包：
 - en: Linux (deb-based)
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Linux（基于deb）
 - en: '[PRE22]'
+  id: totrans-134
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Linux (rpm-based)
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Linux（基于rpm）
 - en: '[PRE23]'
+  id: totrans-136
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: FreeBSD
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FreeBSD
 - en: '[PRE24]'
+  id: totrans-138
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Memcached is configured simply by passing parameters to the binary when running
     it. There is no configuration file that is read directly, although your operating
     system and/or packaging manager may provide a file that is parsed to make passing
     these parameters easier.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: Memcached的配置非常简单，只需在运行时传递参数给二进制文件。没有直接读取的配置文件，尽管您的操作系统和/或软件包管理器可能提供一个文件，解析该文件可以简化传递这些参数的过程。
 - en: 'The most important parameters for `memcached` are as follows:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: '`memcached`的最重要参数如下：'
 - en: '`-l`: This parameter specifies the address(es) on which `memcached` will listen
     (default is all). It is important to note that for the greatest security, `memcached`
     shouldn''t listen on an address that is reachable from the Internet because there
     is no authentication.'
+  id: totrans-141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`-l`：此参数指定`memcached`将监听的地址（默认是所有地址）。需要注意的是，为了确保最大安全性，`memcached`不应监听可以从互联网上访问的地址，因为没有身份验证。'
 - en: '`-m`: This parameter specifies the amount of RAM to use for the cache (in megabytes).'
+  id: totrans-142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`-m`：此参数指定用于缓存的内存大小（以兆字节为单位）。'
 - en: '`-c`: This parameter specifies the maximum number of simultaneous connections
     (default is 1024).'
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`-c`：此参数指定最大并发连接数（默认是1024）。'
 - en: '`-p`: This parameter specifies the port on which `memcached` will listen (default
     is 11211).'
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`-p`：此参数指定`memcached`监听的端口（默认是11211）。'
 - en: Setting these to reasonable values will be all you need to do to get `memcached`
     up and running.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 将这些设置为合理的值就是启动和运行`memcached`所需做的全部工作。
 - en: Now, by substituting the `elsif auth(user, pass)` with `elsif get_cache_value(user,
     pass)` in our `nginx_mail_proxy_auth.ru` service, you should have an authentication
     service running with a caching layer, to help serve as many requests as quickly
     as possible.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，通过在我们的`nginx_mail_proxy_auth.ru`服务中将`elsif auth(user, pass)`替换为`elsif get_cache_value(user,
+    pass)`，你应该能够运行一个带有缓存层的认证服务，以帮助尽可能快速地处理更多的请求。
 - en: Interpreting log files
+  id: totrans-147
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 解释日志文件
 - en: Log files provide some of the best clues as to what is going on when a system
     doesn't act as expected. Depending on the verbosity level configured and whether
     or not NGINX was compiled with debugging support (`--enable-debug`), the log files
     will help you understand what is going on in a particular session.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志文件提供了在系统没有按预期运行时，了解发生了什么的最佳线索。根据配置的详细程度以及NGINX是否启用了调试支持（`--enable-debug`），日志文件将帮助你理解特定会话中的内容。
 - en: Each line in the error log corresponds to a particular log level, configured
     using the `error_log` directive. The different levels are `debug`, `info`, `notice`,
     `warn`, `error`, `crit`, `alert`, and `emerg`, in order of increasing severity.
     Configuring a particular level will include messages for all of the more severe
     levels above it. The default log level is `error`.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 错误日志中的每一行对应一个特定的日志级别，这些级别是通过`error_log`指令配置的。不同的日志级别依次为`debug`、`info`、`notice`、`warn`、`error`、`crit`、`alert`和`emerg`，按严重性递增。配置特定的级别时，会包含所有比它更严重的级别的消息。默认的日志级别是`error`。
 - en: In the context of the `mail` module, we would typically want to configure a
     log level of `info`, so that we can get as much information about a particular
     session as possible without having to configure debug logging. Debug logging in
     this case would be useful only for following function entry points, or seeing
     what password was used for a particular connection.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`mail`模块的上下文中，我们通常希望配置一个`info`级别的日志，以便尽可能多地获取有关特定会话的信息，而无需配置调试日志。在这种情况下，调试日志仅对跟踪函数入口点或查看特定连接使用了哪个密码有用。
 - en: Note
+  id: totrans-151
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Since mail is extremely dependent upon a correctly-functioning DNS, many errors
     can be traced back to invalid DNS entries or expired cache information. If you
     believe you may have a case that could be explained by a name resolution error,
     you can get NGINX to tell you what IP address a particular hostname is resolved
     to by configuring debug logging. Unfortunately, this requires a recompile if your
     `nginx` binary was not initially compiled with debugging support.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于邮件系统极度依赖正确工作的DNS，许多错误都可以追溯到无效的DNS条目或过期的缓存信息。如果你认为可能是由于名称解析错误导致的问题，可以通过配置调试日志来查看NGINX解析某个主机名时所对应的IP地址。不幸的是，如果你的`nginx`二进制文件在初始编译时没有启用调试支持，则需要重新编译。
 - en: A typical proxy connection is logged as in the following example of a POP3 session.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个典型的代理连接会像下面这个POP3会话的示例一样被记录。
 - en: 'First, the client establishes a connection to the proxy:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，客户端与代理建立连接：
 - en: '[PRE25]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'Then, once the client has completed a successful login, a statement listing
     all relevant connection information is logged:'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，一旦客户端成功登录，系统会记录一条列出所有相关连接信息的语句：
 - en: '[PRE26]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'You will notice that the section before the double arrows `<=>` relates to
     the client-to-proxy side of the connection, whereas the section after the double
     arrows describes the proxy-to-upstream part of the connection. This information
     is again repeated once the session is terminated:'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 你会注意到，双箭头`<=>`之前的部分与客户端到代理的连接有关，而双箭头之后的部分描述了代理到上游的连接。会话结束后，这些信息会再次被记录：
 - en: '[PRE27]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: In this way, we see which ports are in use on all sides of the connection, to
     help debug any potential problems or to perhaps correlate the log entry with what
     may appear in a firewall log.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这种方式，我们可以看到连接两端使用的端口，以帮助调试潜在问题，或者将日志条目与防火墙日志中的内容进行关联。
 - en: Other log entries at the `info` level pertain to timeouts or invalid commands/responses
     sent by either the client or upstream.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '`info`级别的其他日志条目与客户端或上游发送的超时或无效命令/响应有关。'
 - en: 'Entries at the `warn` log level are typically configuration errors:'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: '`warn`日志级别的条目通常表示配置错误：'
 - en: '[PRE28]'
+  id: totrans-163
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'Many errors that are reported at the `error` log level are indicative of problems
     with the authentication service. You will notice the text `while in http auth
     state` in the following entries. This shows where in the connection state the
     error has occurred:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多在`error`日志级别报告的错误表示认证服务存在问题。你会在以下条目中注意到文本`while in http auth state`。这表示错误发生在连接状态中的哪个位置：
 - en: '[PRE29]'
+  id: totrans-165
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: If the authentication query is not successfully answered for any reason, the
     connection is terminated. NGINX doesn't know to which upstream the client should
     be proxied, and thereby closes the connection with an `Internal server error`
     with the protocol-specific response code.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果认证查询因任何原因未能成功响应，连接将被终止。NGINX不知道客户端应该代理到哪个上游，因此会关闭连接，并返回一个`Internal server
+    error`和特定协议的响应码。
 - en: 'Depending on whether or not the username is present, the information will appear
     in the log file. Here''s an entry from an authenticated SMTP connection:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据是否存在用户名，信息将出现在日志文件中。以下是一个经过身份验证的SMTP连接的条目：
 - en: '[PRE30]'
+  id: totrans-168
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: Note the previous two entries are missing in the `login` information.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，前两个条目在`login`信息中缺失。
 - en: An `alert` log level event will indicate that NGINX was not able to set a parameter
     as expected, but will otherwise operate normally.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '`alert`日志级别事件会表明NGINX未能按预期设置某个参数，但其他方面会正常运行。'
 - en: 'Any log entry at the `emerg` level, however, will prevent NGINX from starting:
     either the situation has to be corrected or the configuration must be changed.
     If NGINX is already running, it will not restart any worker process until the
     change has been made:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，任何`emerg`级别的日志条目都会阻止NGINX启动：要么需要修正情况，要么必须更改配置。如果NGINX已经在运行，它将不会重新启动任何工作进程，直到更改完成：
 - en: '[PRE31]'
+  id: totrans-172
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: Here we need to define an authentication service using the `http_auth` directive.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里我们需要使用`http_auth`指令定义一个认证服务。
 - en: Operating system limits
+  id: totrans-174
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 操作系统限制
 - en: You may run into a situation in which NGINX does not perform as you expect.
     Either connections are being dropped or warning messages are printed in the log
     file. This is when it is important to know what limits your operating system may
     place on NGINX and how to tune them to get the best performance out of your server.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会遇到NGINX没有按预期执行的情况。要么连接被丢弃，要么警告信息被打印到日志文件中。这时，了解操作系统可能对NGINX施加的限制以及如何调整这些限制以获得服务器最佳性能就变得非常重要。
 - en: The area in which a mail proxy is most likely to run into problems is a connection
     limit. To understand what this means, you first have to know how NGINX handles
     client connections. The NGINX master process starts a number of workers, each
@@ -790,17 +1163,23 @@
     NGINX opens a new connection to the mail server. Each of these connections requires
     a file descriptor and per mail server IP/port combination, a new TCP port from
     the ephemeral port range (see the following explanation).
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 邮件代理最可能遇到问题的领域是连接限制。要理解这意味着什么，首先你需要知道NGINX如何处理客户端连接。NGINX的主进程启动多个工作进程，每个进程作为一个独立的进程运行。每个进程能够处理固定数量的连接，这个数量由`worker_connections`指令设置。对于每个代理连接，NGINX会打开一个新的连接到邮件服务器。每个连接都需要一个文件描述符，并且每个邮件服务器的IP/端口组合都需要一个来自临时端口范围的新TCP端口（见下面的解释）。
 - en: 'Depending on your operating system, the maximum number of open file descriptors
     is tunable in a resource file or by sending a signal to a resource-management
     daemon. You can see what the current value is set to by entering the following
     command at the prompt:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据你的操作系统，最大打开文件描述符数可以在资源文件中调整，或者通过向资源管理守护进程发送信号进行调整。你可以通过在提示符下输入以下命令来查看当前的设置值：
 - en: '[PRE32]'
+  id: totrans-178
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: If by your calculations, this limit is too low, or you see a message in your
     error log that `worker_connections exceed open file resource limit`, you'll know
     that you need to increase this value. First tune the maximum number of open file
@@ -809,47 +1188,69 @@
     value in the main context of the `nginx.conf` file. Sending `nginx` a configuration
     reload signal (HUP) will then be enough to raise this limit without restarting
     the main process.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你计算后发现这个限制太低，或者在错误日志中看到 `worker_connections exceed open file resource limit`
+    的消息，那么你就知道需要增加这个值。首先，在操作系统级别调整最大打开文件描述符数，既可以针对 NGINX 运行的用户，也可以全局调整。然后，在 `nginx.conf`
+    文件的主配置中，将 `worker_rlimit_nofile` 指令设置为新的值。发送 `nginx` 配置重新加载信号（HUP）后，就足以提升该限制，而无需重启主进程。
 - en: If you observe a connection limit due to exhaustion of available TCP ports,
     you will need to increase the ephemeral port range. This is the range of TCP ports
     which your operating system maintains for outgoing connections. It can default
     to as few as 5000, but is typically set to a range of 16384 ports. A good description
     of how to increase this range for various operating systems is provided at [http://www.ncftp.com/ncftpd/doc/misc/ephemeral_ports.html](http://www.ncftp.com/ncftpd/doc/misc/ephemeral_ports.html).
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你观察到由于可用 TCP 端口耗尽而导致的连接限制，那么你需要增加临时端口范围。这是操作系统为外向连接维护的 TCP 端口范围。它的默认值可能仅为
+    5000，但通常设置为 16384 个端口的范围。有关如何为各种操作系统增加该范围的详细描述，请参考 [http://www.ncftp.com/ncftpd/doc/misc/ephemeral_ports.html](http://www.ncftpd.com/ncftpd/doc/misc/ephemeral_ports.html)。
 - en: Summary
+  id: totrans-181
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we have seen how NGINX can be configured to proxy POP3, IMAP,
     and SMTP connections. Each protocol may be configured separately, announcing support
     for various capabilities in the upstream server. Encrypting mail traffic is possible
     by using TLS and providing the server with an appropriate SSL certificate.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们已学习如何配置 NGINX 以代理 POP3、IMAP 和 SMTP 连接。每个协议都可以单独配置，并在上游服务器中宣布对各种功能的支持。通过使用
+    TLS 加密邮件流量，并为服务器提供适当的 SSL 证书，可以实现邮件流量的加密。
 - en: The authentication service is fundamental to the functioning of the `mail` module,
     as no proxying can be done without it. We have detailed an example of such an
     authentication service, outlining the requirements of both what is expected in
     the request and how the response should be formed. With this as a foundation,
     you should be able to write an authentication service that fits your environment.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 认证服务是 `mail` 模块正常运行的基础，因为没有它无法进行代理。我们详细介绍了一个这样的认证服务的示例，概述了请求中预期的内容以及如何构造响应。以此为基础，你应该能够编写适合自己环境的认证服务。
 - en: Understanding how to interpret log files is one of the most useful skills a
     system administrator can develop. NGINX gives fairly detailed log entries, although
     some may be a bit cryptic. Knowing where to place the various entries within the
     context of a single connection and seeing the state NGINX is in at that time is
     helpful to deciphering the entry.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 理解如何解读日志文件是系统管理员可以培养的最有用的技能之一。NGINX 提供了相当详细的日志条目，尽管有些条目可能略显晦涩。了解如何在单个连接的上下文中放置各种条目，并查看此时
+    NGINX 的状态，对于解读这些条目非常有帮助。
 - en: NGINX, like any other piece of software, runs within the context of an operating
     system. It is therefore extremely useful to know how to increase any limits the
     OS may place on NGINX. If it is not possible to increase the limits any further,
     then an architectural solution must be found by either multiplying the number
     of servers on which NGINX runs, or using some other technique to reduce the number
     of connections a single instance must handle.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 和其他任何软件一样，都是在操作系统的上下文中运行的。因此，了解如何增加操作系统对 NGINX 可能施加的限制是非常有用的。如果无法进一步提高这些限制，那么就必须通过增加运行
+    NGINX 的服务器数量，或采用其他技术来减少单个实例需要处理的连接数，从而找到一种架构解决方案。
 - en: In the next chapter, we see how to configure NGINX to proxy HTTP connections.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，我们将学习如何配置 NGINX 以代理 HTTP 连接。

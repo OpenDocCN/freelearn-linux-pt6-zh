@@ -1,338 +1,505 @@
 - en: Chapter 2. A Configuration Guide
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第二章 配置指南
 - en: 'The NGINX configuration file follows a very logical format. Learning this format
     and how to use each section is one of the building blocks that will help you to
     create a configuration file by hand. This chapter will help you reach that goal
     by explaining the following topics:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX配置文件遵循非常逻辑化的格式。学习这种格式以及如何使用每个部分是帮助你手动创建配置文件的构建块之一。本章将通过以下内容帮助你实现这一目标：
 - en: Basic configuration format
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基本配置格式
 - en: NGINX global configuration parameters
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX全局配置参数
 - en: Using `include` files
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用`include`文件
 - en: The HTTP server section
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: HTTP服务器部分
 - en: The virtual server section
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 虚拟服务器部分
 - en: Locations – where, when, and how
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 位置 – 哪里、何时以及如何
 - en: The mail server section
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 邮件服务器部分
 - en: Full sample configuration
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 完整的示例配置
 - en: The basic configuration format
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基本配置格式
 - en: 'The basic NGINX configuration file is set up in a number of sections. Each
     section is delineated in the following way:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本的NGINX配置文件由多个部分组成。每个部分按照以下方式进行划分：
 - en: '[PRE0]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: It is important to note that each directive line ends with a semicolon (`;`).
     This marks the end-of-line. The curly braces (`{}`) actually denote a new configuration
     context, but we will read these as "sections" for the most part.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要注意的是，每个指令行都以分号（`;`）结尾。这标志着一行的结束。花括号（`{}`）实际上表示一个新的配置上下文，但我们通常将其视为“部分”。
 - en: NGINX global configuration parameters
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: NGINX全局配置参数
 - en: The global section is used to configure the parameters that affect the entire
     server, and is an exception to the format shown in the preceding section. The
     global section may include configuration directives, such as `user` and `worker_processes`,
     as well as sections, such as events. There are no open and closing braces (`{}`)
     surrounding the global section.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 全局部分用于配置影响整个服务器的参数，是前面部分格式的一个例外。全局部分可以包括配置指令，如`user`和`worker_processes`，以及如events这样的部分。全局部分没有包围的花括号（`{}`）。
 - en: The most important configuration directives in the global context are shown
     in the following table. These will be the ones that you will be dealing with for
     the most part.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 全局上下文中最重要的配置指令如以下表所示。这些将是你在大多数情况下要处理的指令。
 - en: 'Table: Global configuration directives'
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：全局配置指令
 - en: '| Directive | Explanation |'
+  id: totrans-18
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-19
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `user` | The user and group under which the worker processes run is configured
     using this parameter. If the group is omitted, a group name equal to that of the
     user is used. |'
+  id: totrans-20
   prefs: []
   type: TYPE_TB
+  zh: '| `user` | 使用此参数配置工作进程运行的用户和组。如果未指定组名，则默认使用与用户名相同的组名。 |'
 - en: '| `worker_processes` | This is the number of worker processes that will be
     started. These will handle all connections made by the clients. Choosing the right
     number depends on the server environment, the disk subsystem, and the network
     infrastructure. A good rule of thumb is to set this equal to the number of processor
     cores for CPU-bound loads and to multiply this number by `1.5` to `2` for I/O
     bound loads. |'
+  id: totrans-21
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_processes` | 这是启动的工作进程数量。这些进程将处理所有来自客户端的连接。选择合适的数量取决于服务器环境、磁盘子系统和网络基础设施。一个好的经验法则是，对于CPU密集型负载，将其设置为处理器核心数，而对于I/O密集型负载，将此数字乘以`1.5`到`2`。
+    |'
 - en: '| `error_log` | `error_log` is where all errors are written. If no other `error_log`
     is given in a separate context, this log file will be used for all errors, globally.
     A second parameter to this directive indicates the level at which (`debug`, `info`,
     `notice`, `warn`, `error`, `crit`, `alert`, and `emerg`) errors are written to
     the log. Note that debug-level errors are only available if the --with-debug configuration
     switch is given at compilation time. |'
+  id: totrans-22
   prefs: []
   type: TYPE_TB
+  zh: '| `error_log` | `error_log`是所有错误写入的地方。如果没有在单独的上下文中提供其他`error_log`，则此日志文件将用于所有错误，范围是全局的。此指令的第二个参数指定错误写入日志的级别（`debug`、`info`、`notice`、`warn`、`error`、`crit`、`alert`和`emerg`）。请注意，只有在编译时启用了`--with-debug`配置开关时，才可以获取debug级别的错误。
+    |'
 - en: '| `pid` | This is the file where the process ID of the main process is written,
     overwriting the compiled-in default. |'
+  id: totrans-23
   prefs: []
   type: TYPE_TB
+  zh: '| `pid` | 这是一个文件，主进程的进程ID会被写入该文件，覆盖掉默认的编译值。 |'
 - en: '| `use` | The `use` directive indicates which connection processing method
     should be used. This will overwrite the compiled-in default, and must be contained
     in an `events` context, if used. It will not normally need to be overridden, except
     when the compiled-in default is found to produce errors over time. |'
+  id: totrans-24
   prefs: []
   type: TYPE_TB
+  zh: '| `use` | `use` 指令指示应使用哪种连接处理方法。如果使用，它将覆盖编译时的默认设置，并且必须包含在 `events` 上下文中。除非发现编译时的默认设置随着时间的推移产生错误，否则通常不需要覆盖此设置。
+    |'
 - en: '| `worker_connections` | This directive configures the maximum number of simultaneous
     connections that a worker process may have open. This includes, but is not limited
     to, client connections and connections to upstream servers. This is especially
     important on reverse proxy servers – some additional tuning may be required at
     the operating system level in order to reach this number of simultaneous connections.
     |'
+  id: totrans-25
   prefs: []
   type: TYPE_TB
+  zh: '| `worker_connections` | 此指令配置工作进程可以打开的最大同时连接数。这包括但不限于客户端连接和与上游服务器的连接。在反向代理服务器上尤其重要——可能需要在操作系统级别进行一些额外的调优，以达到此数量的同时连接。
+    |'
 - en: 'Here is a short example using each of these directives:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一个简短的示例，展示了如何使用这些指令：
 - en: '[PRE1]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This section would be placed at the top of the `nginx.conf` configuration file.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 该部分应放置在 `nginx.conf` 配置文件的顶部。
 - en: Using include files
+  id: totrans-29
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用包含文件
 - en: 'Include files can be used anywhere in your configuration file, to help it be
     more readable and to enable you to re-use parts of your configuration. To use
     them, make sure that the files themselves contain the syntactically correct NGINX
     configuration directives and blocks; then specify a path to those files:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 包含文件可以在配置文件的任何地方使用，帮助提高可读性，并使你能够重用配置中的部分内容。使用时，确保文件本身包含语法正确的 NGINX 配置指令和块；然后指定文件的路径：
 - en: '[PRE2]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'A wildcard may appear in the path to match multiple files:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 通配符可以出现在路径中，用于匹配多个文件：
 - en: '[PRE3]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: If the full path is not given, NGINX will search relative to its main configuration
     file.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有提供完整路径，NGINX 将相对于其主配置文件进行搜索。
 - en: 'A configuration file can be easily tested by calling NGINX as follows:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置文件可以通过以下方式轻松测试：
 - en: '[PRE4]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: This will test the configuration including all the files separated out into
     include files, for syntax errors.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将测试包括所有包含文件在内的配置，检查语法错误。
 - en: The HTTP server section
+  id: totrans-38
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: HTTP 服务器部分
 - en: The HTTP server section, or HTTP configuration context, is available unless
     you have built NGINX without the HTTP module (`--without-http`). This section
     controls all the aspects of working with the HTTP module, and will probably be
     the one that you will use the most.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: HTTP 服务器部分或 HTTP 配置上下文是可用的，除非你构建 NGINX 时未包含 HTTP 模块（`--without-http`）。此部分控制与
+    HTTP 模块相关的所有方面，通常是你最常使用的部分。
 - en: The configuration directives found in this section deal with handling HTTP connections.
     As such, there are quite a number of directives defined by this module We will
     divide these directives up by type, to be able to talk about them more easily.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节中的配置指令处理 HTTP 连接。由于该模块定义了大量的指令，我们将根据类型将这些指令进行分类，以便更容易讨论它们。
 - en: Client directives
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 客户端指令
 - en: This set of directives deals with the aspects of the client connection itself,
     as well as with different types of clients.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一组指令处理客户端连接本身以及不同类型客户端的相关设置。
 - en: 'Table: HTTP client directives'
+  id: totrans-43
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：HTTP 客户端指令
 - en: '| Directive | Explanation |'
+  id: totrans-44
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 解释 |'
 - en: '| --- | --- |'
+  id: totrans-45
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `chunked_transfer_encoding` | Allows disabling the standard HTTP/1.1 chunked
     transfer encoding in responses to clients. |'
+  id: totrans-46
   prefs: []
   type: TYPE_TB
+  zh: '| `chunked_transfer_encoding` | 允许在响应客户端时禁用标准的 HTTP/1.1 分块传输编码。 |'
 - en: '| `client_body_buffer_size` | Used to set a buffer size for the client request
     body larger than the default two memory pages, in order to prevent temporary files
     from being written to the disk. |'
+  id: totrans-47
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_buffer_size` | 用于设置客户端请求体的缓冲区大小，超过默认的两个内存页面，以防止将临时文件写入磁盘。 |'
 - en: '| `client_body_in_file_only` | Used for debugging or further processing of
     the client request body. This directive can be set to `on` to force save the client
     request body to a file. |'
+  id: totrans-48
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_in_file_only` | 用于调试或进一步处理客户端请求体。此指令可以设置为 `on`，强制将客户端请求体保存到文件中。
+    |'
 - en: '| `client_body_in_single_buffer` | This directive forces NGINX to save the
     entire client request body in a single buffer, to reduce copy operations. |'
+  id: totrans-49
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_in_single_buffer` | 此指令强制 NGINX 将整个客户端请求体保存到单个缓冲区，以减少复制操作。 |'
 - en: '| `client_body_temp_path` | Defines a directory path for saving the client
     request body. |'
+  id: totrans-50
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_temp_path` | 定义保存客户端请求体的目录路径。 |'
 - en: '| `client_body_timeout` | Specifies the length of time between successive read
     operations of the client body. |'
+  id: totrans-51
   prefs: []
   type: TYPE_TB
+  zh: '| `client_body_timeout` | 指定客户端请求体的连续读取操作之间的时间长度。 |'
 - en: '| `client_header_buffer_size` | Used for specifying a buffer size for the client
     request header, when this needs to be larger than the default 1 KB. |'
+  id: totrans-52
   prefs: []
   type: TYPE_TB
+  zh: '| `client_header_buffer_size` | 用于指定客户端请求头的缓冲区大小，当该大小需要大于默认的 1 KB 时使用。 |'
 - en: '| `client_header_timeout` | This timeout is the length of time for reading
     the entire client header. |'
+  id: totrans-53
   prefs: []
   type: TYPE_TB
+  zh: '| `client_header_timeout` | 此超时为读取整个客户端请求头的时间长度。 |'
 - en: '| `client_max_body_size` | Defines the largest allowable client request body,
     before a `413 (Request Entity Too Large)` error is returned to the browser. |'
+  id: totrans-54
   prefs: []
   type: TYPE_TB
+  zh: '| `client_max_body_size` | 定义允许的最大客户端请求体大小，超过该大小时，将向浏览器返回`413 (Request Entity
+    Too Large)`错误。 |'
 - en: '| `keepalive_disable` | Disables the keep-alive requests for certain browser
     types. |'
+  id: totrans-55
   prefs: []
   type: TYPE_TB
+  zh: '| `keepalive_disable` | 禁用某些浏览器类型的保持连接请求。 |'
 - en: '| `keepalive_requests` | Defines how many requests may be made over one keep-alive
     connection before it is closed. |'
+  id: totrans-56
   prefs: []
   type: TYPE_TB
+  zh: '| `keepalive_requests` | 定义在关闭连接之前，可以在一个保持连接上进行的请求次数。 |'
 - en: '| `keepalive_timeout` | Specifies how long a keep-alive connection will stay
     open. A second parameter may be given, to set a "Keep-Alive" header in the response.
     |'
+  id: totrans-57
   prefs: []
   type: TYPE_TB
+  zh: '| `keepalive_timeout` | 指定保持连接的时间。可以给定第二个参数，在响应中设置“Keep-Alive”头。 |'
 - en: '| `large_client_header_buffers` | Defines the maximum number and size of a
     large client request header. |'
+  id: totrans-58
   prefs: []
   type: TYPE_TB
+  zh: '| `large_client_header_buffers` | 定义一个大的客户端请求头的最大数量和大小。 |'
 - en: '| `msie_padding` | Enables the disabling of adding comments to responses with
     a status greater than 400 for MSIE clients, in order to pad the response size
     to 512 bytes. |'
+  id: totrans-59
   prefs: []
   type: TYPE_TB
+  zh: '| `msie_padding` | 启用禁用为状态大于 400 的 MSIE 客户端响应添加注释，以填充响应大小至 512 字节。 |'
 - en: '| `msie_refresh` | Enables the sending of a refresh instead of a redirect for
     MSIE clients. |'
+  id: totrans-60
   prefs: []
   type: TYPE_TB
+  zh: '| `msie_refresh` | 启用为 MSIE 客户端发送刷新，而不是重定向。 |'
 - en: File I/O directives
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 文件 I/O 指令
 - en: These directives control how NGINX delivers static files and/or how it manages
     file descriptors.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些指令控制 NGINX 如何提供静态文件和/或如何管理文件描述符。
 - en: 'Table: HTTP file I/O directives'
+  id: totrans-63
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：HTTP 文件 I/O 指令
 - en: '| Directive | Explanation |'
+  id: totrans-64
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-65
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `aio` | Enables the use of asynchronous file I/O. It is available on all
     the modern versions of FreeBSD and distributions of Linux. On FreeBSD, `aio` may
     be used to preload data for `sendfile`. Under Linux, `directio` is required, which
     automatically disables `sendfile`. |'
+  id: totrans-66
   prefs: []
   type: TYPE_TB
+  zh: '| `aio` | 启用异步文件 I/O。它在所有现代版本的 FreeBSD 和 Linux 发行版中可用。在 FreeBSD 上，`aio` 可用于预加载数据以进行`sendfile`。在
+    Linux 上，需要`directio`，这会自动禁用`sendfile`。 |'
 - en: '| `directio` | Enables the operating system specific flag or function for serving
     files larger than the given parameter. It''s required when using `aio` on Linux.
     |'
+  id: totrans-67
   prefs: []
   type: TYPE_TB
+  zh: '| `directio` | 启用操作系统特定的标志或功能，以处理大于给定参数的文件。当在 Linux 上使用`aio`时，这是必需的。 |'
 - en: '| `directio_alignment` | Sets the alignment for `directio`. The default of
     `512` is usually enough, although it''s recommended to increase this to 4 K when
     using XFS on Linux. |'
+  id: totrans-68
   prefs: []
   type: TYPE_TB
+  zh: '| `directio_alignment` | 设置`directio`的对齐方式。默认值`512`通常足够，尽管建议在 Linux 上使用 XFS
+    时将其增加到 4 K。 |'
 - en: '| `open_file_cache` | Configures a cache that can store open file descriptors,
     directory lookups, and file lookup errors. |'
+  id: totrans-69
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache` | 配置一个缓存，可以存储打开的文件描述符、目录查找和文件查找错误。 |'
 - en: '| `open_file_cache_errors` | Enables the caching of file lookup errors by `open_file_cache`.
     |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache_errors` | 启用通过`open_file_cache`缓存文件查找错误。 |'
 - en: '| `open_file_cache_min_uses` | Configures the minimum number of uses for a
     file within the inactive parameter to `open_file_cache` for the file descriptor
     to remain open in the cache. |'
+  id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache_min_uses` | 配置文件在`open_file_cache`中保持打开的最小使用次数，以便文件描述符保持打开状态。
+    |'
 - en: '| `open_file_cache_valid` | Specifies the time interval between validity checks
     for items in `open_file_cache`. |'
+  id: totrans-72
   prefs: []
   type: TYPE_TB
+  zh: '| `open_file_cache_valid` | 指定`open_file_cache`中项目有效性检查的时间间隔。 |'
 - en: '| `postpone_output` | Specifies the minimum size of data for NGINX to send
     to the client. If possible, no data will be sent until this value is reached.
     |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| `postpone_output` | 指定 NGINX 向客户端发送数据的最小大小。如果可能，直到达到此值才会发送数据。 |'
 - en: '| `read_ahead` | If possible, the kernel will preread files up to the `size`
     parameter. It''s supported on current FreeBSD and Linux (the `size` parameter
     is ignored on Linux). |'
+  id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '| `read_ahead` | 如果可能，内核将预读取文件，直到`size`参数指定的大小。当前版本的FreeBSD和Linux支持此功能（在Linux上，`size`参数会被忽略）。
+    |'
 - en: '| `sendfile` | Enables using `sendfile(2)` to directly copy the data from one
     file descriptor to another. |'
+  id: totrans-75
   prefs: []
   type: TYPE_TB
+  zh: '| `sendfile` | 启用使用`sendfile(2)`将数据直接从一个文件描述符复制到另一个文件描述符。 |'
 - en: '| `sendfile_max_chunk` | Sets the maximum size of data to copy in one `sendfile(2)`
     call, to prevent a worker from seizing. |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '| `sendfile_max_chunk` | 设置在一次`sendfile(2)`调用中复制的数据的最大大小，以防止工作进程发生阻塞。 |'
 - en: Hash directives
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 哈希指令
 - en: The set of hash directives controls how large a range of static memory NGINX
     allocates to certain variables. NGINX will calculate the minimum size needed on
     startup and reconfiguration. You will most likely only need to adjust one of the
@@ -341,371 +508,564 @@
     to a multiple of the processor's cache line size to minimize lookups needed to
     retrieve the entry, and therefore should not normally be changed. See [http://nginx.org/en/docs/hash.html](http://nginx.org/en/docs/hash.html)
     for additional details.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 哈希指令集控制NGINX为某些变量分配的静态内存范围大小。NGINX将在启动和重新配置时计算所需的最小大小。你很可能只需要通过设置适当的指令来调整`*_hash_max_size`参数，当NGINX发出相关警告时。`*_hash_bucket_size`变量默认设置为处理器缓存行大小的倍数，以最小化检索条目时所需的查找次数，因此通常不应更改。有关更多详情，请参见[http://nginx.org/en/docs/hash.html](http://nginx.org/en/docs/hash.html)。
 - en: 'Table: HTTP hash directives'
+  id: totrans-79
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：HTTP哈希指令
 - en: '| Directive | Explanation |'
+  id: totrans-80
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-81
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `server_names_hash_bucket_size` | It specifies the bucket size used to hold
     the `server_name` hash tables. |'
+  id: totrans-82
   prefs: []
   type: TYPE_TB
+  zh: '| `server_names_hash_bucket_size` | 指定用于存储`server_name`哈希表的桶大小。 |'
 - en: '| `server_names_hash_max_size` | It specifies the maximum size of the `server_name`
     hash tables. |'
+  id: totrans-83
   prefs: []
   type: TYPE_TB
+  zh: '| `server_names_hash_max_size` | 指定`server_name`哈希表的最大大小。 |'
 - en: '| `types_hash_bucket_size` | It specifies the bucket size used to hold the
     `types` hash tables. |'
+  id: totrans-84
   prefs: []
   type: TYPE_TB
+  zh: '| `types_hash_bucket_size` | 指定用于存储`types`哈希表的桶大小。 |'
 - en: '| `types_hash_max_size` | It specifies the maximum size of the `types` hash
     tables. |'
+  id: totrans-85
   prefs: []
   type: TYPE_TB
+  zh: '| `types_hash_max_size` | 指定`types`哈希表的最大大小。 |'
 - en: '| `variables_hash_bucket_size` | It specifies the bucket size used to hold
     the remaining variables. |'
+  id: totrans-86
   prefs: []
   type: TYPE_TB
+  zh: '| `variables_hash_bucket_size` | 指定用于存储剩余变量的桶大小。 |'
 - en: '| `variables_hash_max_size` | It specifies the maximum size of the hash that
     holds the remaining variables. |'
+  id: totrans-87
   prefs: []
   type: TYPE_TB
+  zh: '| `variables_hash_max_size` | 指定用于存储剩余变量的哈希表的最大大小。 |'
 - en: Socket directives
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 套接字指令
 - en: These directives describe how NGINX can set various options on the TCP sockets
     it creates.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些指令描述了NGINX如何为其创建的TCP套接字设置各种选项。
 - en: 'Table: HTTP socket directives'
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 表格：HTTP套接字指令
 - en: '| Directive | Explanation |'
+  id: totrans-91
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
+  id: totrans-92
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `lingering_close` | It specifies how a client connection will be kept open
     for more data. |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| `lingering_close` | 指定客户端连接在接收更多数据时如何保持打开。 |'
 - en: '| `lingering_time` | In connection with the `lingering_close` directive, this
     directive will specify how long a client connection will be kept open for processing
     more data. |'
+  id: totrans-94
   prefs: []
   type: TYPE_TB
+  zh: '| `lingering_time` | 配合`lingering_close`指令使用，此指令指定客户端连接保持打开以处理更多数据的时间。 |'
 - en: '| `lingering_timeout` | Also in conjunction with `lingering_close`, this directive
     indicates how long NGINX will wait for additional data before closing the client
     connection. |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| `lingering_timeout` | 也配合`lingering_close`使用，此指令指示NGINX在关闭客户端连接之前等待额外数据的时间。
+    |'
 - en: '| `reset_timedout_connection` | With this directive enabled, connections that
     have been timed out will immediately be reset, freeing all associated memory.
     The default is to leave the socket in the `FIN_WAIT1` state, which will always
     be the case for keep-alive connections. |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| `reset_timedout_connection` | 启用此指令后，超时的连接将立即重置，释放所有关联的内存。默认情况下，套接字会保持在`FIN_WAIT1`状态，这对于保持活动的连接始终是如此。
+    |'
 - en: '| `send_lowat` | If non-zero, NGINX will try to minimize the number of send
     operations on client sockets. It is ignored on Linux, Solaris, and Windows. |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '| `send_lowat` | 如果不为零，NGINX将尽量减少在客户端套接字上的发送操作次数。在Linux、Solaris和Windows上会被忽略。
+    |'
 - en: '| `send_timeout` | Sets a timeout between two successive write operations for
     a client receiving a response. |'
+  id: totrans-98
   prefs: []
   type: TYPE_TB
+  zh: '| `send_timeout` | 设置客户端接收响应时，两个连续写操作之间的超时时间。 |'
 - en: '| `tcp_nodelay` | Enables or disables the `TCP_NODELAY` option for keep-alive
     connections. |'
+  id: totrans-99
   prefs: []
   type: TYPE_TB
+  zh: '| `tcp_nodelay` | 启用或禁用 `TCP_NODELAY` 选项，以保持长连接。 |'
 - en: '| `tcp_nopush` | Relevant only when `sendfile` is used. It enables NGINX to
     attempt to send response headers in one packet, as well as sending a file in full
     packets. |'
+  id: totrans-100
   prefs: []
   type: TYPE_TB
+  zh: '| `tcp_nopush` | 仅在使用 `sendfile` 时相关。它使 NGINX 尝试将响应头与文件内容一起以一个数据包发送。 |'
 - en: Sample configuration
+  id: totrans-101
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 示例配置
 - en: 'The following is an example of an HTTP configuration section:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是 HTTP 配置部分的示例：
 - en: '[PRE5]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: This context block would go after any global configuration directives in the
     `nginx.conf` file.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 此上下文块应位于 `nginx.conf` 文件中的任何全局配置指令之后。
 - en: The virtual server section
+  id: totrans-105
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 虚拟服务器部分
 - en: Any context beginning with the keyword `server` is considered a "virtual server"
     section. It describes a logical separation of a set of resources that will be
     delivered under a different `server_name` directive. These virtual servers respond
     to HTTP requests, and so are contained within the `http` section.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 以 `server` 关键字开头的任何上下文都被视为“虚拟服务器”部分。它描述了一组资源的逻辑分离，这些资源将通过不同的 `server_name` 指令提供。这些虚拟服务器响应
+    HTTP 请求，因此它们被包含在 `http` 部分中。
 - en: 'A virtual server is defined by a combination of the `listen` and `server_name`
     directives. `listen` defines an IP address/port combination or path to a UNIX-domain
     socket:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 虚拟服务器由 `listen` 和 `server_name` 指令的组合来定义。`listen` 定义了一个 IP 地址/端口组合或指向 UNIX 域套接字的路径：
 - en: '[PRE6]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The `listen` directive uniquely identifies a socket binding under NGINX. There
     are also a number of optional parameters that `listen` can take:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '`listen` 指令唯一标识 NGINX 中的一个套接字绑定。`listen` 还可以接受多个可选参数：'
 - en: 'Table: listen parameters'
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：listen 参数
 - en: '| Parameter | Explanation | Comment |'
+  id: totrans-111
   prefs: []
   type: TYPE_TB
+  zh: '| 参数 | 说明 | 注释 |'
 - en: '| --- | --- | --- |'
+  id: totrans-112
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| `default_server` | Defines `this address:port` combination as being the default
     for the requests bound here. |   |'
+  id: totrans-113
   prefs: []
   type: TYPE_TB
+  zh: '| `default_server` | 将 `此地址:端口` 组合定义为绑定此处请求的默认值。 |   |'
 - en: '| `setfib` | Sets the corresponding FIB for the listening socket. | Only supported
     on FreeBSD. Not for UNIX-domain sockets. |'
+  id: totrans-114
   prefs: []
   type: TYPE_TB
+  zh: '| `setfib` | 设置对应的 FIB（转发信息库）用于监听套接字。 | 仅支持 FreeBSD。不支持 UNIX 域套接字。 |'
 - en: '| `backlog` | Sets the backlog parameter in the `listen()` call. | Defaults
     to `-1` on FreeBSD and `511` on all other platforms. |'
+  id: totrans-115
   prefs: []
   type: TYPE_TB
+  zh: '| `backlog` | 设置 `listen()` 调用中的 backlog 参数。 | 在 FreeBSD 上默认为 `-1`，在其他所有平台上默认为
+    `511`。 |'
 - en: '| `rcvbuf` | Sets the `SO_RCVBUF` parameter on the listening socket. |   |'
+  id: totrans-116
   prefs: []
   type: TYPE_TB
+  zh: '| `rcvbuf` | 设置监听套接字上的 `SO_RCVBUF` 参数。 |   |'
 - en: '| `sndbuf` | Sets the `SO_SNDBUF` parameter on the listening socket. |   |'
+  id: totrans-117
   prefs: []
   type: TYPE_TB
+  zh: '| `sndbuf` | 设置监听套接字上的 `SO_SNDBUF` 参数。 |   |'
 - en: '| `accept_filter` | Sets the name of the accept filter to either `dataready`
     or `httpready`. | Only supported on FreeBSD. |'
+  id: totrans-118
   prefs: []
   type: TYPE_TB
+  zh: '| `accept_filter` | 设置接收过滤器的名称，可以是 `dataready` 或 `httpready`。 | 仅支持 FreeBSD。
+    |'
 - en: '| `deferred` | Sets the `TCP_DEFER_ACCEPT` option to use a deferred `accept()`
     call. | Only supported on Linux. |'
+  id: totrans-119
   prefs: []
   type: TYPE_TB
+  zh: '| `deferred` | 设置 `TCP_DEFER_ACCEPT` 选项，使用延迟的 `accept()` 调用。 | 仅支持 Linux。 |'
 - en: '| `bind` | Make a separate `bind()` call for this `address:port` pair. | A
     separate `bind()` call will be made implicitly if any of the other socket-specific
     parameters are used. |'
+  id: totrans-120
   prefs: []
   type: TYPE_TB
+  zh: '| `bind` | 为此 `地址:端口` 对进行单独的 `bind()` 调用。 | 如果使用了其他套接字特定参数，则会隐式地进行单独的 `bind()`
+    调用。 |'
 - en: '| `ipv6only` | Sets the value of the `IPV6_V6ONLY` parameter. | Can only be
     set on a fresh start. Not for UNIX-domain sockets. |'
+  id: totrans-121
   prefs: []
   type: TYPE_TB
+  zh: '| `ipv6only` | 设置 `IPV6_V6ONLY` 参数的值。 | 只能在全新启动时设置。不支持 UNIX 域套接字。 |'
 - en: '| `ssl` | Indicates that only HTTPS connections will be made on this port.
     | Allows for a more compact configuration. |'
+  id: totrans-122
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl` | 表示此端口仅允许 HTTPS 连接。 | 允许更简洁的配置。 |'
 - en: '| `so_keepalive` | Configures the TCP `keepalive` for the listening socket.
     |   |'
+  id: totrans-123
   prefs: []
   type: TYPE_TB
+  zh: '| `so_keepalive` | 配置监听套接字的 TCP `keepalive`。 |   |'
 - en: 'The `server_name` directive is fairly straightforward, but can be used to solve
     a number of configuration problems. Its default value is `""`, which means that
     a server section without a `server_name` directive will match a request that has
     no `Host` header field set. This can be used, for example, to drop requests that
     lack this header:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '`server_name` 指令相对简单，但可以用于解决许多配置问题。其默认值是 `""`，这意味着没有 `server_name` 指令的服务器部分将匹配没有设置
+    `Host` 头字段的请求。例如，可以用它来丢弃缺少此头字段的请求：'
 - en: '[PRE7]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The non-standard HTTP code, `444`, used in this example will cause NGINX to
     immediately close the connection.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中使用的非标准 HTTP 代码 `444` 将导致 NGINX 立即关闭连接。
 - en: 'Besides a normal string, NGINX will accept a wildcard as a parameter to the
     `server_name` directive:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了普通字符串，NGINX 还接受通配符作为 `server_name` 指令的参数：
 - en: 'The wildcard can replace the subdomain part: `*.example.com`'
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通配符可以替代子域部分：`*.example.com`
 - en: 'The wildcard can replace the top-level-domain part: `www.example.*`'
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通配符可以替代顶级域部分：`www.example.*`
 - en: 'A special form will match the subdomain or the domain itself: `.example.com`
     (matches `*.example.com` as well as `example.com`)'
+  id: totrans-130
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一种特殊形式将匹配子域或域名本身：`.example.com`（同时匹配`*.example.com`和`example.com`）
 - en: 'A regular expression can also be used as a parameter to `server_name` by prepending
     the name with a tilde (`~`):'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 正则表达式也可以作为`server_name`的参数，通过在名称前加上波浪号（`~`）来使用：
 - en: '[PRE8]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: The latter form is an example using captures, which can later be referenced
     (as `$1`, `$2`, and so on) in further configuration directives.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 后者形式是一个使用捕获的示例，捕获后可以在后续的配置指令中通过（`$1`、`$2`等）进行引用。
 - en: 'NGINX uses the following logic when determining which virtual server should
     serve a specific request:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX在确定哪个虚拟服务器应处理特定请求时使用以下逻辑：
 - en: Match the IP address and port to the `listen` directive.
+  id: totrans-135
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 匹配IP地址和端口到`listen`指令。
 - en: Match the `Host` header field against the `server_name` directive as a string.
+  id: totrans-136
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将`Host`头部字段与`server_name`指令作为字符串进行匹配。
 - en: Match the `Host` header field against the `server_name` directive with a wildcard
     at the beginning of the string.
+  id: totrans-137
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将`Host`头部字段与`server_name`指令进行匹配，并在字符串的开头加上通配符。
 - en: Match the `Host` header field against the `server_name` directive with a wildcard
     at the end of the string.
+  id: totrans-138
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将`Host`头部字段与`server_name`指令匹配，并在字符串的末尾加上通配符。
 - en: Match the `Host` header field against the `server_name` directive as a regular
     expression.
+  id: totrans-139
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将`Host`头部字段与`server_name`指令作为正则表达式进行匹配。
 - en: If all the `Host` headers match `fail`, then direct to the `listen` directive
     marked as `default_server`.
+  id: totrans-140
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果所有的`Host`头部匹配`fail`，则跳转到标记为`default_server`的`listen`指令。
 - en: If all the `Host` headers match `fail` and there is no `default_server`, direct
     to the first server with a `listen` directive that satisfies step 1.
+  id: totrans-141
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果所有的`Host`头部都匹配`fail`并且没有`default_server`，则直接跳转到第一个满足步骤1的`listen`指令的服务器。
 - en: 'This logic is expressed in the following flowchart:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 该逻辑在以下流程图中表示：
 - en: '![Table: listen parameters](img/7447OS_02_01.jpg)'
+  id: totrans-143
   prefs: []
   type: TYPE_IMG
+  zh: '![表格：listen 参数](img/7447OS_02_01.jpg)'
 - en: '`default_server` can be used to handle requests that would otherwise go unhandled.
     It is therefore recommended to always set `default_server` explicitly, so that
     these unhandled requests will be handled in a defined manner.'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用`default_server`来处理那些否则会被忽略的请求。因此，建议始终显式设置`default_server`，以便这些未处理的请求能够以定义的方式得到处理。
 - en: Besides this usage, `default_server` may also be helpful in configuring a number
     of virtual servers with the same `listen` directive. Any directives set here will
     be the same for all matching server blocks.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了这个用法，`default_server`在配置多个具有相同`listen`指令的虚拟服务器时也可能很有用。此处设置的任何指令将适用于所有匹配的服务器块。
 - en: Locations – where, when, and how
+  id: totrans-146
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 位置 – 在何时、何地以及如何使用
 - en: The `location` directive may be used within a virtual server section and indicates
     a URI that comes either from the client or from an internal redirect. Locations
     may be nested with a few exceptions. They are used for processing requests with
     as specific a configuration as possible.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: '`location`指令可以在虚拟服务器部分中使用，并指示来自客户端或内部重定向的URI。位置可以嵌套，但有一些例外。它们用于尽可能具体地配置请求的处理。'
 - en: 'A location is defined as follows:'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 位置定义如下：
 - en: '[PRE9]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Or for a named location:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者对于一个命名的位置：
 - en: '[PRE10]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: A named location is only reachable from an internal redirect. It preserves the
     URI as it was before entering the location block. It may only be defined at the
     server context level.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 命名位置只能通过内部重定向访问。它保持进入位置块之前的URI不变。它只能在服务器上下文级别定义。
 - en: 'The modifiers affect processing of a location in the following way:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 修饰符会以如下方式影响位置的处理：
 - en: 'Table: Location modifiers'
+  id: totrans-154
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：位置修饰符
 - en: '| Modifier | Handling |'
+  id: totrans-155
   prefs: []
   type: TYPE_TB
+  zh: '| 修饰符 | 处理 |'
 - en: '| --- | --- |'
+  id: totrans-156
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `=` | Use exact match and terminate search. |'
+  id: totrans-157
   prefs: []
   type: TYPE_TB
+  zh: '| `=` | 使用精确匹配并终止搜索。 |'
 - en: '| `~` | Case-sensitive regular expression matching. |'
+  id: totrans-158
   prefs: []
   type: TYPE_TB
+  zh: '| `~` | 区分大小写的正则表达式匹配。 |'
 - en: '| `~*` | Case-insensitive regular expression matching. |'
+  id: totrans-159
   prefs: []
   type: TYPE_TB
+  zh: '| `~*` | 不区分大小写的正则表达式匹配。 |'
 - en: '| `^~` | Stops processing before regular expressions are checked for a match
     of this location''s string, if it''s the most specific match. Note that this is
     not a regular expression match – its purpose is to preempt regular expression
     matching. |'
+  id: totrans-160
   prefs: []
   type: TYPE_TB
+  zh: '| `^~` | 如果这是最具体的匹配，则在检查该位置的字符串是否与正则表达式匹配之前停止处理。请注意，这不是正则表达式匹配——它的目的是优先进行正则表达式匹配。
+    |'
 - en: 'When a request comes in, the URI is checked against the most specific location
     as follows:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 当请求到达时，URI 将与最具体的位置进行如下比较：
 - en: Locations without a regular expression are searched for the most-specific match,
     independent of the order in which they are defined.
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有正则表达式的定位将搜索最具体的匹配项，而不考虑其定义的顺序。
 - en: Regular expressions are matched in the order in which they are found in the
     configuration file. The regular expression search is terminated on the first match.
     The most-specific location match is then used for request processing.
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 正则表达式的匹配按其在配置文件中的出现顺序进行。正则表达式搜索会在第一次匹配时终止。然后将使用最具体的位置匹配进行请求处理。
 - en: The comparison match described here is against decoded URIs; for example, a
     `"%20"` in a URI will match against a `" "` (space) specified in a location.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 此处描述的比较匹配是针对解码后的 URI 进行的；例如，URI 中的`"%20"`将与位置中指定的`" "`（空格）进行匹配。
 - en: A named location may only be used by internally redirected requests.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 命名位置只能由内部重定向请求使用。
 - en: 'The following directives are found only within a location:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下指令仅在位置中找到：
 - en: 'Table: Location-only directives'
+  id: totrans-167
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：仅限位置的指令
 - en: '| Directive | Explanation |'
+  id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 解释 |'
 - en: '| --- | --- |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `alias` | Defines another name for the location, as found on the filesystem.
     If the location is specified with a regular expression, `alias` should reference
     captures defined in that regular expression. `alias` replaces the part of the
@@ -713,183 +1073,275 @@
     searched for in that filesystem location. Using the `alias` directive is fragile
     when moving bits of the configuration around, so using the `root` directive is
     preferred, unless the URI needs to be modified in order to find the file. |'
+  id: totrans-170
   prefs: []
   type: TYPE_TB
+  zh: '| `alias` | 为位置定义另一个名称，该名称在文件系统中找到。如果位置使用正则表达式指定，则`alias`应引用该正则表达式中定义的捕获组。`alias`会替换位置匹配的
+    URI 部分，以便在该文件系统位置中查找其余未匹配的 URI。使用`alias`指令在配置中移动配置项时较为脆弱，因此推荐使用`root`指令，除非需要修改
+    URI 来找到文件。 |'
 - en: '| `internal` | Specifies a location that can only be used for internal requests
     (redirects defined in other directives, rewrite requests, error pages, and so
     on.) |'
+  id: totrans-171
   prefs: []
   type: TYPE_TB
+  zh: '| `internal` | 指定只能用于内部请求（其他指令中定义的重定向、重写请求、错误页面等）的位置。 |'
 - en: '| `limit_except` | Limits a location to the specified HTTP verb(s) (`GET` also
     includes `HEAD`). |'
+  id: totrans-172
   prefs: []
   type: TYPE_TB
+  zh: '| `limit_except` | 限制位置只能使用指定的 HTTP 方法（`GET` 也包括`HEAD`）。 |'
 - en: Additionally, a number of directives found in the `http` section may also be
     specified in a location. See [Appendix A](apa.html "Appendix A. Directive Reference"),
     *Directive Reference*, for a complete list.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，在`http`部分找到的许多指令也可以在位置中指定。有关完整列表，请参见[附录 A](apa.html "附录 A. 指令参考")，*指令参考*。
 - en: 'The `try_files` directive deserves a special mention here. It may also be used
     in a server context, but will most often be found in a location. `try_files` will
     do just that—try files in the order given as parameters; the first match wins.
     It is often used to match potential files from a variable, then pass processing
     to a named location, as shown in the following example:'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: '`try_files`指令值得特别提及。它也可以在服务器上下文中使用，但通常会出现在位置中。`try_files`将按照给定的参数顺序尝试文件；第一个匹配的文件优先。它通常用于从变量中匹配潜在文件，然后将处理传递给命名位置，如以下示例所示：'
 - en: '[PRE11]'
+  id: totrans-175
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Here, an implicit directory index is tried if the given URI is not found as
     a file, then processing is passed on to `appserver` via a proxy. We will explore
     how best to use `location`, `try_files`, and `proxy_pass` to solve specific problems
     throughout the rest of the book.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此，如果给定的 URI 未找到为文件，则尝试隐式目录索引，然后通过代理将处理传递给`appserver`。在本书的其余部分，我们将探讨如何最好地使用`location`、`try_files`和`proxy_pass`来解决特定问题。
 - en: 'Locations may be nested except when:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非在以下情况下，位置可以嵌套：
 - en: The prefix is "`=`"
+  id: totrans-178
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 前缀是"`=`"
 - en: The location is a named location
+  id: totrans-179
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 位置是一个命名位置
 - en: 'Best practice dictates that regular expression locations be nested inside string-based
     locations. An example of this is as follows:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 最佳实践要求将正则表达式位置嵌套在基于字符串的位置内部。以下是一个示例：
 - en: '[PRE12]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The mail server section
+  id: totrans-182
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 邮件服务器部分
 - en: The mail server section, or mail configuration context, is available only if
     you've built NGINX with the mail module (`--with-mail`). This section controls
     all aspects of working with the mail module.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 邮件服务器部分或邮件配置上下文，仅在你构建了带有邮件模块的 NGINX（`--with-mail`）时可用。此部分控制与邮件模块相关的所有工作。
 - en: The mail module allows for configuration directives that affect all aspects
     of proxying mail connections, as well as for specifying them per server. The server
     context also accepts the `listen` and `server_name` directives that we saw under
     the `http` server section.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 邮件模块允许配置影响所有邮件连接代理方面的指令，也允许按服务器指定它们。服务器上下文还接受我们在`http`服务器部分中看到的`listen`和`server_name`指令。
 - en: 'NGINX can proxy the IMAP, POP3, and SMTP protocols. The following table lists
     the directives that are available to this module:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX可以代理IMAP、POP3和SMTP协议。以下表格列出了此模块可用的指令：
 - en: 'Table: Mail module directives'
+  id: totrans-186
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：邮件模块指令
 - en: '| Directive | Explanation |'
+  id: totrans-187
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 解释 |'
 - en: '| --- | --- |'
+  id: totrans-188
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `auth_http` | Specifies the server used for authenticating the POP3/IMAP
     user. The functionality of this server will be discussed in detail in [Chapter
     3](ch03.html "Chapter 3. Using the Mail Module"). |'
+  id: totrans-189
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_http` | 指定用于验证POP3/IMAP用户的服务器。该服务器的功能将在[第3章](ch03.html "第3章 使用邮件模块")中详细讨论。
+    |'
 - en: '| `imap_capabilities` | Indicates which IMAP4 capabilities are supported by
     the backend server. |'
+  id: totrans-190
   prefs: []
   type: TYPE_TB
+  zh: '| `imap_capabilities` | 表示后端服务器支持哪些IMAP4功能。 |'
 - en: '| `pop3_capabilities` | Indicates which POP3 capabilities are supported by
     the backend server. |'
+  id: totrans-191
   prefs: []
   type: TYPE_TB
+  zh: '| `pop3_capabilities` | 表示后端服务器支持哪些POP3功能。 |'
 - en: '| `protocol` | Indicates which protocol is supported by this virtual server
     context. |'
+  id: totrans-192
   prefs: []
   type: TYPE_TB
+  zh: '| `protocol` | 表示此虚拟服务器上下文支持的协议。 |'
 - en: '| `proxy` | This directive will simply enable or disable mail proxying. |'
+  id: totrans-193
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy` | 此指令将简单地启用或禁用邮件代理。 |'
 - en: '| `proxy_buffer` | This directive allows setting the size of the buffer used
     for the proxy connection beyond the default of one page. |'
+  id: totrans-194
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_buffer` | 此指令允许设置用于代理连接的缓冲区大小，超出默认的单页大小。 |'
 - en: '| `proxy_pass_error_message` | Useful in situations where the backend authentication
     process emits a useful error message to the client. |'
+  id: totrans-195
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_pass_error_message` | 在后端认证过程中向客户端发出有用错误消息的情况下很有用。 |'
 - en: '| `proxy_timeout` | If a timeout beyond the default of 24 hours is required,
     this directive can be used. |'
+  id: totrans-196
   prefs: []
   type: TYPE_TB
+  zh: '| `proxy_timeout` | 如果需要超出默认24小时的超时，可以使用此指令。 |'
 - en: '| `xclient` | The SMTP protocol allows checking based on `IP`/`HELO`/`LOGIN`
     parameters, which are passed via the `XCLIENT` command. This directive enables
     NGINX to communicate this information. |'
+  id: totrans-197
   prefs: []
   type: TYPE_TB
+  zh: '| `xclient` | SMTP协议允许基于`IP`/`HELO`/`LOGIN`参数进行检查，这些参数通过`XCLIENT`命令传递。此指令启用NGINX传递这些信息。
+    |'
 - en: 'If NGINX was compiled with SSL support (`--with-mail_ssl_module`), the following
     directives will be available in addition to the previous ones:'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果NGINX是通过SSL支持编译的（`--with-mail_ssl_module`），除了前述指令之外，还将提供以下指令：
 - en: 'Table: Mail SSL directives'
+  id: totrans-199
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：邮件SSL指令
 - en: '| Directive | Explanation |'
+  id: totrans-200
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 解释 |'
 - en: '| --- | --- |'
+  id: totrans-201
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `ssl` | Indicates if this context should support SSL transactions. |'
+  id: totrans-202
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl` | 表示此上下文是否应支持SSL事务。 |'
 - en: '| `ssl_certificate` | It specifies the path to the PEM-encoded SSL certificate(s)
     for this virtual server. |'
+  id: totrans-203
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate` | 指定此虚拟服务器的PEM编码SSL证书的路径。 |'
 - en: '| `ssl_certificate_key` | It specifies the path to the PEM-encoded SSL secret
     key for this virtual server. |'
+  id: totrans-204
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate_key` | 指定此虚拟服务器的PEM编码SSL密钥的路径。 |'
 - en: '| `ssl_ciphers` | It specifies the ciphers that should be supported in this
     virtual server context (OpenSSL format). |'
+  id: totrans-205
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_ciphers` | 指定在此虚拟服务器上下文中应支持的密码（OpenSSL格式）。 |'
 - en: '| `ssl_prefer_server_ciphers` | Indicates that SSLv3 and TLSv1 server ciphers
     are preferred over the client''s ciphers. |'
+  id: totrans-206
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_prefer_server_ciphers` | 表示优先使用SSLv3和TLSv1服务器密码，而非客户端密码。 |'
 - en: '| `ssl_protocols` | Indicates which SSL protocols should be enabled. |'
+  id: totrans-207
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_protocols` | 表示应启用哪些SSL协议。 |'
 - en: '| `ssl_session_cache` | Specifies an SSL cache, and whether or not it should
     be shared among all worker processes. |'
+  id: totrans-208
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_cache` | 指定SSL缓存，以及是否应在所有工作进程之间共享它。 |'
 - en: '| `ssl_session_timeout` | How long the client can use the same SSL parameters,
     provided they are stored in the cache. |'
+  id: totrans-209
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_timeout` | 客户端可以使用相同SSL参数的时间，前提是它们已存储在缓存中。 |'
 - en: Full sample configuration
+  id: totrans-210
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 完整示例配置
 - en: What follows is a sample configuration file including the different sections
     discussed in this chapter. Please note that this should not be copy-pasted and
     used as is. It will most likely not fit your needs. It is shown here only to give
     an idea of the structure of a complete configuration file.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一个示例配置文件，包含本章讨论的不同部分。请注意，不应直接复制粘贴使用此配置文件，因为它很可能不符合您的需求。此配置仅用于展示完整配置文件的结构。
 - en: '[PRE13]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Summary
+  id: totrans-213
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we have seen how the NGINX configuration file is built. Its
     modular nature is a reflection, in part, of the modularity of NGINX itself. A
     global configuration block is responsible for all aspects that affect the running
@@ -900,17 +1352,26 @@
     Within the `http` context, locations are then used to match the URI of the request.
     These locations may be nested or otherwise ordered to ensure that requests get
     routed to the right areas of the filesystem or application server.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们已经了解了如何构建 NGINX 配置文件。其模块化特性在一定程度上反映了 NGINX 本身的模块化结构。一个全局配置块负责管理所有影响 NGINX
+    整体运行的方面。每个 NGINX 负责处理的协议都有一个单独的配置部分。我们可以进一步定义如何处理每个请求，通过在这些协议配置上下文中指定服务器（无论是 `http`
+    还是 `mail`），以便将请求路由到特定的 IP 地址/端口。在 `http` 上下文中，位置用于匹配请求的 URI。这些位置可以是嵌套的或按照特定顺序排列，以确保请求被正确地路由到文件系统或应用服务器的相应区域。
 - en: What we did not cover in this chapter are the configuration options provided
     by the various modules that may be compiled into your `nginx` binary. These additional
     directives will be touched upon throughout the book, as that particular module
     is used to solve a problem. Also absent was an explanation of the variables that
     NGINX makes available for its configuration. These too will be discussed later
     in this book. This chapter's focus was on the basics of configuring NGINX.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章没有涉及的是各种可能被编译进 `nginx` 二进制文件中的模块所提供的配置选项。这些额外的指令将在全书中随着特定模块用于解决某个问题时进行讨论。此外，本章也没有解释
+    NGINX 为其配置提供的变量。这些内容将在本书后续部分讨论。本章的重点是 NGINX 配置的基础知识。
 - en: In the next chapter, we will explore configuring NGINX's mail module, to enable
     mail proxying.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章，我们将探索如何配置 NGINX 的邮件模块，以启用邮件代理功能。
