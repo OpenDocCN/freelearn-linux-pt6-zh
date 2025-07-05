@@ -1,0 +1,320 @@
+- en: Preface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX, known for its lightweight design, is a powerhouse HTTP server designed
+    for handling high-traffic websites, with network scalability as its primary objective.
+    In our increasingly connected world, optimizing your web apps has become more
+    critical than ever. Whether you are a beginner or an experienced administrator,
+    this NGINX book will guide you through the complete process of setting up this
+    lightweight HTTP server, from a quick and basic configuration to a more detailed
+    configuration tailored to your needs. This new edition focuses on the latest version
+    1.25.2, which introduces new features such as HTTP/3 and QUIC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Packed with a multitude of real-world examples, this book will help you to secure
+    your infrastructure with automatic TLS certificates, expertly place NGINX in front
+    of your existing applications, and do much more. You’ll also cover orchestration,
+    Docker, bandwidth management, OpenResty, and NGINX Plus commercial features to
+    enhance and optimize your infrastructure or design a brand-new architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the end of this book, you’ll be able to adapt and use a wide variety of NGINX
+    implementations to solve any problems you have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Who this book is for
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This edition of our NGINX book is meticulously designed for beginner DevOps
+    engineers, system administrators, and web developers who want to improve their
+    understanding of web server management, especially in the areas of performance
+    optimization and cloud infrastructure. Whether you’re just beginning your journey
+    into web technologies or looking to consolidate your base, this book offers practical
+    insights and hands-on experience with NGINX, the heart of modern web applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The primary personas who will find this content invaluable are beginner DevOps
+    engineers, system administrators, and curious web developers. DevOps newcomers
+    will learn NGINX’s essentials, from setup to cloud optimization, while system
+    administrators will gain strategies for effective deployment and troubleshooting,
+    and developers will discover how to enhance their projects with improved performance,
+    security, and scalability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What this book covers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[*Chapter 1*](B21787_01.xhtml#_idTextAnchor014), *Downloading and Installing
+    NGINX*, is an introduction to acquiring and configuring NGINX on your system.
+    It covers the essentials, from the initial download to ensuring NGINX persists
+    across reboots by installing it as a system service. Key areas include preparing
+    your system, configuring NGINX, managing dynamically loaded modules, and integrating
+    NGINX as a reliable system service. The chapter closes with an overview of NGINX
+    Plus.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 2*](B21787_02.xhtml#_idTextAnchor121), *Basic NGINX Configuration*,
+    explores the essentials of NGINX configuration, from file syntax and structure
+    to testing changes. Highlights include configuration syntax, base directives,
+    and server testing strategies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 3*](B21787_03.xhtml#_idTextAnchor179), *Exploring the HTTP Configuration*,
+    focuses on the intricacies of the NGINX HTTP module, providing a comprehensive
+    guide to directives and an in-depth exploration of the Location block. From the
+    fundamentals of the HTTP Core module, through in-depth discussions of directives
+    and variables, to mastery of the Location block, this chapter provides readers
+    with the know-how to efficiently configure virtual hosts and understand the principles
+    underlying NGINX’s configuration structure.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 4*](B21787_04.xhtml#_idTextAnchor412), *Exploring Module Configuration
+    in NGINX*, delivers an in-depth guide to NGINX’s Rewrite module and a comprehensive
+    overview of the open source edition’s first-party modules. This chapter focuses
+    on mastering “pretty URLs” with the Rewrite module, and exploring NGINX’s vast
+    selection of add-on modules.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 5*](B21787_05.xhtml#_idTextAnchor557), *PHP and Python with NGINX*,
+    emphasizes configuring NGINX to work with dynamic PHP and Python scripts via FastCGI.
+    Starting with a deep dive into the principles of FastCGI, it then walks through
+    the process of configuring NGINX for efficient communication with PHP and Python
+    applications, offering insights into using the FastCGI module for optimal server-side
+    script integration.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 6*](B21787_06.xhtml#_idTextAnchor621), *NGINX as a Reverse Proxy*,
+    discusses NGINX’s reverse proxy capabilities and dives into the details of the
+    NGINX proxy module. Readers will learn how to navigate the proxy module, appreciate
+    NGINX’s strengths in managing modern web applications, and set up a reverse proxy
+    configuration efficiently.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 7*](B21787_07.xhtml#_idTextAnchor653), *Introduction to Load Balancing
+    and Optimization*, focuses on deploying NGINX to manage high-traffic websites
+    on multiple servers. This chapter looks at NGINX’s advanced load-balancing capabilities
+    and the latest I/O optimization features, including the use of thread pools. It
+    offers a comprehensive guide to setting up a balanced server architecture and
+    improving I/O performance, crucial for the scalability and efficiency of large-scale
+    web applications.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 8*](B21787_08.xhtml#_idTextAnchor688), *NGINX within a Cloud Infrastructure*,
+    highlights the integration of NGINX and Docker in cloud setups, from Docker fundamentals
+    to deploying NGINX with Docker Compose. Learn to optimize containerized applications
+    and caching with NGINX as a central gateway.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 9*](B21787_09.xhtml#_idTextAnchor701), *Fully Deploy, Manage, and
+    Auto-Update NGINX with Ansible*, explores efficient NGINX deployment across multiple
+    servers using Ansible. Covering mass deployment strategies, the basics of configuration
+    management, and crafting Ansible roles for NGINX, this chapter will help with
+    large-scale server management. It concludes with automating NGINX updates for
+    effortless maintenance to deliver a robust and secure NGINX fleet.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 10*](B21787_10.xhtml#_idTextAnchor708), *Case Studies*, dives into
+    the deployment of secure websites and applications with detailed case studies.
+    Master SSL with acme.sh, adopt HTTP/2, configure WordPress and integrate NextCloud
+    with Docker. Gain skills in deploying secure sites, configuring NGINX for various
+    scenarios and using NGINX to enhance Docker environments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 11*](B21787_11.xhtml#_idTextAnchor749), *Troubleshooting*, navigates
+    through NGINX debugging with essential tips and tools for identifying issues.
+    Covering general troubleshooting advice, log parsing, and common challenges such
+    as install errors and 403 Forbidden pages, this chapter lays out a clear path
+    to resolving configuration mistakes and understanding block priorities. Learn
+    to adjust configurations for effective debugging and recognize frequent NGINX
+    configuration errors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get the most out of this book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '| **Operating** **system requirements** | **Software/hardware covered in**
+    **the book** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Linux (preferably Debian, Ubuntu, Fedora, or RHEL) | NGINX |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  | Ansible |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  | Docker |'
+  prefs: []
+  type: TYPE_TB
+- en: If you are using the digital version of this book, we advise you to type the
+    code yourself or access the code from the book’s GitHub repository (a link is
+    available in the next section). Doing so will help you avoid any potential errors
+    related to the copying and pasting of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download the example code files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can download the example code files for this book from GitHub at [https://github.com/PacktPublishing/NGINX-HTTP-Server_Fifth-edition](https://github.com/PacktPublishing/NGINX-HTTP-Server_Fifth-edition).
+    If there’s an update to the code, it will be updated in the GitHub repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also have other code bundles from our rich catalog of books and videos available
+    at [https://github.com/PacktPublishing/](https://github.com/PacktPublishing/).
+    Check them out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conventions used
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are a number of text conventions used throughout this book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Code in text`: Indicates code words in text, database table names, folder
+    names, filenames, file extensions, pathnames, dummy URLs, user input, and Twitter
+    handles. Here is an example: “Mount the downloaded `WebStorm-10*.dmg` disk image
+    file as another disk in your system.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A block of code is set as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any command-line input or output is written as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Bold**: Indicates a new term, an important word, or words that you see onscreen.
+    For instance, words in menus or dialog boxes appear in **bold**. Here is an example:
+    “Select **System info** from the **Administration** panel.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tips or important notes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Appear like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get in touch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Feedback from our readers is always welcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**General feedback**: If you have questions about any aspect of this book,
+    email us at [customercare@packtpub.com](mailto:customercare@packtpub.com) and
+    mention the book title in the subject of your message.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Errata**: Although we have taken every care to ensure the accuracy of our
+    content, mistakes do happen. If you have found a mistake in this book, we would
+    be grateful if you would report this to us. Please visit [www.packtpub.com/support/errata](https://www.packtpub.com/support/errata)
+    and fill in the form.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Piracy**: If you come across any illegal copies of our works in any form
+    on the internet, we would be grateful if you would provide us with the location
+    address or website name. Please contact us at [copyright@packt.com](mailto:copyright@packt.com)
+    with a link to the material.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**If you are interested in becoming an author**: If there is a topic that you
+    have expertise in and you are interested in either writing or contributing to
+    a book, please visit [authors.packtpub.com](http://authors.packtpub.com).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Share Your Thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once you’ve read *NGINX HTTP Server*, we’d love to hear your thoughts! Please
+    [click here to go straight to the Amazon review page](https://packt.link/r/1835469876)
+    for this book and share your feedback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your review is important to us and the tech community and will help us make
+    sure we’re delivering excellent quality content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download a free PDF copy of this book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thanks for purchasing this book!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do you like to read on the go but are unable to carry your print books everywhere?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is your eBook purchase not compatible with the device of your choice?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don’t worry, now with every Packt book you get a DRM-free PDF version of that
+    book at no cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Read anywhere, any place, on any device. Search, copy, and paste code from your
+    favorite technical books directly into your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The perks don’t stop there, you can get exclusive access to discounts, newsletters,
+    and great free content in your inbox daily
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Follow these simple steps to get the benefits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scan the QR code or visit the link below
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![Download a free PDF copy of this book  QR Code ](img/B21787_QR_Free_PDF.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[https://packt.link/free-ebook/9781835469873](https://packt.link/free-ebook/9781835469873)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Submit your proof of purchase
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: That’s it! We’ll send your free PDF and other benefits to your email directly
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Part 1:Begin with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this part, you will be introduced to the foundations of NGINX. This section
+    provides the basis for understanding NGINX and its capabilities by exploring the
+    installation and the baseline configuration of the web server. You will get practical
+    information on the efficient configuration for NGINX, which will prepare you for
+    the advanced configuration and optimization techniques covered in the next parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This part includes the following chapters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 1*](B21787_01.xhtml#_idTextAnchor014), *Downloading and Installing
+    NGINX*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 2*](B21787_02.xhtml#_idTextAnchor121), *Basic NGINX Configuration*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

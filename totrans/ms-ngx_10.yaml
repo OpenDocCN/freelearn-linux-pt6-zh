@@ -1,0 +1,516 @@
+- en: Appendix B. Rewrite Rule Guide
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This appendix is meant to introduce the `rewrite` module in NGINX and serve
+    as a guide for creating new rules as well as translating legacy Apache rewrite
+    rules into NGINX''s format. In this appendix, we will discuss the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing the rewrite module
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating new rewrite rules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Translating from Apache
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introducing the rewrite module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'NGINX''s rewrite module is a simple regular expression matcher combined with
+    a virtual stack machine. The first part of any rewrite rule is a regular expression.
+    As such, it is possible to use parentheses to define certain parts as "captures",
+    which can later be referenced by positional variables. A positional variable is
+    one in which its value depends on the order of the capture in the regular expression.
+    They are labeled by number, so positional variable `$1` references what is matched
+    by the first set of parentheses, `$2` the second set, and so on. For example,
+    refer to the following regular expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first positional variable, `$1`, references a two-letter string which comes
+    immediately after the string `/images/` at the beginning of the URI. The second
+    positional variable, `$2`, refers to a five character string composed of lowercase
+    letters and the numbers from 0 to 9\. The third positional variable, `$3`, is
+    presumably the name of a file. And the last variable to be extracted from this
+    regular expression, `$4`, is one of `png`, `jpg`, or `gif`, which appears at the
+    very end of the URI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second part of a `rewrite` rule is the URI to which the request is rewritten.
+    The URI may contain any positional variable captured in the regular expression
+    indicated by the first argument, or any other variable valid at this level of
+    NGINX''s configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: If this URI does not match any of the other locations in the NGINX configuration,
+    then it is returned to the client in the `Location` header with either a 301 (Moved
+    Permanently) or a 302 (Found) HTTP status code indicating the type of redirect
+    that is to be performed. This status code may be specified explicitly if `permanent`
+    or `redirect` is the third parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This third parameter to the rewrite rule may also be either `last` or `break`,
+    indicating that no further `rewrite` module directives will be processed. Using
+    the `last` flag will cause NGINX to search for another `location` matching the
+    rewritten URI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `break` parameter may also be used as a directive on its own, to stop `rewrite`
+    module directive processing within an `if` block or other context in which the
+    `rewrite` module is active. The following snippet presumes that some external
+    method is used to set the `$bwhog` variable to a non-empty and non-zero value
+    when a client has used too much bandwidth. The `limit_rate` directive will then
+    enforce a lower transfer rate. `break` is used here because we entered the `rewrite`
+    module with `if`, and we don''t want to process any further such directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another way to stop the processing of the `rewrite` module directives is to
+    `return` control to the main `http` module processing the request. This may mean
+    that NGINX returns information directly to the client, but `return` is often combined
+    with an `error_page` to either present a formatted HTML page to the client or
+    activate a different module to finish processing the request. The `return` directive
+    may indicate a status code, a status code with some text, or a status code with
+    a URI. If a bare URI is the sole parameter, then the status code is understood
+    to be a 302\. When the text is placed after the status code, that text becomes
+    the body of the response. If a URI is used instead, then that URI becomes the
+    value of the `Location` header, to which the client will then be redirected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, we want to set a short text as the output for a file not found
+    error in a particular location. We specify the location with an equals sign (=)
+    to exactly match just this URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Any call to this URI would then be answered with an HTTP code of 404, and the
+    text **image not found\n**. So, we can use `/image404.html` at the end of a `try_files`
+    directive or as an error page for image files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to directives relating to the act of rewriting a URI, the `rewrite`
+    module also includes the `set` directive to create new variables and set their
+    values. This is useful in a number of ways, from creating flags when certain conditions
+    are present, to passing named arguments on to other `locations` and logging what
+    was done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following example demonstrates some of these concepts and the usage of
+    the corresponding directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following table summarizes the `rewrite` module directives we discussed
+    in this section:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Rewrite module directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `break` | Ends the processing of the `rewrite` module directives found within
+    the same context. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `if` | Evaluates a condition, and if true follows the `rewrite` module directives
+    specified within the context set up using the following format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The condition may be any of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'a variable name: `false` if empty or any string starting with `0`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'string comparison: using the `=` and `!=` operators'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'regular expression matching: using the `~` (case-sensitive) and the `~*` (case-insensitive)
+    positive operators and their negative counterparts `!~` and `!~*`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'file existence: using the `-f` and `! -f` operators'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'directory existence: using the `-d` and `! -d` operators'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'file, directory, or symbolic link existence: using the `-e` and `! -e` operators'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'file executability: using the `-x` and `! -x` operators'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `return` | Stops processing and returns the specified code to the client.
+    The non-standard code 444 will close the connection without sending any response
+    headers. If a code additionally has text accompanying it, the text will be placed
+    in the response body. If instead, a URL is given after the code, that URL will
+    be the value of the `Location` header. A URL without a code is treated as a code
+    302. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `rewrite` | Changes the URI from one matched by the regular expression in
+    the first parameter to the string in the second parameter. If a third parameter
+    is given, it is one of the following flags:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`last`: stops processing the `rewrite` module directives and searches for a
+    location matched by the changed URI'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`break`: stops processing the `rewrite` module directives'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`redirect`: returns a temporary redirect (code 302), used when the URI does
+    not begin with a scheme'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`permanent`: returns a permanent redirect (code 301)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `rewrite_log` | Activates the `notice` level logging of `rewrite` to `error_log`.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `set` | Sets a given variable to a specific value. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `unitialized_variable_warn` | Controls whether or not warnings about uninitialized
+    variables are logged. |'
+  prefs: []
+  type: TYPE_TB
+- en: Creating new rewrite rules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When creating new rules from scratch, just as with any configuration block,
+    plan out exactly what needs to be done. Some questions to ask yourself are as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What pattern(s) do I have in my URLs?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is there more than one way to reach a particular page?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do I want to capture any parts of the URL into variables?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Am I redirecting to a site not on this server, or could my rule be seen again?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do I want to replace the query string arguments?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In examining the layout of your website or application, it should be clear what
+    patterns you have in your URLs. If there is more than one way to reach a certain
+    page, create a rewrite rule to send a permanent redirect back to the client. Using
+    this knowledge, you can construct a canonical representation of your website or
+    application. This not only makes for cleaner URLs, but also helps your site to
+    be found more easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, if you have a `home` controller to handle default traffic, but
+    can also reach that controller through an index page, you could have users getting
+    to the same information using the following URIs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It would be more efficient to direct requests containing the name of the controller
+    and/or the index page back to the root:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We specified the `$scheme` and `$host` variables because we're making a permanent
+    redirect (code 301) and want NGINX to construct the URL using the same parameters
+    that reached this configuration line in the first place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you would like to be able to log individual parts of the URL separately,
+    you can use captures on the URI in the regular expression. Then, assign the positional
+    variables to named variables, which are then part of a `log_format` definition.
+    We saw an example of this in the previous section. The components are essentially
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: When your rewrite rule leads to an internal redirect or instructs the client
+    to call a location in which the rule itself is defined, special care must be taken
+    to avoid a rewrite loop. For example, a rule may be defined in the server context
+    with the `last` flag, but must use the `break` flag when defined within the location
+    it references.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Passing new query string arguments as part of a rewrite rule is one of the objectives
+    of using rewrite rules. However, when the initial query string arguments should
+    be discarded, and only the ones defined in the rule should be used, a `?` character
+    needs to be placed at the end of the list of new arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Translating from Apache
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There is a long history of writing rewrite rules for Apache's powerful `mod_rewrite`
+    module, and most resources on the Internet are focused on these. When encountering
+    rewrite rules in Apache's format, they can be translated into a form that NGINX
+    can parse by following a few simple rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule #1: Replace directory and file existence checks with try_files'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When encountering an Apache rewrite rule of the following form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This can best be translated into an NGINX configuration as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: These rules state that when the filename specified in the URI is neither a file
+    nor a directory on disk, the request should be passed to the `index.php` file
+    lying in the current context's root and given the argument `q` with a value matching
+    the original URI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before NGINX had the `try_files` directive, there would be no choice but to
+    use `if` to test for the existence of the URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Don't do this. You may see configurations on the Internet that recommend you
+    do exactly this, but they are outdated or are copies of an outdated configuration.
+    While not strictly a rewrite rule, because `try_files` belongs to the core `http`
+    module, the `try_files` directive is much more efficient at performing this task
+    and this is exactly what it was created for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule #2: Replace matches against REQUEST_URI with a location'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Many Apache rewrite rules are made to be placed into `.htaccess` files because,
+    historically, users would most likely have access to these files themselves. A
+    typical shared hoster would not enable their users direct access to the virtual
+    host configuration context responsible for their website, but would instead offer
+    the ability to place nearly any kind of configuration into an `.htaccess` file.
+    This led to the situation we have today, with a proliferation of .htaccess-file-specific
+    rewrite rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While Apache also has a `Location` directive, it is rarely used to solve the
+    problem of matching against the URI because it may only be used in either the
+    main server configuration or the configuration of a virtual host. So, instead
+    we will see a proliferation of rewrite rules that match against `REQUEST_URI`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is best handled in NGINX by using a location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Of course, what is inside the `location` context is dependent upon your setup,
+    but the principle remains the same; matches against the URI are best served by
+    a `location`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This principle also applies to `RewriteRules` that have an implicit `REQUEST_URI`.
+    These are typically bare `RewriteRules` that transform the URI from an older format
+    to a newer one. In the following example, we see that the `show.do` is no longer
+    necessary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This translates to an NGINX configuration as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not to get too carried away with creating locations whenever we see a `RewriteRule`,
+    we should keep in mind that regular expressions translate directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule #3: Replace matches against HTTP_HOST with a server'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Related closely to *Rule #2*, this rule takes configurations into account that
+    try to either remove or add a `www` onto a domain name. These types of rewrite
+    rules are often found in `.htaccess` files or in virtual hosts with overloaded
+    `ServerAliases`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, we translate the case where no `www` is found at the beginning of the
+    `Host` part of the URL to the variant with a `www` there:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the opposite case, where no `www` is desired, we enter the following rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This translates to the following NGINX configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: What is not shown is the `server` context for the variant that has been redirected.
+    This has been left out because it's not relevant to the rewriting itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This same principle applies to more than just matching a `www` or lack of one.
+    It can be used in dealing with any `RewriteCond` that uses `%{HTTP_HOST}`. These
+    rewrites are best done in NGINX by using multiple `server` contexts, one each
+    to match the desired condition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, we have the following multisite configuration in Apache:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: This basically translates to a configuration that matches on hostname and has
+    a different `root` configuration per host.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: These are essentially different virtual hosts, so it is best to treat them as
+    such in the configuration as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule #4: Replace RewriteCond with if for variable checks'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This rule applies only after having applied rules 1 to 3\. If there are any
+    remaining conditions not covered by those rules, then `if` may be applied to test
+    the values of variables. Any HTTP variable may be used by prefixing the lowercased
+    name of the variable with `$http_`. If there are hyphens (-) in the name, these
+    are translated into underscores (_).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following example (taken from Apache''s documentation on the `mod_rewrite`
+    module at [http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html](http://httpd.apache.org/docs/2.2/mod/mod_rewrite.html))
+    is used to decide which page should be delivered to a client based on the `User-Agent`
+    header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This can be translated to an NGINX configuration as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: If there are any special variables that are available only under Apache's `mod_rewrite`,
+    then these of course can't be checked in NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We explored NGINX's `rewrite` module in this appendix. There are only a few
+    directives associated with the module, but these can be used to create some complex
+    configurations. Taking the process of creating new rewrite rules step-by-step
+    has hopefully demonstrated how rewrite rules can be made easily. An understanding
+    of regular expressions, how to read and construct them, is needed before creating
+    rewrite rules of any complexity. We rounded this appendix off by examining how
+    to translate Apache-style rewrite rules into a configuration that NGINX can parse.
+    In doing so, we discovered that quite a few Apache rewrite rule scenarios can
+    be solved differently in NGINX.
+  prefs: []
+  type: TYPE_NORMAL

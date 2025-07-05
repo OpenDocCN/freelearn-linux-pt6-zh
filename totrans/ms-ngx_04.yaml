@@ -1,0 +1,847 @@
+- en: Chapter 4. NGINX as a Reverse Proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A **reverse proxy** is a web server that terminates connections with clients
+    and makes new ones to upstream servers on their behalf. An **upstream server**
+    is defined as a server that NGINX makes a connection with in order to fulfill
+    the client's request. These upstream servers can take various forms, and NGINX
+    can be configured differently to handle each of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX configuration, which you have been learning about in detail, can be difficult
+    to understand at times. There are different directives that may be used to fulfill
+    similar configuration needs. Some of these options should not really be used,
+    as they can lead to unexpected results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At times, an upstream server may not be able to fulfill a request. NGINX has
+    the capability to deliver an error message to the client, either directly from
+    this upstream server, from its local disk, or as a redirect to a page on a completely
+    different server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to the nature of a reverse proxy, the upstream server doesn't obtain information
+    directly from the client. Some of this information, such as the client's real
+    IP address, is important for debugging purposes, as well as tracking requests.
+    This information may be passed to the upstream server in the form of headers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will cover these topics, as well as an overview of some proxy module directives,
+    in the following sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction to reverse proxying
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Types of upstream servers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Converting an "if"-fy configuration to a more modern interpretation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using error documents to handle upstream problems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Determining the client's real IP address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction to reverse proxying
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX can serve as a reverse proxy by terminating requests from clients and
+    opening new ones to its upstream servers. On the way, the request can be split
+    up according to its URI, client parameters, or some other logic, in order to best
+    respond to the request from the client. Any part of the request's original URL
+    can be transformed on its way through the reverse proxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most important directive when proxying to an upstream server is the `proxy_pass`
+    directive. This directive takes one parameter—the URL to which the request should
+    be transferred. Using `proxy_pass` with a URI part will replace the `request_uri`
+    with this part. For example, `/uri` in the following example will be transformed
+    to `/newuri` when the request is passed on to the upstream:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are two exceptions to this rule, however. First, if the location is defined
+    with a regular expression, no transformation of the URI occurs. In this example,
+    the URI `/local` will be passed directly to the upstream, and not be transformed
+    to `/foreign` as intended:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The second exception is that if within the location a rewrite rule changes
+    the URI, and then NGINX uses this URI to process the request, no transformation
+    occurs. In this example, the URI passed to the upstream will be `/index.php?page=<match>`,
+    with `<match>` being whatever was captured in the parentheses, and not `/index`,
+    as indicated by the URI part of the `proxy_pass` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `break` flag to the rewrite directive is used here to immediately stop all
+    processing of rewrite module directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In both of these cases, the URI part of the `proxy_pass` directive is not relevant,
+    so the configuration would be complete without it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The proxy module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following table summarizes some of the commonly used directives in the
+    proxy module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Proxy module directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_connect_timeout` | The maximum amount of time NGINX will wait for
+    its connection to be accepted when making a request to an upstream server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cookie_domain` | Replaces the domain attribute of the `Set-Cookie`
+    header from the upstream server; the domain to be replaced can either be a string
+    or a regular expression, or reference a variable. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cookie_path` | Replaces the `path` attribute of the `Set-Cookie` header
+    from the upstream server; the path to be replaced can either be a string or a
+    regular expression, or reference a variable. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_headers_hash_bucket_size` | The maximum size of header names. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_headers_hash_max_size` | The total size of headers received from the
+    upstream server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_hide_header` | A list of header fields that should not be passed on
+    to the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_http_version` | The HTTP protocol version used to communicate with
+    upstream servers (use `1.1` for `keepalive` connections). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_ignore_client_abort` | If set to `on`, NGINX will not abort the connection
+    to an upstream server if the client aborts the connection. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_ignore_headers` | Sets which headers can be disregarded when processing
+    the response from the upstream server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_intercept_errors` | If enabled, NGINX will display a configured `error_page`
+    error instead of the response directly from the upstream server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_max_temp_file_size` | The maximum size of the overflow file, written
+    when the response doesn''t fit into memory buffers. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass` | Specifies the upstream server to which the request is passed,
+    in the form of a URL. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_header` | Overrides the disabled headers set in `proxy_hide_header`,
+    allowing them to be sent to the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_request_body` | Prevents sending the body of the request to the
+    upstream server if set to `off`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_request_headers` | Prevents sending the headers of the request
+    to the upstream server if set to `off`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_read_timeout` | Specifies the length of time that needs to elapse
+    between two successive read operations from an upstream server, before the connection
+    is closed. Should be set to a higher value if the upstream server processes requests
+    slowly. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_redirect` | Rewrites the `Location` and `Refresh` headers received
+    from the upstream servers; useful for working around assumptions made by an application
+    framework. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_send_timeout` | The length of time that needs to elapse between two
+    successive write operations to an upstream server, before the connection is closed.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_set_body` | The body of a request sent to an upstream server may be
+    altered by setting this directive. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_set_header` | Rewrites the contents of headers sent to an upstream
+    server; may also be used to not send certain headers by setting its value to the
+    empty string. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_temp_file_write_size` | Limits the amount of data buffered to a temporary
+    file at one time, so that NGINX will not block too long on a single request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_temp_path` | A directory where temporary files may be buffered as
+    they are proxied from the upstream server, optionally multi-level deep. |'
+  prefs: []
+  type: TYPE_TB
+- en: The following listing brings many of these directives together in a file that
+    can be included in the configuration within the same location as the `proxy_pass`
+    directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Contents of `proxy.conf`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We are setting a number of common directives to values that we think would
+    be useful for reverse-proxying scenarios:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `proxy_redirect` directive has been set to `off` because there is no need
+    to rewrite the `Location` header in most situations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `Host` header is set so the upstream server can map the request to a virtual
+    server or otherwise make use of the host portion of the URL the user entered.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `X-Real-IP` and `X-Forwarded-For` headers serve similar purposes—to relay
+    the information about the connecting client's IP address to the upstream server.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `$remote_addr` variable used in the `X-Real-IP` header is the IP address
+    of the client as NGINX perceives it.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `$proxy_add_x_forwarded_for` variable contains the contents of the `X-Forwarded-For`
+    header field from the client's request, followed by the `$remote_addr` variable.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `client_max_body_size` directive, while not strictly a proxy module directive,
+    is mentioned here because of its relevance to proxy configurations. If this value
+    is set too low, uploaded files will not make it to the upstream server. When setting
+    this directive, keep in mind that files uploaded via a web form will usually have
+    a larger file size than that shown in the filesystem.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `proxy_connect_timeout` directive indicates how long NGINX will wait when
+    establishing initial contact with the upstream server.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `proxy_read_timeout` and `proxy_send_timeout` directives define how long
+    NGINX will wait between successive operations with the upstream server.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `proxy_send_lowat` directive is only effective on FreeBSD systems and specifies
+    the number of bytes the socket send buffer should hold before passing the data
+    on to the protocol.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `proxy_buffer_size`, `proxy_buffers`, and `proxy_busy_buffers_size` directives
+    will be discussed in detail in the next chapter. Suffice it to say that these
+    buffers control how quickly NGINX appears to respond to user requests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The `proxy_temp_file_write_size` directive controls how long a worker process
+    blocks while spooling data: the higher the value, the longer the process blocks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'These directives are included in a file as follows, and may be used multiple
+    times in the same configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: If one of these directives should have a different value than what's in the
+    include file, then override it in that particular location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The order is important here. If there is more than one occurrence of a directive
+    in a configuration file (or include), NGINX will take the value of the directive
+    defined last.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Legacy servers with cookies
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You may find yourself in a situation where you will need to place multiple
+    legacy applications behind one common endpoint. The legacy applications were written
+    for a case where they were the only servers talking directly with the client.
+    They set cookies from their own domain, and assumed that they would always be
+    reachable via the `/` URI. In placing a new endpoint in front of these servers,
+    these assumptions no longer hold true. The following configuration will rewrite
+    the cookie domain and path to match that of the new application endpoint:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The value of the `$uri` variable already includes the beginning slash (`/`),
+    so it is not necessary to duplicate it here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The upstream module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Closely paired with the `proxy` module is the `upstream` module. The `upstream`
+    directive starts a new context, in which a group of upstream servers is defined.
+    These servers may be given different weights (the higher the weight, the greater
+    the number of connections NGINX will pass to that particular upstream server),
+    may be of different types (TCP versus UNIX domain), and may even be marked as
+    `down` for maintenance reasons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following table summarizes the directives valid within the upstream context:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Upstream module directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ip_hash` | Ensures the distribution of connecting clients evenly over all
+    servers by hashing the IP address, keying on its class-C network. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive` | The number of connections to upstream servers that are cached
+    per worker process. When used with HTTP connections, `proxy_http_version` should
+    be set to `1.1` and `proxy_set_header` to `Connection "".` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `least_conn` | Activates the load-balancing algorithm where the server with
+    the least number of active connections is chosen for the next new connection.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server` | Defines an address (domain name or IP address with an optional
+    TCP port, or path to a UNIX-domain socket) and optional parameters for an upstream
+    server. The parameters are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`weight`: It sets the preference for one server over another'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`max_fails`: It is the maximum number of unsuccessful communication attempts
+    to a server within `fail_timeout` before the server is marked as `down`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`fail_timeout`: It is the length of time a server has to respond to a request
+    and the length of time a server will be marked as down'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`backup`: It will only receive requests once the other servers are down'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`down`: It marks a server as not able to process requests'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keepalive connections
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `keepalive` directive deserves special mention. NGINX will keep this number
+    of connections per worker open to an upstream server. This connection cache is
+    useful in situations where NGINX has to constantly maintain a certain number of
+    open connections to an upstream server. If the upstream server speaks HTTP, NGINX
+    can use the HTTP/1.1 Persistent Connections mechanism for maintaining these open
+    connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we've indicated that we'd like to hold open 32 connections to Apache running
+    on port `8080` of the localhost. NGINX need only negotiate the TCP handshake for
+    the initial 32 connections per worker, and will then keep these connections open
+    by not sending a Connection header with the `close` token. With `proxy_http_version`,
+    we specify that we'd like to speak HTTP/1.1 with the upstream server. We also
+    clear the contents of the `Connection` header with `proxy_set_header`, so that
+    we are not proxying the client connection properties directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If more than 32 connections are needed, NGINX will, of course, open them to
+    satisfy requests. After this peak has passed, NGINX will close the least recently
+    used connections, to bring the number back down to 32, as we indicated in the
+    `keepalive` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This mechanism can also be used to proxy non-HTTP connections, as well. In
+    the following example, we show that NGINX maintains 64 connections to two instances
+    of `memcached`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we were to switch load-balancing algorithms from the default round-robin
+    to either `ip_hash` or `least_conn`, we would need to specify this before using
+    the `keepalive` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Load-balancing algorithms
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `upstream` module can select which upstream server to connect to in the
+    next step by using one of three load-balancing algorithms—round-robin, IP hash,
+    or least connections. The **round-robin** algorithm is selected by default, and
+    doesn't need a configuration directive to activate it. This algorithm selects
+    the next server, based on which server was selected previously, which server is
+    next in the configuration block, and what weight each server carries. The round-robin
+    algorithm tries to ensure a fair distribution of traffic, based on a concept of
+    who's turn it is next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **IP hash** algorithm, activated by the `ip_hash` directive, instead takes
+    the view that certain IP addresses should always be mapped to the same upstream
+    server. NGINX does this by using the first three octets of an IPv4 address or
+    the entire IPv6 address, as a hashing key. The same pool of IP addresses are therefore
+    always mapped to the same upstream server. So, this mechanism isn't designed to
+    ensure a fair distribution, but rather a consistent mapping between the client
+    and upstream server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third load-balancing algorithm supported by the default upstream module**,
+    least connections** , is activated by the `least_conn` directive. This algorithm
+    is designed to distribute the load evenly among upstream servers, by selecting
+    the one with the fewest number of active connections. If the upstream servers
+    do not all have the same processing power, this can be indicated using the `weight`
+    parameter to the `server` directive. The algorithm will take into account the
+    differently-weighted servers when calculating the number of least connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Types of upstream servers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An upstream server is a server to which NGINX proxies a connection. This can
+    be on a different physical or virtual machine, but doesn't have to be. The upstream
+    server may be a daemon listening on a UNIX domain socket for connections on the
+    local machine or could be one of many on a different machine listening over TCP.
+    It may be an Apache server, with multiple modules to handle different kinds of
+    requests, or a Rack middleware server, providing an HTTP interface to Ruby applications.
+    NGINX can be configured to proxy to each of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Single upstream server
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The Apache web server is used in common hosting scenarios to serve static files
+    as well as multiple types of interpreted files. The extensive documentation and
+    how-to''s (found online) help users to get up-and-running quickly with their favorite
+    CMS. Unfortunately, the typical Apache configuration, due to resource limits,
+    is not able to handle many simultaneous requests. NGINX, though, is designed to
+    handle this kind of traffic and performs very well with little resource consumption.
+    Since most CMSs come pre-configured for Apache, integrating the use of `.htaccess`
+    files for extended configuration, the easiest way to take advantage of NGINX''s
+    strengths is for NGINX to simply proxy connections to an Apache instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is the most basic proxy configuration possible. NGINX will terminate all
+    client connections, and then proxy all requests to the local host on TCP port
+    8080\. We assume here that Apache has been configured to listen on `localhost:8080`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A configuration such as this is typically extended so that NGINX will serve
+    any static files directly, and then proxy the remaining requests to Apache:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `try_files` directive (included in the `http` core module) does just what
+    its name implies—it tries files, in order, until it finds a match. So, in the
+    preceding example, NGINX will deliver any files it finds in its root that match
+    the URI given by the client. If it doesn't find any files, it will proxy the request
+    to Apache for further processing. We use a named location here to proxy the request
+    after an unsuccessful try to locate the file locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple upstream servers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'It is also possible to configure NGINX to pass the request to more than one
+    upstream server. This is done by declaring an upstream context, defining multiple
+    servers, and referencing the upstream in a `proxy_pass` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using this configuration, NGINX will pass consecutive requests in a round-robin
+    fashion to the three upstream servers. This is useful when an application can
+    handle only one request at a time, and you''d like NGINX to handle the client
+    communication so that none of the application servers get overloaded. The configuration
+    is illustrated in the following diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Multiple upstream servers](img/7447OS_04_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Other load-balancing algorithms are available, as detailed in the *Load-balancing
+    algorithms* section earlier in this chapter. Which one should be used in a particular
+    configuration depends on the situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a client should always get the same upstream server, to effect a poor-man's
+    session-stickiness, the `ip_hash` directive should be used. When the distribution
+    of requests leads to widely varying response times per request, the `least_conn`
+    algorithm should be selected. The default round-robin algorithm is good for a
+    general case where no special consideration of either the client or upstream server
+    is required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Non-HTTP upstream servers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far, we've focused on communicating with upstream servers over HTTP. For
+    this, we use the `proxy_pass` directive. As hinted at earlier in this chapter,
+    in the *Keepalive connections* section, NGINX can proxy requests to a number of
+    different kinds of upstream servers. Each has its corresponding *`_pass` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memcached upstream servers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `memcached` NGINX module (enabled by default) is responsible for communicating
+    with a `memcached` daemon. As such, there is no direct communication between the
+    client and the `memcached` daemon; that is, NGINX does not act as a reverse-proxy
+    in this sense. The `memcached` module enables NGINX to speak the `memcached` protocol,
+    so that a key lookup can be done before a request is passed to an application
+    server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `memcached_pass` directive uses the `$memcached_key` variable to make the
+    key lookup. If there is no corresponding value (`error_page 404`), we pass the
+    request on to `localhost`, where there is presumably a server running that will
+    handle this request and insert a key/value pair into the `memcached` instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FastCGI upstream servers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Using a FastCGI server is a popular way to run PHP applications behind an NGINX
+    server. The `fastcgi` module is compiled in by default, and is activated with
+    the `fastcgi_pass` directive. This enables NGINX to speak the FastCGI protocol
+    with one or more upstream servers. We define a set of FastCGI upstream servers
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And pass connections to them from the root location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a very minimalist configuration to illustrate the basics of using FastCGI.
+    The `fastcgi` module contains a number of directives and configuration possibilities,
+    which we will discuss in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP Server"),
+    *The NGINX HTTP Server*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SCGI upstream servers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: NGINX can also speak the SCGI protocol by using its built-in `scgi` module.
+    The principle is the same as for the `fastcgi` module. NGINX communicates with
+    an upstream server indicated with the `scgi_pass` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: uWSGI upstream servers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `uWSGI` protocol has been very popular with Python developers. NGINX provides
+    support for connecting to a Python-based upstream server through its `uwsgi` module.
+    The configuration is similar to the `fastcgi` module, using the `uwsgi_pass` directive
+    instead to indicate an upstream server. An example configuration will be shown
+    in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP Server"), *The NGINX HTTP
+    Server*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Converting an "if"-fy configuration to a more modern interpretation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Using the `if` directive within a location is really only considered valid
+    for certain cases. It may be used in combination with a return and with a rewrite
+    with a `last` or `break` flag, but should generally be avoided in other situations.
+    This is due in part to the fact that it can produce some very unexpected results.
+    Consider the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we're trying to determine which upstream to pass the request to, based
+    on the value of the `$request_uri` variable. This seems like a very reasonable
+    configuration at first glance, because it works for our simple test cases. But
+    the images will neither be served from the `/img` filesystem location, the `/static`
+    filesystem location, nor from the `@imageserver` named location. `try_files` simply
+    doesn't work when an `if` directive is present in the same location. `if` creates
+    an implicit location with its own content handler; in this case, the `proxy` module.
+    So the outer content handler, where `try_files` is registered, won't ever get
+    invoked. There is a way to write this configuration differently to make it do
+    what we want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s think about our request as NGINX processes it. After having found a
+    matching IP and port, it first selects a virtual host (server) based on the `Host`
+    header. Then, it scans all locations under this server, looking for a matching
+    URI. So, we see that the better way to configure a selector based on the URI is
+    in fact by defining multiple locations, as shown in the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This configuration can be illustrated by the following diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Converting an "if"-fy configuration to a more modern interpretation](img/7447OS_04_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Another example of an `"if"-fy` configuration is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we have a number of `if` directives matching the Host header (or, if not
+    present, `server_name`). After each `if`, the URI is rewritten to lead directly
+    to the correct application component. Besides being terribly inefficient due to
+    the processing required to match each regular expression for every URI, it breaks
+    our "no ifs within a location" rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This type of configuration is better rewritten as a series of separate server
+    contexts, in which the URL is rewritten to the application component:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: In each block, we have placed only those `server_name` that are relevant to
+    the respective rewrite, so that no `if` is needed. In each `rewrite` rule, we
+    have replaced the `redirect` flag with the `permanent` flag to indicate that this
+    is a full URL that the browser should remember and automatically use the next
+    time the domain is requested. In the last rewrite rule, we have also replaced
+    the match (`^/(.*)$`) with a readily-available variable, `$request_uri`, which
+    contains the same information but saves the trouble of matching the regular expression
+    and saving the capture variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using error documents to handle upstream problems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There are situations in which the upstream server cannot respond to a request.
+    In these cases, NGINX can be configured to supply a document from its local disk:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or from an external site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When proxying to a set of upstream servers, you may want to define an extra
+    upstream as being a "fallback" server, to handle requests when the others cannot.
+    This is useful in scenarios when the fallback server is able to deliver a customized
+    response based on the requested URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The "`=`" notation shown in the preceding `error_page` line is used to indicate
+    that we want to return the status code resulting from the last parameter; in this
+    case, the `@fallback` location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These examples cover cases in which the error code was 500 or greater. NGINX
+    can also supply an `error_page` for error codes 400 or greater, when the `proxy_intercept_errors`
+    directive is set to `on`, as in the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When HTTP error code 401 is configured to be served from an `error_page`, the
+    authentication will not complete. You may want to do this in situations when the
+    authentication backend is offline, for maintenance or other reasons, but you should
+    otherwise avoid them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Determining the client's real IP address
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When using a proxy server, the clients don''t have a direct connection to the
+    upstream servers. The upstream servers, therefore, aren''t able to get information
+    directly from those clients. Any information, such as the client''s IP address,
+    would need to be passed via headers. NGINX provides this with the `proxy_set_header`
+    directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The client's IP address will then be available in both the `X-Real-IP` and `X-Forwarded-For`
+    headers. The second form takes a client request header into account. If present,
+    the IP address of the request will be added to the `X-Forwarded-For` header from
+    the client, separated by a comma. Depending on your upstream server configuration,
+    you will need one or the other of these. Configuring Apache, for example, to use
+    the `X-Forwarded-For` header for the client's IP address in its logs is done using
+    the `%{<header-name>}i` formatting option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following example shows how to change the default ''combined'' Apache log
+    format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If your upstream server, on the other hand, requires a non-standard header
+    such as `Client-IP`, then this can easily be configured with the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Other information, such as the `Host` header, can be passed to the upstream
+    servers in the same manner:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have seen how NGINX can be used as a reverse proxy. Its efficient connection-handling
+    model is ideal for interfacing directly with clients. After having terminated
+    requests, NGINX can then open new ones to upstream servers, taking into account
+    the strengths and weaknesses of each upstream server. Using `if` inside a location
+    is only considered valid under certain situations. By thinking about how NGINX
+    actually handles a request, we can develop a configuration that is more suited
+    to what we want to achieve. If NGINX cannot reach an upstream server for any reason,
+    it can serve another page instead. As NGINX terminates the clients' requests,
+    the upstream servers can obtain information about the client only via headers
+    passed in NGINX's proxied request. These concepts will help you design an ideal
+    NGINX configuration to match your needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coming up in the next chapter, we will explore more advanced reverse-proxy techniques.
+  prefs: []
+  type: TYPE_NORMAL

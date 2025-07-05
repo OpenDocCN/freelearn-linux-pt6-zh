@@ -1,0 +1,329 @@
+- en: Preface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You will learn how to notes problems before your boss calls you about some pages
+    not loading. You will learn how to find those problems using logs and your usual
+    Linux toolbox. You will also learn how to minimize the probability of problems
+    happening again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx started as a web accelerator reverse proxy inside one of the big Russian
+    web companies of the early 2000s. The main web server software was Apache 1.3,
+    and it started to show architectural problems serving thousands of relatively
+    slow clients using the old process-based model. Smart web engineers were already
+    building two-tier systems of light frontends based on the `mod_proxy` Apache module
+    or even used the squid caching proxy in the reverse proxy mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The early predecessor of Nginx was named `mod_accel`, and it was also implemented
+    as an Apache module. The `mod_accel` module gained some popularity among the administrators
+    of some of the busiest websites, but it is nothing compared with what Nginx later
+    enjoyed. Both of them are built on the idea that the additional level of proxying
+    on the server side of a busy website is a good thing, providing both the extra
+    flexibility and separating the job of serving slow clients from the actual response
+    generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx took the idea of `mod_proxy` module to the extreme by being a self-sufficient
+    separate HTTP server with a goal to solve the so-called C10K problem, that is,
+    serving 10,000 concurrent connections. The numbers do not look impressive at all
+    in 2016, but they did in 2007 when Nginx first claimed a significant share of
+    1% of the Web according to Netcraft.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since that time, the share grew manifold while Nginx steadily gained new functionality
+    and remained the ideal open source success story project with a single, talented
+    developer devoting his genius to producing free quality software, which the whole
+    Web could benefit from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2011, a commercial enterprise named Nginx, Inc. was founded, which allowed
+    even more freedom for the developers (now a team). The firm provides both support
+    services and a special subscription-based extended version of the software named
+    Nginx Plus. We will mention some of the Nginx Plus features in the sixth chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2016, Nginx is a great tool many businesses are built upon. However, it is
+    still just a tool which requires a master to show its full potential. If you want
+    to understand what is going on in your web server, to be able to write correct
+    Nginx configuration files and read Nginx logs, and if you want your web server
+    to be very fast, you will have to become that master.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What this book covers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Chapter 1](ch01.html "Chapter 1. Searching for Problems in Nginx Configuration"),
+    *Searching for Problems in Nginx Configuration*, briefly describes the configuration
+    language of Nginx and presents some of the corner cases and several techniques
+    to search for problems.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 2](ch02.html "Chapter 2. Searching for Problems in Log Files"), *Searching
+    for Problems in Log Files,* describes the logging subsystem, log syntax, and what
+    to look for when you troubleshoot. Nginx provides thorough logs of everything
+    it does.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 3](ch03.html "Chapter 3. Troubleshooting Functionality"), *Troubleshooting
+    Functionality,* the central chapter in this book, contains a list of steps you
+    will make while investigating a problem. You will find the types of problems people
+    generally encounter with their Nginx-powered web servers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 4](ch04.html "Chapter 4. Optimizing Website Performance"), *Optimizing
+    Website Performance,* is dedicated to all things about performance. Starting with
+    thorough explanation of the basic principles behind the Nginx event-driven processing
+    model, it also touches on caching and even gives some advice on possible upstream
+    optimization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 5](ch05.html "Chapter 5. Troubleshooting Rare Specific Problems"),
+    *Troubleshooting Rare Specific Problems,* is devoted to studies of several real
+    cases that you may face, from some of the simplest and easiest cases to fix to
+    more problematic cases. The cases described might not be the most frequent, but
+    they still provide valuable insight on the internals of the software and the methods
+    of troubleshooting.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 6](ch06.html "Chapter 6. Monitoring Nginx"), *Monitoring Nginx,* is
+    devoted to the abundance of tools available today that you may use for monitoring.
+    No system is complete without good processes for the detection of emerging problems.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 7](ch07.html "Chapter 7. Going Forward with Nginx"), *Going Forward
+    with Nginx,* the short final chapter, provides a selection of directions you may
+    choose for your further development as a specialist. The whole industry is very
+    dynamic, and you should never settle.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Appendix](apa.html "Appendix A. Rare Nginx Error Messages"), *Rare Nginx Error
+    Messages*, provides a reference of interesting and not very common error messages
+    that you might encounter in your log files.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What you need for this book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although modern versions of Nginx support Windows, this configuration is not
+    considered production-ready. Most of the examples in this book will work on your
+    Windows machines, but we still recommend having a Linux or FreeBSD server for
+    experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx itself is pretty stable, so any version released since 2013 will suffice.
+    Some of the newer features are only available in more recent versions, and those
+    cases are marked in the book. We always recommend running modern Nginx from the
+    stable line in production. As of the start of the year 2016, it is 1.8.1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Who this book is for
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The book is for technical specialists who already use Nginx to serve web pages
+    for their users. Whether you are an experienced system administrator or a new
+    professional, this book will help you do your job in the most efficient way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conventions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this book, you will find a number of text styles that distinguish between
+    different kinds of information. Here are some examples of these styles and an
+    explanation of their meaning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Code words in text, database table names, folder names, filenames, file extensions,
+    pathnames, dummy URLs, user input, and Twitter handles are shown as follows: "The
+    `error_page` directive installs a handler for an HTTP error based on the famous
+    HTTP status codes."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A block of code is set as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When we wish to draw your attention to a particular part of a code block, the
+    relevant lines or items are set in bold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any command-line input or output is written as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**New terms** and **important words** are shown in bold. Words that you see
+    on the screen, for example, in menus or dialog boxes, appear in the text like
+    this: "You should have a way to reboot an otherwise unreachable server; every
+    sane modern hosting provider has it, whether in the form of a simple menu item
+    **Reboot**, such as in Amazon EC2 or a whole IPMI console access."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Warnings or important notes appear in a box like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Tips and tricks appear like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reader feedback
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Feedback from our readers is always welcome. Let us know what you think about
+    this book—what you liked or disliked. Reader feedback is important for us as it
+    helps us develop titles that you will really get the most out of.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To send us general feedback, simply e-mail `<[feedback@packtpub.com](mailto:feedback@packtpub.com)>`,
+    and mention the book's title in the subject of your message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is a topic that you have expertise in and you are interested in either
+    writing or contributing to a book, see our author guide at [www.packtpub.com/authors](http://www.packtpub.com/authors).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Customer support
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that you are the proud owner of a Packt book, we have a number of things
+    to help you to get the most from your purchase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading the example code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can download the example code files for this book from your account at [http://www.packtpub.com](http://www.packtpub.com).
+    If you purchased this book elsewhere, you can visit [http://www.packtpub.com/support](http://www.packtpub.com/support)
+    and register to have the files e-mailed directly to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can download the code files by following these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log in or register to our website using your e-mail address and password.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hover the mouse pointer on the **SUPPORT** tab at the top.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click on **Code Downloads & Errata**.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Enter the name of the book in the **Search** box.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select the book for which you're looking to download the code files.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose from the drop-down menu where you purchased this book from.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click on **Code Download**.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can also download the code files by clicking on the **Code Files** button
+    on the book's webpage at the Packt Publishing website. This page can be accessed
+    by entering the book's name in the **Search** box. Please note that you need to
+    be logged in to your Packt account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the file is downloaded, please make sure that you unzip or extract the
+    folder using the latest version of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: WinRAR / 7-Zip for Windows
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Zipeg / iZip / UnRarX for Mac
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 7-Zip / PeaZip for Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Downloading the color images of this book
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We also provide you with a PDF file that has color images of the screenshots/diagrams
+    used in this book. The color images will help you better understand the changes
+    in the output. You can download this file from [https://www.packtpub.com/sites/default/files/downloads/NginxTroubleshooting_ColorImages.pdf](https://www.packtpub.com/sites/default/files/downloads/NginxTroubleshooting_ColorImages.pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Errata
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Although we have taken every care to ensure the accuracy of our content, mistakes
+    do happen. If you find a mistake in one of our books—maybe a mistake in the text
+    or the code—we would be grateful if you could report this to us. By doing so,
+    you can save other readers from frustration and help us improve subsequent versions
+    of this book. If you find any errata, please report them by visiting [http://www.packtpub.com/submit-errata](http://www.packtpub.com/submit-errata),
+    selecting your book, clicking on the **Errata Submission Form** link, and entering
+    the details of your errata. Once your errata are verified, your submission will
+    be accepted and the errata will be uploaded to our website or added to any list
+    of existing errata under the Errata section of that title.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To view the previously submitted errata, go to [https://www.packtpub.com/books/content/support](https://www.packtpub.com/books/content/support)
+    and enter the name of the book in the search field. The required information will
+    appear under the **Errata** section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Piracy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Piracy of copyrighted material on the Internet is an ongoing problem across
+    all media. At Packt, we take the protection of our copyright and licenses very
+    seriously. If you come across any illegal copies of our works in any form on the
+    Internet, please provide us with the location address or website name immediately
+    so that we can pursue a remedy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please contact us at `<[copyright@packtpub.com](mailto:copyright@packtpub.com)>`
+    with a link to the suspected pirated material.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We appreciate your help in protecting our authors and our ability to bring you
+    valuable content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Questions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you have a problem with any aspect of this book, you can contact us at `<[questions@packtpub.com](mailto:questions@packtpub.com)>`,
+    and we will do our best to address the problem.
+  prefs: []
+  type: TYPE_NORMAL

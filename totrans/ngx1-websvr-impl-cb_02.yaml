@@ -1,0 +1,919 @@
+- en: 'Chapter 2. All About Rewrites: The Rewrite Module'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up a simple redirect
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using variables in your rewrite
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using cookies for your rewrites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using browser agents for your rewrites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using rate limits as a condition for rewrites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocking requests based on HTTP referrers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serving maintenance page when deploying
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up a WordPress site with static file serving
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up a Drupal site with static file serving
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up a Magento site with static file serving
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Converting your apache .htaccess into Nginx rewrites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using maps to make configurations cleaner
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter is devoted to the rewrite module; it will teach you the basics
+    and also allow you to configure various commonly available web development frameworks
+    to work correctly with your Nginx setup using the correct rewrite rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up a simple redirect
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A lot of sites undergo changes, and in some cases complete rewriting. In most
+    cases the earlier contents URLs would have changed, leading to loss of SEO and,
+    of course, inconvenience for older clients. This recipe will help you write simple
+    rewrites so that you can ensure that your new site has all the redirect working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s take a simple example of a site called [http://www.example1.com](http://www.example1.com).
+    It earlier had a page called [http://www.example1.com/blog/test-post.html](http://www.example1.com/blog/test-post.html)
+    and now it''s been redone. The new blog has a different URL scheme and this old
+    post is at the following location: [http://www.example1.com/blog/test-post/](http://www.example1.com/blog/test-post/).
+    It may look like a simple change, but when an older bookmarked user visits the
+    older URL they would get a 404 error page. The configuration change below will
+    easily let you rewrite the older URL to the new one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This creates a permanent redirection [301] rule for the older URL and makes
+    it point to the new one. Over time this can be removed as permanent redirects
+    changes the bookmarks and makes sure that people/crawlers do not keep coming back
+    to the older URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can also do a temporary redirection which is the 302 redirection by removing
+    the permanent keyword that is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means that the browser will not update the bookmark and also the search
+    crawlers will not update the new URL as the primary one for the content on the
+    page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using variables in your rewrite
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we are comfortable with the basics, we can go ahead and write more
+    interesting rewrites using conditions based on various variables accessible inside
+    the configuration. We will look at a simple example where we check for the presence
+    of a particular GET parameter in the URI, in the presence of which we rewrite
+    to a special URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will use the following piece of configuration to create the conditional
+    rewrite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you type in any URL which has a GET parameter special (for example, [http://www.example.com/?special=beta&test=test1)](http://www.example.com/?special=beta&test=test1))
+    it will show a corresponding special page for beta. This is very useful if you
+    want to hide certain parts of your site or make it accessible only by using a
+    basic key in the parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As seen above, you can configure a lot more variables available to you in the
+    HTTP header. Here is a list of more variables that we can access to write more
+    interesting rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Variable | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$arg_PARAMETER` | This variable contains the value of the GET request variable
+    PARAMETER if present in the query string. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$args` | This variable contains the query string in the URL, for example
+    `foo=123&bar=blahblah` if the URL is `http://example1.com/? foo=123&bar=blahblah`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$binary_remote_addr` | The address of the client in binary form. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$body_bytes_sent` | The bytes of the body sent. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$content_length` | This variable is equal to line Content-Length in the
+    header of request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$content_type` | This variable is equal to line Content-Type in the header
+    of request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$document_root` | This variable is equal to the value of directive root
+    for the current request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$document_uri` | The same as `$uri`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$host` | This variable contains the value of the ''Host'' value in the request
+    header, or the name of the server processing if the ''Host'' value is not available.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$http_HEADER` | The value of the HTTP header HEADER when converted to lowercase
+    and with "dashes" converted to "underscores", for example, `$http_user_agent,
+    $http_referer`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$is_args` | Evaluates to "?" if `$args` is set, returns "" otherwise. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$request_uri` | This variable is equal to the *original* request URI as
+    received from the client including the args. It cannot be modified. Look at `$uri`
+    for the post-rewrite/altered URI. Does not include host name. Example: "/foo/bar.php?arg=baz".
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$scheme` | The HTTP scheme (that is http, https). Evaluated only on demand,
+    for example: `rewrite ^(.+)$ $scheme://example.com$1 redirect`; |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_addr` | This variable contains the server address. It is advisable
+    to indicate addresses correctly in the listen directive and use the bind parameter
+    so that a system call is not made every time this variable is accessed. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_name` | The name of the server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_port` | This variable is equal to the port of the server, to which
+    the request arrived. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_protocol` | This variable is equal to the protocol of request, usually
+    this is HTTP/1.0 or HTTP/1.1. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$uri` | This variable is equal to current URI in the request (without arguments,
+    those are in `$args.)` It can differ from `$request_uri` which is what is sent
+    by the browser. Examples of how it can be modified are internal redirects, or
+    with the use of index. Does not include host name. Example:`"/foo/bar.html"` |'
+  prefs: []
+  type: TYPE_TB
+- en: Using cookies for your rewrites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most websites today use their cookies to effectively track and interact with
+    the client's browser. Nginx with its powerful rewrite module, allows us to write
+    some interesting rules with the information that may exist in the browser cookies.
+    You can check out the various cookies on your browser through the preferences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using cookies for your rewrites](img/4965_02_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We can take the simple example of a site which is running the staging and production
+    versions on the same Nginx instance. Based upon the cookie, the URL is rewritten
+    into the correct one. The following snippet will allow you to switch sites based
+    upon what is in the cookie:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the above configuration the cookie value is checked for the type of setup
+    that the user is accessing. This cookie is set on the user logging in by the application,
+    so a testing user will be able to access cutting-edge features, while a staging
+    user will be able to access beta features for testing only, and the normal users
+    will continue to use the stable production system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using browser agents for your rewrites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this recipe we will see how we can utilize rewrites for displaying alternative
+    sites based on the user agent of the client's browser. We can take the example
+    of a very flashy site that wants to display different sets of pages based upon
+    the browser that the client is using. The following two screenshots display how
+    `facebook.com` appears on a normal desktop browser and on an iPhone; the URL however
+    remains the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using browser agents for your rewrites](img/4965_02_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the preceding screenshot, we are looking at the full browser version of Facebook,
+    and you can see a fairly wide-screen site. In the following screenshot, we can
+    see the mobile version of Facebook which clearly lets go of a lot of functionality
+    because of the reduced screen-size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using browser agents for your rewrites](img/4965_02_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The simple example that we take is of an iPhone surfing the website and how
+    you can actually rewrite the URL to show them a completely iPhone-compatible website.
+    The configuration below is a great start for it!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The idea is simple. What it allows is checking the HTTP USER AGENT header that
+    already comes to us. We see if it is an iPhone or an iPod browser. If that is
+    the case, we actually set a variable to some value. If that variable is "1", we
+    go ahead and rewrite the URL to the mobile version of the site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using rate limits as a condition for rewrites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx has some really interesting built-in features around rate limiting requests.
+    This recipe will help you understand how exactly you can control the requests
+    to your application, thereby maintaining a certain quality of service to your
+    users even under significant loads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx lets you define zones that act as storage area for the state of sessions.
+    The value of the session key is decided by the chosen variable which, is usually
+    the IP or the hostname of the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this example, we will see how we can rate limit based on certain parameters,
+    like the user agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the preceding example we check if the user agent contains MSIE, in which
+    case it will rate limit the transfer to 5000 bytes only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can also set up request based rate limiting by using the following snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above configuration creates a zone called one, which has a session storage
+    size of 10MB allocated to it and allows a rate of one request per second in this
+    particular configuration. In case any request comes that is outside of the rate
+    limit that cannot be served, it will get a "Service unavailable" 503 page. You
+    can store approximately 16000 sessions in a 1MB zone. You can choose to create
+    as many zones as you require for your system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![There''s more...](img/4965_02_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Blocking requests based on HTTP referrers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this recipe, we will take the example of writing a rule which will look at
+    your HTTP REFERER header line of the request and block spammers on your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Blocking requests based on HTTP referrers](img/4965_02_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The preceding screenshot displays the spam comments on a blog for a single day;
+    these have been made by automated bots which are trying to get linkbacks for their
+    various properties. These techniques fall under the dark aspects of SEO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To block spammer bots from visiting your site, you can use the following code
+    snippet inside the location part of your configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This basically has a look at the `$http_referer` variable and matches it with
+    the various keywords provided. This is a very effective in ensuring that you do
+    not have a lot of spam in your system linking back to bad sites! In case the keywords
+    do match, it returns a 403 client error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_02_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Serving maintenance page when deploying
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the few things that most sites need to do is deploy code, and usually
+    do it when the site is running on production. Nginx is really amazing in terms
+    of how it can easily reload its configuration without terminating the client connections.
+    You can have a look at the reloading recipe in the previous chapter to know more.
+    In this recipe, we will have a look at a simple way of setting up a system which
+    can make your deployment pain free for the end user and you as well!
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's run through step-by-step what one needs to do to make a working deployment.
+    In the process the various configuration changes will also be outlined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a directory which has the temporary "Coming back soon" HTML file. Let's
+    call this `/var/www/www.example1.com/deployment/` and the file is `index.html`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'You need to create an alternative configuration file which will be called `temporary.conf`.
+    This file basically replaces the server configuration for [www.example1.com](http://www.example1.com)
+    with the following:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now we can write a small script for deployment. It will basically put the site
+    into a temporary mode and then update your codebase. After the code update, it
+    will simply copy the older production configuration and reload Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this recipe, we simply use our earlier learned techniques and combine them
+    with some nifty bash scripting to write a simple deployment script. The idea is
+    to rewrite all the URLs to the maintenance page when the site is being deployed,
+    and once done with the backend code deployment we revert back to the older production
+    configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_02_07.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Setting up a WordPress site with static file serving
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: WordPress is one of the world's leading blogging systems, and is pretty much
+    the defacto standard today. It has a fairly easy setup with Apache2 and makes
+    setting up of clean URLs pretty simple as well. However, with Nginx, (and PHP
+    over fcgi) setting up WordPress with clean URLs requires some amount of work.
+    My own blog is running on WordPress with Nginx!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up a WordPress site with static file serving](img/4965_02_08.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's try to set up a complete WordPress blog using Nginx and PHP over fcgi.
+    In this recipe, you will end up learning the various details around the WordPress
+    and Nginx stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download WordPress - [http://Wordpress.org/latest.tar.gz](http://Wordpress.org/latest.tar.gz).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Untar it at `/var/www/www.example1.com/:`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Add the following configuration in `Nginx.conf` within the http directive:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Restart the server:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Go to the blog, and start the installation.![How to do it...](img/4965_02_09.jpg)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Log in to the administrative section and set up the clean URLs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '![How to do it...](img/4965_02_10.jpg)'
+  prefs:
+  - PREF_IND
+  type: TYPE_IMG
+- en: The following screenshot is the permalink setting that allows you to have clean
+    URLs without .php with the various parameters appended. That makes it very search
+    engine and human friendly:![How to do it...](img/4965_02_11b.jpg)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We are nearly done. Now you can go ahead and customize your cool, new WordPress
+    blog!
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![How to do it...](img/4965_02_12.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a fairly basic setup. The clean URLs are handled by one rewrite. The
+    interesting part is the static file serving, which is highlighted in the configuration
+    above, that checks if the file being served is a static file (that is a GIF, PNG,
+    DOC, and so on). If it is, then the file is served with an expiry header with
+    long expiration time. This reduces the consumed bandwidth as it facilitates extended
+    client side caching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Many sites have alternative setups to handle higher loads, and use plugins
+    like `wp-supercache.` The following configuration has the correct rewrites for
+    fully utilizing the combined power of `wp-supercache` and Nginx. This setup has
+    the capability to handle a significant amount of load within very low resource
+    constraints:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the following screenshot you can see the WP super cache Manager plugin configuration
+    page which allows you to setup other parameters for the caching based on your
+    site requirements. In the above example we handle the basic settings which assume
+    that all the pages need to be cached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![There''s more...](img/4965_02_13.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Setting up a Drupal site with static file serving
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Drupal is an emerging open source CMS and has captured the imagination of many
+    PHP developers and enthusiasts alike. In this recipe, we will have a look at how
+    we can set up Drupal using Nginx and PHP over FastCGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up a Drupal site with static file serving](img/4965_02_14.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Download Drupal: [http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz](http://ftp.Drupal.org/files/projects/Drupal-6.19.tar.gz)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Untar Drupal to `/var/www/www.example1.com/`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add the following to your `Nginx.conf:`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Reload Nginx:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Set up Drupal:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![How to do it...](img/4965_02_15.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The preceding screenshot lets you set up the database settings for the installation.
+    In the following screen, you will be logged in as administrator and will have
+    the ability to manipulate the various options of the platform:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How to do it...](img/4965_02_16b.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The basic Drupal setup is very similar to the WordPress setup shown in the earlier
+    recipe, and has the same rewrite rules. You need to transform the clean URL into
+    a parameterized URL for `index.php`, as shown in the highlighted directive, `try_files`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Drupal has an exciting caching framework called Boost, which enhances the speed
+    drastically. It can be used in conjunction with Nginx to handle fairly high loads.
+    Do note that this stack with the boost modules has certain pitfalls when it comes
+    to large Drupal sites; it is best utilized with smaller portals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The important assumption in the above case is that the boost cache is set at
+    `/cache/`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![There''s more...](img/4965_02_17.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Setting up a Magento site with static file serving
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Magento is a neat e-commerce CMS which has been around for a fair bit of time.
+    It has gained widespread acceptance due to its strong API and committed developer
+    community. In this recipe, we will have a look at how to set up Magento using
+    Nginx and PHP over FastCGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up a Magento site with static file serving](img/4965_02_18.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Download Magento: [http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip](http://www.magentocommerce.com/getmagento/1.4.1.1/magento-1.4.1.1.zip)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Untar Magento to `/var/www/www.example1.com/`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add this to your `Nginx.conf:`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Reload Nginx:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Install Magento:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![How to do it...](img/4965_02_19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Magento, unlike Drupal or WordPress, does not rewrite its URL to `index.php`.
+    All the pages map to `index.php`. This is achieved by the rewrite rule that has
+    been highlighted in the configuration code above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Converting your Apache's .htaccess into Nginx rewrites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the primary uses of Nginx rewrites is to help you easily translate Apache2's
+    .htaccess to usable Nginx configuration. Apache2 is the dominant open source web
+    server in the world. In such a situation, inevitably most of the code available
+    has .htaccess rules and very little direction regarding how to go about configuring
+    Nginx rewrites so that it can properly run the site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this we will have a look at an example where we take an .htaccess file and
+    see its equivalent Nginx rewrite rules. In the later sections, we will have a
+    look at some patterns that emerge out of the conversion which you can later utilize
+    for converting other scripts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The equivalent Nginx rule set is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now let''s have a look at how exactly the rules have got translated, so the
+    Apache rewrite rules basically enforce the following rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the request is on port 80 and the URL is /signup/ then it is rewritten to
+    the HTTPS version
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It redirects all `/signup/plan` or `/signup/plan/` to `/signup/index.php?account_type=plan`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It redirects all `/home/123` or `/home/123/` to `home.php?home_id=123`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It fixes all `/homes/` to `/home/`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So basically, if you notice, the conversion is very direct and rather simple.
+    The Apache .htaccess basically utilizes a sequential set of conditions which are
+    converted to if conditionals statements in Nginx which manipulate some variables.
+    The following table gives you a clearer look at the direct conversion of the rewrites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Apache | Nginx | Notes |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| RewriteCond %{SERVER_PORT} 80 | if ($server_port ~ "80"){ set $rule_0 1$rule_0;
+    } | This is a simple rewrite conditional check for what is the server port. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| RewriteCond %{REQUEST_URI} ^/signup/? | if ($uri ~ "^/signup/?"){ set $rule_0
+    2$rule_0; } | This is a check for the URL structure. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| RewriteRule ^(.*)$ https://www.example.com/$1 [R,L] | if ($rule_0 = "21"){
+    rewrite ^/(.*)$ https://www.example.com/$1 redirect; break; } | This Rule is fired
+    only when the above two conditions are met. It''s a redirect as specified by the
+    R in the Apache configuration and redirect in Nginx. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| RewriteRule ^signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 [NC,L]
+    | rewrite ^/signup/([A-Za-z]+)/?$ /signup/index.php?account_type=$1 last; | This
+    simply matches URLs which look like /signup/something and rewrites them to /signup/index.php?account_type=something
+    . If you notice, something can contain alphabets to have a match. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| RewriteRule ^home/([0-9]+)/?$ home.php?home_id=$1 [NC,L] | rewrite ^/home/([0-9]+)/?$
+    /home.php?home_id=$1 last; | This is similar to the above rewrite and matched
+    for a number. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| RewriteRule ^homes/([0-9]+)/?$ home.php?home_id=$1 [NC,L] | rewrite ^/homes/([0-9]+)/?$
+    /home.php?home_id=$1 last; | This rewrite is matches for patterns like /homes/123,
+    /homes/123123 and so on. It is similar to the above rewrites. |'
+  prefs: []
+  type: TYPE_TB
+- en: It is clear how you can take rewrite conditionals in Apache htaccess, and convert
+    them to Nginx conditions which modify the value of a variable as shown in the
+    comparison above. It is fairly simple to see the pattern of conversion for the
+    actual rewrites that take place by looking at the table above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Today, there are a lot of online tools that are fairly advanced and let you
+    convert your .htaccess file directly into an Nginx configuration! Though it is
+    still safe to assume that more efficient code is generated by human conversion
+    in slightly complex cases. You can try using [http://www.anilcetin.com/convert-apache-htaccess-to-nginx/](http://www.anilcetin.com/convert-apache-htaccess-to-nginx/)
+    and see your Apache configuration converted into Nginx configuration with one
+    click.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using maps to make configurations cleaner
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There is a very useful Nginx module that allows the classification of set of
+    values into different sets of values, which is then stored in a variable. The
+    idea is that it makes it much simpler to write switch-case, like statements where
+    you have a different rewrite when there is a different value. So let us look at
+    some examples where the map module is effectively used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s say you want to detect the incoming hostname and want to do something
+    different on certain domains and sub-domains, we will write a map and utilize
+    it in a simple rewrite rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This idea is simple. Here you have taken the `$http_host` variable and created
+    a map where it will simply fill `$name` with the value corresponding to the matched
+    value. So for example, if the site visited was [http://abc.site.com](http://abc.site.com)
+    then the $name value would be set at three as per the map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The hostname directive allows you to write one instead of two mappings if you
+    want to cover a complete domain, that is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Instead of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: There's more…
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'After this variable is mapped, one can utilize this for triggering other rewrite
+    rules. The recipe for using cookies with rewrite rules could have potentially
+    utilized this approach to have a much cleaner configuration file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The above can be simply translated into:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: This looks much cleaner and effectively is the equivalent to the configuration
+    that is not using the Map module.
+  prefs: []
+  type: TYPE_NORMAL

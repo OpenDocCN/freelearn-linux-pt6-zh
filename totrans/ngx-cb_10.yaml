@@ -1,0 +1,799 @@
+- en: Docker Containers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX web server via Docker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX reverse proxy via Docker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Docker Compose with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX load balancing with Docker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While the concept of container technology isn't new, the rise of Docker's popularity
+    is simply because it was the first to bring simplicity and scalability to the
+    market. For those who don't quite understand what Docker is, on a simplistic level,
+    it's just an application container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Containers themselves are simply another way of virtualizing your environment.
+    Rather than having to emulate components such as a **Virtual Machine** (**VM**),
+    containers run on a single kernel and rely on software-level abstraction and isolation
+    to provide lightweight and faster virtual environments. Docker takes this a step
+    further and isolates it right down to a single application, as shown in the following
+    diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/7192fc7f-7ec5-4a92-9e65-8625425e0f5e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The advantage is that this high level of abstraction means that you can provide
+    a highly consistent and rapidly deployable service architecture that is simple
+    to run. Not only that, Docker has a number of tools to orchestrate and help manage
+    the deployment of the containers as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Docker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you haven't installed Docker yet, the easiest way to try it is on your local
+    development machine. Rather than running it natively, these environments set up
+    a small Linux VM and provide wrappers to directly use it from your existing operating
+    system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To install it, download and run it through the installers from here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Windows**: [https://www.docker.com/docker-windows](https://www.docker.com/docker-windows)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**macOS**: [https://www.docker.com/docker-mac](https://www.docker.com/docker-mac)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As Docker is a rapidly evolving platform, always consult the official documentation
+    in case there have been any changes since the time of writing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you''re installing Docker on a dedicated server or VPS, this can be done
+    using the standard tools. For a CentOS 7 system, this is as simple as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Those who are running Ubuntu, the commands are just as simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This gives us a fully working Docker environment, even better if you have a
+    local development installation and a staging/production system to test these recipes
+    on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To familiarize yourself with Docker, we'll go through a few basic commands.
+    The first is to simply run the `docker` command. This runs the Docker client and
+    will spit out a list of commands that are available. If you see an error at this
+    point, double-check the output from your installation or system logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, let''s run `docker ps`, which will list all the containers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/0d57b9d5-ed96-4207-aa74-a3133357da49.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As this is a brand-new installation, you won''t see any listed here. Lastly,
+    we can run `docker version` to list both the server and client versions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/080f8fc9-7e42-4b6f-9261-4794ed0c7a38.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: While the Docker client can run on a different system to the Docker server (or
+    Docker Engine as it can also be referred to as), you'll need to ensure that the
+    versions are compatible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX web server via Docker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe will step you through the basics of setting up a simple NGINX container
+    via Docker. When you see the simplicity of the installation, don't be fooled by
+    how easy it is, as that's the point of Docker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you're already running existing Docker containers, make sure they're either
+    stopped or are not running on port 80\. Otherwise, they will conflict with this
+    recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We''ll start by pulling down the latest image of Docker. While this is an optional
+    step, it will allow you to see how Docker works in stages for the first time.
+    To download the NGINX image (which for the officially packaged version is simply
+    called `nginx`), run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will then pull down a number of images, each of which will display a series
+    of unique image IDs, like the ones displayed in this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/2c89f2cc-f5e0-48a2-9c00-ab121372b76e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Once our image has finished downloading, we can start creating our first container:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If this works, you should get a single-line output, which will be the ID of
+    the container:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/fd4b9592-b6ff-48f9-99d7-3abecaf09a67.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This indicates that the container has been created and started. If this is
+    the first time you''re seeing a containerized system, less than a second setup
+    may seem like a fault at first. However, that''s how quickly a container can be
+    created and be up and running. To test the site, we can now browse the IP/hostname
+    of where your Docker instance is running and connect to port `81` to confirm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/229b4fc3-c1a6-4be8-aa9f-ba7631ea556f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Docker images are a layered format, which allows each layer to be reused between
+    other images. This is to save on space, rather than having 20 instances of NGINX
+    running on Ubuntu with all the system libraries duplicated. Docker will split
+    these instances into layers so that you can have a singular base image, and each
+    change to this is stored as a layer. Our NGINX image looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/730c825b-24fe-4fed-844a-18e61293db93.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Each layer represents a change, and even the base image itself can be made up
+    of multiple layers. Once you have a running container, any changes are then performed
+    as **Copy-on-Write** (**COW**); this means the original images are preserved,
+    while also allowing the ability to modify instances based on them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our one-line deploy command can be broken down into a number of different parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`run`: This tells Docker to create an instance and run the default command.
+    As shown in the preceding figure, this is the `nginx` command to start NGINX.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--name nginx-basic`: This gives our container a name, which allows you to
+    easily identify and link to it from other containers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`-d`: This option detaches the container from the command line and runs it
+    in the background.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`-p 81:80`: Using `-p` specifies port mapping for the container. It''s always
+    in this format: `<host>:<container>`. For our instance, we''ve opened port `81`
+    on our server (or the development machine) and mapped it to port `80` in the container
+    (where NGINX listens by default).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`nginx`: Finally, we specify the image name. This can also include a version
+    tag, or it will select the latest release if no tag is specified. If we wanted
+    to run an older version of NGINX, we could specify `nginx:1.9.14` to use the latest
+    1.9 release.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Our initial example is fairly basic, but can be easily extended to serve static
+    files. Rather than building an image with the files deployed, we can map a volume
+    to the host in which Docker is on. This way, we can edit the files locally but
+    still have them served from within the Docker container. Here''s our updated `run`
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Docker's filesystems use a union filesystem (for example, OverlayFS); this allows
+    you to join two systems at a specified mount point. In our preceding example,
+    we mounted `/var/static` on our local server and specified the mount point as
+    `/usr/share/nginx/html`. We've also specified that the mount is read-only to prevent
+    anything within the container from modifying the files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Changes to the files done within your local server (or the development machine)
+    and in the `/var/static` directory will be served by our Docker instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This also means that you can keep your Docker configurations common between
+    varying configurations and simply update the content separately. If you're especially
+    using a **Revision Control System** (**RCS**) such as Git, it means you have a
+    system that can be quickly updated via a **Continuous Integration** (**CI**) system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Docker documentation: [https://docs.docker.com/](https://docs.docker.com/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Official NGINX Docker hub entry: [https://hub.docker.com/_/nginx/](https://hub.docker.com/_/nginx/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Official image build code: [https://github.com/nginxinc/docker-nginx](https://github.com/nginxinc/docker-nginx)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX reverse proxy via Docker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In most scenarios, Docker will be deployed alongside an application container,
+    such as Ruby on Rails, WordPress, or similar. In traditional deployment scenarios,
+    these would all be configured on one server. However, in a Docker-based environment,
+    you may want to reduce each container to a single task or process where possible,
+    like a microservice-based architecture. This is so that you can independently
+    upgrade or replace each part without affecting the other. An example of this is
+    updating system libraries or deploying different PHP versions. As each task is
+    a separate container, it remains isolated and, therefore, unaffected by other
+    containers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a reverse proxy on your local development server can also be a great way
+    to test your application before deploying. Generally, if you have a basic WAMP
+    (that is, Windows, Apache, MySQL, PHP) style development environment, then you
+    may not discover unique issues, which only show when you have a proxy server that
+    mimics your production environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe assumes you have some form of web or application server running
+    on your local server. Ideally, this could be *Dockerized* as well, but we'll cover
+    both scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s how it''s going to look:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/86bfb0f9-8748-456c-9031-c8ee32ed7554.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As most real-world deployments are via HTTPS, we're also going to incorporate
+    SSL certificate deployments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Because the standard NGINX image is perfect for more complex deployments, we're
+    going to modify it to suit our needs. The great thing about Docker is that this
+    process is very simple to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Firstly, we''re going to create a Docker image definition file, which is called
+    `Dockerfile`. This is what Docker uses to build an image, and it can reference
+    an existing image as the base so that you don''t have to reinvent the wheel. Here''s
+    our `Dockerfile`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the same directory, we will also need our NGINX configuration file. As we
+    want to override the default settings, we have called this `default.conf` so that
+    it copies over the exiting file. Based on the *Configuring NGINX as a simple reverse
+    proxy* recipe back in [Chapter 7](bc04362e-995f-4550-92b7-183754306d34.xhtml),
+    *Reverse Proxy*, our configuration will look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, we also need our SSL certificates and keys copied over as well. If you're
+    intending to distribute this image or update the SSL certificates separately to
+    the image, you can remove this from the image and use a volume mount to store
+    the certificates on the local server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need to generate a test SSL certificate, there's a quick guide available
+    in [Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml), *All About SSLs*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once you have all the configuration files ready, you can now tell Docker to
+    build an image. It will store this image locally, based on the tags you provide.
+    To create the image, run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Docker will then go through each of the steps in `Dockerfile` to produce a
+    new image. Your output should look similar to this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/6934f931-bd7d-48e1-aa04-81f4d84ebb2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can see that, in the final output, our Docker image has been given the `b4007604b77e`
+    ID. We can confirm this by viewing which Docker images we have installed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following is the output listing our Docker image:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/755d1e59-c389-4772-accb-e76611281518.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Although there are a number of intermediate images, by default, Docker doesn't
+    display them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After building and confirming that we have our Docker image, you can now deploy
+    it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will create a container based on our new image, exposing port `443` via
+    the server. Rather than being a bridged network (therefore using docker0), we
+    tell NGINX to use the host's network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently, there's a longstanding issue with Docker for Mac accessing the host,
+    based on the underlying OS limitation. For now, the easiest workaround is to only
+    use container to container networking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is best used for development only, as you're limited to only running one
+    instance of each image due to the lack of port mapping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Within our `Dockerfile`, we define a number of steps to build the image:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`FROM`: This defines our starter image; for this recipe, we used `nginx:latest`.
+    Rather than build the image from scratch, we simply start with the official NGINX
+    image. If you want to manually install your own build, you could start with a
+    base Linux, such as Debian or Alpine.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`COPY`: In order to make the files part of the image, we can copy them as part
+    of the build process. For this image, we''ve copied over our NGINX configuration
+    file as well as the SSL certificates. If the files exist in the base image, they
+    will simply be overwritten.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`RUN`: We can issue commands within the build. In this instance, we symlink
+    the default log files through to `/dev/stdout` and `/dev/stderr` so that we can
+    view the logs from the standard Docker log tools.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`EXPOSE`: In order to access network ports outside of the container, they must
+    be exposed to the Docker networking subsystem. From here, they can be explicitly
+    mapped using `-p` in the `docker run` command or implicitly mapped simply with
+    `-P`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`CMD`: This defines the default command executed when the container starts.
+    It''s set up in the format of `[''executable'', ''param1'', ''param2'']`, so for
+    our NGINX command, it translates to `nginx -g daemon off;`. Because Docker requires
+    the application to stay in the foreground, the `-g` option allows us to set an
+    additional directive of daemon off to enforce this.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The recipe wasn't about how production systems are deployed, as we were mixing
+    host-deployed services with container-based ones. Most production deployments
+    of Docker have 100 percent of services deployed within Docker containers, which
+    simplifies networking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a typical production deployment, here''s what we might see:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/d301b5a2-2af4-4430-b6e6-9348c1cbcf30.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With everything containerized and isolated, we can still connect these without
+    having to expose the ports to the world. Previously, this was called **linking**
+    containers, and while the linking commands worked, they also had significant limitations.
+    Instead, we now create distinct networks within the host.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These networks allow containers to talk to each other in distinctly named networks
+    and you can have multiple networks within one system without any issues. If you've
+    previously used Docker and haven't moved to a version higher than 1.9, it's worth
+    it for the improvements in this part alone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To allow two containers to talk to each other, we will first create a network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: I've named this network `webnet`, which will be between NGINX and the application
+    only. In the preceding example, we can also create separate networks between the
+    Rails application and PostgreSQL, then again for Rails and Redis. This level of
+    isolation helps ensure there's no accidental data leakage if there is a security
+    fault.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I have installed a Redmine container (which is a project management application
+    based on Ruby on Rails), which will benefit from a reverse proxy in front to provide
+    SSL termination. Because of the power of Docker, we can quickly deploy a Redmine
+    server and automatically connect it to our `webnet` network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In order for NGINX to proxy the `redmine` container, first we''ll need to update
+    the proxy configuration. When added to a network, Docker''s internal DNS server
+    will automatically add the entry so that we can simply refer to the container
+    by name. In the `default.conf`, update, the `proxy_pass` line will look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As previously, we''ll need to rebuild our image and then run a container, this
+    time linked to `webnet` instead of the host:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When deploying the `nginx-proxy` image this time, we will also join it to the
+    `webnet` network and then bind port `443` to the main host. Because the NGINX
+    container is on the same network as the Redmine demo, it can explicitly access
+    it via port `3000`, whereas the host server can''t. If you have everything configured
+    correctly, you should see the proxied connection to Redmine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/26517725-3105-460f-9b6d-fe00b53fb4c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'macOS network limitation: [https://docs.docker.com/docker-for-mac/networking/#there-is-no-docker0-bridge-on-macos](https://docs.docker.com/docker-for-mac/networking/#there-is-no-docker0-bridge-on-macos)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Dockerfile` best practices: [https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Dockerfile` reference: [https://docs.docker.com/engine/reference/builder/](https://docs.docker.com/engine/reference/builder/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Docker networking: [https://docs.docker.com/engine/userguide/networking/](https://docs.docker.com/engine/userguide/networking/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Docker Compose with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our previous recipes, we deployed Docker containers in a singular fashion.
+    While this is okay for smaller projects and testing, for production environments,
+    ideally, we want this to be as repeatable as possible. This is where Docker Compose
+    comes into the picture. Docker Compose is a tool that allows you to define multicontainer
+    Docker applications for ease of management and ease of deployment. It does this
+    via a single configuration file, which defines both the containers to deploy as
+    well as the networking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Docker Compose is installed by default for all modern Docker installations.
+    We'll take our Redmine deployment and convert it back into a one-command deployment
+    process again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To get started, we need to create a `docker-compose.yml` file. This is in YAML
+    format, which is a simple text-based language with a strong focus on readability.
+    Here''s what our `docker-compose.yml` file looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is located in the same directory as `Dockerfile` and the previous NGINX
+    configuration files we used. The directory naming is also important, as Docker
+    Compose will use it to prepend the names of the containers it creates. For this
+    recipe, I have the files located in the `composedemo` directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With our Docker Compose configuration file, we can now build and create the
+    containers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will firstly build our `nginx-proxy` image and then proceed to create
+    all the containers. You should see an output like this as the containers start:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: The naming is reflective of the configuration we used, where it prepends the
+    directory name, adds the container name, and then appends a sequence number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After the containers have been started, all the logs will output to the screen,
+    and the containers will be running in the foreground. If you want to start it
+    in the background, you can do this with the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This starts the containers in the background, much like our previous recipe.
+    They can also be stopped with one command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the ability to cleanly define the multicontainer deployments and then deploy
+    with a single command, Docker Compose is an important part of the Docker ecosystem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The YAML configuration file for Docker Compose has a number of elements in
+    this recipe. Firstly, we define the version number (`version: ''3''`). This isn''t
+    a revision number for the individual file, but tells Docker Compose what format
+    to expect the configuration file in.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we define the network (`webnet`). By default, Docker Compose will create
+    a separate network for all the containers, but we have explicitly named it in
+    this recipe. The reason we do this is to retain compatibility with our previous
+    recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we define our services. The first is the `redmine` service, which we
+    create from the `redmine` image. This is then added to the webnet network, and
+    we also alias the name of the container. Again, this is to help maintain compatibility
+    and reduce changes. While this isn't necessary to do, the reduction in changes—if
+    you've come from a previous configuration—can help with diagnosing any issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second service defined is our NGINX container, named `nginx-proxy`. Instead
+    of using an image, we tell Docker Compose to build the container first from the
+    current directory (`./`). Where we previously had to manually build and tag the
+    image, Docker Compose does this automatically for us. We then map the host port
+    `443` to the container port `443` and, like the Redmine service, we add it to
+    the `webnet` network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Docker Compose documentation: [https://docs.docker.com/compose/overview/](https://docs.docker.com/compose/overview/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Docker Compose file format: [https://docs.docker.com/compose/compose-file/](https://docs.docker.com/compose/compose-file/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX load balancing with Docker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once you've tackled the conversion from complex deploy scripts into neat `Dockerfile`,
+    the next step is to deal with scale. As for most other problems, Docker has a
+    solution for this too; scaling is one of those.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While newer versions of Docker have added native load balancing, it's still
+    quite simplistic. This makes NGINX a better choice for many uses. Since you're
+    already familiar with the workings of NGINX, it's easily adapted to provide load
+    balancing within a Docker environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a larger deployment, we'd use a more formal service discovery tool, such
+    as `consul` or `etcd`, in order to provide more granular control. This recipe
+    will simply use the built-in DNS capability of Docker in order to round-robin
+    the requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This recipe has been simplified to run on a single VM. In most real-world scenarios,
+    this would be spread across multiple VMs. Here''s what our test scenario looks
+    like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/65f03933-29ba-4248-b6cc-5a49d93f55b3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We're using the HTest tool, as covered back in [Chapter 8](4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml),
+    *Load Balancing*, as the container we want to scale and load balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To deploy our load-balanced platform, first we''re going to create an NGINX
+    container. Here''s our `default.conf`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additional files, such as the associated SSL certificates and `Dockerfile`,
+    are also required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are also available directly from GitHub at [https://github.com/timbutler/nginxcookbook](https://github.com/timbutler/nginxcookbook).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we''re still using Docker Compose for the deployment, we''ll also need our
+    updated `docker-compose.yml` configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, this is quite similar to our previous recipe, as the structure of what
+    we''re trying to achieve is quite similar. Once we have the configuration, we
+    can now build and start our containers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will start both the `nginx` container as well as `htest`; it will also
+    start the associated network. If successful, you should see an output like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/508b2b3e-efe5-4497-b22f-4e384fdf05f2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'By default, however, there''s only one instance of `htest` running. In order
+    to scale this, we can simply tell Docker Compose how many instances we want to
+    run. Here''s an example of this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will start an additional three `htest` containers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/ee88587e-08f0-487b-9cbb-9f571e722db8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Because we have NGINX set to call the proxy backend by its hostname, these are
+    now called in a basic round-robin to each of the containers. If you browse to
+    the site, you should see the counter for `htest` jumping around as each instance
+    serves a request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our NGINX configuration (`default.conf`), we add the resolver directive (`resolver
+    127.0.0.11 valid=1`) that directs NGINX to use the built-in Docker DNS resolver.
+    In order to distribute the load, setting the validity to 1 means any TTL is ignored
+    and the result only stays valid for 1 second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we set the variable `$backend` to `http://htestbackend:8000`. The use
+    of a variable ensures that it's evaluated each time in order to have the IP address
+    updated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within `Dockerfile`, we have set the alias for the `htest` container to `htestbackend`.
+    Once we call the `scale` command, this starts three additional containers. Although
+    a unique name is allocated to each container (for example, `loadbalancer_htest_1`),
+    the alias ensures that there's a common name. This avoids having to rewrite the
+    configuration of NGINX each time a new system is added, giving us the ability
+    to add additional backends without reconfiguring them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'NGINX `resolver` directive: [http://nginx.org/en/docs/http/ngx_http_core_module.html#resolver](http://nginx.org/en/docs/http/ngx_http_core_module.html#resolver)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To know more about the `docker compose scale` command: [https://docs.docker.com/compose/reference/scale/](https://docs.docker.com/compose/reference/scale/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

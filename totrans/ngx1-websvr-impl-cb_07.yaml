@@ -1,0 +1,602 @@
+- en: Chapter 7. Nginx as a Reverse Proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Nginx as a simple reverse proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up a rails site using Nginx as a reverse proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up correct reverse proxy timeouts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up caching on the reverse proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using multiple backends for the reverse proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serving CGI files using thttpd and Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up load balancing with reverse proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Splitting requests based on various conditions using split-clients
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx has found most applications acting as a reverse proxy for many sites.
+    A reverse proxy is a type of proxy server that retrieves resources for a client
+    from one or more servers. These resources are returned to the client as though
+    they originated from the proxy server itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to its event driven architecture and C codebase, it consumes significantly
+    lower CPU power and memory than many other better known solutions out there. This
+    chapter will deal with the usage of Nginx as a reverse proxy in various common
+    scenarios. We will have a look at how we can set up a rail application, set up
+    load balancing, and also look at a caching setup using Nginx, which will potentially
+    enhance the performance of your existing site without any codebase changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Nginx as a simple reverse proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx in its simplest form can be used as a reverse proxy for any site; it acts
+    as an intermediary layer for security, load distribution, caching, and compression
+    purposes. In effect, it can potentially enhance the overall quality of the site
+    for the end user without any change of application source code by distributing
+    the load from incoming requests to multiple backend servers, and also caching
+    static, as well as dynamic content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using Nginx as a simple reverse proxy](img/4965OS_07_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You will need to first define `proxy.conf`, which will be later included in
+    the main configuration of the reverse proxy that we are setting up:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To use Nginx as a reverse proxy for a site running on a local port of the server,
+    the following configuration will suffice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this recipe, Nginx simply acts as a proxy for the defined backend server
+    which is running on the 8080 port of the server, which can be any HTTP web application.
+    Later in this chapter, other advanced recipes will have a look at how one can
+    define more backend servers, and how we can set them up to respond to requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up a rails site using Nginx as a reverse proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this recipe, we will set up a working rails site and set up Nginx working
+    on top of the application. This will assume that the reader has some knowledge
+    of rails and thin. There are other ways of running Nginx and rails, as well, like
+    using Passenger Phusion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up a rails site using Nginx as a reverse proxy](img/4965_07_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This will require you to set up thin first, then to configure thin for your
+    application, and then to configure Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you already have gems installed then the following command will install
+    thin, otherwise you will need to install it from source:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now you need to generate the thin configuration. This will create a configuration
+    in the `/etc/thin` directory:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now you can start the thin service. Depending on your operating system the start
+    up command will vary.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Assuming that you have Nginx installed, you will need to add the following
+    to the configuration file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is a fairly simple rails stack, where we basically configure and run five
+    upstream thin threads which interact with Nginx through socket connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are a few rewrites that ensure that Nginx serves the static files, and
+    all dynamic requests are processed by the rails backend. It can also be seen how
+    we set proxy headers correctly to ensure that the client IP is forwarded correctly
+    to the rails application. It is important for a lot of applications to be able
+    to access the client IP to show geo-located information, and logging this IP can
+    be useful in identifying if geography is a problem when the site is not working
+    properly for specific clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up correct reverse proxy timeouts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section we will set up correct reverse proxy timeouts which will affect
+    your user's interaction when your backend application is unable to respond to
+    the client's request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In such a case, it is advisable to set up some sensible timeout pages so that
+    the user can understand that further refreshing may only aggravate the issues
+    on the web application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You will first need to set up `proxy.conf` which will later be included in
+    the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Reverse proxy timeouts are some fairly simple flags that we need to set up
+    in the Nginx configuration like in the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the preceding configuration we have set the following variables, it is fairly
+    clear what these variables achieve in the context of the configurations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Directive | Use |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_read_timeout` | This directive sets the read timeout for the response
+    of the proxied server. It determines how long Nginx will wait to get the response
+    to a request. The timeout is established not for the entire response, but only
+    between two operations of reading. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_connect_timeout` | This directive assigns timeout with the transfer
+    of request to the upstream server. Timeout is established not on the entire transfer
+    of request, but only between two write operations. If after this time the upstream
+    server does not take new data, then Nginx shuts down the connection. |'
+  prefs: []
+  type: TYPE_TB
+- en: Setting up caching on the reverse proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a setup where Nginx acts as the layer between the client and the backend
+    web application, it is clear that caching can be one of the benefits that can
+    be achieved. In this recipe, we will have a look at setting up caching for any
+    site to which Nginx is acting as a reverse proxy. Due to extremely small footprint
+    and modular architecture, Nginx has become quite the Swiss knife of the modern
+    web stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up caching on the reverse proxy](img/4965OS_07_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This example configuration shows how we can use caching when utilizing Nginx
+    as a reverse proxy web server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This configuration implements a simple cache with 1000MB maximum size, and keeps
+    all HTTP response 200 pages in the cache for 60 minutes and HTTP response 404
+    pages in cache for 1 minute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is an initial directive that creates the cache file on initialization,
+    in further directives we basically configure the location that is going to be
+    cached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It is possible to actually set up more than one cache path for multiple locations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This was a relatively small show of what can be achieved with the caching aspect
+    of the proxy module. Here are some more directives that can be really useful in
+    optimizing and making your stack faster and more efficient:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Directive | Use |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_bypass` | The directive specifies the conditions under which
+    the answer will not be taken from the cache. If one string variable is not empty
+    and not equal to "0", the answer is not taken from the cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_min_uses` | This directive determines the number of accesses
+    before a page is cached. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_use_stale` | This directive tells Nginx when to serve a stale
+    item from the proxy cache. For example, when an Application error HTTP Code 500
+    occurs. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_methods` | This directive lets you choose what directives to
+    cache [GET, PUT, and so on]. |'
+  prefs: []
+  type: TYPE_TB
+- en: Using multiple backends for the reverse proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As traffic increases, the need to scale the site up becomes a necessity. With
+    a transparent reverse proxy like Nginx in front, most users never even see the
+    scaling affecting their interactions with the site. Usually, for smaller sites
+    one backend process is sufficient to handle the oncoming traffic. As the site
+    popularity increases, the first solution is to increase the number of backend
+    processes and let Nginx multiplex the client requests. This recipe takes a look
+    at how to add new backend processes to Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using multiple backends for the reverse proxy](img/4965OS_07_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The configuration below adds three upstream servers to which client requests
+    will be sent for processing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this configuration we set up an upstream, which is nothing but a set of servers
+    with some proxy parameters. For the server `http://backend1.example1.com`, we
+    have set a weight of five, which means that the majority of the requests will
+    be directed to that server. This can be useful in cases where there are some powerful
+    servers and some weaker ones. In the next server `http://backend2.example1.com`,
+    we have set the parameters such that three failed requests over a time period
+    of 30 seconds will result in the server being considered inoperative. The last
+    one is a plain vanilla setup, where one error in a ten second window will make
+    the server inoperative!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This displays the thought put in behind the design of Nginx. It seamlessly handles
+    servers which are problematic and puts them in the set of inoperative servers.
+    All requests to the server are sent in a round robin fashion. We will discuss
+    modules in future recipes that ensure that the requests are sent using other queue
+    mechanisms based on server load and other upstream server performance metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serving CGI files using thttpd and Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At some point in time in Internet history, most applications were CGI based.
+    Nginx does not serve CGI scripts, so the workaround is to use a really efficient
+    and simple HTTP server called thttpd and to get Nginx to act as a proxy to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The best way to go about it is to set up thttpd from source code, apply the
+    IP forwarding patch, and then to use the configuration below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download thttpd and apply the patch.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Save the code below in a file called `thttpd.patch:`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Apply the patch and install thttpd:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Use the following configuration for `/etc/thttpd.conf:`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Set up Nginx as a proxy for the port 8000.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The setup above allows you to enjoy the best of CGI and Nginx. You initially
+    set up thttpd, which will run on port 8000 of the server, which will effectively
+    be the core CGI web server and you can run Nginx as the proxy for the user requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All you need to do is place the perl scripts in the `/var/www` directory and
+    you will be running CGI using Nginx and thttpd.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You can also use the same technique as above to run CGI scripts using other
+    CGI-capable servers like Apache and lightHTTPD as well. You will be required to
+    change the operating ports of those servers to 8000 and the same configuration
+    like above will work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up load balancing with reverse proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In most reverse proxy systems one wants to have some notion of load balancing
+    in the system. In one of the preceding recipes, we have seen how to set up and
+    run multiple upstream servers in a round robin mechanism of sending over the requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this recipe, we will install a load balancing module which will allow us
+    to set up a fair load balancing with the upstream servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up load balancing with reverse proxy](img/4965OS_07_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this particular recipe we will install a third-party module called "upstream
+    fair module".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to go an download the module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Compile Nginx with the new module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: You will need to add the following configuration to your `nginx.conf:`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is a fairly straightforward setup once you understand the basics of setting
+    up multiple upstream servers. In this particular "fair" mode, which is `no_rr`,
+    the server will send the request to the first backend whenever it is idle. The
+    goal of this module is to not send requests to already busy backends as it keeps
+    information of how many requests a current backend is already processing. This
+    is a much better model than the default round robin that is implemented in the
+    default upstream directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You can choose to run this load balancer module in a few other modes, as described
+    below, based on your needs! This is a very simple way of ensuring that none of
+    the backend experiences load unevenly as compared to the rest:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Mode | Meaning |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| default (that is fair;) | The default mode is a simple WLC-RR (weighted least-connection
+    round-robin) algorithm with a caveat that the weighted part isn''t actually too
+    fair under low load. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `no_rr` | This means that whenever the first backend is idle, it''s going
+    to get the next request. If it''s busy, the request will go to the second backend
+    unless it''s busy too, and so on. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `weight_mode=idle no_rr` | This mode redefines the meaning of "idle". It
+    now means "less than weight concurrent requests". So you can easily benchmark
+    your backends and determine that **X** concurrent requests are the maximum for
+    you. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `weight_mode=peak` | This means that Nginx will never send more than weight
+    requests to any single backend. If all backends are full, you will start receiving
+    502 errors. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Here is an example of a peak weight mode setup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Splitting requests based on various conditions using split-clients
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe will take a look at how we can potentially separate client requests
+    based on various conditions that can arise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will also understand how we can potentially set up a simple page for A-B
+    testing using this module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Splitting requests based on various conditions using split-clients](img/4965OS_07_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This module is fairly simple to use and comes inbuilt with Nginx. All you need
+    to do is to insert the following configuration in your `nginx.conf:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This particular configuration sets up a system which is based upon the remote
+    client address, assigns the values `.one, .two`, or "" to a variable `$variant`.
+    Based upon the variable value, a different page is picked up from the file location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following table shows the various probabilities and actions from the above
+    configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Variable value | Probability | Page served |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `.one` | 50% | `/var/www/example1.com/index.one.html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `.two` | 50% | `/var/www/example1.com/index.two.html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `""` | 0% | `/var/www/example1.com/index.html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '![How it works...](img/4965OS_07_07.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The preceding pie chart clearly displays the split across the two pages. Utilizing
+    this approach, we are able to test out interactions with the page changes that
+    you have made. This forms the basis of usability testing.
+  prefs: []
+  type: TYPE_NORMAL

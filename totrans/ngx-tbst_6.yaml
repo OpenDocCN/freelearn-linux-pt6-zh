@@ -1,0 +1,892 @@
+- en: Chapter 6. Monitoring Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After reading this chapter you will be able to set up proper monitoring for
+    your Nginx installation using the features freely available as part of base Nginx
+    distribution and several of the more popular monitoring and alerting systems available
+    on the market.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will also get acquainted with an advanced monitoring solution that is included
+    in the Nginx Plus subscription package, which the makers of Nginx sell as a commercial
+    service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Knowing what is happening to your web server is the first step towards fixing
+    and preventing any problems. Setting up monitoring and alerting is one of the
+    essential steps in any production deployment, and Nginx web servers are not the
+    exception here. Experienced web administrators will never feel calm enough until
+    they have real-time insight into the performance and load indicators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several sources of data for your monitoring system provided by Nginx.
+    First, there are logs, which you may configure up to your preferences. There is
+    also a number of statistics interfaces available for Nginx that you may enable
+    and connect to various industrial monitoring systems, both free and commercial.
+    The logging subsystem was described in the [Chapter 2](ch02.html "Chapter 2. Searching
+    for Problems in Log Files"), *Searching for Problems in Log Files*, which can
+    be referred to for additional information. One particular tool that uses logs
+    to enable online monitoring and debugging should be mentioned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using ngxtop
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When the first version of the famous Unix utility top(1) was conceived in 1984,
+    imitating an old VMS command that did a similar thing, the author was unlikely
+    to imagine that he actually created a whole class of online system administration
+    tools suited for both routine and emergency situations. Since then, top has become
+    an essential program, and many other utilities have been born with the same principle
+    in mind—produce a dynamic interactive *top N* list of items sorted by a particular
+    criteria. There are `htop`, `iotop`, `mytop`, `pg_top`, `ntop`, `iftop`, and many
+    others. The Nginx ecosystem has its own top, which is named `ngxtop` and is hosted
+    on [https://github.com/lebinh/ngxtop](https://github.com/lebinh/ngxtop).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The recommended way to install ngxtop is using the `pip` package manager for
+    Python packages. Your distribution may or may not have `pip` installed by default,
+    so you might also need to install `pip` first. On Debian-based Linux distributions,
+    you will usually be all set up with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'On a FreeBSD box, you need to install the port `devel/py-pip` with these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When `pip` is available, you can install the actual `ngxtop` with it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can run `ngxtop` right away, and due to some heuristics, it will correctly
+    locate your main Nginx log all by itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is how the `ngxtop` default output looks like on a simple and rather idle
+    website access log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using ngxtop](img/B04329_06_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: There are two tables in the output. The first one shows the summary line. The
+    columns are pretty obvious. The ones that must catch your attention immediately
+    are the rightmost two (titled 4xx and 5xx), which contain the counters for the
+    HTTP requests that led to errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second table is more interesting because it has all the incoming requests
+    classified by the request path. You may immediately see which paths generate errors,
+    for example. In the earlier example, you will note that the website lacks the
+    `robots.txt` file and also the special high resolution icons, which were first
+    used by the iOS. The counts in the lower table do not add up exactly to the respective
+    counts in the top table because the least happening request paths are not included
+    here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ngxtop has several powerful command-line options, which make it one of the best
+    tools to analyze a log from a misbehaving website. For example, in [Chapter 2](ch02.html
+    "Chapter 2. Searching for Problems in Log Files"), *Searching for Problems in
+    Log Files*, we described how to create custom log formats extending the information
+    beyond what a common access logs offer. ngxtop is able to accept a log format
+    definition and even parse it from the `nginx.conf` file itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The command-line switch for the custom log format is `-f`. The whole command
+    will look just like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Getting statistics from http_stub_status
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx base distribution contains a simple module that provides access to several
+    rather basic but useful counters inside Nginx that are very important to monitor
+    on a regular basis. The module is named `ngx_http_stub_status`, and we will describe
+    how to use it in monitoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This module is not compiled by default. To check if your Nginx distribution
+    is compiled with the `stub_status` module, you can use this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you see `1`, then this module is compiled and linked to your Nginx binary.
+    Otherwise, you need to compile it using `--with-http_stub_status_module` parameter
+    to `configure` script that is invoked during Nginx compilation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once you have this module available, you can use its directives (actually,
+    there is only one) in `nginx.conf`. This is an example of `stub-status` sharing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This module belongs to the family of the so-called content-generating modules,
+    which are able to directly process incoming HTTP requests and generate responses.
+    The other main family of modules that can provide HTTP responses to clients are
+    the upstream modules, which are more complex content generators consulting external
+    resources for the actual data. While we spent a significant amount of time explaining
+    upstreams in previous chapters, content generators were not given so much attention
+    due to their relative simplicity. Some other interesting content-generating modules
+    that are included in Nginx distribution are `ngx_http_empty_gif` and `ngx_http_autoindex`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The earlier configuration will create a primitive web page as a response to
+    the GET request with the URI of `/stub-status`. You can use any other URI as well.
+    The page will contain several counters. Let''s see an example and learn what those
+    numbers mean. A fresh web server after a restart will generate this page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Getting statistics from http_stub_status](img/B04329_06_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This is not even a web page per se, but just a plain text HTTP response clearly
+    intended to be processed by scripts and not by people:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s dive deeper into the values that you see in this output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Parameter name | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Active connections | This is the number of all client connections that are
+    being processed right now. This counter is bumped on each successful `accept()`
+    and decreased after each `close()`. The number will also be a sum of reading +
+    writing + waiting. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Server accepts | The global ever-increasing counter of all connections that
+    were `accept()-ed`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Handled | The counter of all handled connections. Most of the time, this
+    number is the same as the previous one, but some of the connections are closed
+    right after being accepted and they are not counted as handled. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Requests | This is the global counter of all HTTP requests received by this
+    Nginx instance. It may be smaller than the handled counter due to "keep-alive"
+    connections that may receive many requests before closing. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Reading: | This is a snapshot number of all connections that are currently
+    in the process of reading HTTP request headers. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Writing: | This is the number of connections that are in one of the states
+    after the reading of the headers of the request. It may be a little confusing,
+    but connections that are reading the body of the request or communicating with
+    one of the upstreams are counted against this number. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Waiting: | This is the counter of all "keep-alive" connections that are waiting
+    for the next request from the same connected client. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Most of these counters are also available as Nginx variables and can be used
+    in the `log_format` configuration. The module exports these variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$connections_active`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$connections_reading`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$connections_writing`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$connections_waiting`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The global counts of connections and requests can be restored from the logs
+    without any additional variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only directive from this module is `stub_status`, and its usage pattern
+    is obvious from the earlier example. You can specify it in one of the scopes;
+    most probably, you will choose a location. Older versions of Nginx may require
+    you to specify a parameter like `ok` or `1` for this directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the simplest status content generator may only contain one line with this
+    directive, it is highly recommended to make some additions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the working practical example of `stub_status` configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `access_log off` directive will switch off logging for this location. You
+    may want to comment out it while you debug but in the end only your monitoring
+    system will make requests to this path from predefined IP addresses and at predefined
+    intervals. The logging of this regular GET request-response pair will not be very
+    useful while littering the logs with very redundant information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third and the fourth lines are about access control. While `stub_status`
+    does not share any particularly confidential information, it may still be valuable
+    to either competitors or malicious actors who plan to attack your infrastructure.
+    A golden rule of not sharing anything by default works here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To fully understand how we could use the data, let''s write a simple manual
+    alerting script using cron. As an example, we will specify the task as follows:
+    once a minute check the requests rate and alert the administrator if the rate
+    per minute exceeds a certain predefined threshold.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code for the check is given later. It is a simple Perl script that should
+    be called from a crontab with a time specification of `*/1 * * * *`, which means
+    running once every minute. It uses the `PushBullet` service to send alerts. `PushBullet`
+    allows mobile apps and browser extensions to receive those notifications and has
+    a simple HTTP API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The script parses the output of the `ngx_http_stub_status` module with a simple
+    regular expression and compares the global requests counter with the previous
+    value, which it saves in a file. If the increase in the counter divided by the
+    time passed exceeds a constant, it sends an alert. This is the model employed
+    by all monitoring and alerting systems out there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step for us is using the data from this module as a sensor in several
+    monitoring systems that are available on the market. Most of the systems allow
+    comprehensive graphs of all available counters and also custom alerts on events
+    like a value exceeding a threshold of some kind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Monitoring system | Nginx support plugin |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Nagios | [https://exchange.nagios.org/directory/Plugins/Web-Servers/nginx](https://exchange.nagios.org/directory/Plugins/Web-Servers/nginx)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Zabbix | [https://github.com/zbal/zabbix/blob/master/scripts/zabbix_nginx_check.sh](https://github.com/zbal/zabbix/blob/master/scripts/zabbix_nginx_check.sh)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ZTC | [https://bitbucket.org/rvs/ztc/wiki/Home](https://bitbucket.org/rvs/ztc/wiki/Home)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Munin | [https://github.com/munin-monitoring/contrib/tree/master/plugins/nginx](https://github.com/munin-monitoring/contrib/tree/master/plugins/nginx)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Cacti | [http://forums.cacti.net/download/file.php?id=12676](http://forums.cacti.net/download/file.php?id=12676)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Collectd | [https://collectd.org/wiki/index.php/Plugin:nginx](https://collectd.org/wiki/index.php/Plugin:nginx)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OpenNMS | [http://www.opennms.org/wiki/Monitoring_Nginx_with_the_HTTP_collector](http://www.opennms.org/wiki/Monitoring_Nginx_with_the_HTTP_collector)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Many hosted monitoring solutions, such as DataDog, Scout, New Relic or ServerDensity,
+    support collecting data from the Nginx `http_stub_status` module as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is how ServerDensity displays data received from Nginx:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Getting statistics from http_stub_status](img/B04329_06_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The earlier-mentioned graph will only contain two entities: current client
+    connections and requests per second. You notice that those two come very close
+    to each other, which means that there were no or little keep-alive connections
+    that managed to pass over more than one request.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Monitoring Nginx with Munin
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Munin** is a free software networking and infrastructure monitoring system.
+    We chose it because the configuration is simple and allows us to demonstrate the
+    principles. You will certainly prefer to use the same monitoring solution that
+    you use for your other needs. If you do not currently use anything that is not
+    very probable, Munin is as good an option as any other to start with.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Munin was developed with easy extensibility via plugins in mind. It uses the
+    famous RRDTool time series database that was first developed as part of MRTG but
+    then found its way to many other free and open source software as the time series
+    database and time-based graphs engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Munin is not as easy as we wish it were but the process is thoroughly
+    described in the online Munin guide [http://guide.munin-monitoring.org/en/latest/installation/index.html](http://guide.munin-monitoring.org/en/latest/installation/index.html).
+    There is also a book about Munin published by *Packt Publishing*, *Instant Munin
+    Plugin Starter*. It may be a little old but still contains enough relevant information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Munin is also one of the monitoring systems that has plugins to parse the output
+    from the Nginx `http_stub_status` module in its distribution. The plugins are
+    available right after Munin installation and are supported as part of the release
+    cycle of Munin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The architecture of many network monitoring systems is very similar to a classic
+    star topology system with a master that is responsible for drawing graphs, watching
+    for events, and issuing alerts based on data provided by agents, each of which
+    represent a host or a service. Munin agents are named nodes and installing Munin
+    usually installs an instance of the Munin node on the same host as well. That
+    sounds absolutely okay as the master host of a monitoring system should definitely
+    be monitored itself. It is the node component that has integration with different
+    software to get metrics that should be monitored. Munin plugins for Nginx are
+    executable scripts that are run as part of the Munin node operation. The node
+    process reports the data from those (and all the other) plugins to the Munin master,
+    which has the interface for the administrators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After successful installation of Munin, you will find all standard plugins
+    in `/usr/share/munin/plugins` or some other directory depending on your distribution.
+    There are two standard Nginx plugins in Munin 2.0.25—`nginx_requests` and `nginx_status`.
+    Both of those plugins parse the output of the `http_stub_status` Nginx module
+    and thus require the `url` environment variable to point to the `stub_status`
+    output URL with a sane default of `http://localhost/nginx_status`. To switch the
+    plugins on, you need to link them into `/etc/munin` with a command such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: You may also examine the `contrib` Nginx plugins available at [https://github.com/munin-monitoring/contrib/tree/master/plugins/nginx](https://github.com/munin-monitoring/contrib/tree/master/plugins/nginx).
+    These are not installed by default, but are still part of the Munin source tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After restarting the Munin node running on the host, the metrics reported by
+    Nginx are immediately available for this particular host. To check whether the
+    plugins can successfully access Nginx and parse its `stub_status`, you can use
+    these convenient commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Given that your Munin master and nodes are running, you will start to get updated
+    graphs for Nginx metrics at once. A clean Munin without any past data will show
+    something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Monitoring Nginx with Munin](img/B04329_06_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adding more hosts to the Munin master is completely transparent, provided that
+    those hosts run the node with Nginx plugins. All of the reported metrics will
+    show up instantly and will get drawn and checked against limits, which also brings
+    us to the next topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring alerts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although monitoring itself is a very broad term and as a job may include a lot
+    of activities, there are basically two sides to what a web service monitoring
+    constitutes. Graphing values from sensors is important as a tool to make strategic
+    decisions based on visually apparent trends and also a post factum investigation
+    and sometimes even as a forensics tool. The other side is alerting, which allows
+    administrators to react to incidents as quickly as possible, preventing business
+    consequences. All major monitoring solutions include alerting subsystems and even
+    the toy monitoring script that we built earlier in this chapter is basically a
+    simple alerter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `http_stub_status` module provides scarce information, but it can still
+    be used to quickly react to incidents. These are some good values that can be
+    used to detect unusual conditions requiring immediate attention:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The incoming request rate is a global indicator of the load to your website.
+    Sudden spikes indicate a surge in popularity, which might be dangerous or a **Denial
+    of Service** (**DoS**) attack, which is always dangerous. A sudden dip may mean
+    a failure, even a total meltdown.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A high number of dropped connections may indicate that the configuration is
+    not up to the load. Nginx does not drop connections unless it has to due to either
+    resource shortage or, which happens more often, meeting resource limits.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The number of active (including waiting) connections may sometimes mean an attempt
+    to drain your connection limits by a malicious actor. This is exactly what Nginx
+    usually manages to defend itself against without any external help, but it is
+    still important to monitor and investigate these events.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You can use any number of complex alert conditions using these three and also
+    invent more metrics relevant to your particular business. The method to create
+    such alerts is specific to the monitoring system you decided to choose. These
+    are the example alerts we use inside ServerDensity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Configuring alerts](img/B04329_06_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Munin uses a simple system of two-level thresholds attached to plugins as a
+    way to generate alerts. There are "warning" and "critical" thresholds, and once
+    the actual value reaches one of the thresholds, Munin will generate an alert and
+    send a notification. The system allows default thresholds for all hosts, which
+    may be practical.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The more popular way is to set up thresholds for all hosts individually. It
+    is done right in the Munin master configuration file, which is called `munin.conf`.
+    This file contains a list of all hosts that are under monitoring by this very
+    master. Adding a threshold for a metric available on a host is as simple as this:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The values are specified as ranges; that is, in the earlier case, the warning
+    would be generated only when the `nginx.status.total` metrics (which is the total
+    number of current connections) will leave the range from 0 to 10.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Munin is able to send notifications about the alerts via e-mail, via syslog,
+    via piping to external programs, or via Nagios, which is another popular monitoring
+    system with a more sophisticated alerting subsystem. Configuration of the notification
+    settings is easy enough. See the online Munin guide at [http://guide.munin-monitoring.org/en/latest/tutorial/alert.html](http://guide.munin-monitoring.org/en/latest/tutorial/alert.html).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: All of the interesting metrics may be measured right on the front between Nginx
+    and its clients and also on each external link that Nginx has due to upstream
+    configuration. Unfortunately, the open source Nginx does not contain any means
+    to expose those metrics from the upstream links to monitor and set up alerts on.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Getting more status data from Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will explore the ways to get more information about an Nginx
+    instance so that the monitoring can be more extensive and cover more details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2014, Nginx creators launched a commercial umbrella company for the open
+    source Nginx software, which started to explore the business models around the
+    server. One of the most anticipated features was comprehensive monitoring and
+    the developers delivered on that front.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The commercial product of Nginx company is named Nginx Plus. It is a subscription
+    service marketed to medium and large businesses already dependent on Nginx for
+    their infrastructure. Nginx Plus pricing is based on yearly licenses per single
+    instance and is rather aggressive, which also means that once you need these features,
+    you already have several instances and need several licenses. For complete and
+    up-to-date information, refer to the Nginx Plus web page at [https://www.nginx.com/products/](https://www.nginx.com/products/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most important part of the subscription is the availability of the
+    new status module, which is named `ngx_http_status`, and is a kind of elder brother
+    for the open source `ngx_http_stub_status` that most of the monitoring solutions
+    we described depend on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Along with programmatic access to the status data in machine-readable form,
+    Nginx Plus provides a beautiful and expressive dashboard that you can use without
+    any integration into your enterprise monitoring. The [https://www.nginx.com](https://www.nginx.com)
+    team kindly provides a demonstration of what the dashboard can do at [http://demo.nginx.com/status.html](http://demo.nginx.com/status.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Getting more status data from Nginx](img/B04329_06_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The configuration for the `ngx_http_status` module looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, it is an almost exact copy of what we did earlier for `stub_status`,
+    but the main directive is now more aptly named `status`. This location will accept
+    a number of different requests. It provides a hierarchy of information about different
+    objects, such as upstreams and cache zones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The built-in dashboard is actually a one-page HTML application that retrieves
+    all the information it needs from `/status`. The static HTML will be installed
+    with the Nginx Plus distribution. On Debian-based systems, you can find it at
+    `/usr/share/nginx/html/status.html`. To add the dashboard to your Nginx Plus instance,
+    see this configuration example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Having your own Nginx dashboard is never enough because if you invested into
+    Nginx Plus subscription you probably have some business-critical operations and
+    you need automatic monitoring. At the same time, the dashboard is the perfect
+    way to explore the information that is exported by Nginx Plus. The `ngx_http_status`
+    module provides wealth of information in machine-readable format (JSON or JSONP)
+    to integrate with all the systems we mentioned earlier. And using the new metrics
+    available, you will be able to monitor more. Let''s dig deeper into what `ngx_http_status`
+    returns by default:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As you can see, the default output format for this module is JSON, which allows
+    much more complex data structures. The same data re-indented for readability looks
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'On the upper level of the return JSON object, we see these items:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `version` | This is the version of the format of these data. It is important
+    for parsers because some of the items only appeared starting from a specific version,
+    and you may require Nginx upgrade to get enough information for your parser. As
+    of December 2015, the last version of this is 6. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `nginx_version` | This is the version of Nginx software. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `address` | This is the IP address of the server generating the status report.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `generation` | This gets incremented by one each time you reload Nginx configuration.
+    So in a sense, this is the number of the current configuration generation. One
+    may wonder why the generation number is important. One of the reasons is that
+    it may not be practical to compare some indicators, for example, performance if
+    the generation and therefore the configuration has changed. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `load_timestamp` | The Unix epoch timestamp of the last configuration reload.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `timestamp` | Current UNIX timestamp. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pid` | The process identifier of the worker that processed this specific
+    status request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `processes` | This is an object with a single field (it may be extended in
+    future versions of the response structure), which is named `respawned`, and contains
+    the number of all child processes that we restarted after a failure. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `connections` | This is an important object containing the information that
+    we otherwise can obtain via the open source `ngx_http_stub_status` module. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `connections.accepted` | This value inside the `connections` object is the
+    total number of all accepted client connections. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `connections.dropped` | This is the total number of dropped connections.
+    Note that with `http_stub_status` module, we have to calculate this value ourselves.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `connections.active` | The number of currently active connections. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `connections.idle` | The number of connections that are idling. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl` | This is also an object with several values inside. Those are SSL
+    (actually, TLS) counters. SSL is an older version of the protocol for encrypted
+    connections. The proper name for the current protocol is TLS, but the old name
+    is still used by some conservative specialists. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl.handshakes` | The total number of TLS handshakes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl.handshakes_failed` | The total number of unsuccessful TLS handshakes.
+    This is a very interesting and important value that is not available via `http_stub_status`
+    while being rather critical to monitor. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl.session_reuses` | Each TLS handshake is an expensive operation, and
+    there is an optimization that reuses one of the previously established TLS sessions
+    to avoid the handshake altogether. A low number here means an opportunity to increase
+    performance with little investment. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `requests` | An object with two values. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `requests.total` | This is the same number that is printed last on the third
+    line of the `http_stub_status` output. The global counter for all client requests
+    received via all connections. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `requests.current` | The number of currently processed requests. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `upstreams` | If there is one important feature of Nginx Plus that you want
+    to name to justify the purchase, it should probably be the upstreams object in
+    the `http_status` output. It allows the metrics of the individual upstreams and
+    hosts inside upstreams to be monitored.The example host mentioned earlier does
+    not have any upstreams configured, and this is why the object is empty. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `caches` | This object contains the status of all configured caches. Most
+    of the cache configuration is done with the upstream directives. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_zones` | This object is a custom storage that you can fill with data
+    using the `status_zone` directive inside one of your server blocks. Status zones
+    are a new concept in Nginx Plus. They provide an additional level of flexibility
+    in collecting status data. You can find comprehensive documentation on this directive
+    at [http://nginx.org/en/docs/http/ngx_http_status_module.html#status_zone](http://nginx.org/en/docs/http/ngx_http_status_module.html#status_zone).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Each of the server zones contains a separate multilevel object with the status
+    information collected from all servers connected to the same status zone. That
+    object looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `processing` | The snapshot number of currently processed requests. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `requests` | The total counter of all requests. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `responses.total` | The number of responses sent to clients. Should be close
+    to the number of requests. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `1xx` | The number of responses with HTTP 1xx status codes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `2xx` | The number of responses with HTTP 2xx status codes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `3xx` | The number of responses with HTTP 3xx (usually redirects) status
+    codes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `4xx` | The number of responses with HTTP 4xx (usually indicating bad requests
+    that should be fixed on the client side) status codes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `5xx` | The number of responses with HTTP 5xx (meaning internal server errors)
+    status codes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `discarded` | The number of requests that did not generate responses. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `received` | Total bytes received from clients. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sent` | Total bytes sent to clients. |'
+  prefs: []
+  type: TYPE_TB
+- en: Using Nginx Plus alternatives
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Nginx Plus commercial subscription gives you more than just the `ngx_http_status`
+    module. If you do not need the other perks of the Plus version but crave more
+    metrics, you could explore some of the freely available alternatives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: nginx-module-vts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One way to get more information from inside Nginx is this open source module
+    published on GitHub at [https://github.com/vozlt/nginx-module-vts](https://github.com/vozlt/nginx-module-vts).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The author was clearly inspired by the official `ngx_http_status` features and
+    even used the same structures and dashboard client-side code (although the older
+    version). This may be actually a good thing because you can start integrating
+    `nginx-module-vts` and then transfer all the scripts with minimal modifications
+    to Nginx Plus once you are ready for the subscription. The documentation is wonderful,
+    and there are many examples. Some of the keys in the JSON objects that are returned
+    by this module differ from the official `ngx_http_status` keys, and because of
+    this, we would recommend abstracting the actual key names in your monitoring configuration
+    files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Luameter
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another alternative to the great official `ngx_http_status` is the Luameter
+    package, which is a collection of scripts in the Lua programming language that
+    integrates with Nginx using the `ngx_http_lua` module. The format of the data
+    collected and exported by Lua is also clearly inspired by the official and pricey
+    alternative, so you will be able to switch with little effort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea of the very useful `ngx_http_lua` module is to let Nginx administrators
+    hook snippets of custom Lua code into different phases of request processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Luameter is distributed on a pay-as-you-go model, so it is not free. The lowest
+    price is just 10 US dollars, so it is very cheap in comparison with what the commercial
+    arm of Nginx sells. Refer to [https://luameter.com/](https://luameter.com/) for
+    all the information about Luameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: nginx-lua-stats
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is another collection of scripts in Lua. It may be used by itself to collect
+    and export online statistics about the number of generated HTTP responses with
+    various HTTP status codes, but it is even more valuable as an example of using
+    Lua hooks to collect additional data and report it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code is published on GitHub at [https://github.com/yandex-sysmon/nginx-lua-stats](https://github.com/yandex-sysmon/nginx-lua-stats).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nginx-lua-stats` works its magic by setting up a hook on the logging phase,
+    which collects the data, and then setting up another hook on the content generation
+    phase for a particular location which is able to actually generate a full HTTP
+    response with the collected statistics.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the relevant part of the `nginx.conf` file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: The requests to the /stat location will return the collected data. The second
+    location block installs an additional log handler which is actually a counting
+    hook. The effect is that all requests for the documents under /html hierarchy
+    will invoke the collect_stats.lua script as part of the logging phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The upsteam_check module in tengine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the many advantages of open source development models is the possibility
+    of forks, which are separate versions of the main software with changes that are
+    not accepted by the original author. Sometimes, forks become very successful in
+    their own right and even supersede the original versions. One of the biggest Chinese
+    websites Taobao has its own Nginx fork, which is named tengine. There are a number
+    of big websites beside Taobao that prefer tengine to the original Nginx. Tengine
+    has some rather advanced features for upstream management and monitoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `upstream_check` module allows us to specify some custom health checks for
+    all the hosts in an upstream group. That is an interesting functionality by itself,
+    but it is the secondary feature that got the module in this chapter. The directive
+    `check_status` inside a location is a content generator such as the `status` and
+    `stub_status` of the official modules that we discussed at length in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive provides a report on the health of different hosts in an upstream
+    group in either human-readable HTML or machine-readable JSON or even CSV format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See the examples of configuration and output at [http://tengine.taobao.org/document_cn/http_upstream_check_cn.html](http://tengine.taobao.org/document_cn/http_upstream_check_cn.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The requests/sec patch by Catap
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is a patch for a very old Nginx version that adds one very interesting
+    metric to the `ngx_http_stub_status` output. The metric is the requests rate that
+    otherwise may be only approximately calculated using saved past state from the
+    main total requests counter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The patch is available at [http://catap.ru/patches/nginx/request_per_seconds.dpatch](http://catap.ru/patches/nginx/request_per_seconds.dpatch).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, it does not apply cleanly to modern Nginx source, so you will
+    have to do some manual conflict resolution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Ustats module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is also another piece of rather old code that may or may not be brought
+    up to date with modern Nginx. It is called Ustats, and it is officially put into
+    the "abandonware" category. Such projects may provide a starting point for some
+    in-house development efforts. See [https://github.com/0xc0dec/ustats](https://github.com/0xc0dec/ustats)
+    for the code and [https://code.google.com/p/ustats/](https://code.google.com/p/ustats/)
+    for some documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we delved deep into the details of different ways to monitor
+    a working Nginx instance. There is a very useful command-line log parsing utility
+    ngxtop as well as two real-time statistics interfaces, which are available in
+    open source and commercial versions of Nginx, respectively. We went over all the
+    data items that these interfaces expose and discussed the integration options
+    with many monitoring systems available on the market.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next chapter will conclude the whole book by giving future directions for
+    the reader. It may even seem to contain some career advice. There is also an appendix
+    providing a reference into all the different errors and warnings that you may
+    encounter in your work with Nginx.
+  prefs: []
+  type: TYPE_NORMAL

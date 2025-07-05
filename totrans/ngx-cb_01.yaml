@@ -1,0 +1,808 @@
+- en: Let&#x27;s Get Started
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following recipes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quick installation guide
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stopping/starting NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deploying a basic website
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Basic monitoring
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Real-time statistics
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX is a powerful software suite which has progressed well beyond a basic
+    web server package. Some of the additional features, such as the reverse proxy
+    and load balancing options, are well known.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Originally designed to tackle the C10k problem of handling 10,000 concurrent
+    connections, NGINX differentiated itself from Apache with an event-driven architecture.
+    While Apache 2.4 added event-driven processing also, there are a number of distinct
+    differences where NGINX still remains more flexible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This book describes how to use NGINX in a number of different scenarios and
+    is aimed at providing you with a working solution rather than being an in-depth
+    review of all NGINX features. If you're unfamiliar with NGINX, I highly recommend
+    that you read *Nginx HTTP Server - Third Edition*, by Clément Nedelcu, also published
+    by *Packt Publishing*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can also read the official documentation here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://nginx.org/en/docs/](http://nginx.org/en/docs/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quick installation guide
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Since the mainline release (currently 1.11.19) has all of the latest features,
+    you'll need to install it directly from the NGINX repositories. Thankfully, NGINX
+    is kind enough to provide **Red Hat Enterprise Linux** (**RHEL**), CentOS, **SUSE
+    Linux Enterprise Server** (**SLES**), Debian, and Ubuntu repositories, as well
+    as OS X and Windows binaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/f99866ea-a822-446f-9480-46feb342466a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Mainline versus stable
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(source: [https://nginx-com-uploads.s3.amazonaws.com/wp-content/uploads/2016/04/NGINX-1.11-mainline-1.10-stable.png](https://nginx-com-uploads.s3.amazonaws.com/wp-content/uploads/2016/04/NGINX-1.11-mainline-1.10-stable.png))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The stable and mainline branches don't necessarily reflect system stability,
+    but configuration and module integration stability. Unless you have third-party
+    integration which requires the stable release, we highly recommend the mainline
+    release.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Different Linux distributions have varying package managers, so we'll briefly
+    cover the installation procedures for the more commonly used ones. If the distribution
+    you use isn't covered here, refer to the official NGINX documentation for further
+    guidance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Packages – RHEL/CentOS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To install the latest NGINX release, add the NGINX mainline repository by adding
+    the following to `/etc/yum.repos.d/nginx.repo`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: You'll also need to replace `OS` with either `rhel` or `centos`, and replace
+    `OSRELEASE` with `5`, `6`, or `7`, for your correct release.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can check your version by running `cat /etc/redhat-release`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you have the repository installed, refresh the packages and then install
+    NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you have any issues, double check your repository for the correct syntax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For further information, refer to the official documentation at [http://nginx.org/en/linux_packages.html#mainline](http://nginx.org/en/linux_packages.html#mainline).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Packages – Debian/Ubuntu
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'First, download the NGINX signing key for the packages and install it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, using your preferred Linux editor, we can add the sources to `/etc/apt/sources.list.d/nginx.list`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Replace `codename` with the release name; for example, if you're using Debian
+    8, this will be set to `jessie`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For Ubuntu-based systems, you''ll need to use the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Replace `codename` with the release name; for example, if you're using Ubuntu
+    14.04, this will be set to `trusty`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After adding the new source, we can then update the `apt` database and install
+    NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Installation should now be complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling from scratch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although having the precompiled packages is nice, not all of the modules are
+    available out of the box. NGINX requires you to compile these into the NGINX installation
+    and it's not a simple module like Apache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can simply build from source without any of the packaging tools for CentOS
+    or Debian, however, it makes upgrades and compatibility more difficult. By default,
+    user compiled programs will default to `/usr/local`, which means that any documentation
+    which refers to the package defaults (`/usr/etc`) will be incorrect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My preference is to base the build on the official package sources, rather than
+    the plain source code. There aren't many extra steps involved, but it makes the
+    ongoing management much easier. If you're looking for vanilla build instructions
+    (without packages), these are easily available on the web.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These examples require you to have the mainline repositories already installed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Debian/Ubuntu
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'On Ubuntu/Debian, install the required build tools:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will install quite a few packages on your system, so if you're trying to
+    keep your production environment lean, then I'd recommend that you use a separate
+    build box to complete this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now install the build prerequisites for NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once you have the required build dependencies, we can now get a copy of the
+    source code. Again, rather than the plain TAR file, we''re going to get the packaged
+    variant so that we can easily build them. Here''s how we do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should now have a directory with the original TAR file, the Debian description,
+    and any Debian specific patches. The `apt-get source` command will automatically
+    extract and apply patches, as required, into a source directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To build without any changes, enter the directory and create the packages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Compiling the code may take a while, depending on how many processors your
+    workstation or server has. Once it has compiled, you should see two binaries in
+    the parent (`nginxbuild`) directory. The resulting files should be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nginx-dbg_1.9.10-1~jessie_amd64.deb`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`nginx_1.9.10-1~jessie_amd64.deb`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You can now install NGINX via the newly compiled package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: CentOS/RHEL
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Like the Debian build process, first we''ll need to install the package build
+    tools and the additional **Extra Packages For Enterprise Linux** (**EPEL**) repository:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, update `/etc/yum.repos.d/nginx.repo` and add the additional source repository:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, we'll be using a CentOS 7-based release. Refer to the *Packages
+    – RHEL/CentOS* section for how to modify it for other CentOS versions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With the updated repository, we then create a directory for the build, and
+    download the **Source RPM** (**SRPM**):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, download the required packages to complete the build:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once all of the development packages have been downloaded, we can now extract
+    the files from the SRPM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the name of your directory may vary based on the version of NGINX
+    you have installed. For instance, here it is nginx-1.9.10 as I have installed
+    NGINX 1.9.10.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You should see an output of the source files similar to this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/b8b6ae84-2a99-4531-9be3-44dc26249c14.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If we want to update the configuration and apply a patch or change one of the
+    defaults, then this can simply be done by editing the files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now rebuild these files from source using `mock`, which is a tool for
+    building packages. The advantage of `mock` is that all of the development dependencies
+    are contained within a *chrooted* environment, so it doesn't clutter your main
+    installation. This *chrooted* environment can be cleaned and removed without any
+    impact on the host system, which is great if you want repeatable builds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To build, we run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This generates the SRPMs, and they will be located in the `/var/lib/mock/epel-7-x86_64/result`
+    directory, along with the associated log files. Now that we have a rebuilt SRPM,
+    we can now compile it. Again, we''re going to use `mock` so that everything is
+    neatly contained:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Depending on your processing power, this may take five minutes or more to complete.
+    Once the build is complete, you should see the resultant binary RPM as well as
+    a debug RPM in the `/var/lib/mock/epel-7-x86_64` directory. Here''s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that we have the new binary file, we can install it via `yum`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's preferable to use `yum` over `rpm` to install the packages, as it can also
+    install any dependencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should now have a fully installed NGINX installation, which you compiled
+    from source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Regardless of your installation method, once you have NGINX up and running,
+    you should be able to browse to it via the IP address and/or **Fully Qualified
+    Domain Name** (**FQDN**) and see something very similar to what is shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/d78d0ea9-e41f-4c4f-a0cb-16b5dfb8f590.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Default NGINX page
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start, stop, and restart NGINX (if installed using official binaries), you
+    can use the standard Linux init systems. There's a very slight variance between
+    the different OS versions, so it's important to ensure you're using the correct
+    command for the correct variant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As Ubuntu switched to `systemd` as the default init system from 15.04, make
+    sure you double check the version you're using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here''s a quick reference table of the available commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Activity/OS** | **CentOS / RedHat 6** | **CentOS / RedHat 7** | **Ubuntu
+    14.04 / Debian 8** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Start NGINX** | `service nginx start` | `systemctl start nginx` | `service
+    nginx start` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Stop NGINX**  | `service nginx stop` | `systemctl stop nginx` | `service
+    nginx stop` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Restart NGINX** | `service nginx restart` | `systemctl restart nginx` |
+    `service nginx restart` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Reload NGINX** | `service nginx reload` | N/A | N/A |'
+  prefs: []
+  type: TYPE_TB
+- en: Some modifications to NGINX will require a full restart, whereas others only
+    need the configuration reloaded. In most instances where a configuration file
+    has been modified, a reload is all which is required. NGINX will fork a new set
+    of worker processes, allowing existing workers to complete and cleanly exit so
+    that there is no downtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We can check the NGINX configuration files after changes are made to ensure
+    the syntax is correct. To do this, we run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see the following if everything is correct:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you have any errors, double check your configuration for syntax errors on
+    the lines indicated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Editing the configuration for NGINX is paramount to the way it operates. To
+    integrate NGINX with your particular website or need, you'll need to edit a number
+    of areas within the configuration files. To get started, we'll go through the
+    basics here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By default, NGINX will have two main configuration files. The first is `/etc/nginx/nginx.conf`,
+    which contains the main server configuration. The second is `/etc/nginx/default.conf`,
+    which defines a basic site out of the box for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Warning: Don''t just increase values expecting a higher performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before you make any changes, be 100 percent sure that you understand the implications.
+    Out of the box, NGINX is a highly performant web server which already gives great
+    performance. The age-old programmer's saying that *premature optimization is the
+    root of all evil* continually rings true here. Simply increasing some figures
+    may lead to increased memory usage, decreased stability, and decreased performance.
+    In [Chapter 11](482173df-c31a-4082-abc0-6d6aafd4a5e6.xhtml), *Performance Tuning*,
+    we'll go through some of the more advanced areas to tweak, but make sure to hit
+    limits before attempting this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the default configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: The configuration files have two main components in them—**simple directives**
+    and **block directives**. Simple directives are one-line items which are simple
+    name and value, followed by a semicolon (`;`). A block directive has a set of
+    brackets and allows configuration items to be set within a specific context. This
+    makes the configuration files easier to follow, especially as they get more complex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here are a few of the key configuration items. Firstly, `user nginx` defines
+    the user in which NGINX will run as. This is important to note if you have a server-side
+    script which requires the ability to write files and a user will also require
+    permission to read the files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, `worker_processes` sets the number of worker processes that NGINX
+    will start. While a default of `1` doesn't sound very high, the event-driven nature
+    means that this certainly won't be a limitation initially. The optimal number
+    of processes depends on many factors, but an easy starting reference is to go
+    by the number of CPU cores your server has.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, `worker_connections` is the maximum amount of simultaneous connections
+    that a worker process can open. In the default configuration, this is set to `1024`
+    concurrent connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, the `include /etc/nginx/conf.d/*.conf;` line tells NGINX to load all
+    of the `.conf` files as if they were all part of the main `nginx.conf` file. This
+    allows you to separate the configuration for different sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enabling modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By default, not every module for NGINX has been compiled and is available. As
+    of version 1.9.11 (released in February 2016), NGINX added dynamic modules, similar
+    to the **Dynamic Shared Objects** (**DSO**) like the Apache HTTP server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/a438fdbd-c516-4694-8434-3c1b979cff19.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Previous NGINX build process
+  prefs: []
+  type: TYPE_NORMAL
+- en: Previous to this, you needed to recompile NGINX every time you updated a module,
+    so this is a big step forward. Being statically compiled into the main binary
+    also meant that each instance of NGINX loaded all the modules internally, regardless
+    of whether you needed them or not. This is why the mail modules were never compiled
+    in with the standard binaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/c789d472-84e0-46ef-b9a5-23ce5c320822.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: NGINX new dynamic modules
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: However, even though 1.9.11 added the dynamic modules, none of the standard
+    modules are dynamic by default. To make them into dynamic modules, you'll need
+    to update the configure options. For example, to make the mail module dynamic,
+    update `--with-mail` to `--with-mail=dynamic`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main `nginx.conf` configuration file will then need the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Official Link: [https://www.nginx.com/resources/wiki/extending/](https://www.nginx.com/resources/wiki/extending/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are a number of third-party modules for NGINX, some of which we'll be
+    using later in this book and can be found at [https://www.nginx.com/resources/wiki/modules/](https://www.nginx.com/resources/wiki/modules/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying a basic site
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you have a static website, this is very easy to deploy with NGINX. With systems
+    such as Jekyll (which powers the GitHub Pages), static site deployments can be
+    easy to generate and are far less hassle when it comes to security and exploits.
+    Quite simply, a static website can't be hacked and doesn't suffer from any performance
+    issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To serve static files, we're going to edit the default site configuration file
+    `/etc/nginx/conf.d/default.conf` and make a few small changes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Edit the file and add the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the folder doesn''t exist, create the `/var/www/vhosts` directory with the
+    following command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Copy your existing website files into the `/var/www/vhosts` directory.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Ensure the files and folders have permission to be read by the `nginx` user:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: From your web browser, browse the site and check that it's working.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let''s go through this setup file to understand each directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`listen 80;`: This defines the port which NGINX will listen to. Port `80` is
+    the default standard for HTTP, which is why it doesn''t need to be specified in
+    the browser URL.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`server_name server.yourname.com;`: This directive tells the server what hostname
+    to match from the request. This allows you to run name-based virtual servers from
+    one IP address, but with different domain names. You can also use different aliases
+    here; for example, you can have both `www.yourname.com` and `yourname.com`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`access_log /var/log/nginx/log/host.access.log combined;`: The access log records
+    all client access to the site, stores it in the specified file (the second parameter),
+    and uses the third parameter to define the format of the log (`combined` is the
+    default).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`location`: Lastly, we have a `location` block directive. This one is for a
+    root directive (represented by `/`), meaning everything in the URL path. There
+    are then two directives contained within this block—the first is the `root` directive.
+    This defines where NGINX should look for the files.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`index`: The second is the `index` directive. This lets NGINX know what name
+    of a file to try if it hasn''t been specified in the path. For example, if you
+    put `http://server.yourname.com/` into your browser, NGINX will try to load `http://server.yourname.com/index.html`
+    instead of displaying a 404 error.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Basic monitoring
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Monitoring both the performance and uptime of a web server is paramount when
+    you want to ensure consistent performance. There are a number of ways both these
+    aspects can be monitored, all with varying levels of complexity and information.
+    We'll focus on some of the simpler examples to give you a starting point to go
+    forward with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We can enable the basic NGINX `stub_status` page to give some rudimentary statistics
+    and service status. To enable, edit your site config and add the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: To prevent information leakage about your system, we have added the `allow`
+    command. This should be your IP address. This is followed by the `deny all` command
+    to prevent anyone else from loading the URL. We've also turned off access logs
+    for this URL to save space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After reloading your configuration (hint: `systemctl reload nginx` for systemd-based
+    OS), you can now load the new URL `/nginx_status` in your browser.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You should see something like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/389eb8bf-2017-414f-a153-af7950f9dbb8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let''s take apart the details line-by-line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Active connections` line lists the amount of connections to the server.
+    For a quiet server, this could be less than a dozen. For a busy server, expect
+    this to be in the hundreds.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `server accepts handled requests` line is little confusing, since it's represented
+    by three numbers (`81`, `81`, and `177` in this example). The first number represents
+    the amount of accepted connections. The second number represents the total number
+    of handled connections. Unless there's a resource limitation, the number of accepted
+    and handled connections should be the same. Next, we have the total number of
+    client requests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The last line represents the state of the active connections. `Reading` means
+    NGINX is reading the request headers, `Writing` means NGINX is writing data back
+    to the client, and `Waiting` means that the client is now idle but still has the
+    connection open (due to keep-alives).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Real-time statistics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When your web server is important to you, you'll want to see what's going on
+    in real-time. One great utility to do this is `ngxtop`. This program monitors
+    your real-time access log in to display useful metrics such as the number of requests
+    per second, HTTP statuses served, and pages/URLs served. This information can
+    be a great aid to determine what your top pages are and if there is an increased
+    rate of errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To install `ngxtop`, you''ll first need to install the Python package manager,
+    `pip`. On a Debian/Ubuntu-based system, you''ll need to run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For a Red Hat- / CentOS-based system, the EPEL repository is required first.
+    To install, run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once you have `pip` installed, you can now install `ngxtop`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will download the required files and install `ngxtop` for you. It's now
+    ready to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `ngxtop` utility can be simply called from the command line, and it will
+    attempt to read the log file location from the configuration. However, if you're
+    running virtual hosts, it may not read the access log location correctly. The
+    easiest way in this scenario is to manually specify the log location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will display a console-based view of what URLs are being accessed. Here''s
+    a basic example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/983ef72f-255e-4247-a9c4-e32e61874a82.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This will refresh every second, giving you near instantaneous information about
+    what URLs NGINX is serving, but that's not all. The `ngxtop` utility is quite
+    configurable and there are a number of different ways it can display information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can filter only the `404` pages with the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Only those URLs which had a `404` are now going to be displayed within `ngxtop`.
+    Here''s an example output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/0f7394a5-ab2a-4342-bc76-d88c3c4fc43e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: There are quite a number of other options easy to tailor to your scenario, especially
+    if you know what you're hunting for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To know more about `ngxtop`, refer to [https://github.com/lebinh/ngxtop](https://github.com/lebinh/ngxtop).
+  prefs: []
+  type: TYPE_NORMAL

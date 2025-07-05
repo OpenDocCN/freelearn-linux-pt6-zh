@@ -1,0 +1,774 @@
+- en: Chapter 1. Installing NGINX and Third-Party Modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX was first conceived to be an HTTP server. It was created to solve the
+    C10K problem, described by Daniel Kegel at [http://www.kegel.com/c10k.html](http://www.kegel.com/c10k.html),
+    of designing a web server to handle 10,000 simultaneous connections. NGINX is
+    able to do this through its event-based connection-handling mechanism, and will
+    use the OS-appropriate event mechanism in order to achieve this goal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we begin exploring how to configure NGINX, we will first install it.
+    This chapter details how to install NGINX itself and how to get the correct modules
+    installed and configured. NGINX is modular by design, and there is a rich community
+    of third-party module developers who have added functionality to the core NGINX
+    server by creating modules that can be compiled into the server and installed
+    along with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing NGINX using a package manager
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Installing NGINX from source
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring for web or mail service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling various modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finding and installing third-party modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Putting it all together
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Installing NGINX using a package manager
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Chances are that your operating system of choice already provides `nginx` as
+    a package. Installing it is as simple as using your package manager''s commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux (deb-based)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Linux (rpm-based)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: FreeBSD
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Note
+  prefs:
+  - PREF_IND
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `sudo` command is representative of what you need to execute on your operating
+    system to achieve superuser ('root') privileges. If your operating system supports
+    **RBAC** (**Role-based access control**), then you would use a different command,
+    such as 'pfexec' to achieve the same goal.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: These commands will install NGINX into standard locations, specific to your
+    operating system. This is the preferred installation method if you need to use
+    your operating system's packages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The NGINX core team also provides binaries of the stable version, available
+    from [http://nginx.org/en/download.html](http://nginx.org/en/download.html). Users
+    of distributions without an `nginx` package (such as CentOS), can use the following
+    instructions to install pre-tested, pre-compiled binaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CentOS
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Add the NGINX repository to your yum configuration by creating the following
+    file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then install `nginx` by executing the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Alternative instructions for installing an `nginx-release` package are available
+    at the preceding URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Debian
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Install the NGINX signing key by downloading it from [http://nginx.org/keys/nginx_signing.key](http://nginx.org/keys/nginx_signing.key)
+    and adding it to the apt keyring:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Append the `nginx.org` repository to the end of `/etc/apt/sources.list`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then install `nginx` by executing the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: If your operating system does not include `nginx` in its list of available packages,
+    the version there is too old for what you would like to do, the packages at [nginx.org](http://nginx.org)
+    don't serve your needs, or you would like to use the "development" release of
+    NGINX, then compiling NGINX from source is the only other option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing NGINX from source
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX downloads are available for two separate branches of NGINX code—stable
+    and development. The development branch is the one in which active development
+    is taking place. Here is where new features will be found and integrated before
+    finding their way into the stable branch. When a "development" version is released,
+    it has undergone the same QA and a similar set of functional tests as the stable
+    branch, so either branch may be used on production systems. The major difference
+    between the two branches lies in the support of third-party modules. The internal
+    API may change in the development release, whereas it stays the same on the stable
+    branch, so backward compatibility for third-party modules is only available for
+    stable releases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preparing a build environment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In order to compile NGINX from source, certain requirements need to be met on
+    your system. Besides a compiler, you also need the OpenSSL and **PCRE** (**Perl
+    Compatible Regular Expressions**) libraries and development headers, if you want
+    to enable the SSL support and be able to use the `rewrite` module, respectively.
+    Depending on your system, these requirements may already be met in the default
+    installation. If not, you will need to either locate the appropriate package and
+    install it, or download the source, unpack it, and point NGINX's configure script
+    to this location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX will attempt to build a dependent library statically if you include a
+    `–with-<library>=<path>` option to configure. You might want this if you would
+    like to ensure that NGINX is not dependent on any other part of the system and/or
+    would like to squeeze that extra bit of performance out of your `nginx` binary.
+    If you are using features of external libraries that are only available from a
+    certain version onwards (for example, the Next Protocol Negotiation TLS extension
+    available from OpenSSL Version 1.0.1), then you would have to specify the path
+    to the unpacked sources of that particular version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are other, optional, packages that you may provide support for if you
+    like. These include MD5 and SHA-1 hashing algorithm support, zlib compression,
+    and libatomic library support. The hashing algorithms are used in many places
+    in NGINX, for example, to compute the hash of a URI to determine a cache key.
+    The zlib compression library is used for delivering gzipped content. If the `atomic_ops`
+    library is available, NGINX will use its atomic memory update operations to implement
+    high-performance memory-locking code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling from source
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'NGINX may be downloaded from [http://nginx.org/en/download.html](http://nginx.org/en/download.html).
+    Here you will find the source of either branch in the `.tar.gz` or `.zip` format.
+    Unpack the archive into a temporary directory as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Configure it using the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And compile it as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: When compiling your own `nginx` binary, you are much more free to include only
+    what you need. Can you already say under which user NGINX should run? Do you want
+    to specify the default logfile locations so that they don't need to be explicitly
+    set in the configuration? The following table of configure options will help you
+    design your own binary. These are options that are valid for NGINX independent
+    of which module is activated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Common configure options'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Option | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--prefix=<path>` | The root of the installation. All other installation
+    paths are relative to this one. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--sbin-path=<path>` | The path to the `nginx` binary. If not specified,
+    this will be relative to the prefix. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--conf-path=<path>` | The path to where `nginx` will look for its configuration
+    file, if not specified on the command line. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--error-log-path=<path>` | This is where `nginx` will write its error logfile,
+    unless configured otherwise. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--pid-path=<path>` | This is where nginx will write the pid file of the
+    master process, usually under `/var/run`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--lock-path=<path>` | The path to the shared memory mutex lock file. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--user=<user>` | The user under which the worker processes should run. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--group=<group>` | The group under which the worker processes should run.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-file-aio`. | Enables asynchronous I/O for FreeBSD 4.3+ and Linux
+    2.6.22+ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-debug` | This option will enable debug logging. Not recommended for
+    production systems. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'You are also able to compile with optimizations that you may not get in a packaged
+    installation. This is where the following options can be especially useful:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Configure options for optimization'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Option | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-cc=<path>` | If you would like to set a C compiler that is not in
+    your default PATH. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-cpp=<path>` | This is the corresponding path to the C preprocessor.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-cc-opt=<options>` | Here is where the path to the necessary `include`
+    files may be indicated (`-I<path>`), as well as optimizations (`-O4`) and specifying
+    a 64-bit build. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-ld-opt=<options>` | The options to the linker include library path
+    (`-L<path>`) and run path (`-R<path>`). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-cpu-opt=<cpu>` | A build specific to a particular CPU family may
+    be specified with this option. |'
+  prefs: []
+  type: TYPE_TB
+- en: Configuring for web or mail service
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX is unique among high-performing web servers in that it was also designed
+    to be a mail proxy server. Depending on your goals in building NGINX, you can
+    configure it for web acceleration, a web server, a mail proxy, or all of them.
+    It may be beneficial to have one package that you can install on any server in
+    your infrastructure and be able to set NGINX's role through configuration, or
+    it may serve your needs better to have a slimmed-down binary to use in high-performance
+    environments where every extra KB counts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configure options for a mail proxy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following table specifies configuration options that are unique to the
+    mail module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Mail configure options'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Option | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-mail` | This will enable the `mail` module, which is not activated
+    by default. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-mail_ssl_module` | In order to proxy any kind of `mail` transaction
+    that uses SSL/TLS, this module will need to be activated. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-mail_pop3_module` | When enabling the `mail` module, the POP3
+    module may be disabled separately. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-mail_imap_module` | When enabling the `mail` module, the IMAP
+    module may be disabled separately. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-mail_smtp_module` | When enabling the `mail` module, the SMTP
+    module may be disabled separately. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http` | This option will completely disable the `http` module;
+    use it if you know you only want to compile in `mail` support. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'For a typical mail proxy, I would recommend configuring NGINX as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: SSL/TLS is needed nowadays on almost every mail installation and not having
+    it enabled on a mail proxy robs users of expected functionality. I've recommended
+    compiling OpenSSL statically so that there are no dependencies on the operating
+    system's OpenSSL library. The `BUILD_DIR` variable referenced in the preceding
+    command would of course have to be set beforehand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configure the options to specify paths
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following table shows what configuration options are available to the `http`
+    module, from activating the Perl module to specifying the location of temporary
+    directories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP configure options'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Option | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http-cache` | When using the upstream module, NGINX can be configured
+    to cache the contents locally. This option disables that cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_perl_module` | NGINX configuration can be extended by using
+    Perl code. This option activates that module. (Use of this module, however, degrades
+    performance.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-perl_modules_path=<path>` | This option specifies the path to additional
+    Perl modules needed for using the embedded Perl interpreter. It may also be specified
+    as a configuration option. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-perl=<path>` | The path to Perl (Version 5.6.1 and higher), if not
+    found on the default path. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--http-log-path=<path>` | The default path to the HTTP access log. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--http-client-body-temp-path=<path>` | When receiving the request from the
+    client, this is the directory used as a temporary location for the body of that
+    request. If the WebDAV module is enabled, it is recommended to set this path to
+    be on the same filesystem as the final destination. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--http-proxy-temp-path=<path>` | When proxying, this is the directory used
+    as a location to store temporary files. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--http-fastcgi-temp-path=<path>` | The location for FastCGI temporary files.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--http-uwsgi-temp-path=<path>` | The location for uWSGI temporary files.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--http-scgi-temp-path=<path>` | The location for SCGI temporary files. |'
+  prefs: []
+  type: TYPE_TB
+- en: Enabling various modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Besides the `http` and `mail` modules, there are a number of other modules included
+    in the NGINX distribution. These modules are not activated per default, but may
+    be enabled by setting the appropriate configuration option `--with-<module-name>_module`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP module configure options'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Option | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_ssl_module` | If you need to encrypt web traffic, you will need
+    this option to be able to use URLs beginning with `https`. (Requires the OpenSSL
+    library.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_realip_module` | If your NGINX will be behind a L7 load balancer
+    or other device that passes the client''s IP address in an HTTP header, you will
+    need to enable this module. For use in situations where multiple clients appear
+    to come from one IP address. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_addition_module` | This module works as an output filter, enabling
+    you to add content of a different location before or after that of the location
+    itself. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_xslt_module` | This module will handle transformations of XML
+    responses, based on one or more XSLT stylesheets. (Requires the libxml2 and libxslt
+    libraries.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_image_filter_module` | This module is able to act as a filter
+    on images, processing them before handing them over to the client. (Requires the
+    libgd library.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_geoip_module` | With this module, you are able to set various
+    variables to use in configuration blocks to make decisions based on the geographic
+    location found for a client''s IP address. (Requires the MaxMind GeoIP library
+    and the corresponding precompiled database files.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_sub_module` | This module implements a substitution filter,
+    replacing one string in the response with another. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_dav_module` | Enabling this module will activate the configuration
+    directives for using WebDAV. Note that this module should only be enabled on a
+    need-to-use basis, as it could present security problems if configured incorrectly.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_flv_module` | If you need to be able to stream Flash video files,
+    this module will provide for pseudo-streaming. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_mp4_module` | This module supports pseudo-streaming for H.264/AAC
+    files. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_gzip_static_module` | Use this module if you would like to support
+    sending pre-compressed versions of static files when the resource is called without
+    the `.gz` ending. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_gunzip_module` | This module will decompress pre-compressed
+    content for clients that do not support gzip encoding. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_random_index_module` | If you would like to serve an index file
+    chosen at random from the files in a directory, then this module needs to be enabled.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_secure_link_module` | This module provides a mechanism to hash
+    a link to a URL, so that only those with the proper password would be able to
+    calculate the link. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--with-http_stub_status_module` | Enabling this module will help you gather
+    statistics from NGINX itself. The output can be graphed using RRDtool or something
+    similar. |'
+  prefs: []
+  type: TYPE_TB
+- en: As you can see, these are all modules that build upon the `http` module, providing
+    extra functionality. Enabling the modules at compile time should not affect runtime
+    performance at all. Using the modules later in the configuration is where performance
+    may be impacted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I would therefore recommend the following `configure` options for a web accelerator/proxy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the following for a web server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The difference lies in where NGINX will be faced with clients. The web acceleration
+    role would take care of terminating SSL requests as well as dealing with proxied
+    clients and making decisions based on where a client came from. The web server
+    role would need only provide default file serving capability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would recommend always enabling the `stub_status` module, as it provides a
+    means of gathering metrics on how your NGINX is performing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disabling unused modules
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are also a number of `http` modules that are normally activated, but may
+    be disabled by setting the appropriate configuration option `--without-<module-name>_module`.
+    If you have no use for these modules in your configuration, you can safely disable
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Disable configure options'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Option | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_charset_module` | The charset module is responsible for setting
+    the `Content-Type` response header, as well as converting from one charset to
+    another. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_gzip_module` | The `gzip` module works as an output filter,
+    compressing content as it''s delivered to the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_ssi_module` | This module is a filter that processes Server
+    Side Includes. If the Perl module is enabled, an additional SSI command (`perl`)
+    is available. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_userid_module` | The `userid` module enables NGINX to set
+    cookies that can be used for client identification. The variables `$uid_set` and
+    `$uid_got` can then be logged for user tracking. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_access_module` | The `access` module controls access to a
+    location based on IP address. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_auth_basic_module` | This module limits access via HTTP Basic
+    Authentication. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_autoindex_module` | The `autoindex` module enables NGINX
+    to generate a directory listing for directories that have no index file. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_geo_module` | This module enables you to set up configuration
+    variables based on a client''s IP address and then take action on the value of
+    those variables. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_map_module` | The map module enables you to map one variable
+    to another. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_split_clients_module` | This module creates variables that
+    can be used for A/B testing. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_referer_module` | This module enables NGINX to block requests
+    based on the Referer HTTP header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_rewrite_module` | The `rewrite` module allows you to change
+    URIs based on various conditions. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_proxy_module` | The `proxy` module allows NGINX to pass requests
+    on to another server or group of servers. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_fastcgi_module` | The FastCGI module enables NGINX to pass
+    requests to a FastCGI server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_uwsgi_module` | This module enables NGINX to pass requests
+    to a uWSGI server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_scgi_module` | The SCGI module enables NGINX to pass requests
+    to an SCGI server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_memcached_module` | This module enables NGINX to interact
+    with a memcached server, placing responses to queries into a variable. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_limit_conn_module` | This module enables NGINX to set connection
+    limits based on certain keys, usually an IP address. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_limit_req_module` | With this module, NGINX can limit the
+    request rate per key. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_empty_gif_module` | The empty GIF module produces a 1 x 1-pixel
+    in-memory transparent GIF. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_browser_module` | The browser module allows for configurations
+    based on the `User-Agent` HTTP request header. Variables are set based on the
+    version found in this header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `--without-http_upstream_ip_hash_module` | This module defines a set of servers
+    that may be used in conjunction with the various proxy modules. |'
+  prefs: []
+  type: TYPE_TB
+- en: Finding and installing third-party modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As with many open source projects, there is an active developer community surrounding
+    NGINX. Thanks to NGINX's modular nature, this community is able to develop and
+    publish modules to provide additional functionality. They cover a wide range of
+    applications, so it pays to take a look at what is available before embarking
+    on developing your own module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The procedure for installing a third-party module is fairly straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Locate the module you would like to use (either search on [https://github.com](https://github.com)
+    or see [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules)).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Download the module.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Unpack the source.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Read the README file, if included. See if there are any dependencies that you
+    will need to install.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Configure NGINX to use the module as follows. `/configure –add-module=<path>`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This procedure will give you an `nginx` binary with the additional functionality
+    of that module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that many third-party modules are of an experimental nature. Test
+    using a module first before rolling it out on production systems. And remember
+    that the development releases of NGINX may have API changes that can cause problems
+    with third-party modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Special mention should be made here of the `ngx_lua` third-party module. The
+    `ngx_lua` module serves to enable Lua instead of Perl as a configuration time
+    embedded scripting language. The great advantage this module has over the `perl`
+    module is its non-blocking nature and tight integration with other third-party
+    modules. The installation instructions are fully described at [http://wiki.nginx.org/HttpLuaModule#Installation](http://wiki.nginx.org/HttpLuaModule#Installation).
+    We will be using this module as an example of installing a third-party module
+    in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting it all together
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that you have gotten a glimpse at what all the various configuration options
+    are for, you can design a binary that precisely fits your needs. The following
+    example specifies the prefix, user, group, certain paths, disables some modules,
+    enables some others, and includes a couple of third-party modules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Following a lot of output showing what `configure` was able to find on your
+    system, a summary is printed out as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, `configure` found all the items we were looking for, and acknowledged
+    our preferences for certain paths. Now, you can build your `nginx` and install
+    it, as mentioned at the beginning of the chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter has introduced you to the various modules available for NGINX.
+    By compiling your own binary, you are able to tailor what functionality your `nginx`
+    will provide. Building and installing software will not be new to you, so not
+    a lot of time was spent on creating a build environment or making sure that all
+    dependencies were present. An NGINX installation should be one that fits your
+    needs, so feel free to enable or disable modules as you see fit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next up we will present an overview of basic NGINX configuration, to get a feel
+    for how to configure NGINX in general.
+  prefs: []
+  type: TYPE_NORMAL

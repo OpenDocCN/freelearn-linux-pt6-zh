@@ -1,0 +1,1 @@
+["```\n# Check cache and use PHP as a fallback.\nlocation ~* \\.php$ {\ndefault_type text/html;\ncharset utf-8;\nif ($request_method = GET) {\nset $memcached_key $request_uri;\nmemcached_pass memcached;\nerror_page 404 502 = @nocache;\n}\nif ($request_method != GET) {\nfastcgi_pass backend;\n}\n}\nlocation @nocache {\nfastcgi_pass backend;\n}\n```"]

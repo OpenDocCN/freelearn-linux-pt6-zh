@@ -1,0 +1,855 @@
+- en: Chapter 3. Using the Mail Module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'NGINX was designed to not only serve web traffic, but also to provide a means
+    of proxying mail services. In this chapter you will learn how to configure NGINX
+    as a mail proxy for POP3, IMAP, and SMTP services. We will examine running NGINX
+    as a mail proxy server in the following sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic proxy service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Authentication service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Combining with memcached
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interpreting log files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Operating system limits
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Basic proxy service
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The NGINX mail proxy module was originally developed for FastMail. They had
+    a need to provide a single IMAP endpoint for their users, while hosting the actual
+    mail account on one of a number of upstream mail servers. Typical proxying programs
+    of the time used the classic Unix forking model, which meant that a new process
+    was forked for each connection. IMAP has very long-lived connections, which means
+    that these processes would stay around for a very long time. This would then lead
+    to very sluggish proxy servers, as they would have to manage these processes for
+    the lifetime of each connection. NGINX's event-based process model was a better
+    fit for this type of service. As a mail proxy, NGINX is able to direct traffic
+    to any number of mailbox servers where the actual mail account is hosted. This
+    provides the ability to communicate one endpoint to customers, while scaling the
+    number of mailbox servers up with the number of users. Both commercial and open-source
+    mail solutions, such as Atmail and Zimbra, are built around this model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following diagram will help visualize how this works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Basic proxy service](img/7447OS_03_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: An incoming request will be handled on a per-protocol basis. The mail proxy
+    module may be configured differently for POP3, IMAP, or SMTP. For each protocol,
+    NGINX queries an authentication service with the username and password. If the
+    authentication is successful, the connection is proxied to the mail server indicated
+    in the response from the authentication service. If the authentication was unsuccessful,
+    the client connection is terminated. The authentication service thus determines
+    which clients can use POP3 / IMAP / SMTP services and which mail server they may
+    use. As any number of mail servers may be handled in this way, NGINX can provide
+    a proxy service for all of them through one central gateway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A proxy acts on behalf of someone or something else. In this case, NGINX is
+    acting on behalf of the mail client, terminating the connection and opening a
+    new one to the upstream server. This means that there is no direct communication
+    between the mail client and the actual mailbox server or SMTP relay host.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If there are any mail rules based on information contained in the client connection,
+    these rules will not work, unless the mail software is able to support an extension,
+    such as XCLIENT for SMTP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an important point in designing an architecture that contains a proxy
+    server—the proxy host will need to be able to support more connections than a
+    typical upstream server. Not as much processing power or memory as a mailbox server
+    would be needed, but the number of persistent connections needs to be taken into
+    account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: POP3 service
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The **Post Office Protocol** is an Internet standard protocol used to retrieve
+    mail messages from a mailbox server. The current incarnation of the protocol is
+    Version 3, thus **POP3** . Mail clients will typically retrieve all new messages
+    on a mailbox server in one session, then close the connection. After closing,
+    the mailbox server will delete all messages that have been marked as retrieved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order for NGINX to act as a POP3 proxy, some basic directives need to be
+    configured:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This configuration snippet enables the mail module and configures it for POP3
+    service, querying an authentication service running on port 9000 on the same machine.
+    NGINX will listen on port 110 on all local IP addresses, providing a POP3 proxy
+    service. You will notice that we do not configure the actual mail servers here—it
+    is the job of the authentication service to tell NGINX which server a particular
+    client should be connected to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If your mail server only supports certain capabilities (or you only want to
+    advertise certain capabilities), NGINX is flexible enough to announce these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Capabilities are a way of advertising support for optional commands. For POP3,
+    the client can request the supported capabilities before or after authentication,
+    so it is important to configure these correctly in NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You may also specify which authentication methods are supported:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the APOP authentication method is supported, the authentication service needs
+    to provide NGINX with the user's password in clear text, so that it can generate
+    the MD5 digest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: IMAP service
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The **Internet Message Access Protocol** is also an Internet-standard protocol
+    used to retrieve mail messages from a mailbox server. It provides quite a bit
+    of extended functionality over the earlier POP protocol. Typical usage leaves
+    all messages on the server, so that multiple mail clients can access the same
+    mailbox. This also means that there may be many more, persistent connections to
+    an upstream mailbox server from clients using IMAP than those using POP3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To proxy IMAP connections, a configuration similar to the POP3 NGINX snippet
+    used before can be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we did not need to specify the `protocol`, as `imap` is the default
+    value. It is included here for clarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `imap_capabilities` and `imap_auth` directives function similarly to their
+    POP3 counterparts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SMTP service
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The **Simple Mail Transport Protocol** is the Internet-standard protocol for
+    transferring mail messages from one server to another or from a client to a server.
+    Although authentication was not at first conceived for this protocol, SMTP-AUTH
+    is supported as an extension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As you have seen, the logic of configuring the `mail` module is fairly straightforward.
+    This holds for SMTP proxying as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our proxy server will only advertise the `smtp_capabilities` that we set, otherwise
+    it will only list which authentication mechanisms it accepts, because the list
+    of extensions is sent to the client when it sends the `HELO`/`EHLO` command. This
+    may be useful when proxying to multiple SMTP servers, each having different capabilities.
+    You could configure NGINX to list only the capabilities that all of these servers
+    have in common. It is important to set these to only the extensions that the SMTP
+    server itself supports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to SMTP-AUTH being an extension to SMTP, and not necessarily supported in
+    every configuration, NGINX is capable of proxying an SMTP connection that does
+    no authentication whatsoever. In this case, only the `HELO`, `MAIL FROM`, and
+    `RCPT TO` parts of the protocol are available to the authentication service for
+    determining which upstream should be chosen for a given client connection. For
+    this setup, ensure that the `smtp_auth` directive is set to `none`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using SSL/TLS
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If your organization requires mail traffic to be encrypted, or if you yourself
+    want more security in your mail transfers, you can enable NGINX to use TLS to
+    provide POP3 over SSL, IMAP over SSL, or SMTP over SSL. To enable TLS support,
+    either set the `starttls` directive to `on` for STLS/STARTTLS support or set the
+    `ssl` directive to `on` for pure SSL/TLS support and configure the appropriate
+    `ssl_*` directives for your site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: See [https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html](https://www.fastmail.fm/help/technology_ssl_vs_tls_starttls.html)
+    for a description of the differences between a pure SSL/TLS connection and upgrading
+    a plain connection to an encrypted one with SSL/TLS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Using OpenSSL to generate an SSL certificate**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you have never generated an SSL certificate before, the following steps
+    will help you create one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Create a certificate request:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This should generate the following output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can get this Certificate Signing Request (mail.example.com.csr) signed
+    by a Certificate Authority such as Verisign or GoDaddy, or you can sign it yourself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You will see the following response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The signed certificate is shown in the following screenshot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please note, though, that a self-signed certificate will generate an error in
+    a client that connects to your server. If you are deploying this certificate on
+    a production server, make sure that you get it signed by a recognized authority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using SSL/TLS](img/7447_03_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Complete mail example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Mail services are often combined on one gateway. The following configuration
+    will enable NGINX to service POP3, IMAP, and SMTP traffic (as well as their encrypted
+    variants) from one authentication service, while offering clients the option to
+    use STLS/STARTTLS on unencrypted ports:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, we declared the name of this server at the top of the `mail`
+    context. This is because we want each of our mail services to be addressed as
+    `mail.example.com`. Even if the actual hostname of the machine on which NGINX
+    runs is different, and each mail server has its own hostname, we want this proxy
+    to be a single point of reference for our users. This hostname will in turn be
+    used wherever NGINX needs to present its own name, for example, in the initial
+    SMTP server greeting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `timeout` directive was used in the `smtp server` context in order to double
+    its default value because we knew this particular upstream SMTP relay host inserted
+    an artificial delay in order to dissuade spammers from trying to send mail via
+    this server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authentication service
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have mentioned the authentication service quite a few times in the previous
+    section, but what exactly is the authentication service and what does it do? When
+    a user makes a POP3, IMAP, or SMTP request to NGINX, authenticating the connection
+    is one of the first steps. NGINX does not perform this authentication itself,
+    but rather makes a query to an authentication service that will fulfill the request.
+    NGINX then uses the response from the authentication service to make the connection
+    to the upstream mail server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This authentication service may be written in any language. It need only conform
+    to the authentication protocol required by NGINX. The protocol is similar to HTTP,
+    so it will be fairly easy for us to write our own authentication service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'NGINX will send the following headers in its request to the authentication
+    service:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Host
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-Method
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-User
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-Pass
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-Salt
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-Protocol
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-Login-Attempt
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Client-IP
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Client-Host
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-SMTP-Helo
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-SMTP-From
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Auth-SMTP-To
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The meaning of each of these headers should be fairly self-explanatory, and
+    not each header will be present in every request. We will go over these as we
+    write our authentication service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We choose Ruby as the language for this authentication service implementation.
+    If you do not currently have Ruby installed, don't worry about doing so now. Ruby
+    as a language is very clear to read, so just try to follow along with the commented
+    code below. Adapting it to your environment and running it is outside the scope
+    of this book. This example will give you a good starting point in writing your
+    own authentication service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A good resource to help you get Ruby installed easily is located at [https://rvm.io](https://rvm.io).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us first examine the request part of the HTTP request/response dialogue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first collect the values we need from the headers NGINX sends:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**What are all these @''s about?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `@` symbol is used in Ruby to denote a class variable. We'll use them in
+    our example to make it easier to pass around variables. In the preceding snippet,
+    we are referencing the environment `(@env)` as passed into the Rack request. Besides
+    all the HTTP headers that we need, the environment contains additional information
+    relating to how the service is being run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we know how to handle each of the headers NGINX may send, we need
+    to do something with them and send NGINX a response. The following headers are
+    expected in the response from the authentication service:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Auth-Status`: In this header, anything but `OK` is an error'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Auth-Server`: This is the IP address to which the connection is proxied'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Auth-Port`: This is the port to which the connection is proxied'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Auth-User`: This is the user that will be used to authenticate with the mail
+    server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Auth-Pass`: The plaintext password used for APOP'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Auth-Wait`: How many seconds to wait before another authentication attempt
+    is made'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Auth-Error-Code`: An alternative error code to return to the client'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The three headers used most often are `Auth-Status`, `Auth-Server`, and `Auth-Port`.
+    The presence of these in a response is typically all that is needed for a successful
+    authentication session.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we will see in the following snippet, additional headers may be used, depending
+    on the situation. The response itself consists of simply emitting the relevant
+    headers with the appropriate values substituted in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first check if there have been too many tries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we return the appropriate headers and set with the values obtained from
+    our authentication mechanism:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the authentication check has failed, we need to tell NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not every header is required in the response, but as we can see, some are dependent
+    on the status of the authentication query and/or any error condition that may
+    exist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One interesting use of the `Auth-User` header is to return a different username
+    than the one given in the request. This can prove useful, for example, when migrating
+    from an older upstream mail server that accepted a username without the domain
+    to a newer upstream mail server that requires the username to have a domain. NGINX
+    will then use this username when connecting to the upstream server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The authentication database may take any form, from a flat text file, to an
+    LDAP directory, to a relational database. It does not have to necessarily be the
+    same store that your mail service uses to access this information, but should
+    be in sync with that store to prevent any errors due to stale data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our example authentication database is a simple hash for this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The mechanism used to verify a user is a simple hash lookup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Tying these three parts together, we have the complete authentication service:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: After the preceding setup and module initialization, we tell Rack which requests
+    we would like to have handled and define a `get` method to respond to requests
+    from NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next section is declared `private` so that only this class may use the
+    methods declared afterwards. The `auth` method is the workhorse of the authentication
+    service, checking the username and password for validity. The `method_missing`
+    method is there to handle invalid methods, responding with a `Not Found` error
+    message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This last section sets up the server to run and routes the `/auth` URI to the
+    proper handler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: This listing may be saved as a file, `nginx_mail_proxy_auth.ru`, and called
+    with a `-p <port>` parameter to tell it on which port it should run. For more
+    options and more information about the Rack web server interface, visit [http://rack.github.com](http://rack.github.com).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Combining with memcached
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Depending on the frequency of clients accessing the mail services on your proxy
+    and how many resources are available to the authentication service, you may want
+    to introduce a caching layer into the setup. To this end, we will integrate `memcached`
+    as an in-memory store for authentication information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX can look up a key in `memcached`, but only in the context of a location
+    in the `http` module. Therefore, we will have to implement our own caching layer
+    outside of NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Combining with memcached](img/7447OS_03_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: As the flowchart shows, we will first check whether or not this username/password
+    combination is already in the cache. If not, we will query our authentication
+    store for the information and place the key/value pair into the cache. If it is,
+    we can retrieve this information directly from the cache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Zimbra has created a `memcache` module for NGINX that takes care of this directly
+    within the context of NGINX. To date, though, this code has not been integrated
+    into the official NGINX sources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code will extend our original authentication service by implementing
+    a caching layer (admittedly, a little overkill for our implementation, but this
+    is to provide a basis for working with a networked authentication database):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In order to use this code, you will of course have to install and run `memcached`.
+    There should be a pre-built package for your operating system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux (deb-based)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Linux (rpm-based)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: FreeBSD
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Memcached is configured simply by passing parameters to the binary when running
+    it. There is no configuration file that is read directly, although your operating
+    system and/or packaging manager may provide a file that is parsed to make passing
+    these parameters easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most important parameters for `memcached` are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`-l`: This parameter specifies the address(es) on which `memcached` will listen
+    (default is all). It is important to note that for the greatest security, `memcached`
+    shouldn''t listen on an address that is reachable from the Internet because there
+    is no authentication.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`-m`: This parameter specifies the amount of RAM to use for the cache (in megabytes).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`-c`: This parameter specifies the maximum number of simultaneous connections
+    (default is 1024).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`-p`: This parameter specifies the port on which `memcached` will listen (default
+    is 11211).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting these to reasonable values will be all you need to do to get `memcached`
+    up and running.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, by substituting the `elsif auth(user, pass)` with `elsif get_cache_value(user,
+    pass)` in our `nginx_mail_proxy_auth.ru` service, you should have an authentication
+    service running with a caching layer, to help serve as many requests as quickly
+    as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interpreting log files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Log files provide some of the best clues as to what is going on when a system
+    doesn't act as expected. Depending on the verbosity level configured and whether
+    or not NGINX was compiled with debugging support (`--enable-debug`), the log files
+    will help you understand what is going on in a particular session.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each line in the error log corresponds to a particular log level, configured
+    using the `error_log` directive. The different levels are `debug`, `info`, `notice`,
+    `warn`, `error`, `crit`, `alert`, and `emerg`, in order of increasing severity.
+    Configuring a particular level will include messages for all of the more severe
+    levels above it. The default log level is `error`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the context of the `mail` module, we would typically want to configure a
+    log level of `info`, so that we can get as much information about a particular
+    session as possible without having to configure debug logging. Debug logging in
+    this case would be useful only for following function entry points, or seeing
+    what password was used for a particular connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Since mail is extremely dependent upon a correctly-functioning DNS, many errors
+    can be traced back to invalid DNS entries or expired cache information. If you
+    believe you may have a case that could be explained by a name resolution error,
+    you can get NGINX to tell you what IP address a particular hostname is resolved
+    to by configuring debug logging. Unfortunately, this requires a recompile if your
+    `nginx` binary was not initially compiled with debugging support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A typical proxy connection is logged as in the following example of a POP3 session.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, the client establishes a connection to the proxy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, once the client has completed a successful login, a statement listing
+    all relevant connection information is logged:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You will notice that the section before the double arrows `<=>` relates to
+    the client-to-proxy side of the connection, whereas the section after the double
+    arrows describes the proxy-to-upstream part of the connection. This information
+    is again repeated once the session is terminated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this way, we see which ports are in use on all sides of the connection, to
+    help debug any potential problems or to perhaps correlate the log entry with what
+    may appear in a firewall log.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other log entries at the `info` level pertain to timeouts or invalid commands/responses
+    sent by either the client or upstream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Entries at the `warn` log level are typically configuration errors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Many errors that are reported at the `error` log level are indicative of problems
+    with the authentication service. You will notice the text `while in http auth
+    state` in the following entries. This shows where in the connection state the
+    error has occurred:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the authentication query is not successfully answered for any reason, the
+    connection is terminated. NGINX doesn't know to which upstream the client should
+    be proxied, and thereby closes the connection with an `Internal server error`
+    with the protocol-specific response code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Depending on whether or not the username is present, the information will appear
+    in the log file. Here''s an entry from an authenticated SMTP connection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note the previous two entries are missing in the `login` information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An `alert` log level event will indicate that NGINX was not able to set a parameter
+    as expected, but will otherwise operate normally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Any log entry at the `emerg` level, however, will prevent NGINX from starting:
+    either the situation has to be corrected or the configuration must be changed.
+    If NGINX is already running, it will not restart any worker process until the
+    change has been made:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we need to define an authentication service using the `http_auth` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Operating system limits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You may run into a situation in which NGINX does not perform as you expect.
+    Either connections are being dropped or warning messages are printed in the log
+    file. This is when it is important to know what limits your operating system may
+    place on NGINX and how to tune them to get the best performance out of your server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The area in which a mail proxy is most likely to run into problems is a connection
+    limit. To understand what this means, you first have to know how NGINX handles
+    client connections. The NGINX master process starts a number of workers, each
+    of which runs as a separate process. Each process is able to handle a fixed number
+    of connections, set by the `worker_connections` directive. For each proxied connection,
+    NGINX opens a new connection to the mail server. Each of these connections requires
+    a file descriptor and per mail server IP/port combination, a new TCP port from
+    the ephemeral port range (see the following explanation).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Depending on your operating system, the maximum number of open file descriptors
+    is tunable in a resource file or by sending a signal to a resource-management
+    daemon. You can see what the current value is set to by entering the following
+    command at the prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: If by your calculations, this limit is too low, or you see a message in your
+    error log that `worker_connections exceed open file resource limit`, you'll know
+    that you need to increase this value. First tune the maximum number of open file
+    descriptors at the operating system level, either for just the user that NGINX
+    runs as or globally. Then, set the `worker_rlimit_nofile` directive to the new
+    value in the main context of the `nginx.conf` file. Sending `nginx` a configuration
+    reload signal (HUP) will then be enough to raise this limit without restarting
+    the main process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you observe a connection limit due to exhaustion of available TCP ports,
+    you will need to increase the ephemeral port range. This is the range of TCP ports
+    which your operating system maintains for outgoing connections. It can default
+    to as few as 5000, but is typically set to a range of 16384 ports. A good description
+    of how to increase this range for various operating systems is provided at [http://www.ncftp.com/ncftpd/doc/misc/ephemeral_ports.html](http://www.ncftp.com/ncftpd/doc/misc/ephemeral_ports.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we have seen how NGINX can be configured to proxy POP3, IMAP,
+    and SMTP connections. Each protocol may be configured separately, announcing support
+    for various capabilities in the upstream server. Encrypting mail traffic is possible
+    by using TLS and providing the server with an appropriate SSL certificate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The authentication service is fundamental to the functioning of the `mail` module,
+    as no proxying can be done without it. We have detailed an example of such an
+    authentication service, outlining the requirements of both what is expected in
+    the request and how the response should be formed. With this as a foundation,
+    you should be able to write an authentication service that fits your environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding how to interpret log files is one of the most useful skills a
+    system administrator can develop. NGINX gives fairly detailed log entries, although
+    some may be a bit cryptic. Knowing where to place the various entries within the
+    context of a single connection and seeing the state NGINX is in at that time is
+    helpful to deciphering the entry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX, like any other piece of software, runs within the context of an operating
+    system. It is therefore extremely useful to know how to increase any limits the
+    OS may place on NGINX. If it is not possible to increase the limits any further,
+    then an architectural solution must be found by either multiplying the number
+    of servers on which NGINX runs, or using some other technique to reduce the number
+    of connections a single instance must handle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we see how to configure NGINX to proxy HTTP connections.
+  prefs: []
+  type: TYPE_NORMAL

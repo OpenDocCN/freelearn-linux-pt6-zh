@@ -1,0 +1,1053 @@
+- en: Chapter 8. Troubleshooting Techniques
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We live in an imperfect world. Despite our best intentions and planning, sometimes
+    things don't turn out the way we had expected. We need to be able to step back
+    and take a look at what went wrong. When we cannot immediately see what is causing
+    the error, we need to be able to reach into a toolbox of techniques for helping
+    us discover the problem. This process of figuring out what went wrong and how
+    to fix it is what we call troubleshooting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will explore different techniques for troubleshooting NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Analyzing log files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring advanced logging
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Common configuration errors
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Operating system limits
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Performance problems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using the Stub Status module
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Analyzing log files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before going into a prolonged debugging session trying to track down the cause
+    of a problem, it is usually helpful to first look at the log files. They will
+    often provide the clue we need to track down the error and correct it. The messages
+    that appear in the `error_log` can sometimes be a bit cryptic, however, so we
+    will discuss the format of the log entries and then take a look at a few examples
+    to show you how to interpret what they mean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Error log file formats
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'NGINX uses a couple of different logging functions that produce the `error_log`
+    entries. The formats used with these functions take on the following patterns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<timestamp> [log-level] <master/worker pid>#0: message*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is an example of informational messages (log level `notice`). In this case,
+    an `nginx` binary has replaced a previously-running one, and was able to successfully
+    inherit the old binary's sockets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The error-level logger produces a message like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Depending on the error, you will see messages from the operating system (such
+    as in this case), or just from NGINX itself. In this case, we see the following
+    components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: timestamp (`2012/10/14 18:50:34`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: log level (`error`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: worker pid (`2632`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: connection number (`1`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: system call (`open`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: argument to the system call (`/opt/nginx/html/blog`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'error message resulting from the system call (`2: No such file or directory`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: which client made the request resulting in the error (`127.0.0.1`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: which server context was responsible for handling the request (`www.example.com`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the request itself (`GET /blog HTTP/1.0`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the `Host` header sent in the request (`www.example.com`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is an example of a critical-level log entry:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: A critical-level message means that NGINX cannot perform the requested action.
+    If it was not already running, this means that NGINX would not start.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an example of an emergency message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: An emergency message also means that NGINX could not do what was requested.
+    It also means that NGINX won't start, or if it was already running when asked
+    to read the configuration, it won't perform the requested change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If you are wondering why your configuration change is not taking effect, check
+    the error log. NGINX has most likely encountered an error in the configuration
+    and has not applied the change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Error log file entry examples
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following are some examples of error messages found in real log files. After
+    each example, a short explanation of what it could mean follows. Please note that
+    the exact text may be different from what you see in your log files, due to improvements
+    made in newer releases of NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Look at the following log file entry example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we have a message that could be interpreted in a couple of ways. It might
+    mean that the server we are talking to has an error in its implementation, and
+    does not speak the FastCGI protocol properly. It could also mean that we have
+    mistakenly directed traffic to an HTTP server, instead of a FastCGI server. If
+    that is the case, a simple configuration change (using `proxy_pass` instead of
+    `fastcgi_pass`, or using the correct address for the FastCGI server) could fix
+    the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This type of message could also simply mean that the upstream server takes
+    too long to generate a response. The reason could be due to a number of factors,
+    but the solution, as far as NGINX is concerned, is fairly simple: increase the
+    timeouts. Depending on which module was responsible for making this connection,
+    the `proxy_read_timeout` or `fastcgi_read_timeout` (or other `*_read_timeout`)
+    directive would need to be increased from the default value of `60s`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Look at the following log file entry example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This one is fairly straightforward. NGINX reports that the file could not be
+    uploaded because it is too large. To fix this problem, raise the value of `client_body_size`.
+    Keep in mind that due to encoding, the uploaded size will be about 30 percent
+    greater than the file size itself (for example, if you want to allow your users
+    to upload files up to 12 MB, set this directive to `16m`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Look at the following log file entry example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, we see that NGINX won't start due to a configuration error.
+    The error message is very informative as to why NGINX won't start. We see that
+    there is a URI in the argument to the `proxy_pass` directive in a place where
+    it should not have one. NGINX even tells us on which line (here `16`) of which
+    file `(/opt/nginx/conf/nginx.conf`) the error occurred.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is an example of a case where NGINX won't start because it can't perform
+    what was asked of it. The `proxy_temp_path` directive specifies a location for
+    NGINX to store temporary files when proxying. If NGINX cannot create this directory,
+    it won't start, so ensure that the path leading up to this directory exists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Look at the following log file entry example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see in the preceding code what may appear to be a puzzling message. We know
+    that `client_body_temp_path` is a valid directive, but NGINX does not accept it
+    and gives an `unknown directive` message. When we think about how NGINX processes
+    its configuration file, we realize that this does make sense after all. NGINX
+    is built in a modular fashion. Each module is responsible for processing its own
+    configuration context. We therefore conclude that this directive appeared in a
+    part of the configuration file outside the context of the module that parses this
+    directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sometimes, NGINX will give us a hint as to what is wrong. In the preceding example,
+    NGINX has understood the `try_files` directive, but tells us that it is used in
+    the wrong place. It very conveniently gives us the location in the configuration
+    file where the error occurred, so that we can find it more easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This emergency-level message shows us how dependent NGINX is on DNS if hostnames
+    are used in the configuration. If NGINX can't resolve the hostnames used in `upstream`,
+    `proxy_pass`, `fastcgi_pass`, or other `*_pass` directives, then it won't start.
+    This will have implications on the order in which NGINX is started after a fresh
+    boot. Ensure that name resolution works at the time when NGINX starts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: This type of message is indicative of a configuration error in which NGINX can't
+    close the context. Something leading up to the line given has prevented NGINX
+    from forming a complete context with the `{` and `}` characters. This usually
+    means that the previous line is missing a semicolon, so NGINX reads the `}` character
+    as part of that unfinished line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Related to the previous error, this one means that NGINX reached the end of
+    the configuration file before finding a matching closing brace. This kind of error
+    occurs when there are unbalanced `{` and `}` characters. Using a text editor that
+    matches sets of braces is helpful in locating exactly where one is missing. Depending
+    on where that missing brace is inserted, the configuration can end up meaning
+    something completely different from what was intended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we see an example of using a variable without first declaring it. This
+    means that `$exclusion` appeared in the configuration before a `set`, `map`, or
+    `geo` directive defined what the value was to be. This type of error could also
+    be indicative of a typo. We may have defined the `$exclusions` variable, but mistakenly
+    later referenced it as `$exclusion`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means that you need to disable SSL session reuse. You can do this by setting
+    the `proxy_ssl_session_reuse` directive to `off`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring advanced logging
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Under normal circumstances, we want logging to be as minimal as possible. Usually
+    what's important is which URIs were called by which clients and when, and if there
+    was an error, to show the resulting error message. If we want to see more information,
+    that leads into a debug logging configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Debug logging
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To activate debug logging, the `nginx` binary needs to have been compiled with
+    the `--with-debug` configure flag. As this flag is not recommended for high performance
+    production systems, we may want to provide two separate `nginx` binaries for our
+    needs: one which we use in production, and one that has all the same configure
+    options, with the addition of `--with-debug` so that we may simply swap out the
+    binary at runtime in order to be able to debug.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Switching binaries at runtime
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'NGINX provides the capability to switch out binaries at runtime. After having
+    replaced the `nginx` binary with a different one, either because we''re upgrading
+    or we would like to load a new NGINX which has different modules compiled in,
+    we can begin the procedure for replacing a running `nginx` binary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Send the running NGINX master process a USR2 signal, to tell it to start a
+    new master process. It will rename its PID file to `.oldbin` (for example, `/var/run/nginx.pid.oldbin`):'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'There will now be two NGINX master processes running, each with its own set
+    of workers to handle incoming requests:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Send the old NGINX master process a WINCH signal to tell it to stop handling
+    new requests, and phase out its worker processes once they are done with their
+    current requests:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You''ll get the following response output:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Send the old NGINX master process a `QUIT` signal, once all its worker processes
+    have ended, and we will have only the new `nginx` binary running, responding to
+    requests:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'If there is any problem with the new binary, we can roll back to the old one
+    before sending the `QUIT` signal to the old binary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the new binary still has a master process running, you can send it a `TERM`
+    signal to force it to quit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Likewise, any new worker processes that are still running may first be stopped
+    with a `KILL` signal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Note that some operating systems will automatically perform the binary upgrade
+    procedure for you when the `nginx` package is upgraded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once we have our debug-enabled `nginx` binary running, we can configure debug
+    logging:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We have placed the `error_log` directive in the main context of the NGINX configuration,
+    so that it will be valid for each subcontext, if not overwritten within. We can
+    have multiple `error_log` directives, each pointing to a different file and with
+    a different logging level. In addition to `debug`, `error_log` can also take on
+    the following values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`debug_core`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`debug_alloc`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`debug_mutex`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`debug_event`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`debug_http`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`debug_imap`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each level is to debug a specific module within NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It also makes sense to configure a separate error log per virtual server. That
+    way, the errors related only to that server are found in a specific log. This
+    concept can be extended to include the `core` and `http` modules as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using this pattern, we are able to debug a particular virtual host, if that
+    is the area we are interested in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What follows is an example of `debug_http` level output from a single request.
+    Some comments as to what is going on at each point are interspersed throughout:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `rewrite` module is activated very early on in the request processing phase:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Access restrictions are checked:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `try_files` directive is parsed next. The path to the file is constructed
+    from any string (`http script copy`) plus the value of any variable (`http script
+    var`) in the parameters to the `try_files` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The evaluated parameter is then concatenated with the `alias` or `root` for
+    that `location`, and the full path to the file is found:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once the file is found, its contents are processed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `http filename` is the full path to the file to be sent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `static` module receives the file descriptor for this file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any temporary content in the body of the response is no longer needed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once all information about the file is known, NGINX can construct the full
+    response headers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next phase involves any transformations to be performed on the file due
+    to output filters that may be active:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once the output filters have run, the request is finalized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `keepalive` handler is responsible for determining if the connection should
+    remain open:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After the request has been processed, it can then be logged:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The client has closed the connection, so NGINX will as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, there is quite a bit of information included here. If you have
+    trouble figuring out why a particular configuration isn't working, going through
+    the output of the debug log can be helpful. You can immediately see in what order
+    the various filters run, as well as what handlers are involved in serving the
+    request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using access logs for debugging
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When I was learning how to program, and couldn't find the source of a problem,
+    a friend of mine told me to "put printf's everywhere". That was how he was most
+    quickly able to find the source of a problem. What he meant by this was to place
+    a statement that would print a message at each code branch point, so that we could
+    see which code path was getting executed and where the logic was breaking down.
+    By doing this, we could visualize what was going on and could more easily see
+    where the problem lies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This same principle can be applied to configuring NGINX. Instead of `printf()`
+    we can use the `log_format` and `access_log` directives to visualize request flow
+    and analyze what''s going on during request processing. Use the `log_format` directive
+    to see the values of variables at different points in the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: Use multiple `access_logs` to see which locations are getting called at what
+    times. By configuring a different `access_log` for each location, we can easily
+    see which ones are not being used. Any change to such a location will have no
+    effect on request processing; the locations higher-up in the processing hierarchy
+    need to be examined first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding example, there is an `access_log` declaration for each location,
+    as well as a different `log_format` for each `access_log` declaration. We can
+    determine which requests made it to each location depending on the entries found
+    in the corresponding `access_log`. If there are no entries in the `example.com-images_access.log`
+    file, for example, then we know that no requests reached the `/images` location.
+    We can compare the contents of the various log files to see if the variables are
+    being set to the proper values. For example, if the `$image_file` and `$image_type`
+    variables are empty, the corresponding placeholders in the `imagelog` format `access_log`
+    will be empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Common configuration errors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next step in troubleshooting a problem is to take a look at the configuration,
+    to see if it actually achieves the goal you are trying to accomplish. NGINX configurations
+    have been floating around the Internet for a number of years. Often, they were
+    designed for an older version of NGINX, and to solve a specific problem. Unfortunately,
+    these configurations are copied without really understanding the problem they
+    were designed to solve. There is sometimes a better way to solve the same problem,
+    using a *newer* configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using if instead of try_files
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'One such case is a situation in which a user wants to deliver a static file
+    if it is found on the filesystem, and if not, to pass the request on to a FastCGI
+    server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This was the way this problem was commonly solved before NGINX had the `try_files`
+    directive, which appeared in Version 0.7.27\. The reason why this is considered
+    a configuration error is that it involves using `if` within a `location` directive.
+    As detailed in the *Converting an "if"-fy configuration to a more modern interpretation*
+    section in [Chapter 4](ch04.html "Chapter 4. NGINX as a Reverse Proxy"), *NGINX
+    as a Reverse Proxy*, this can lead to unexpected results or possibly even a crash.
+    The way to correctly solve this problem is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `try_files` directive is used to determine if the file exists on the filesystem,
+    and if not, passes the request on to the FastCGI server, without using `if`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using if as a hostname switch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are countless examples of configurations where `if` is used to redirect
+    requests based on the HTTP `Host` header. These types of configurations work as
+    selectors and are evaluated for each request:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Instead of incurring the processing costs associated with evaluating `if` for
+    each request, NGINX''s normal request-matching routine can route the request to
+    the correct virtual server. The redirect can then be placed where it belongs,
+    and even without a rewrite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not using the server context to best effect
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another place where copied configuration snippets often lead to incorrect configurations
+    is the area of the `server` context. The `server` context describes the whole
+    virtual server (everything that should be addressed under a particular `server_name`).
+    It is underutilized in these copied configuration snippets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Often, we will see `root` and `index` specified per `location`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: This can lead to configuration errors when new locations are added, and the
+    directives are not copied to those new locations or are copied incorrectly. The
+    point of using the `root` and `index` directives is to indicate the document root
+    for the virtual server and the files that should be tried when a directory is
+    given in the URI, respectively. These values are then inherited for any `location`
+    within that `server` context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we have specified that all files will be found under `/var/www/html` and
+    that `index.php index.html index.htm` are to be tried, in order, as `index` files
+    for any location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Operating system limits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The operating system is often the last place we look to for discovering a problem.
+    We assume that whoever set up the system has tuned the operating system for our
+    workload and tested it under similar scenarios. This is often not the case. We
+    sometimes need to look into the operating system itself to identify a bottleneck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As with NGINX, there are two major areas where we can initially look for performance
+    problems: **file descriptor limits** and **network limits**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: File descriptor limits
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: NGINX uses file descriptors in several different ways. The major use is to respond
+    to client connections, each one using a file descriptor. Each outgoing connection
+    (especially prevalent in proxy configurations) requires a unique IP:TCP port pair,
+    which NGINX refers to using a file descriptor. If NGINX is serving any static
+    file or a response from its cache, a file descriptor is used as well. As you can
+    see, the number of file descriptors can climb quickly with the number of concurrent
+    users. The total number of file descriptors that NGINX may use is limited by the
+    operating system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The typical UNIX-like operating system has a different set of limits for the
+    superuser (`root`) than for a regular user, so make sure to execute the following
+    command as the non-privileged user under which you're running NGINX (specified
+    either by the `--user` compile-time option or the `user` configuration directive).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This command will show you the number of open file descriptors allowed for
+    that user. Usually, this number is set conservatively to 1024 or even lower. Since
+    we know that NGINX will be the major user of file descriptors on the machine,
+    we can set this number much higher. How to do this depends on the specific operating
+    system. This can be done as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: FreeBSD
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Solaris
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The preceding two commands will increase the maximum number of file descriptors
+    allowed for a new process running as user `www`. This will also persist across
+    a reboot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following two commands will increase the maximum number of file descriptors
+    allowed for a running NGINX process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Each of these methods will change the operating system limit itself, but will
+    have no effect on the running NGINX process. To enable NGINX to use the number
+    of file descriptors specified, set the `worker_rlimit_nofile` directive to this
+    new limit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, send the running `nginx` master process the `HUP` signal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: NGINX will then be able to handle just over 65,000 simultaneous clients, connections
+    to upstream servers, and any local static or cached files. This many `worker_processes`
+    only makes sense if you actually have eight CPU cores or are heavily I/O bound.
+    If that is not the case, decrease the number of `worker_processes` to match the
+    number of CPU cores and increase `worker_connections` so that the product of the
+    two approaches 65,000.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can, of course, increase the number of total file descriptors and `worker_connections`
+    up to a limit that makes sense for your hardware and use case. NGINX is capable
+    of handling millions of simultaneous connections, provided the operating system
+    limits and configuration are set correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Network limits
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you find yourself in a situation in which no network buffers are available,
+    you will most likely only be able to log in at the console, if at all. This can
+    happen when NGINX receives so many client connections that all available network
+    buffers are used up. Increasing the number of network buffers is also specific
+    to a particular operating system and may be done as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: FreeBSD
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Solaris
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: When NGINX is acting as either a mail or an HTTP proxy, it will need to open
+    many connections to its upstream servers. To enable as many connections as possible,
+    the ephemeral TCP port range should be adjusted to its maximum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: FreeBSD
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Solaris
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Having adjusted these basic values, we will now take a look at more specific
+    performance-related parameters in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance problems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When designing an application and configuring NGINX to deliver it, we expect
+    it to perform well. When we experience performance problems, however, we need
+    to take a look at what could cause them. It may be in the application itself.
+    It may be our NGINX configuration. We will investigate how to discover where the
+    problem lies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When proxying, NGINX does most of its work over the network. If there are any
+    limitations at the network level, NGINX cannot perform optimally. Network tuning
+    is again specific to the operating system and network that you are running NGINX
+    on, so these tuning parameters should be examined in your particular situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most important values relating to network performance is the size
+    of the `listen` queue for new TCP connections. This number should be increased
+    to enable more clients. Exactly how to do this and what value to use depends on
+    the operating system and optimization goal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: FreeBSD
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Solaris
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The next parameter to change is the size of the send and receive buffers. Note
+    that these values are for illustration purposes only— they may lead to excessive
+    memory usage, so be sure to test in your specific scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE63]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: FreeBSD
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE64]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Solaris
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE65]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You can also change these buffers in NGINX''s configuration directly, so that
+    they are only valid for NGINX and not for any other software you are running on
+    the machine. This may be desirable when you have multiple services running, but
+    want to ensure that NGINX gets the most out of your network stack:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]'
+  prefs: []
+  type: TYPE_PRE
+- en: Depending on your network setup, you will notice a marked change in performance.
+    You should examine your particular setup, though, and make one change at a time,
+    observing the results after each change. Performance tuning can be done on so
+    many different levels that this small treatment here does not do the subject justice.
+    If you are interested in learning more about performance tuning, there are a number
+    of books and online resources that you should take a look at.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Making network tuning changes in Solaris persistent**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous two sections, we changed several TCP-level parameters on the
+    command line. For Linux and FreeBSD, these changes would be persisted after a
+    reboot due to the changes also being made in system configuration files (for example,
+    `/etc/sysctl.conf`). For Solaris, the situation is different. These changes are
+    not made in `sysctls`, so they cannot be persisted in this file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solaris 10 and above offers the **Service Management Framework** (**SMF**).
+    This is a unique way of managing services and ensuring a start order at reboot.
+    (Of course, it is much more than this, but this oversimplification serves here.)
+    To persist the TCP-level changes mentioned before, we can write an SMF manifest
+    and corresponding script to apply the changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are detailed in [Appendix D](apd.html "Appendix D. Persisting Solaris
+    Network Tunings"), *Persisting Solaris Network Tunings*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the Stub Status module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX provides an introspection module, which outputs certain statistics about
+    how it is running. This module is called **Stub Status** and is enabled with the
+    `--with-http_stub_status_module` configure flag.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To see the statistics produced by this module, the `stub_status` directive
+    needs to be set to `on`. A separate `location` directive should be created for
+    this module, so that an ACL may be applied:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Calling this URI from the localhost (for example, with `curl` `http://localhost/nginx_status`)
+    will show output similar to the following lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE68]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we see that there are 2,532 open connections, of which NGINX is currently
+    reading the request header of 93, and 13 connections are in a state in which NGINX
+    is either reading the request body, processing the request, or writing a response
+    to the client. The remaining 2,426 requests are considered `keepalive` connections.
+    Since this `nginx` process was started, it has both accepted and handled 1,476,737,983
+    connections, meaning that none were closed immediately after having been accepted.
+    There were a total of 3,553,635,810 requests handled through these 1,476,737,983
+    connections, meaning there were approximately 2.4 requests per connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This kind of data can be collected and graphed using your favorite system metrics
+    tool chain. There are plugins for Munin, Nagios, collectd, and others, which use
+    the `stub_status` module to collect statistics. Over time, you may notice certain
+    trends and be able to correlate them to specific factors, but only if the data
+    is collected. Spikes in user traffic as well as changes in the operating system
+    should be visible in these graphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Problems surface on a number of levels when bringing a new piece of software
+    into production. Some errors can be tested for and eradicated in a test environment;
+    others surface only under real load with real users. To discover the reasons for
+    these problems, NGINX provides very detailed logging, at a number of levels. Some
+    of the messages may have multiple interpretations, but the overall pattern is
+    understandable. By experimenting with the configuration and seeing what kinds
+    of error messages are produced, we can gain a feeling for how to interpret the
+    entries in the error log. The operating system has an influence on how NGINX runs,
+    as it imposes certain limits due to default settings for a multiuser system. Understanding
+    what is going on at the TCP level will help when tuning these parameters to meet
+    the load under real conditions. Rounding off our tour of troubleshooting, we saw
+    what kind of information the `stub_status` module was capable of delivering. This
+    data can be useful to get an overall idea for how our NGINX is performing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The appendices are up next. The first is a directive reference, listing all
+    of NGINX's configuration directives in one place, including default values and
+    in which context they may be used.
+  prefs: []
+  type: TYPE_NORMAL

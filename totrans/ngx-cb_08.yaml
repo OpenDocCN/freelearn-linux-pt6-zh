@@ -1,0 +1,769 @@
+- en: Load Balancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic balancing techniques
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Round-robin load balancing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Least connected load balancing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hash-based load balancing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Testing and debugging NGINX load balancing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TCP / application load balancing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX as an SMTP load balancer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Load balancing serves two main purposes—to provide further fault tolerance and
+    to distribute the load. This is achieved by dividing incoming requests against
+    one or more backend servers, so that you get the combined output of these multiple
+    servers. As most load balancer configurations are generally configured as a reverse
+    proxy (as detailed in the previous chapter), this makes NGINX a great choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By increasing your fault tolerance, you can ensure the reliability and uptime
+    of your website or application. In the realms of Google or Facebook, where seconds
+    of downtime can cause chaos, load balancers are a critical part of their business.
+    Likewise, if you have occasional issues with your web server, or want to be able
+    to conduct maintenance without bringing your site down, then a load balancer will
+    greatly enhance your setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The distributed load side of a load balancer allows you to horizontally scale
+    your website or application. This is a much easier way to scale your website rather
+    than simply throwing more hardware at a single server, especially when it comes
+    to high levels of concurrency. Using a load balancer, we can increase the number
+    of servers easily, as shown in the following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/ce9f3ba9-1869-4385-851a-b0fab4b5f69d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With the right configuration and monitoring, you can also add and remove these
+    web servers on the fly. This is what many refer to as **elastic computing**, where
+    resources can be provisioned in an automated fashion. When implemented correctly,
+    this can deliver cost savings, while ensuring that you can handle peak loads without
+    any issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, there are a few caveats here. The first is that your application
+    or website must be able to run in a distributed manner. As your web server doesn't
+    have a centralized filesystem by default, handling file uploads must be done in
+    a way that all servers still retain access. You can use a clustered filesystem
+    to achieve this (for example, GlusterFS) or use a centralized object or file storage
+    system, such as AWS S3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your database also needs to be accessible by all your web servers. If your users
+    log in to your system, you'll also need to ensure that the session tracking uses
+    a database so that it's accessible from all servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thankfully though, if you're using a modern framework (as we covered in [Chapter
+    3](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml), *Common Frameworks*) or a modern
+    **Content Management System** (**CMS**), then these aspects have been previously
+    implemented and documented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic balancing techniques
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The three scheduling algorithms which NGINX supports are round-robin, least
+    connections, and hashing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Load balancers configured in a **round-robin** fashion distribute requests
+    across the servers in a sequential basis; the first request goes to the first
+    server, the second request to the second server, and so on. This repeats until
+    each server in the pool has processed a request and the next will simply be at
+    the top again. The following diagram explains the round robin scheduling algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/c3cbe6d3-abea-4e77-bc0e-5843db3e337f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is the most simplistic method to implement, and it has both positive and
+    negative sides. The positive is that no configuration is required on the server
+    side. The negative is that there's no ability to check the load of the servers
+    to even out the requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When configured to use the **least connection** method of load balancing, NGINX
+    distributes the requests to the servers with the least amount of active connections.
+    This provides a very rudimentary level of load-based distribution; however, it's
+    based on connections rather than actual server load.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This may not always be the most effective method, especially if one particular
+    server has the least amount of connections due to a high resource load or an internal
+    issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third method supported by NGINX is the **hash** method. This uses a key
+    to determine how to map the request with one of the upstream servers. Generally,
+    this is set to the client's IP address, which allows you to map the requests to
+    the same upstream server each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your application doesn't use any form of centralized session tracking, then
+    this is one way to make load balancing more compatible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Round robin load balancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To test the load balancing, you'll need to be able to run multiple versions
+    of your app, each on different ports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We''ll start off with a basic round-robin configuration, with our upstream
+    servers coming locally. We''ll define the `upstream` block directive at the `http`
+    block level, outside of the `server` block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we''ll define our `server` block directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our `upstream` block directive, we define the servers and the name of the
+    backend servers. In our recipe, we simply defined these as three instances on
+    the localhost on ports `8080`, `8081`, and `8082`. In many scenarios, this can
+    also be external servers (in order to horizontally balance resources).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our `server` block directive, instead of connecting directly to a local application,
+    as in the previous recipe, we connect to our upstream directive which we named
+    `localapp`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we didn't specify an algorithm to use for load balancing, NGINX defaults
+    to the round-robin configuration. Each of our entries is loaded in sequential
+    order as new requests come in, unless one of the servers fails to respond.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Also, it''s possible to weight the servers, meaning it will preference upstream
+    servers with a higher weight. If your servers aren''t exactly the same, you can
+    use weighting to preference your higher capacity systems so that they receive
+    more requests. Consider this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Because we set the first server with a weighted value of `2`, it will receive
+    twice as many requests as the others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The NGINX upstream module: [http://nginx.org/en/docs/http/ngx_http_upstream_module.html](http://nginx.org/en/docs/http/ngx_http_upstream_module.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Least connected load balancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While the default load balancing algorithm is round-robin, it doesn't take into
+    consideration either the server load or the response times. With the **least connected**
+    method, we distribute connections to the upstream server with the least number
+    of active connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To test the load balancing, you'll need to be able to run multiple versions
+    of your app, each on different ports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The `upstream` block directive looks exactly the same as the round-robin configuration,
+    except we now explicitly tell NGINX to use the least connected method—a reminder
+    that this needs to remain outside of the `server` block directive. Here''s our
+    `upstream` block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we''ll define our `server` block directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like the round-robin configuration, we have three upstream servers defined with
+    the name `localapp`. For this configuration, we explicitly tell NGINX to use the
+    `least_conn` method of load balancing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As each new request comes in, NGINX determines which upstream server has the
+    least amount of connections and directs requests to this server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash-based load balancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When you need to ensure that hash-based load balancing is the optimal choice,
+    commonly, the client's IP address is used as the pattern to match so that any
+    issues with cookies and per upstream server session tracking is sticky. This means
+    that every subsequent request from the same hash will always route to the same
+    upstream server (unless there's a fault with the upstream server).
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The `upstream` block directive looks exactly the same as the round-robin configuration,
+    except we now explicitly tell NGINX to use the hash method—a reminder that this
+    needs to remain outside of the `server` block directive. Here''s our `upstream`
+    block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we''ll define our `server` block directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For this hash method, we used the client IP (`$remote_addr`) as the determining
+    factor to build up the hash map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `consistent` parameter at the end of the hash line implements the Ketama
+    consistent hashing method, which helps to minimize the amount or remapping (and
+    therefore potential disruption or cache loss) if you need to add or remove servers
+    from your `upstream` block directive. If your upstream servers remain constant,
+    then you can omit this parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For those who have used older versions of NGINX, the `ip_hash` method is still
+    available, but with one distinct difference. The `ip_hash` method uses the first
+    three octets of an IPv4 address (for example, `1.2.3.XXX`) to produce the hash
+    map. This means that if the requesting IP comes from a different IP within the
+    standard class C range, it''ll be sent to the same upstream server. Here''s an
+    example of how it''s implemented:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: While this method still works, if you need better consistency for ip_hash mapping,
+    then using `hash $remote_addr` will match the full IP address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The consistent hashing Wikipedia page: [https://en.wikipedia.org/wiki/Consistent_hashing](https://en.wikipedia.org/wiki/Consistent_hashing)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The `hash` directive documentation: [http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Testing and debugging NGINX load balancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As load balancing can introduce extra complexities into your environment, it's
+    important to ensure that you can test your setup thoroughly. Especially when you're
+    trying to debug corner cases, being able to build a test platform becomes critical
+    to reproducing faults or issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ideally, you want this combined with real-time metrics as well, especially if
+    you want to be able to overlay this with data from your upstream servers. As we'll
+    cover in [Chapter 13](fff6205a-633e-4c22-bf99-420c274e6379.xhtml), *NGINX Plus
+    – The Commercial Offering*, the commercial release of NGINX contains a live monitoring
+    module which provides information such as the current connections, upstream server
+    statuses, and load information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While there are a lot of programs and cloud services around which you can generate
+    load to test your load balancer from a client perspective, I didn't find many
+    tools to have test instances for the upstream side of the problem. So, like any
+    programmer, I simply wrote my own!
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTest is an open source tool, which emulates a web server under varying conditions.
+    It is written in Go and is therefore able to take advantage of the high levels
+    of concurrency and optimization; HTest can serve more than 150,000 requests a
+    second on very modest hardware.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rather than just serving a static page, HTest allows you to vary the response
+    times (so that you can emulate your typical application responses), failure rates
+    (where a percentage of responses return a `500` error), and can also introduce
+    some jitter so that the results are more realistic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: No prerequisite steps are required for this recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'After you have downloaded the latest HTest executable (within the releases
+    section of the GitHub page), you can simply call HTest:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By default, HTest will listen on port `8000` on `127.0.0.1` and be ready to
+    serve requests. There''s a basic web page, which is returned as part of the result
+    and looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/3eeb6e2d-4e3e-407c-a56c-df333983dff2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As each request comes in, the hit counter will be incremented, and if any flags
+    for delays, failures, or jitter have been set, then these will also be shown.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can easily start HTest on different ports, which when testing a load balancer
+    on a single server, is required:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Details such as the response delay can be set in either of two ways. If you
+    want to start HTest with a delay, this can also be done via a command-line flag:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This value is in **milliseconds** (**ms**). Alternatively, we can also set
+    the delay after the program has started with a simple cURL call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The advantage to this is that it can be scripted so that you have a stepped
+    test routine, or you can vary it manually to measure the effect it has on your
+    overall load balancer configuration. Here''s the full reference table for configuration
+    items:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Field** | **Value** | **Example** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `responsedelay` | Delay time (in ms) | 10 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `failurerate` | Failure rate of requests (in percent) | 5 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `jitter` | Variance of the results (in percent) | 2 |'
+  prefs: []
+  type: TYPE_TB
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To further aid in tracing and testing load balancer configurations, we can
+    add some additional headers in for testing. This allows us to then see further
+    information as to which upstream server processed the request, as well as how
+    long it took. Here are the additional headers I added for testing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: If it's a production system, you can enable this only when a conditional flag
+    is set, as we detailed in [Chapter 5](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml),
+    *Logging*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows us to see which upstream server processed our request (`$upstream_addr`)
+    and how long it took to connect to the upstream server (`$upstream_connect_time`).
+    This helps to give an indication as to where any possible connection delays are
+    occurring, and also from which upstream server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need to track the upstream server response time (how long it took to
+    return data), this needs to be logged and cannot be set as a header. This is because
+    headers are sent to the browser before the request from the upstream server has
+    returned, and therefore the time at that point is still unknown.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here are the results from a very simple test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/e45d6bf4-1753-436f-81f8-136dae57453f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As this is based on our previous recipes, we can see that the connection was
+    made to a server running locally on port `8081`, and because the load on the server
+    was very low, there was no connection delay (`0.000` seconds). An increase in
+    connection times can indicate load or network issues at the load balancer end,
+    which is typically hard to diagnose, as the finger is usually pointed at the upstream
+    server as the cause of delays.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The HTest repository: [https://github.com/timbutler/htest](https://github.com/timbutler/htest)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TCP / application load balancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While most people know NGINX for its outstanding role as a web and proxy server,
+    most won't have used it beyond the standard web roles. Some of the key functionalities
+    come from the fact that NGINX is incredibly flexible in how it operates. With
+    the introduction of the stream module in 1.9, NGINX can also load balance TCP
+    and UDP applications as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This opens up the possibility to load balance applications which don't have
+    either any internal task distribution or any ability to scale beyond one server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To use TCP load balancing, we first need to double-check whether the NGINX
+    version has the stream module compiled. To do this, you can run the following
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will generate an output, displaying all of the compiled modules. The stream
+    module is available if you see `--with-stream` in the output. Consider this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/8a983d25-8ed6-450c-9957-ff08e5582a51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If you don't have the required version, we covered how to install an updated
+    version in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml), *Let's Get
+    Started*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we need to define a `stream` block directive, which must be situated
+    outside of the HTTP block directive or replace it altogether. Unlike previous
+    examples, where this could be within the `/etc/nginx/conf.d/` directive, this
+    `stream` block needs to be set within the main NGINX configuration file (typically
+    `/etc/nginx/nginx.conf`) or at least included from there and outside the `http`
+    block directive. Here''s our configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our recipe, we define an `upstream` block, which is virtually identical to
+    our HTTP load balancer configurations. We also specified a hash against the client's
+    IP `($remote_addr`), as any application which only has internal session tracking
+    for authentication or similar would require re-authentication against each upstream
+    server if new connections are made.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have three upstream servers specified for this recipe, which again are against
+    the loopback interface on the local server. Each instance of your TCP applications
+    would need to be listening on `127.0.0.1` on ports `8101`, `8102`, and `8103`
+    individually.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our `server` block directive then tells NGINX to listen on port `7400`. As
+    we haven''t specified a protocol, it will default to TCP. If you require UDP,
+    you''ll need to specify the protocol as a parameter. Consider this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, we then configure a reverse proxy (`proxy_pass`) to our named upstream
+    configuration `tcpapppool`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Easy testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you need an application to help test connections, I'd recommend you try Packet
+    Sender. This application is free, cross-platform, and allows you to send and receive
+    UDP and TCP data both through a GUI and command-line interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This makes it perfect when testing new configurations, especially if you need
+    either targets for your load balancer, or to test the connections through NGINX.
+    Here''s what the GUI application looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/befbe629-434d-4519-ac4d-b9542863f521.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As shown in the screenshot, we sent a quick `ABC123` packet to the NGINX server
+    and received `I received: ABC123` back from our upstream application (which is
+    a simple echo app).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Just like traditional HTTP based configurations, we can also enable access logs
+    for TCP load balancing. We can tailor the logs to suit specific applications,
+    which may include fields such as the client IP address, bytes sent, and bytes
+    received.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This requires NGINX version 1.11.4 or higher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use the stream logging, we firstly need to define a log format. Here''s
+    a basic configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we add the `access_log` directive to our `server` block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This basic log format then gives us an output like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see the originating IP (`1.2.3.4`), the time of the connection (28 December),
+    the bytes sent and received, and then the total session time. If more detailed
+    information is required (such as logging the upstream server used), the log format
+    can be tailored to your specific needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The NGINX stream module documentation: [https://nginx.org/en/docs/stream/ngx_stream_core_module.html](https://nginx.org/en/docs/stream/ngx_stream_core_module.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The NGINX stream log module documentation: [https://nginx.org/en/docs/stream/ngx_stream_log_module.html](https://nginx.org/en/docs/stream/ngx_stream_log_module.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Packet Sender: [https://packetsender.com/](https://packetsender.com/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX as an SMTP load balancer
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As demonstrated in our previous recipe, NGINX can do pure TCP load balancing.
+    Further to this, there are some protocol specific implementations, which have
+    some specific items to enhance the implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Simple Mail Transport Protocol** (**SMTP**) is the standard protocol used
+    to send and receive email at a server level. The most popular SMTP servers for
+    a Linux platform include Postfix, Exim, and Sendmail, with Exchange being the
+    most popular for Windows.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Load balancing SMTP can help to distribute the sending and receiving of email,
+    especially if it's a high-volume environment such as an **Internet Service Provider**
+    (**ISP**). By running multiple servers, you can distribute the sending aspect
+    as well as provide some fault tolerance when systems have issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While NGINX has a specific mail module, unfortunately, this does not have load
+    balancing capabilities. The good news is, the stream module is flexible enough
+    that it works seamlessly with SMTP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We''re going to configure three local SMTP applications, which will be used
+    to help distribute the load. This is what our configuration looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/451c73fd-2d30-4559-93f2-89c9a6e68422.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As this needs the stream module, we need to confirm that we have the right
+    NGINX version first. To do this, we run this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you see `--with-stream` in the output, you have the required module. Otherwise,
+    first start with the instructions in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml),
+    *Let's Get Started*, to install an updated version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we define our `stream` block directive, which must be at the root level
+    and not within the `http` block, like most of the other recipes in this book.
+    You'll need to add it to the main NGINX configuration file (typically `/etc/nginx/nginx.conf`)
+    or at least include the configuration from here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the `stream` block directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Firstly, we define our `upstream` block directive and call it `smtppool`. There
+    are three servers within this directive, which run on the same server as the NGINX
+    and therefore listen on `127.0.0.1`. A real-world scenario will have these running
+    on external servers to help distribute the load. As there's no explicit load balancing
+    method set, this will default to round robin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we defined a custom log format, which we named `smtplog`. Compared to
+    the previous recipe's more basic format, this time we added logging for the port
+    numbers, as well as the upstream server used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s an example of what the logs produce:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: While the upstream SMTP servers themselves should also have detailed logs, these
+    logs can help when there are issues occurring and help diagnose if it's a particular
+    upstream server at fault. We can also see that the upstream server used is different
+    every time and in sequential order. This shows that the round robin load balancing
+    is working as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we have our `server` block directive. We tell NGINX to listen on port
+    `25` (the default for SMTP) and proxy connections to our `smtppool` upstream servers.
+    We also then log the access using the log format (named `smtplog`) defined earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As SMTP can run on multiple ports, we need to tell NGINX to load balance these
+    ports as well. To do this, we simply define multiple listen lines within the `server`
+    block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the server port (named `$server_port`) logged in our custom log format,
+    we're still able to trace issues down to a specific port.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The NGINX stream module documentation: [https://nginx.org/en/docs/stream/ngx_stream_core_module.html](https://nginx.org/en/docs/stream/ngx_stream_core_module.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The NGINX stream log module documentation: [https://nginx.org/en/docs/stream/ngx_stream_log_module.html](https://nginx.org/en/docs/stream/ngx_stream_log_module.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

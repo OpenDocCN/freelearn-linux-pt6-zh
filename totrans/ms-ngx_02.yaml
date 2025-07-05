@@ -1,0 +1,916 @@
+- en: Chapter 2. A Configuration Guide
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The NGINX configuration file follows a very logical format. Learning this format
+    and how to use each section is one of the building blocks that will help you to
+    create a configuration file by hand. This chapter will help you reach that goal
+    by explaining the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic configuration format
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX global configuration parameters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using `include` files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The HTTP server section
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The virtual server section
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Locations – where, when, and how
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The mail server section
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Full sample configuration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The basic configuration format
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The basic NGINX configuration file is set up in a number of sections. Each
+    section is delineated in the following way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is important to note that each directive line ends with a semicolon (`;`).
+    This marks the end-of-line. The curly braces (`{}`) actually denote a new configuration
+    context, but we will read these as "sections" for the most part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX global configuration parameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The global section is used to configure the parameters that affect the entire
+    server, and is an exception to the format shown in the preceding section. The
+    global section may include configuration directives, such as `user` and `worker_processes`,
+    as well as sections, such as events. There are no open and closing braces (`{}`)
+    surrounding the global section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most important configuration directives in the global context are shown
+    in the following table. These will be the ones that you will be dealing with for
+    the most part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Global configuration directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `user` | The user and group under which the worker processes run is configured
+    using this parameter. If the group is omitted, a group name equal to that of the
+    user is used. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_processes` | This is the number of worker processes that will be
+    started. These will handle all connections made by the clients. Choosing the right
+    number depends on the server environment, the disk subsystem, and the network
+    infrastructure. A good rule of thumb is to set this equal to the number of processor
+    cores for CPU-bound loads and to multiply this number by `1.5` to `2` for I/O
+    bound loads. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `error_log` | `error_log` is where all errors are written. If no other `error_log`
+    is given in a separate context, this log file will be used for all errors, globally.
+    A second parameter to this directive indicates the level at which (`debug`, `info`,
+    `notice`, `warn`, `error`, `crit`, `alert`, and `emerg`) errors are written to
+    the log. Note that debug-level errors are only available if the --with-debug configuration
+    switch is given at compilation time. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pid` | This is the file where the process ID of the main process is written,
+    overwriting the compiled-in default. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `use` | The `use` directive indicates which connection processing method
+    should be used. This will overwrite the compiled-in default, and must be contained
+    in an `events` context, if used. It will not normally need to be overridden, except
+    when the compiled-in default is found to produce errors over time. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_connections` | This directive configures the maximum number of simultaneous
+    connections that a worker process may have open. This includes, but is not limited
+    to, client connections and connections to upstream servers. This is especially
+    important on reverse proxy servers – some additional tuning may be required at
+    the operating system level in order to reach this number of simultaneous connections.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Here is a short example using each of these directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This section would be placed at the top of the `nginx.conf` configuration file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using include files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Include files can be used anywhere in your configuration file, to help it be
+    more readable and to enable you to re-use parts of your configuration. To use
+    them, make sure that the files themselves contain the syntactically correct NGINX
+    configuration directives and blocks; then specify a path to those files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A wildcard may appear in the path to match multiple files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the full path is not given, NGINX will search relative to its main configuration
+    file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A configuration file can be easily tested by calling NGINX as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will test the configuration including all the files separated out into
+    include files, for syntax errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The HTTP server section
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The HTTP server section, or HTTP configuration context, is available unless
+    you have built NGINX without the HTTP module (`--without-http`). This section
+    controls all the aspects of working with the HTTP module, and will probably be
+    the one that you will use the most.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The configuration directives found in this section deal with handling HTTP connections.
+    As such, there are quite a number of directives defined by this module We will
+    divide these directives up by type, to be able to talk about them more easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This set of directives deals with the aspects of the client connection itself,
+    as well as with different types of clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP client directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `chunked_transfer_encoding` | Allows disabling the standard HTTP/1.1 chunked
+    transfer encoding in responses to clients. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_buffer_size` | Used to set a buffer size for the client request
+    body larger than the default two memory pages, in order to prevent temporary files
+    from being written to the disk. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_in_file_only` | Used for debugging or further processing of
+    the client request body. This directive can be set to `on` to force save the client
+    request body to a file. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_in_single_buffer` | This directive forces NGINX to save the
+    entire client request body in a single buffer, to reduce copy operations. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_temp_path` | Defines a directory path for saving the client
+    request body. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_timeout` | Specifies the length of time between successive read
+    operations of the client body. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_header_buffer_size` | Used for specifying a buffer size for the client
+    request header, when this needs to be larger than the default 1 KB. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_header_timeout` | This timeout is the length of time for reading
+    the entire client header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_max_body_size` | Defines the largest allowable client request body,
+    before a `413 (Request Entity Too Large)` error is returned to the browser. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive_disable` | Disables the keep-alive requests for certain browser
+    types. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive_requests` | Defines how many requests may be made over one keep-alive
+    connection before it is closed. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive_timeout` | Specifies how long a keep-alive connection will stay
+    open. A second parameter may be given, to set a "Keep-Alive" header in the response.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `large_client_header_buffers` | Defines the maximum number and size of a
+    large client request header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `msie_padding` | Enables the disabling of adding comments to responses with
+    a status greater than 400 for MSIE clients, in order to pad the response size
+    to 512 bytes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `msie_refresh` | Enables the sending of a refresh instead of a redirect for
+    MSIE clients. |'
+  prefs: []
+  type: TYPE_TB
+- en: File I/O directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: These directives control how NGINX delivers static files and/or how it manages
+    file descriptors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP file I/O directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `aio` | Enables the use of asynchronous file I/O. It is available on all
+    the modern versions of FreeBSD and distributions of Linux. On FreeBSD, `aio` may
+    be used to preload data for `sendfile`. Under Linux, `directio` is required, which
+    automatically disables `sendfile`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `directio` | Enables the operating system specific flag or function for serving
+    files larger than the given parameter. It''s required when using `aio` on Linux.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `directio_alignment` | Sets the alignment for `directio`. The default of
+    `512` is usually enough, although it''s recommended to increase this to 4 K when
+    using XFS on Linux. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache` | Configures a cache that can store open file descriptors,
+    directory lookups, and file lookup errors. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache_errors` | Enables the caching of file lookup errors by `open_file_cache`.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache_min_uses` | Configures the minimum number of uses for a
+    file within the inactive parameter to `open_file_cache` for the file descriptor
+    to remain open in the cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache_valid` | Specifies the time interval between validity checks
+    for items in `open_file_cache`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `postpone_output` | Specifies the minimum size of data for NGINX to send
+    to the client. If possible, no data will be sent until this value is reached.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `read_ahead` | If possible, the kernel will preread files up to the `size`
+    parameter. It''s supported on current FreeBSD and Linux (the `size` parameter
+    is ignored on Linux). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sendfile` | Enables using `sendfile(2)` to directly copy the data from one
+    file descriptor to another. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sendfile_max_chunk` | Sets the maximum size of data to copy in one `sendfile(2)`
+    call, to prevent a worker from seizing. |'
+  prefs: []
+  type: TYPE_TB
+- en: Hash directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The set of hash directives controls how large a range of static memory NGINX
+    allocates to certain variables. NGINX will calculate the minimum size needed on
+    startup and reconfiguration. You will most likely only need to adjust one of the
+    `*_hash_max_size` parameters by setting the appropriate directive when NGINX emits
+    a warning to that effect. The `*_hash_bucket_size` variables are set by default
+    to a multiple of the processor's cache line size to minimize lookups needed to
+    retrieve the entry, and therefore should not normally be changed. See [http://nginx.org/en/docs/hash.html](http://nginx.org/en/docs/hash.html)
+    for additional details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP hash directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_names_hash_bucket_size` | It specifies the bucket size used to hold
+    the `server_name` hash tables. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_names_hash_max_size` | It specifies the maximum size of the `server_name`
+    hash tables. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `types_hash_bucket_size` | It specifies the bucket size used to hold the
+    `types` hash tables. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `types_hash_max_size` | It specifies the maximum size of the `types` hash
+    tables. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `variables_hash_bucket_size` | It specifies the bucket size used to hold
+    the remaining variables. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `variables_hash_max_size` | It specifies the maximum size of the hash that
+    holds the remaining variables. |'
+  prefs: []
+  type: TYPE_TB
+- en: Socket directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: These directives describe how NGINX can set various options on the TCP sockets
+    it creates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP socket directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lingering_close` | It specifies how a client connection will be kept open
+    for more data. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lingering_time` | In connection with the `lingering_close` directive, this
+    directive will specify how long a client connection will be kept open for processing
+    more data. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lingering_timeout` | Also in conjunction with `lingering_close`, this directive
+    indicates how long NGINX will wait for additional data before closing the client
+    connection. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `reset_timedout_connection` | With this directive enabled, connections that
+    have been timed out will immediately be reset, freeing all associated memory.
+    The default is to leave the socket in the `FIN_WAIT1` state, which will always
+    be the case for keep-alive connections. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `send_lowat` | If non-zero, NGINX will try to minimize the number of send
+    operations on client sockets. It is ignored on Linux, Solaris, and Windows. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `send_timeout` | Sets a timeout between two successive write operations for
+    a client receiving a response. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tcp_nodelay` | Enables or disables the `TCP_NODELAY` option for keep-alive
+    connections. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tcp_nopush` | Relevant only when `sendfile` is used. It enables NGINX to
+    attempt to send response headers in one packet, as well as sending a file in full
+    packets. |'
+  prefs: []
+  type: TYPE_TB
+- en: Sample configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following is an example of an HTTP configuration section:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This context block would go after any global configuration directives in the
+    `nginx.conf` file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The virtual server section
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Any context beginning with the keyword `server` is considered a "virtual server"
+    section. It describes a logical separation of a set of resources that will be
+    delivered under a different `server_name` directive. These virtual servers respond
+    to HTTP requests, and so are contained within the `http` section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A virtual server is defined by a combination of the `listen` and `server_name`
+    directives. `listen` defines an IP address/port combination or path to a UNIX-domain
+    socket:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `listen` directive uniquely identifies a socket binding under NGINX. There
+    are also a number of optional parameters that `listen` can take:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: listen parameters'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Parameter | Explanation | Comment |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `default_server` | Defines `this address:port` combination as being the default
+    for the requests bound here. |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `setfib` | Sets the corresponding FIB for the listening socket. | Only supported
+    on FreeBSD. Not for UNIX-domain sockets. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `backlog` | Sets the backlog parameter in the `listen()` call. | Defaults
+    to `-1` on FreeBSD and `511` on all other platforms. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `rcvbuf` | Sets the `SO_RCVBUF` parameter on the listening socket. |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sndbuf` | Sets the `SO_SNDBUF` parameter on the listening socket. |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `accept_filter` | Sets the name of the accept filter to either `dataready`
+    or `httpready`. | Only supported on FreeBSD. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `deferred` | Sets the `TCP_DEFER_ACCEPT` option to use a deferred `accept()`
+    call. | Only supported on Linux. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `bind` | Make a separate `bind()` call for this `address:port` pair. | A
+    separate `bind()` call will be made implicitly if any of the other socket-specific
+    parameters are used. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ipv6only` | Sets the value of the `IPV6_V6ONLY` parameter. | Can only be
+    set on a fresh start. Not for UNIX-domain sockets. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl` | Indicates that only HTTPS connections will be made on this port.
+    | Allows for a more compact configuration. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `so_keepalive` | Configures the TCP `keepalive` for the listening socket.
+    |   |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The `server_name` directive is fairly straightforward, but can be used to solve
+    a number of configuration problems. Its default value is `""`, which means that
+    a server section without a `server_name` directive will match a request that has
+    no `Host` header field set. This can be used, for example, to drop requests that
+    lack this header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The non-standard HTTP code, `444`, used in this example will cause NGINX to
+    immediately close the connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Besides a normal string, NGINX will accept a wildcard as a parameter to the
+    `server_name` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The wildcard can replace the subdomain part: `*.example.com`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The wildcard can replace the top-level-domain part: `www.example.*`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A special form will match the subdomain or the domain itself: `.example.com`
+    (matches `*.example.com` as well as `example.com`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A regular expression can also be used as a parameter to `server_name` by prepending
+    the name with a tilde (`~`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The latter form is an example using captures, which can later be referenced
+    (as `$1`, `$2`, and so on) in further configuration directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'NGINX uses the following logic when determining which virtual server should
+    serve a specific request:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Match the IP address and port to the `listen` directive.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Match the `Host` header field against the `server_name` directive as a string.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Match the `Host` header field against the `server_name` directive with a wildcard
+    at the beginning of the string.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Match the `Host` header field against the `server_name` directive with a wildcard
+    at the end of the string.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Match the `Host` header field against the `server_name` directive as a regular
+    expression.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If all the `Host` headers match `fail`, then direct to the `listen` directive
+    marked as `default_server`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If all the `Host` headers match `fail` and there is no `default_server`, direct
+    to the first server with a `listen` directive that satisfies step 1.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This logic is expressed in the following flowchart:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Table: listen parameters](img/7447OS_02_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '`default_server` can be used to handle requests that would otherwise go unhandled.
+    It is therefore recommended to always set `default_server` explicitly, so that
+    these unhandled requests will be handled in a defined manner.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides this usage, `default_server` may also be helpful in configuring a number
+    of virtual servers with the same `listen` directive. Any directives set here will
+    be the same for all matching server blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Locations – where, when, and how
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `location` directive may be used within a virtual server section and indicates
+    a URI that comes either from the client or from an internal redirect. Locations
+    may be nested with a few exceptions. They are used for processing requests with
+    as specific a configuration as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A location is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or for a named location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: A named location is only reachable from an internal redirect. It preserves the
+    URI as it was before entering the location block. It may only be defined at the
+    server context level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The modifiers affect processing of a location in the following way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Location modifiers'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Modifier | Handling |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `=` | Use exact match and terminate search. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `~` | Case-sensitive regular expression matching. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `~*` | Case-insensitive regular expression matching. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^~` | Stops processing before regular expressions are checked for a match
+    of this location''s string, if it''s the most specific match. Note that this is
+    not a regular expression match – its purpose is to preempt regular expression
+    matching. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'When a request comes in, the URI is checked against the most specific location
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Locations without a regular expression are searched for the most-specific match,
+    independent of the order in which they are defined.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Regular expressions are matched in the order in which they are found in the
+    configuration file. The regular expression search is terminated on the first match.
+    The most-specific location match is then used for request processing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The comparison match described here is against decoded URIs; for example, a
+    `"%20"` in a URI will match against a `" "` (space) specified in a location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A named location may only be used by internally redirected requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following directives are found only within a location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Location-only directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `alias` | Defines another name for the location, as found on the filesystem.
+    If the location is specified with a regular expression, `alias` should reference
+    captures defined in that regular expression. `alias` replaces the part of the
+    URI matched by the location, such that the rest of the URI not matched will be
+    searched for in that filesystem location. Using the `alias` directive is fragile
+    when moving bits of the configuration around, so using the `root` directive is
+    preferred, unless the URI needs to be modified in order to find the file. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `internal` | Specifies a location that can only be used for internal requests
+    (redirects defined in other directives, rewrite requests, error pages, and so
+    on.) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_except` | Limits a location to the specified HTTP verb(s) (`GET` also
+    includes `HEAD`). |'
+  prefs: []
+  type: TYPE_TB
+- en: Additionally, a number of directives found in the `http` section may also be
+    specified in a location. See [Appendix A](apa.html "Appendix A. Directive Reference"),
+    *Directive Reference*, for a complete list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `try_files` directive deserves a special mention here. It may also be used
+    in a server context, but will most often be found in a location. `try_files` will
+    do just that—try files in the order given as parameters; the first match wins.
+    It is often used to match potential files from a variable, then pass processing
+    to a named location, as shown in the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, an implicit directory index is tried if the given URI is not found as
+    a file, then processing is passed on to `appserver` via a proxy. We will explore
+    how best to use `location`, `try_files`, and `proxy_pass` to solve specific problems
+    throughout the rest of the book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Locations may be nested except when:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prefix is "`=`"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The location is a named location
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Best practice dictates that regular expression locations be nested inside string-based
+    locations. An example of this is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The mail server section
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The mail server section, or mail configuration context, is available only if
+    you've built NGINX with the mail module (`--with-mail`). This section controls
+    all aspects of working with the mail module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The mail module allows for configuration directives that affect all aspects
+    of proxying mail connections, as well as for specifying them per server. The server
+    context also accepts the `listen` and `server_name` directives that we saw under
+    the `http` server section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'NGINX can proxy the IMAP, POP3, and SMTP protocols. The following table lists
+    the directives that are available to this module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Mail module directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `auth_http` | Specifies the server used for authenticating the POP3/IMAP
+    user. The functionality of this server will be discussed in detail in [Chapter
+    3](ch03.html "Chapter 3. Using the Mail Module"). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `imap_capabilities` | Indicates which IMAP4 capabilities are supported by
+    the backend server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pop3_capabilities` | Indicates which POP3 capabilities are supported by
+    the backend server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `protocol` | Indicates which protocol is supported by this virtual server
+    context. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy` | This directive will simply enable or disable mail proxying. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffer` | This directive allows setting the size of the buffer used
+    for the proxy connection beyond the default of one page. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_error_message` | Useful in situations where the backend authentication
+    process emits a useful error message to the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_timeout` | If a timeout beyond the default of 24 hours is required,
+    this directive can be used. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xclient` | The SMTP protocol allows checking based on `IP`/`HELO`/`LOGIN`
+    parameters, which are passed via the `XCLIENT` command. This directive enables
+    NGINX to communicate this information. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'If NGINX was compiled with SSL support (`--with-mail_ssl_module`), the following
+    directives will be available in addition to the previous ones:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Mail SSL directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl` | Indicates if this context should support SSL transactions. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate` | It specifies the path to the PEM-encoded SSL certificate(s)
+    for this virtual server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate_key` | It specifies the path to the PEM-encoded SSL secret
+    key for this virtual server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_ciphers` | It specifies the ciphers that should be supported in this
+    virtual server context (OpenSSL format). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_prefer_server_ciphers` | Indicates that SSLv3 and TLSv1 server ciphers
+    are preferred over the client''s ciphers. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_protocols` | Indicates which SSL protocols should be enabled. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_cache` | Specifies an SSL cache, and whether or not it should
+    be shared among all worker processes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_timeout` | How long the client can use the same SSL parameters,
+    provided they are stored in the cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: Full sample configuration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What follows is a sample configuration file including the different sections
+    discussed in this chapter. Please note that this should not be copy-pasted and
+    used as is. It will most likely not fit your needs. It is shown here only to give
+    an idea of the structure of a complete configuration file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we have seen how the NGINX configuration file is built. Its
+    modular nature is a reflection, in part, of the modularity of NGINX itself. A
+    global configuration block is responsible for all aspects that affect the running
+    of NGINX as a whole. There is a separate configuration section for each protocol
+    that NGINX is responsible for handling. We may further define how each request
+    is to be handled by specifying servers within those protocol configuration contexts
+    (either `http` or `mail`), so that requests are routed to a specific IP address/port.
+    Within the `http` context, locations are then used to match the URI of the request.
+    These locations may be nested or otherwise ordered to ensure that requests get
+    routed to the right areas of the filesystem or application server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What we did not cover in this chapter are the configuration options provided
+    by the various modules that may be compiled into your `nginx` binary. These additional
+    directives will be touched upon throughout the book, as that particular module
+    is used to solve a problem. Also absent was an explanation of the variables that
+    NGINX makes available for its configuration. These too will be discussed later
+    in this book. This chapter's focus was on the basics of configuring NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will explore configuring NGINX's mail module, to enable
+    mail proxying.
+  prefs: []
+  type: TYPE_NORMAL

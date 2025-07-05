@@ -1,0 +1,1 @@
+["```\nserver {\n      listen 80;\n      server_name server.yourdomain.com; \n      access_log /var/log/nginx/log/host.access.log combined;\n\n      location / {\n          root /var/www/html;\n          index index.html; \n      }\n}\n```", "```\nmkdir -p /var/www/vhosts \n```"]

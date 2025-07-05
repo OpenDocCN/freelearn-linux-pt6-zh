@@ -1,0 +1,670 @@
+- en: All About SSLs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following recipes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic SSL certificates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling HTTP/2 on NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring HSTS in NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy SSL certificates with Let's Encrypt
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Making NGINX PCI-DSS compliant
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OCSP stapling with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Achieving full A+ Qualys rating
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The **Secure Sockets Layer** (**SSL**) standard has been traditionally used
+    to encrypt web traffic that needs to be protected, such as financial transactions
+    (for example, credit card numbers) and sensitive information. Recently, however,
+    we have seen an ever-increasing trend of encrypting whole sites and all related
+    services. The use of SSLs ensures that the whole transport of information is encrypted
+    and therefore can't be intercepted, especially, now that Google has given a small
+    **Search Engine Optimization** (**SEO**) ranking boost to sites that have an SSL
+    enabled by default. While the boost is small, Google's focus on encouraging the
+    safe transmission of data means that this will likely increase in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thankfully, NGINX's support for the latest SSL standards and the latest transport
+    standards, such as HTTP/2 (covered in detail later), means that it's getting easier
+    to efficiently deploy SSL-encrypted sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic SSL certificates
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we get started, let''s just have a refresher on how the browser-to-server
+    encryption works and what we need to consider. This is a very brief overview specific
+    to a basic web server scenario, so the process can vary for different scenarios:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/7b3f1da1-1d38-4070-bc38-5988fe4ce1da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Following are the steps that happen in a web server scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the browser communicates with the web server and requests the start of
+    an SSL handshake. This is also where the browser can let the server know what
+    cipher (encryption) algorithms it will allow.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Next, the server responds to the browser. At this stage, the server will confirm
+    which cipher (based on the list provided by the browser) will be used. The server
+    will also send a copy of the public certificate to the client. The browser will
+    then communicate with the **Certificate Authority** (**CA**) to authenticate the
+    certificate.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Next, the key exchange is kicked off. A session key is established. This key
+    is based on the public key on the client side and decoded by the private key on
+    the server side.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It's important to note that the private key is *never* transmitted; it always
+    remains on the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the session key is complete, the client will send a final confirmation
+    to complete the handshake and await a reciprocal finalization from the server
+    side.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Finally, we have a secure tunnel in which encrypted data can now be transmitted.
+    This is where the actual web content can now be sent.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To install an SSL, there are three components we need to start with. The first
+    is **Certificate Signing Request** (**CSR**). This defines the information which
+    will be contained within the certificate and includes things such as the organization
+    name and domain name. The CSR is then sent to a CA or used to generate a self-signed
+    certificate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make it easy for this recipe, we''ll use a self-signed certificate. We can
+    easily generate the CSR and then the private key and public certificate with one
+    command. For example, here''s how to generate a CSR with a 2048 bit key and 600
+    day expiry:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This example will ask a series of questions for the CSR and then automatically
+    generate the private key (`private.key`) and the public certificate (`public.pem`).
+    Consider the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/f21e29d3-e0d3-427e-aa16-4c72f89e2296.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Self-signed certificates aren't validated by browsers and are not intended for
+    production. They should be used for internal and testing purposes only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we have a certificate and private key, we can update our NGINX configuration
+    to serve SSL-based sites. Here''s our NGINX `server` directive block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you have a basic `index.html` or similar in `/var/www`, you should see something
+    like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/a10ae483-5973-4c0c-96ac-cd4b0be50bb8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The error message will vary between browsers, but they''re all simply letting
+    you know that the certificate presented couldn''t be validated and therefore can''t
+    be intrinsically trusted. For testing, add an exception here; you should see the
+    SSL site served by NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/12d166db-1c29-4a00-a046-ae67df365d1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here''s what the directives do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`listen 443 ssl`: Firstly, we tell NGINX to listen on port `443` (the HTTPS
+    standard) using the SSL protocol. Previously, we''d simply told NGINX to listen
+    on port `80`, and it used HTTP by default.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_certificate`: This is the location of the public key, which needs to be
+    in the PEM format. If your CA also provided intermediate certificates, then they
+    also need to be in this file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_certificate_key`: This is the location of the private key, and it also
+    needs to be in PEM format. This key needs to be kept safe to ensure the integrity
+    of your certificate—it should only reside on the server.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_protocols`: Here, we specify what variants of the SSL protocols we want
+    to make available. The easiest default is to support **Transport Layer Security**
+    (**TLS**), which is the successor to the older SSL protocol. As both SSLv2 and
+    SSLv3 have had significant flaws exposed in recent years, they should only be
+    enabled as a last resort.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_ciphers`: The ciphers dictate the type of encryption used and at what
+    level. The default of `HIGH:!aNULL:!MD5` means that we use only high grade (128-bit
+    and higher), authenticated (the exclamation means NOT) encryption and not MD5
+    hashing. The defaults are secure and shouldn''t be changed without a good reason.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling HTTP/2 on NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The now ratified HTTP/2 standard is based on SPDY, an experimental protocol
+    that Google developed internally. As shown in the diagram in the previous recipe,
+    establishing an HTTPS connection can be quite time consuming. With HTTP/1.1, each
+    connection to the web server must follow this process and wait for the handshake
+    to complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In HTTP/2, this handshake time is reduced, but more importantly the requests
+    are multiplexed over a single TCP connection. This means that the handshake only
+    has to occur once, significantly reducing the latency of a site for the end user.
+    In fact, it means that an HTTP/2-based site can actually be quicker than a standard
+    HTTP-based one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are a number of other benefits that HTTP/2 also provides, such as header
+    compression, a new binary protocol, and a server-based push. All of these further
+    increase the efficiency of HTTP/2, yet it also remains backwards compatible with
+    HTTP/1.1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/ebe0b455-8082-40cd-a29a-eec2725f6e0d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: HTTP/2 support
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Source: caniuse.com (April 2017)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All modern browsers (as shown in the preceding figure) support HTTP/2 natively,
+    so it's ready to deploy in production. NGINX officially supported HTTP/2 starting
+    with version 1.9.5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Based on our previous example, we only need to make one key change. Instead
+    of just specifying `ssl` as the listening protocol, we add `http2`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'No changes to protocols or ciphers are necessary. To verify that HTTP/2 is
+    working, you can use Chrome **Developer Tools** (**DevTools**) to show the protocol,
+    or an external tool, such as the one KeyCDN provides:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/8095424f-dc1d-43eb-ab9c-2af5fe1325fb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: https://tools.keycdn.com/http2-test'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While a simple page won't show the performance difference, with the average
+    page demand of around 50–70 requests we should see about 20 percent improvement.
+    For more complex sites (for example, e-commerce sites) where there are more than
+    200 requests, the difference is even more dramatic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'NGINX HTTP/2 white paper: [https://assets.wp.nginx.com/wp-content/uploads/2015/09/NGINX_HTTP2_White_Paper_v4.pdf](https://assets.wp.nginx.com/wp-content/uploads/2015/09/NGINX_HTTP2_White_Paper_v4.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring HSTS in NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**HTTP Strict Transport Security** (**HSTS**) is an enhancement to the HTTP
+    protocol that is designed to enforce strict security standards to help protect
+    your site and users. HSTS does a number of things. Firstly, it ensures that all
+    requests must be made via HTTPS. This ensures that data isn''t accidentally sent
+    via HTTP and, therefore, left unencrypted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, it ensures that only a valid certificate can be accepted. In our previous
+    examples, we used a self-signed certificate and the browser allowed us to bypass
+    the security check. With HSTS enabled, this is no longer possible. This means
+    that attempts to emulate your site or man-in-the-middle attacks where a different
+    certificate is used are now no longer possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To enable the use of HSTS, we add an additional header to our `server` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This header specifies the `max-age`, which in our case we have set to `31536000`
+    seconds (which is 365 days). This means that the browser will cache the HSTS settings
+    for an entire year and ensure that all requests for the next 365 days will be
+    HTTPS only for your domain. It will also only accept the official certificate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There''s only a small point to remember: If you specify adding a header elsewhere
+    (for example, a `location` block), you will need to redeclare the HSTS header.
+    Consider the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we added access control headers, we needed to redeclare the HSTS header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Easy SSL certificates with Let's Encrypt
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let's Encrypt is a free, automated CA, which is made possible due to the sponsorship
+    from companies such as the **Electronic Frontier Foundation** (**EFF**), Mozilla,
+    Cisco, Akamai, University of Michigan, and over a dozen others. Organized by the
+    **Internet Security Research Group** (**ISRG**), Let's Encrypt has already issued
+    over 4 million certificates (as of May 2016), and the rate is growing exponentially.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the free component may see the biggest drawcard, it's the automation that
+    is the key point. For those who have previously gone through SSL generation through
+    a traditional CA, it needs to have either file-based or email-based validation
+    of the domain. If you have multiple domains, this process becomes quite time consuming
+    to do over and over.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thankfully, the Let's Encrypt CA is fully API-driven, and they even include
+    a client to automate everything from the validation to the update of the NGINX
+    configuration. There are also extensions for popular web control panels to automate
+    the process as well, such as Plesk and CPanel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The official Let''s Encrypt client, recently renamed Certbot, is easy to use
+    and install. The installation is the same for most distributions, and has been
+    greatly simplified compared to the Let''s Encrypt beta phase. Here''s how to install
+    it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](img/1a9ec682-9cc6-4929-9039-13f3b78afcf3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This will download and install all of the required Python packages for your
+    system, then create the Certbot-specific **Virtual Environment** (**Virtualenv**).
+    Depending on the speed of your system, this may take up to five minutes to complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, the NGINX plugin to automatically create the configuration isn''t
+    complete yet, so we need to manually edit our configuration. First, let''s generate
+    the certificate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will present us with two options for domain validation: It can be achieved
+    either by placing files within your existing `webroot` directory or by running
+    a temporary web server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/e4c24310-6a84-4a6d-a042-2c024ff9179c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: I find that the standalone web server is the most flexible option, especially
+    if your NGINX configuration doesn't serve static files. However, it does require
+    you to stop any services using port `80` first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, the wizard will ask you for an email account. This is used to notify you
+    when your certificate is about to expire or to notify you if it has been revoked.
+    You'll then need to enter the domain name to generate the SSL certificate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This domain has to be valid and the DNS pointed at the server for it to validate
+    correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If Certbot was able to validate, you should see a notice letting you know your
+    certificate is ready:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/4c37b571-5660-4dbc-838b-b2a8f1164598.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'It''s worth noting that while the expiry date looks short (90 days), it''s
+    designed to be automated for renewal. We can run the renewal process with the
+    following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: As this can be run noninteractively, you can set it to autorenew via a Cron
+    call or similar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we have a certificate pair (located in `/etc/letsencrypt/live/`), we can
+    now create an NGINX configuration to use them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With our new configuration loaded, we can verify that the certificate is valid:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/e01cc8d7-6886-4b12-ae09-7a1e9e53c0e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As the Chrome DevTools show, the certificate used is validated by the browser
+    and gives the green lock for confirmation. There's no difference in this certificate
+    compared to other CAs, except you can automate the generation and renewal!
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The official Certbot site: [https://certbot.eff.org/](https://certbot.eff.org/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Making NGINX PCI DSS compliant
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The **Payment Card Industry Data Security Standard** (**PCI DSS**) is a set
+    of 12 security standards designed to ensure the secure transmission and storage
+    of payment-related information. These standards set out a stringent set of rules
+    covering everything from server security to policy and business standards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll focus only on one part of Requirement 4, which is entitled *Encrypt transmission
+    of cardholder data across open, public networks*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For the secure transmission of PCI DSS data with NGINX, there are a few tweaks
+    required to achieve a standard configuration. As of version 3.2 of the standards,
+    the use of the SSL protocol or TLS 1.0 requires additional checks and assessment.
+    Unless it''s absolutely necessary for the backwards compatibility of old equipment,
+    we highly recommend that you disable them. Here''s our working configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let''s look at some of the differences:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`listen 443 http2 default_server;`: We add the `default_server` so that NGINX
+    has a default configuration it will use during the negotiation phase. This is
+    because the **Server Name Indication** (**SNI**) only occurs after the connection
+    has been negotiated. Without specifying the `default_server` directive, the initial
+    handshake would revert to TLS 1.0 (the NGINX default).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_protocols TLSv1.1 TLSv1.2;`: We specify only the TLS 1.1 and 1.2 protocols,
+    which disables the older 1.0 (vulnerable to POODLE attacks). This also ensures
+    that the older SSLv2 and SSLv3 remain disabled as well.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_ciphers HIGH:!aNULL:!MD5:!kEDH;`: While this doesn''t look much different
+    to our previous examples, we have added the `!kEDH` parameter to the end. This
+    disables the basic Diffie Hellman key exchange (vulnerable to LOGJAM) while still
+    allowing the more efficient, **Elliptic curve Diffie-Hellman** (**EECDH**).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'With this combination, we''re able to achieve an A+ rating with the High-Tech
+    Bridge SSL Server Test, along with a confirmation that the settings are PCI DSS
+    compliant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/aa252fc8-5f2f-4e79-a247-c1b01a170623.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The official PCI-DSS site: [https://www.pcisecuritystandards.org](https://www.pcisecuritystandards.org)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'High-Tech Bridge SSL Server Test: [https://www.htbridge.com/ssl/](https://www.htbridge.com/ssl/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OCSP stapling with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Online Certificate Status Protocol** (**OCSP**) is one of the main protocols
+    used for checking for revoked certificates. This is important in order to ensure
+    that if a server or certificate was compromised, the certificates can be replaced
+    and the old ones revoked to prevent fraudulent use.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These checks can be time consuming, as the browser has to validate the certificate
+    the first time it's used. OCSP stapling is an alternative to OCSP, and alleviates
+    some of the latency issues associated with OCSP. It does this by stapling a cached
+    result directly to the main request. As this result is still signed by the CA,
+    it means that the results are just as secure, yet with no additional latency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In order to use OCSP stapling, we need to add two additional lines to our `server`
+    directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means that the server is now responsible for the initial OCSP lookup and
+    will then send every subsequent request with the cached result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can verify that this is working with the Qualys SSL Server Test, and we
+    should be looking for the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/a4887118-8874-4a9f-b811-bac36cd0e1fc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: CloudFlare (a content distribution and website performance platform) claims
+    that OCSP stapling saves up to 30 percent of the SSL negotiation time, so enabling
+    this is key for maximizing website performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The OCSP stapling Wikipedia page: [https://en.wikipedia.org/wiki/OCSP_stapling](https://en.wikipedia.org/wiki/OCSP_stapling)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Qualys SSL Server Test: [https://www.ssllabs.com/ssltest](https://www.ssllabs.com/ssltest)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Achieving full A+ Qualys rating
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the benchmarks for configuring an SSL-based site is to achieve an A+
+    rating using the Qualys Server SSL Test. This is because Qualys has set a stringent
+    set of expected results and minimum standards, designed to ensure that your website
+    is as secure as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Achieving this requires you to disable old protocols and ciphers, much in the
+    way we do for PCI-DSS configurations. In fact, the basic PCI-DSS configuration
+    we tested earlier already achieves an A+ rating. We're going to take it and go
+    a bit further to give the ultimate SSL configuration for NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of these changes can cause backwards compatibility issues with older devices
+    and browsers. Ensure you test it against your intended target audience thoroughly
+    before using it in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before we start, here''s what a basic configuration (for example, our Let''s
+    Encrypt recipe) achieves:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/ddc1856b-1a13-40c0-9107-756a447f1aea.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A `B` score isn't bad, and the main area it's downgraded for is the weak Diffie-Hellman
+    key exchange. We'll ensure this isn't an issue in this recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first thing we need to do is regenerate our certificate to ensure that it's
+    4096-bit for the RSA key. Most CAs issue a 2048-bit certificate, which will only
+    give us 90 percent for the Key Exchange evaluation. If you're using Let's Encrypt,
+    you'll need to generate the certificate with the `--rsa-key-size 4096` parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s our `server` directive, which has been based on the PCI-DSS configuration
+    and tweaked further:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this set, we achieve A+, as shown in the following image:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/cd128382-08dc-4abf-af1c-6d15768ccf03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Using the High-Tech Bridge SSL Server Test we also achieve full NIST-recommendation
+    compliance as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/eecb7308-a43d-455b-b140-186631e5bef5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To restate the note at the start, the more stringent the security rules, the
+    greater the chance of issues with older systems and browsers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Firstly, we only allow TLS 1.2\. Qualys to require this for the 100 percent
+    protocol grading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we set a very limited number of ciphers, all of which are 256 bit or higher.
+    We've also set it to use EECDH only, to enforce forward secrecy. This is combined
+    with the 384-bit curve (`secp384r1`), which is the grade that the NSA mandate
+    for top-secret graded documents. This is roughly the equivalent of a 7680-bit
+    RSA key, so don't be fooled by the lower bit count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Qualys SSL Server Test: [https://www.ssllabs.com/ssltest](https://www.ssllabs.com/ssltest)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Qualys Server Rating Guide: [https://github.com/ssllabs/research/wiki/SSL-Server-Rating-Guide](https://github.com/ssllabs/research/wiki/SSL-Server-Rating-Guide)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

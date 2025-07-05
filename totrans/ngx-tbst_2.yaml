@@ -1,0 +1,1228 @@
+- en: Chapter 2. Searching for Problems in Log Files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx really is a breakthrough technology powering a great part of modern Web.
+    And as with all great technologies, it stands on the shoulders of giants. Nginx
+    would not be possible without Apache. One very important Unix tradition that Nginx
+    embraces fully is thorough logging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logs are what you turn to the moment there is a problem with your Nginx instance.
+    For a daemon, there are not really many ways to communicate its state to the administrator
+    in a simple, reliable, and guaranteed to work way other than logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will find the following topics in this chapter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A comprehensive description of how Nginx logging is configured and what mistakes
+    could be made in the configuration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A special section on how to log POST request bodies
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A section on how log rotation works and why there is some potential for problems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A series of real-life error records from logs with analysis
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring Nginx logging
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are two types of logs that Nginx may write. One could also say that there
+    are infinite types because of the `log_format` directive that allows you to create
+    your own types of logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To refresh your memory about what directives are used to configure Nginx logging,
+    here they are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `error_log` directive configures the logging of exceptional events that
+    the developers of Nginx consider worth noting. Usually, this is all kinds of errors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The format of the directive is this:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Note
+  prefs:
+  - PREF_IND
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The first parameter is usually a path to the file with the log. Recent versions
+    of Nginx starting with 1.7.1 also support logging via syslog, to a local or remote
+    syslog server. There is also a rarely used misnamed special value `stderr`, which,
+    by the way, does not redirect logging to `stderr` (the third standard `stdio`
+    stream or `&2` in shell terms) because it does not make much sense to log to `stderr`
+    from a daemon—daemonization involves closing all standard file descriptors. The
+    `stderr` value means "log into the file that was configured during compilation
+    time" and that depends on the package or even the OS distribution you use. You
+    will mostly want to specify an actual file instead of `stderr` just to be sure
+    where it ends. By the way, to make things more confusing, there is a way to specify
+    logging to actual `stderr` during compile time. It is not very useful for daemons;
+    you will not probably ever use it.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: You often want several error logs. Remember that in [Chapter 1](ch01.html "Chapter 1. Searching
+    for Problems in Nginx Configuration"), *Searching for Problems in Nginx Configuration*,
+    we discussed multiline configuration directives named contexts. They provide a
+    topic, that is, a narrow scope for the directives inside them. You may (and that
+    is usually a very good idea) have different log files in different contexts. And
+    using `stderr` prevents that because everything will get written to the same place.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The `log level` parameter of the `error_log` directive is a way of specifying
+    a threshold of severity of events that end up in the log. Most of the time, you
+    will want to set this to `warn`, but feel free to increase up to `debug` whenever
+    you have a reproducible problem that you want more information about.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The `debug` level requires a special compile-time switch. The reason for this
+    is that `debug` logging makes some performance compromises and the code for it
+    should not be included in production systems, ideally. Unless Nginx is really
+    your bottleneck (a rare situation), you may safely use `--with-debug` when compiling
+    Nginx. See a little more about it at [http://nginx.org/en/docs/debugging_log.html](http://nginx.org/en/docs/debugging_log.html).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The other logging directive is `access_log`. And it includes much more functionality
+    than `error_log` and also more potential for mistakes. Let's look at it more closely.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This is how access logs are configured:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The idea of access log is to have a journal of all request-response pairs processed
+    by Nginx. As opposed to the error log, the records in access logs have a thoroughly
+    specified format, usually a chain of whitespace-delimited values that contain
+    some information about the current request-response pair or general state of Nginx.
+    All access log records have this format. Access logs and error logs work together.
+    In case Nginx has something unusual to say about a request it processes, you will
+    find a strictly formatted line of data in your access log and then some warnings
+    or errors of mostly free text nature in your error log.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The `destination` parameter takes the same values as the respective parameter
+    of the `error_log` directive. You may still log to syslog or a file.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_IND
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Modern Nginx also has an interesting performance feature of buffered access
+    logging. You will find more information about turning buffered logging on with
+    flush or gzip arguments at [http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log).
+    Do understand what buffering means before turning it on. One of the expected features
+    of all error reporting mechanisms is being real time and buffered logs are exactly
+    the opposite, that is, log records are not written to disk and not made available
+    for inspection immediately. They are held in the buffer for some time. You will
+    need this only in high-load scenarios where writing logs starts to take noticeable
+    time because of the disk waits.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The `log format` parameter of the `access_log` directive is the heart of access
+    logging. It expects a name of a template that models each record in the log. You
+    create such templates with the `log_format` directive. There is a predefined format
+    named `combined`, which is also a good example to show here:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: As you can see, the `log_format` directive's second argument is a long line
+    of variables with "talking" names. All characters between and around variables
+    will be included in the log. Variables will be evaluated at the time of logging,
+    and their values will take their places.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s look at a real example of a log record generated with this very template:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You are probably very familiar with the combined log format from previous experience
+    with Nginx, Apache, or some other web server software. Still, going through the
+    individual items of each combined log line with us may provide you with some nonobvious
+    insights. Let''s parse the example record and learn some facts about those variables
+    along the way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the IP address of the computer that made the request to our server.
+    Never ever parse it as four decimal integers delimited by dots. Even the `[0–9.]+`
+    regexp is not good enough. Can you guess the reason? Here it is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are living in the age of IPv6 in production. Big websites see 1–7% of their
+    traffic on IPv6 (data from the end of 2015). Nginx is fully ready, so make sure
+    your log parsers are too. |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| The first dash is legacy. When this particular log format was born long ago
+    and long before Nginx, there was this interesting protocol named `ident`, which
+    allowed a host to make a connection back to the client computer and ask for the
+    name of the user that initiated a particular TCP connection. See RFC 1413 ([https://tools.ietf.org/html/rfc1413](https://tools.ietf.org/html/rfc1413))
+    if you are curious, but we should say that `ident` is long dead and not used anywhere
+    but IRC networks. Nginx didn''t even bother with implementing it; this field should
+    be hardcoded to `-` always.The next dash is for "remote user" as identified by
+    the HTTP auth mechanism. Which is a bit more popular than ident but not by a big
+    margin. There is one case where HTTP auth is used relatively often, that is, closing
+    test versions of websites from prying eyes (read: GoogleBot and other less discriminating
+    crawlers). See the online documentation for how to configure HTTP auth at [http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the date/timestamp of the log record. Not the most convenient date/time
+    format to parse, for sure. Be careful dealing with time zones. It still allows
+    prefix matching, and you probably often do something along the lines of:**% fgrep
+    "01/Feb/2016:12:01:" /var/log/nginx/access.log** to filter all the page hits processed
+    during a particular minute.This is a more complex version that should be in your
+    toolkit too:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It will print the number of hits you had during each minute of the day. With
+    this command, you can identify spikes that may signal a problem.Interestingly,
+    the original version of this was easier:**% cat /var/log/nginx/access.log &#124;
+    awk -F : ''{print $2 ":" $3}'' &#124; uniq -c** but then again, IPv6 came into
+    our lives. |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is a string representation of the whole HTTP request. What to look for?
+    You will be surprised by how often, along with `GET` and `POST`, you will see
+    `HEAD` requests. It is a rarely discussed younger brother of GET, which is not
+    supposed to return an actual body—only the headers of the response.You will not
+    see `HTTP/1.0` as a protocol very often. Modern browsers will issue `HTTP/1.1`
+    requests. All other values here should raise a flag. You will see things such
+    as `SIP/2.0` or `RTSP/1.0` there; these are legitimate protocols indeed but requests
+    for those on a website and not a `SIP` or `RTSP` endpoint are signs of scanning
+    from malicious actors (or researchers). |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the HTTP status code. Anything besides 2xx or 3xx here indicates
+    an error. For a comprehensive, modern, and authoritative list of HTTP status codes,
+    please look no further than RFC 7231 ([https://tools.ietf.org/html/rfc7231](https://tools.ietf.org/html/rfc7231))—a
+    rather new and long-awaited update on the HTTP/1.1 specification released in June
+    2014. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This one does not need an explanation. We should add that it already accounts
+    for any compression. It may also be used as a quick indicator of problems on the
+    backend. After some time, you will learn to spot unusually small response sizes,
+    which mean that the backend tumbled and generated a short error page instead of
+    a normal response. Proper backends will also send a non-2xx status code but not
+    all (and not even many) backends behave.This small Perl script searches for response
+    sizes that are less than a tenth of the average for that URL and also less than
+    some hard-coded chunk size threshold that is commonly used to download a part
+    of a file: [http://kapranoff.ru/~kappa/nginx-troubleshooting/blips.pl](http://kapranoff.ru/~kappa/nginx-troubleshooting/blips.pl).We
+    will not go over it line by line; it is just an example anyway. The idea is to
+    make two passes of the log. First, to calculate the average bytes sent for each
+    URI served, and second, to actually find outsiders. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| These are taken directly from HTTP request headers; they are sent by the
+    HTTP client, usually a browser. This makes them interesting, but also non-reliable.
+    They are, basically, strings sent to your server over the network. You cannot
+    trust anything sent by the client. You will routinely see some fantastic user
+    agent strings claiming to be from the future or from the past. You will also see
+    referrer URLs that point to some totally bogus websites that do not contain any
+    links to your site and instead try to infect you with all kinds of malware du
+    jour.On the bright side, we do remember the excitement of seeing the first iPhones
+    in our access logs during the late summer of 2007\. That was fun. |'
+  prefs: []
+  type: TYPE_TB
+- en: There is a lot of information that you can add to your access logs using different
+    variables that Nginx provides during processing of each request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The whole list of them is at [http://nginx.org/en/docs/varindex.html](http://nginx.org/en/docs/varindex.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also several variables that are available only during log record generation
+    and are listed in the description of the `log_format` directive at [http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format](http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recommendation is to keep saving logs in the `combined` format to be able
+    to use a huge number of tools that community has created over the years. In addition
+    to these, you may create some extended logs with more data to help you debug problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a list of variables that are often useful but not included in the default
+    `combined` format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| The ratio of compressed response size to the original or `"-"` if the response
+    was not compressed. This does not seem important, but it makes `$body_bytes_sent`
+    more useful. Having this variable helps you to spot clients that do not support
+    gzip compression. For them, `$body_bytes_sent` will be higher than usual. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| The exact timestamp up to milliseconds. This is the same information that
+    is available in human-readable form with `$time_local`, but milliseconds are important
+    once you have a lot of hits each second. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| The size of the HTTP request. GET requests are generally short, but once
+    they get beyond a kilobyte, you should think about having too many cookies accompanying
+    each request. POST requests may be of any size and if your application has to
+    accept important data from users, such as files or filled forms, you will want
+    to monitor the size of those requests. A technique to log the contents of POST
+    requests is described later in this chapter. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| The time between the beginning of the request and the end of the response
+    phases. Basically, this is your atom of performance data that includes both the
+    network and processing delays. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the content type of the response in the familiar form of something
+    like `text/html` or `application/pdf`. It is not essential but helps when looking
+    at logs of modern web applications and spotting that some JSON handler suddenly
+    emitted a simple text/html response. It is also useful to calculate the total
+    traffic divided by types of data. There is a whole family of `$sent_http_*` variables
+    that correspond to the generated HTTP response headers. You may want to research
+    what else is there.MIME types that we mention here are also discussed in [Chapter
+    1](ch01.html "Chapter 1. Searching for Problems in Nginx Configuration"), *Searching
+    for Problems in Nginx Configuration*. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| The asterisk should be replaced by the name of one of your cookies. Most
+    modern websites have some mechanism of stateful user sessions. Usually, there
+    is a cookie named `session` or `session_id` that allows the restoration of a chain
+    of requests that were made by one user inside one session. The remote IP address
+    is used for that when analyzing standard combined format logs, but this may and
+    will fail on users with the same IP or the same user hopping between IP addresses
+    (both are absolutely normal situations). |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This one contains the hostname that processed the request. It may seem redundant
+    because, generally, different hosts will log in to different files. However, you
+    would be surprised to know how often logs from several hosts are processed together
+    whether just on the same log storage cluster or even using the same log analyzer
+    software. Having the hostname right there in the logs creates some additional
+    freedom of not caring about filenames of the logs, and once you get tired of running
+    greps against files and load everything into a database, you will remember the
+    time you decided to include `$host` and thank yourself. |'
+  prefs: []
+  type: TYPE_TB
+- en: Logging POST requests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once you start debugging a problem with a web application that runs behind one
+    of your Nginx instances by tracing user requests and application responses via
+    access logs, you will see that GET/HEAD requests are logged fully while POST request
+    log records lack any information except the URI to which the data was posted.
+    This is one of the questions that many system administrators ask, especially after
+    trying to get away with `tcpdumps` only. `tcpdump` is a wonderful Swiss army knife
+    of protocol tracing, but it requires active participation during the events that
+    need to be traced. And tracing HTTPS with `tcpdump` is very hard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx is able to log POST request bodies and many more. You should already be
+    fully equipped to at least try to implement such a logging yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember that we talked about custom log formats and using variables to record
+    the state of requests and responses. If you search through the list of variables
+    available during request processing, you will see the variable named `$request_body`.
+    See [http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s invent a simple log format including `$request_body`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we enable logging with this format by adding this directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember that the `log_format` directive should be used in one of the higher
+    contexts, for example, the `http` context. Multiple `access_log` directives may
+    be in effect for all the requests, and because of this, we do not need to specify
+    the rest of the variables in the template for the `request_body_log` format. Your
+    usual preconfigured combined-formatted logs will still get written to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What would we see in `requests.log` for some simple GET requests to download
+    a couple of static files?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Make sure that you understand the result before proceeding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we need POST requests. And POST requests to static files are useless. They
+    never happen in real life. Clients POST data to web applications, and for Nginx
+    administrators, a web application is an upstream to which Nginx proxies the requests
+    and from which it proxies back the responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose that we build something like this. It will be a very simple Dancer application
+    in Perl accepting a simple POST and responding with a piece of *dynamic HTML*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The source code is at [http://kapranoff.ru/~kappa/nginx-troubleshooting/simple-post.pl](http://kapranoff.ru/~kappa/nginx-troubleshooting/simple-post.pl):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Logging POST requests](img/B04329_02_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Now we will set up a proxy inside our Nginx instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will point our browser to `http://localhost/simple-post`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If the Dancer app is running, you will see a simple form of one field and a
+    button. Type in something, click on the button and rush to your `requests.log`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first line is the empty body of the GET request for the form, whereas the
+    second contains the body of the POST that the form generated with the help of
+    your browser. There are two ways an HTML form may be encoded into a POST body;
+    this one is the default **application/x-www-form-urlencoded**. The other one is
+    **multipart/form-data;** it is widely used for forms that allow file uploads.
+    This is a little bit out of scope of this book already. We should add that form
+    encodings are quickly becoming a thing of the past because more and more POST
+    bodies are constructed by the client-side JavaScript and the browsers themselves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is important here is that you now have a simple way to log what is coming
+    your way via POST requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditional logging
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This example will also allow demonstration of one of the more recent Nginx logging
+    features named *conditional logging*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The directive `access_log` has a number of optional parameters and among them
+    is a parameter `if` that specifies a condition on which a record is appended to
+    this particular access log. When we configured request body logging in the previous
+    section, we still ended up with a log full of "-"`;` those are empty bodies of
+    all the non-POST requests. Let''s fix that. First, we add a condition to our `access_log`
+    directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: The condition that we use is a simple custom variable. We intentionally show
+    this technique using syntax very similar to what is documented in the official
+    documentation at [http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So the next step for us is to create this variable. There are several ways to
+    create a variable in Nginx. The most straightforward is using the `set` directive
+    inside an `if` context. But it is a good habit to cringe any time you see an `if`
+    directive in Nginx configuration. `if` should always be the last choice. Remember
+    that there is no programming inside configuration files; everything should be
+    as declarative as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And there is a good declarative way to create a variable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is everything you need to do to enable conditional logging. If your Nginx
+    version is modern enough, you will get only bodies of POST requests in your `requests.log`
+    from now on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a probability that your Nginx is not modern enough (at least 1.7.0
+    is required). Use `nginx -t` to test the configuration. Can you think of a way
+    to work around the problem without upgrading Nginx? This is not a hypothetical
+    question. Running Nginx installed from packages provided by your distribution
+    is highly recommended, and they are notoriously not up to date.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logging big request bodies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is one more thing to tell you about logging request bodies. Actually,
+    two things that will manifest in exactly the same way while having different reasons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The variable `$request_body` is not guaranteed to have any content even in
+    the case of a good POST request with data inside. The first possible reason for
+    an empty `$request_body` is a situation where Nginx has decided that parsing the
+    body is not needed and optimized it away. That is a documented behavior that still
+    strikes in the least expected moments. The documentation says clearly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"The variable''s value is made available in locations processed by the proxy_pass,
+    fastcgi_pass, uwsgi_pass, and scgi_pass directives."*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'See for yourself: [http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are the only four cases in which Nginx populates the `$request_body` variable.
+    Fortunately, POST requests to locations that do not contain any of those directives
+    are very rare. POSTs are intended to accept data from clients and feed to server
+    applications for which Nginx is acting as a proxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Be careful not to harm yourself debugging empty request bodies for some uncommon
+    configuration with POST requests and no proxying directives in that context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other reason for empty `$request_body` is the request being too large. If
+    the size of the request body exceeds the value set up by the `client_body_buffer_size`
+    directive, it is not available via `$request_body` variable. Instead, the whole
+    body is saved to a temporary file on the file system, and its name is written
+    into the new `$request_body_file` variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is also another very interesting directive named `client_body_in_file_only`
+    that provides a way to always save requests to files. It may be used instead of
+    the mechanism that we showed earlier altogether! You will add `$request_body_file`
+    to one of your log formats and turn on `client_body_in_file_only`. After this,
+    Nginx will create an ever-growing store of files containing all your request bodies.
+    Do not forget to clean them up from a crontab or they will fill the filesystem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating infrastructure around logs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Okay, let's do some arithmetic. Suppose that you have a rather popular but not
+    on a world scale (yet) website with about 50,000 visits per day. This is a number
+    that managers brag about during their meetups; they get it from some analytics
+    software. It almost means nothing regarding your job. Because what is a visit?
+    Let's say that what you have is an e-commerce site; you sell some nonseasonal
+    stuff, for example, power tools. Your average visitor will look at one to two
+    pages with spikes to early tens when actually choosing and buying something. Let
+    it be three pages per visit on average. What is a page? For you, it is a series
+    of HTTP responses—the main document and all the embedded objects. People notoriously
+    underestimate the sheer size of modern web pages. It would be a safe bet to say
+    that your pages include on average 100 objects (HTML documents, images, scripts,
+    style sheets, and so on) amounting to the size of over a megabyte.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will be 100 x 3 x 50,000 per day or 15,000,000 / 24 / 3600 = 174 requests
+    per second (RPS) on average. Averaging RPS during the day will render a rather
+    useless number unless you operate in all world's time zones and that is not very
+    common for websites selling actual material stuff. There is a good enough heuristic
+    to estimate peaks—multiply average by 10.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we have a number of lines in your daily access log (15 million) and a very
+    rough upper limit of logging rate that you will have to deal with (a thousand
+    and a half lines a second). These numbers all mean that you need tools because
+    a human being is not able to consume all this information in time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring log rotation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main and simplest tool to make the amount of logging data more manageable
+    is log rotation. You probably have it set up already. There is a pretty standard
+    log rotator included in many Linux distributions uninventively named `logrotate`.
+    Its FreeBSD counterpart is `newsyslog`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Examples of Nginx log rotation configuration in `logrotate` and `newsyslog`
+    are shown here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is an example of `logrotate` configuration from a Linux box:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Configuring log rotation](img/B04329_02_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And this is a sample configuration of `newsyslog` from a rather modern FreeBSD
+    server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Configuring log rotation](img/B04329_02_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: What they do is take care of huge logs by creating an archive of old records
+    based on time and size of current files. It is not exactly rocket science, but
+    there are at least several pitfalls attracting people by the numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, do have free space monitoring. And also do have monitoring of your free
+    space monitoring. It is a surprisingly popular cause of major malfunctions. Just
+    as the publisher warned us that the hard drive will fail while we are writing
+    this book, because they always do, we will take the liberty of warning you that
+    at least once in your career, disks will become totally filled up with logs. Usually,
+    this leads to some very unpleasant effects but is easily fixable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are preventing measures? Set up a log store. It should be a couple of separate
+    machines with huge and cheap (with rotating parts) mirrored disks that store your
+    logs indefinitely. Their goal is to relieve your workhorses, actual web servers
+    from storing log archives and from running heavy greps and messing with performance.
+    And your rotation procedures should include copying each archive to the log store
+    after it is created. Your processes will get a little more complex because you
+    will have your most current log still spread out on your web servers, whereas
+    older data will already be archived away to the log store, but it is totally worth
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, move to a better compression algorithm than the default gzip. In this
+    particular case of logs, you may save up to 50% of space just by switching from
+    gzip. logrotate supports specifying the command it will use for compression while
+    newsyslog has native support for both bzip2 and xz compression. xz is usually
+    better. The only downside of using xz is high memory requirements; keep this in
+    mind. A separate log store, again, is very useful. It may also be configured to
+    recompress gzipped files into xz thus saving space without sacrificing performance
+    on the web servers. The idea is to gzip the logs on the web servers, move them
+    to the log store cluster, decompress them, and compress again with xz.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second important part to log rotation is not losing a single record during
+    the actual rotation. The optimal algorithm looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, imagine that Nginx is up and running and writing log records to
+    some `access.log` files.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A log rotator is fired and the `access.log` is chosen for either size or age
+    reason.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The log rotator renames the `access.log` according to the rotation scheme, for
+    example, to `access.log.0`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The log rotator creates a new empty `access.log`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Now, Nginx does not lose any access to the older file because it has its descriptor
+    and the filename does not matter after the file is open by a process. So, Nginx
+    continues to write records to `access.log.0` file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The log rotator cannot compress the old file because it is still written to,
+    so it signals Nginx to release the old file descriptor and to reopen the log file
+    by its name again.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Nginx is happy to oblige. The new empty `access.log` gets opened and starts
+    to receive new log records, whereas the old file is ready to be removed after
+    compression.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The log rotator runs the compressor that creates a new file `access.log.0.xz`
+    while deleting the old log.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It looks surprisingly complex for a seemingly simple procedure. The reason is
+    steps 4, 5, and 6, which guarantee that logs are not renamed and deleted without
+    Nginx knowing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is nothing Nginx-specific here. It just so happens that the authors thought
+    about this problem and implemented the special `reopen` command in Nginx, which
+    is initiated by the USR1 signal to the master process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your log rotator omits the command altogether, the rotation will not work
+    at all—Nginx will always write to the old log without noticing that you renamed
+    it. And trying to compress a file that is currently appended to is a recipe for
+    losing some lines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your log rotator will restart Nginx on each rotation, then your logs will
+    be okay, but you may lose some performance if you do graceful restarts (with the
+    SIGHUP signal). You may even lose some requests if you do hard restarts (the old
+    `apachectl restart` command-style restarts are not supported by Nginx executable
+    but could be implemented with init scripts of your OS).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working with a lot of log data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once your Nginx installation starts to get more than several thousands of users
+    a day, you or your managers will definitely want to get more insights from those
+    logs. Your job will be to provide an infrastructure for that and troubleshoot
+    problems. You can also piggyback on that endeavor to end up with a great real-time
+    search of all your logs much more efficient than the good old grep.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The evolution of log analytics through the years is an interesting and huge
+    topic mostly outside the scope of this book. Many of us remember the (in)famous
+    Webalizer and AWStats packages. They are still perfectly functional, by the way,
+    even if a bit rusty. It is not recommended to invest in these tools for modern
+    websites though. They are not very efficient, and you will have a hard time adding
+    the features that are expected these days.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some of the newer solutions that are available on the market are summarized
+    below. By all means do your own research. This is really a giant topic in itself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The logstash/ElasticSearch/kibana stack is a combination of Java-based tools,
+    each of which deserves a whole book devoted to it. A working deployment allows
+    you to store all your logs in a database indexed for all needed types of queries
+    and reports. The kibana part of the stack provides gorgeous visualizations of
+    time-based data. Logs are exactly that and fit perfectly. Maintaining an instance
+    may quickly become a full-time job.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scribe is a central logging solution developed, open sourced, and then abandoned
+    by Facebook. It is of historical interest only. Facebook has moved on from Scribe
+    and if you still have a Scribe installation or have inherited one, you are in
+    trouble. One of the easier alternatives is fluentd.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Fluentd** is a modern centralized logging system written in Ruby. It may
+    be compared to the logstash part of the first stack. It has pluggable inputs and
+    outputs. Once you have it configured to consume Nginx logs, it may feed the results
+    to an ElasticSearch instance.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Apache Flume** is an older project in the family of Apache Hadoop stack of
+    technologies. It is used to collect data into your HDFS (which is the storage
+    for Hadoop). It is sometimes used for web logs too.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Splunk** is a commercial full-stack solution in order to collect, parse,
+    store, and query logs. It calls itself "Google for your logs", and we will not
+    comment on that. Splunk is interesting because it is also widely used to do real-time
+    monitoring of incoming logs. A good example of such a task is intrusion detection.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reading logs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The most interesting part for many readers ahead is that we will show you examples
+    of different records from real Nginx log files and analyze what happened and how
+    to fix it in each case. These will be rather simple situations many of which could
+    be either familiar to a seasoned web system administrator or evident from the
+    message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We still recommend following each and every example. Sometimes, people develop
+    a kind of selective blindness to things they do not understand fully. It is also
+    very natural to skip unknown parts and to try to deduce their meaning from what
+    they are surrounded with—this is how language learning works both for children
+    and adults. Alas, human languages are highly redundant and therefore are specially
+    catered to nonperfect, lossy understanding. Logs are usually not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with a very simple and very famous 404 error – and how it looks
+    from two perspectives, error log and access log.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The record from error log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now the record about the same event from the access log in `combined` format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will break them both down now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Error log record
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is obviously a timestamp, but note that it does not contain any time
+    zone information. It is local time as seen by the server in its configured timezone.
+    This minor fact means that when you transfer this log file into another timezone
+    and do not save timezone information somewhere, your software may become confused
+    and apply the new local timezone. After this, comparing this timestamp with the
+    timestamp from `access_log` would be wrong. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the severity level of the message. Remember that earlier in this
+    chapter we discussed the format of the `error_log` directive and there was this
+    second parameter, the threshold. Well, this is the field that gets compared to
+    the configured threshold to determine whether a particular message is serious
+    enough to bother this particular system administrator with. Other possible values
+    include things from `debug` to `emerg` (short for emergency). See the `error_log`
+    directive documentation at [http://nginx.org/en/docs/ngx_core_module.html#error_log](http://nginx.org/en/docs/ngx_core_module.html#error_log).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Now, this part is not understood by many people. The pair of numbers gives
+    information about which path of the Nginx ensemble of processes put this record
+    into the log. The number before `#` is the PID, the identifier of the process,
+    and the second number is the thread identifier or TID. TID is usually `0` on current
+    Nginx on Linux. On Windows, it may be some big number. Nginx does not use multithreading
+    in its current version. There are rumors that threads will be much more prominent
+    on all platforms in Nginx 2.0. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the identifier of the connection in the context of which this error
+    happened. Actually, it is an integer counter, and it allows you to group errors
+    by connections. By the way, the connection number and also the TID part of the
+    previous item are not recognized by many Nginx users. Take some of your colleagues
+    by surprise and ask about it sometime just for fun. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the actual error message formulated by Nginx accompanied by the OS-level
+    `errno` number (`ENOENT` in this case) and `strerror` message in parentheses.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is the addresses of both sides of the connection. We have Nginx running
+    right here on the workstation. This is why we see the connection over the loopback.
+    Nginx has chosen not to do reverse DNS resolving of the client addresses for performance
+    reasons, whereas the server name is known beforehand. This is why we see the same
+    address in both IP and domain name forms. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Now, these are the data about the actual request. First, the string representation
+    of the request itself and then the host value taken from the Host: HTTP request
+    header sent by the browser. |'
+  prefs: []
+  type: TYPE_TB
+- en: It is interesting that besides the very first items in the record everything
+    is more or less free-form and not required. The timestamp is obviously always
+    there as are the pid and the tid (especially if it is a constant `0`), but the
+    connection is not always up and there, of course, may not be any current requests
+    without the connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Error logs are notoriously not very machine-readable. You should never rely
+    on existence of a certain type of data in a record unless you made sure that the
+    whole record is written via a known and fixed template. For example, it is fairly
+    easy to parse out all the `ENOENT` messages, but creating a summary of all types
+    of errors will be harder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The access log, on the contrary, is made for parsing. Let''s see the record
+    again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: We already analyzed a combined record earlier in this chapter, so we won't do
+    this again. Just look at two interesting parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We mentioned the weird historical date/timestamp format but at least it contains
+    timezone and is totally unambiguous. We also see the famous `404` code in the
+    sixth field, and that is the only sign of error here! Otherwise, it is a perfectly
+    good HTTP request that was served with a fittingly perfect HTTP response of 151
+    bytes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There will be two very popular 404 errors in your logs when you start a new
+    website:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: These are the so-called *well-known* files that HTTP clients request and use.
+    You should get some `robots.txt` and some favicon for your sites at least for
+    the sake of your own sanity. Refer to [http://www.robotstxt.org/](http://www.robotstxt.org/)
+    and [https://en.wikipedia.org/wiki/Favicon](https://en.wikipedia.org/wiki/Favicon)
+    for more information on these files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is time to see some more errors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should read this almost effortlessly. This is an example of Nginx acting
+    as a proxy, and this is certainly the most popular use for it. Being a proxy,
+    this Nginx instance is trying to connect to an upstream on behalf of a client.
+    The upstream that has problems is listed in the end before the familiar host item.
+    The mentioned `kevent()` is the so-called *implementation detail* that should
+    not have leaked here but well, it has. It is a part of the mechanism Nginx uses
+    to work with network connections under FreeBSD, Mac OS X, and other BSD operating
+    systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On a Linux box, the same record would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What is interesting in that record? First, no `kevent()`. Second, the `errno`
+    code has changed! And indeed, our FreeBSD and Linux boxes have 61 and 111 for
+    `ECONNREFUSED,` respectively. So no, you cannot rely on this code and more so
+    you cannot rely on the `Connection refused` string. On Windows the same error
+    may have this message: **10060: A connection attempt failed because the connected
+    party did not properly respond after a period of time, or established connection
+    failed because connected host has failed to respond**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: And second, the upstream is using IPv6, which may break some scripts if they
+    search for the TCP port number after the first colon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We want to show you another special kind of **file not found** errors that
+    are a sign of modern times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: These are only interesting because they come from bots that attempt to hack
+    into your system. They are very persistent in trying some URLs that look like
+    administration or login scripts and that never ever existed on your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is too cheap for them to just try any host they see on the Internet without
+    even having a database of unsuccessful attempts. They will come from thousands
+    of different IP addresses many of which will look totally innocent because those
+    are infected computers all over the world controlled centrally. They have become
+    a norm already; you should not most of the time even bother with any countermeasures
+    (unless of course you run some old installation of WordPress, and in this case,
+    you are probably hacked already and earn money for these people by serving some
+    porn ads to your users alongside your own content).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an error that contains much less information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Can you guess why? Because, as we said a little bit earlier, errors happen
+    all the time even when there is no request under processing. This is exactly the
+    case: a client closed a connection that was left open after a successful request/response
+    pair as a way to optimize the following requests. This is named KeepAlive. Nginx
+    is happy to serve many requests in one connection consequently, but the client
+    is free to close the connection at any time. Now you should understand why this
+    information has `[info]` instead of `[error]`. Ideas about whether you should
+    do anything about it are left as an exercise.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: A similar message not having any information about a request because it is actually
+    an error of not being able to get the request before timeout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is quite an enigmatic error message that you won't be able to do anything
+    about. The SSL code is complex, and there are a lot of weird SSL implementations
+    out there. Something went wrong. You should take note and either try to reproduce
+    or wait for more of the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: We trimmed this one by hand because it took almost the whole screen. There is
+    a limit on the total size of the request headers. It may be changed with the `large_client_header_buffers`
+    directive. See [http://nginx.org/en/docs/http/ngx_http_core_module.html#large_client_header_buffers](http://nginx.org/en/docs/http/ngx_http_core_module.html#large_client_header_buffers)
+    for more information. This is definitely something that you may fix by increasing
+    the configured value, but we would recommend against it and speak to your application
+    developers team instead. It looks like they have chosen the wrong tool for their
+    task here. Requests of such size should use the POST method instead of GET.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is another error we wanted to show here as an example of what problems
+    really big websites face sometimes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should be able to read and understand every single character of that message
+    now. What exactly is **24: Too many open files**? There is a limit on the number
+    of files that any single process can hold open. Usually, the limit is really big.
+    Run this command to see the limit your shell has:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once you have your Nginx serving more files than that simultaneously, this
+    error will appear in the error log. Nginx has a way of increasing the limit itself,
+    see [http://nginx.org/en/docs/ngx_core_module.html#worker_rlimit_nofile](http://nginx.org/en/docs/ngx_core_module.html#worker_rlimit_nofile).
+    Increasing the hard limits for all processes is OS-dependent. On Linux, you will
+    need to add something like `fs.file-max = 50000` to your `/etc/sysctl.conf` and
+    then run the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Downloading the example code**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can download the example code files for this book from your account at [http://www.packtpub.com](http://www.packtpub.com).
+    If you purchased this book elsewhere, you can visit [http://www.packtpub.com/support](http://www.packtpub.com/support)
+    and register to have the files e-mailed directly to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can download the code files by following these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Log in or register to our website using your e-mail address and password.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Hover the mouse pointer on the **SUPPORT** tab at the top.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Click on **Code Downloads & Errata**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Enter the name of the book in the **Search** box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Select the book for which you're looking to download the code files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. Choose from the drop-down menu where you purchased this book from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. Click on **Code Download**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the file is downloaded, please make sure that you unzip or extract the
+    folder using the latest version of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: WinRAR/7-Zip for Windows
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Zipeg/iZip/UnRarX for Mac
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 7-Zip/PeaZip for Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we refreshed our knowledge of how logging works in Nginx. There
+    are two types of logs; one of them may be infinitely extended, whereas the other
+    is hard to parse by scripts because it does not have enough structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We spent some time on special topics, such as log rotation and logging POST
+    request bodies (with a small test stand that we created step by step in the chapter,
+    no less).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also analyzed several error records from some real error logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next chapter will have more actual problems analyzed and troubleshot. We
+    will present several cases of actual problems that people had with read Nginx
+    installations and try to debug them from the ground up.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,1311 @@
+- en: Chapter 1. The Core HTTP Module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing new modules and compiling Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running Nginx in debug mode
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy reloading of Nginx using the CLI
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Splitting configuration files for better management
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up multiple virtual hosts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up a default catch-all virtual host
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using wildcards in virtual hosts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up the number of worker processes correctly
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Increasing the size of uploaded files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using dynamic SSI for simple sites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Adding content before and after a particular page
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling auto indexing of a directory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serving any random web page from a directory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serving cookies for identifying and logging users
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Re-encoding the response to another encoding
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling Gzip compression on some content types
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up 404 and other error pages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter deals with the basics of Nginx configuration and implementation.
+    By the end of it you should be able to compile Nginx on your machine, create virtual
+    hosts, set up user tracking, and get PHP to work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing new modules and compiling Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Today, most softwares are designed to be modular and extensible. Nginx, with
+    its great community, has an amazing set of modules out there that lets it do some
+    pretty interesting things. Although most operating system distributions have Nginx
+    binaries in their repositories, it is a necessary skill to be able to compile
+    new, bleeding edge modules, and try them out. Now we will outline how one can
+    go about compiling and installing Nginx with its numerous third-party modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first step is to get the latest Nginx distribution, so that you are in sync
+    with the security and performance patches ([http://sysoev.ru/nginx/nginx-0.7.67.tar.gz](http://sysoev.ru/nginx/nginx-0.7.67.tar.gz)).
+    Do note that you will require sudo or root access to do some of the installation
+    steps going ahead.![How to do it...](img/4965_01_01.jpg)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Un-tar the Nginx source code. This is simple, you will need to enter the following
+    command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Go into the directory and configure it. This is essential, as here you can
+    enable and disable the core modules that already come with Nginx. Following is
+    a sample configure command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You can figure out more about what other modules and configuration flags use:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'If you get an error, then you will need to install the build dependencies,
+    depending on your system. For example, if you are running a Debian based system,
+    you can enter the following command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This will install all the required build dependencies, like PCRE and TLS libraries.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'After this, you can simply go ahead and build it:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'This was the plain vanilla installation! If you want to install some new modules,
+    we take the example of the HTTP subscribe-publish module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Download your module ([http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz](http://pushmodule.slact.net/downloads/nginx_http_push_module-0.692.tar.gz)).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Un-tar it at a certain location:/path/to/module.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Reconfigure Nginx installation:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: The important part is to point the add-module flag to the right module path.
+    The rest is handled by the Nginx configuration script.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can continue to build and install Nginx as shown in step 5.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you have followed steps 1 to 10, it will be really easy for you to install
+    any Nginx module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you want to check that the module is installed correctly, you can enter
+    the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A sample output is something as shown in the following screenshot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![There''s more...](img/4965_01_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: This basically gives you the compilation flags that were used to install this
+    particular binary of Nginx, indirectly listing the various modules that were compiled
+    into it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running Nginx in debug mode
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx is a fairly stable piece of software which has been running in production
+    for over a decade and has built a very strong developer community around it. But,
+    like all software there are issues and bugs which crop up under the most critical
+    of situations. When that happens, it's usually best to reload Nginx with higher
+    levels of error logging and if possible, in the debug mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you want the debug mode, then you will need to compile Nginx with the debug
+    flag (--with-debug). In most cases, most of the distributions have packages where
+    Nginx is pre-compiled with debug flag. Here are the various levels of debugging
+    that you can utilize:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Downloading the example code**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can download the example code files for all Packt books you have purchased
+    from your account at [http://www.PacktPub.com](http://www.PacktPub.com). If you
+    purchased this book elsewhere, you can visit [http://www.PacktPub.com/support](http://www.PacktPub.com/support)
+    and register to have the files e-mailed directly to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you do not set the error log location, it will log to a compiled-in default
+    log location. This logging is in addition to the normal error logging that you
+    can do per site. Here is what the various specific debug flags do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Flags | Application |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_core` | Lets you dump the core when Nginx crashes |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_alloc` | Logs all memory allocation warnings and errors |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_mutex` | Logs potential mutex issues |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_event` | Logs events module issues |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_http` | This is the default HTTP logging |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_imap` | This is the default IMAP logging |'
+  prefs: []
+  type: TYPE_TB
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Nginx allows us to log errors for specific IP addresses. Here is a sample configuration
+    that will log errors from `192.168.1.1` and the IP range of `192.168.10.0/24:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is extremely useful when you want to debug in the production environment,
+    as logging for all cases has unnecessary performance overheads. This feature allows
+    you to not set a global debug on the `error_log`, while being able to see the
+    debug output for specific matched IP blocks based on the user's IP address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Easy reloading of Nginx using the CLI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Depending on the system that you have, it will offer one clean way of reloading
+    your Nginx setup
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Debian based:** `/etc/init.d/Nginx reload`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Fedora based:** `service Nginx reload`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**FreeBSD/BSD:** `service Nginx reload`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Windows:** `Nginx -s reload`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'All the preceding commands reload Nginx; they send a HUP signal to the main
+    Nginx process. You can send quite a few control signals to the Nginx master process,
+    as outlined in the following table. These let you manage some of the basic administrative
+    tasks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Signal | Activity |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| TERM,INT | Quick shutdown |'
+  prefs: []
+  type: TYPE_TB
+- en: '| QUIT | Graceful shutdown |'
+  prefs: []
+  type: TYPE_TB
+- en: '| HUP | Reload configuration, gracefully shutdown the worker processes and
+    restart them |'
+  prefs: []
+  type: TYPE_TB
+- en: '| USR1 | Reopen the log files |'
+  prefs: []
+  type: TYPE_TB
+- en: '| USR2 | Upgrade the executable on the fly, when you have already installed
+    it |'
+  prefs: []
+  type: TYPE_TB
+- en: '| WINCH | Gracefully shutdown the worker process |'
+  prefs: []
+  type: TYPE_TB
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let me run you through the simple steps of how you can reload Nginx from the
+    command line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open a terminal on your system. Most UNIX-based systems already have fairly
+    powerful terminals, while you can use PuTTY on Windows systems.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Type in `ps auxww | grep nginx`. This will output something as shown in the
+    following screenshot:![How to do it...](img/4965_01_03.jpg)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If nothing comes, then it means that Nginx is not running on your system.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you get the preceding output, then you can see the master process and the
+    two worker processes (it may be more, depending on your `worker_processes` configuration).
+    The important number is `3322`, which is basically the PID of the master process.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To reload Nginx, you can issue the command `kill -HUP <PID of the nginx master
+    process>`. In this case, the PID of the master process is `3322`. This will basically
+    read the configurations again, gracefully close your current connections, and
+    start new worker processes. You can issue another `ps auxww | grep nginx` to see
+    new PIDs for the worker processes (4582,4583):![How to do it...](img/4965_01_04.jpg)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If the worker PIDs do not change it means that you may have a problem while
+    reloading the configuration files. Go ahead and check the Nginx error log.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This is very useful while writing scripts, which control Nginx configuration.
+    A good example is when you are deploying code on production; you will temporarily
+    point the site to a static landing page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Splitting configuration files for better management
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By default, when you are installing Nginx you get this one monolithic configuration
+    file which contains a whole lot of sample configurations. Due to its extremely
+    modular and robust designing, Nginx allows you to maintain your configuration
+    file as a set of multiple linked files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s take a sample configuration file `nginx.conf` and see how can it be
+    broken into logical, maintainable pieces:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The preceding configuration is basically serving a simple PHP site at `http://www.example1.com`
+    using FastCGI. Now we can go ahead and split this file into the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nginx.conf:` The central configuration file remains'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`fcgi.conf:` This will contain all the FastCGI configurations'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sites-enabled/:` This directory will contain all the sites that are enabled
+    (much like Apache2''s sites-enabled directory)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sites-available/:` This directory will contain all the sites that are not
+    active, but available (again, much like Apache2''s sites-available)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sites-enabled/site1.conf:` This is the sample virtual host configuration of
+    the sample PHP site'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The following code is for the new `nginx.conf`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you notice, you will see how `includes` has allowed the inclusion of external
+    configuration files. It should be noted that if we have any errors in any of the
+    files, the Nginx server will fail to reload.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is the FastCGI configuration which is used by this setup; generally most
+    Nginx installations provide a default one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following is the code for `fcgi.conf:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The following is the code for `sites-enabled/site1.conf:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: This sort of a file arrangement allows clean separation of the main configuration
+    and the auxiliary ones. It also promotes structured thinking, which is useful
+    when you have to quickly switch or deploy sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will go over the various configurations that you see in these files in other
+    chapters. For example, `fcgi.conf` is covered in the recipe to get PHP working
+    with Nginx using FastCGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up multiple virtual hosts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Usually any web server hosts one or more domains, and Nginx, like any good web
+    server, allows you to easily configure as many virtual hosts as you want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's take a simple example. You want to set up a simple set of webpages on
+    [www.example1.com](http://www.example1.com). Here is the sample configuration
+    which needs to go into the `sites-enabled/site1.conf:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So let's see how this works. The `listen` defines the port on which the web
+    server is listening (in this case, its 80)! The `server_name` lets you easily
+    define the domain that maps to this virtual host configuration. Inside, you can
+    start defining how the virtual host works. In this case it serves set of HTML
+    pages from the `/var/www/www.example1.com` directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So when you reload your Nginx configuration assuming that your DNS records point
+    correctly at your server, you should see your HTML pages load when you access
+    the web address (in this case, [http://www.example1.com)](http://www.example1.com)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here is a quick checklist to get you started:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a simple directory with the HTML files.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a simple configuration file containing the virtual host configuration
+    for `www.example1.com`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Reload Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Point your DNS server to the correct server running Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Load `www.example1.com`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Setting up a default catch-all virtual host
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once you are comfortable setting up the virtual hosts, you will end up in a
+    situation where you have a lot of domains pointing at the IP. In addition to the
+    domains, you would also have the web server responding to the IP addresses it
+    hosts, and many other unused subdomains of the domains pointing at it. We can
+    take a look at this with a simple example, so you have [http://www.example1.com](http://www.example1.com)
+    pointing at the IP address, you have configured a virtual host to handle the domains
+    [www.example1.com](http://www.example1.com) and [example1.com](http://example1.com).
+    In such a scenario, when the user types in `abc.example1.com` or an IP address
+    the web server will not be able to serve the relevant content (be it 404 or some
+    other promotional page).
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For situations like the one above, one can utilize the default catchall virtual
+    host that Nginx provides; here is a simple example where this default catchall
+    virtual host serves a simple set of web pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following is the code for `sites-enabled/default.conf:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The key thing to note is the fact that you are listening on the default port
+    and that the `server_name` is "_" which is the catchall mechanism. So whenever
+    the user enters a domain for which you have no defined virtual host, pages will
+    get server from the `/var/www/default` directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using wildcards in virtual hosts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imagine a situation where you need to create an application that needs to serve
+    dynamic pages on subdomains! In that case, you will need to set up a virtual host
+    in Nginx that can utilize wildcards. Nginx has been made ground up to handle such
+    a scenario. So let's take our favorite example of [http://www.example1.com](http://www.example1.com).
+    Let's say you are building an application that needs to handle the various subdomains
+    such as `a.example1.com`, `b.example1.com`, and so on. The following configuration
+    would let the application behind handle all these various subdomains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will need to set a wildcard on the DNS entry. Without the DNS entries, the
+    domain (and subdomains) will never resolve to your server IP. A sample DNS entry
+    is given below which points the domain `http://example1.com` to the IP `69.9.64.11:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once you know how your DNS works, you can add this to your `nginx.conf` inside
+    the http section:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The important part to note is that in this case, you are serving all the subdomains
+    using the same code base. We have also set the virtual host to serve the non-www
+    domain as well (example1.com which is different from [www.example1.com)](http://www.example1.com)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So when you type [a.example1.com](http://a.example1.com), your web application
+    will receive [a.example1.com](http://a.example1.com) as the domain that was requested
+    from the web server and it can process the HTTP response accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up the number of worker processes correctly
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx like any other UNIX-based server software, works by spawning multiple
+    processes and allows the configuration of various parameters around them as well.
+    One of the basic configurations is the number of worker processes spawned! It
+    is by far one of the first things that one has to configure in Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This particular configuration can be found at the top of the sample configuration
+    file `nginx.conf:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding configuration, we can see how the various process configurations
+    work. You first set the UNIX user under which the process runs, then you can set
+    the number of worker processes that Nginx needs to spawn, after that we have some
+    file locations where the errors are logged and the PIDs (process IDs) are saved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'By default, `worker_processes` is set at 2\. It is a crucial setting in a high
+    performance environment as Nginx uses it for the following reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It uses SMP, which allows you to efficiently use multi-cores or multi-processors
+    systems very efficiently and have a definite performance gain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It increases the number of processes decreases latency as workers get blocked
+    on disk I/O.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It limits the number of connections per process when any of the various supported
+    event types are used. A worker process cannot have more connections than specified
+    by the `worker_connections` directive.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is recommended that you set `worker_processes` as the number of cores available
+    on your server. If you know the values of `worker_processes` and `worker_connections`,
+    one can easily calculate the maximum number of connections that Nginx can handle
+    in the current setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Maximum clients* = `worker_processes` * `worker_connections`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Increasing the size of uploaded files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Usually when you are running a site where the user uploads a lot of files, you
+    will see that when they upload a file which is more than 1MB in size you get an
+    Nginx error stating, "Request entity too Large" (413), as shown in the following
+    screenshot. We will look at how Nginx can be configured to handle larger uploads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Increasing the size of uploaded files](img/4965_01_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This is controlled by one simple part of the Nginx configuration. You can simply
+    paste this in the server part of the Nginx configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: This preceding configuration will allow you to upload a 100 megabyte file. Anything
+    more than that, and you will receive a 413\. You can set this to any value which
+    is less than the available disk space to Nginx, which is primarily because Nginx
+    downloads the file to a temporary location before forwarding it to the backend
+    application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Nginx also lets us control other factors related to people uploading files on
+    the web application, like timeouts in case the client has a slow connection. A
+    slow client can keep one of your application threads busy and thus potentially
+    slow down your application. This is a problem that is experienced on all the heavy
+    multimedia user-driven sites, where the consumer uploads all kinds of rich data
+    such as images, documents, videos, and so on. So it is sensible to set low timeouts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, here the first two settings help you control the timeout when the body is
+    not received at one read-step (basically, if the server is queried and no response
+    comes back). Similarly, you can set the timeout for the HTTP header as well. The
+    following table lists out the various directives and limits you can set around
+    client uploading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Directive | Use |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_in_file_only` | This directive forces Nginx to always store
+    a client request body in temporary disk files, even if the file size is 0.The
+    file will not be removed at request completion. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_in_single_buffer` | This directive specifies whether to keep
+    the whole body in a single client request buffer. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_buffer_size` | This directive specifies the client request body
+    buffer size.If the request body is more than the buffer, then the entire request
+    body or some part is written in a temporary file. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_temp_path` | This directive assigns the directory for storing
+    the temporary files in it with the body of the request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_timeout` | This directive sets the read timeout for the request
+    body from client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_header_buffer_size` | This directive sets the header buffer size
+    for the request header from client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_header_timeout` | This directive assigns timeout with reading of
+    the title of the request of client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_max_body_size` | This directive assigns the maximum accepted body
+    size of client request, indicated by the line Content-Length in the header of
+    request. |'
+  prefs: []
+  type: TYPE_TB
+- en: Using dynamic SSI for simple sites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the advent of modern feature-full web servers, most of them have Server-Side
+    Includes (SSI) built in. Nginx provides easy SSI support which can let you do
+    pretty much all basic web stuff.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's take a simple example and start understanding what one can achieve with
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Add the following code to the `nginx.conf` file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Add the following code to the `index.html` file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Add the following code to the `header.html` file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Add the following code to the `footer.html` file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is a simple example where we can see that you can simply include some partials
+    in the larger page, and in addition to that you can create block as well within
+    the page. So the`<block>` directive allows you to create silent blocks that can
+    be included later, while the`<include>` directive can be used to include HTML
+    partials from other files, or even URL end points. The`<echo>` directive is used
+    to output certain variables from within the Nginx context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You can utilize this feature for all kinds of interesting setups where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You are serving different blocks of HTML for different browsers types
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You want to optimize and speed up certain common blocks of the sites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You want to build a simple site with template inheritance without installing
+    any other scripting language
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Adding content before and after a particular page
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Today, in most of the sites that we visit, the webpage structure is formally
+    divided into a set of boxes. Usually, all sites have a static header and a footer
+    block. Here, in this following page you can see the YUI builder generating the
+    basic framework of such a page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In such a scenario, Nginx has a really useful way of adding content before and
+    after it serves a certain page. This will potentially allow you to separate the
+    various blocks and optimize their performance individually, as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s have a look at an example page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Adding content before and after a particular page](img/4965_01_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So here we want to insert the header block before the content, and then append
+    the footer block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Adding content before and after a particular page](img/4965_01_07.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The sample configuration for this particular page would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: This can act as a performance enhancer by allowing you to load CSS based upon
+    the browser only. There can be cases where you want to introduce something into
+    the header or the footer on short notice, without modifying your backend application.
+    This provides an easy fix for those situations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This module is not installed by default and it is necessary to enable it when
+    building Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Enabling auto indexing of a directory
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Nginx has an inbuilt auto-indexing module. Any request where the index file
+    is not found will route to this module. This is similar to the directory listing
+    that Apache displays.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here is the example of one such Nginx directory listing. It is pretty useful
+    when you want to share some files over your local network. To start auto index
+    on any directory all you need to do is to carry out the following example and
+    place it in the server section of the Nginx configuration file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This will simply enable auto indexing when the user types in `http://www.example1.com`.
+    You can also control some other things in the listings in this way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will turn off the exact file size listing and will only show the estimated
+    sizes. This can be useful when you are worried about file privacy issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will represent the timestamps on the files as your local server time (it
+    is GMT by default):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_01_08.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: This image displays a sample index auto-generated by Nginx using the preceding
+    configuration. You can see the filenames, timestamp, and the file sizes as the
+    three data columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serving any random web page from a directory
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There has been a recent trend for a lot of sites to test out their new pages
+    based upon the A/B methodology. You can explore more about its history and the
+    various companies that have adopted this successfully as a part of their development
+    process at [http://en.wikipedia.org/wiki/A/B_testing](http://en.wikipedia.org/wiki/A/B_testing).
+    In this practice, you have a set of pages and some metric (such as number of registrations,
+    or the number of clicks on a particular element). Then you go about getting people
+    to randomly visit these pages and get data about their behavior on them. This
+    lets you iteratively improve the page and the elements on them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Serving any random web page from a directory](img/4965OS_01_09.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Nginx has something that will let you to run your own A-B test without writing
+    any code at all. It allows you to randomly select any web page from a directory
+    and display it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let''s have a look at a sample configuration which needs to be placed within
+    the HTTP section of the Nginx configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let's assume that you have some files in the `/var/www/www.example1.com/test_index`
+    directory. When you turn on the random index it will scan the directory and then
+    send a randomly picked file instead of the default `index.html`. The only exceptions
+    are plain files. Whole filenames which start with a dot will not be part of the
+    site of files to be picked from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here are two sample test pages, with slightly differing headers. Notice
+    that the URLs are the same. So it will let you determine if the end user is clicking
+    through more with the red link or the blue link using pure statistical methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_01_10.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The preceding screenshot displays `A.html` on opening the site. There is equal
+    probability of opening both the pages, much like the tossing of a coin and getting
+    heads or tails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_01_11.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: So, using the A-B testing as an example, you can set an `A.html` and a `B.html`,
+    which would be served to the user randomly. It would allow you to easily measure
+    a lot of interesting client behavior by simply analyzing the Nginx access logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serving cookies for identifying and logging users
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Nginx has a useful functionality of serving cookies for identifying users. This
+    is very useful in tracking anonymous user behavior in case a website does not
+    want to employ external analytics software. This module is compatible with the
+    `mod_uid` module in Apache2, which provides a similar functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here is a sample configuration for this module. This goes in the server section
+    of the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now let''s see and understand what the various directives are about. The first
+    `userid` directive enables this module; the second assigns a name to the cookie
+    which is going to be written on the client side. The next three directives are
+    the standard cookie information that is needed (the primary domain, the path,
+    and the time of expiry). The last directive enables the browser to understand
+    the privacy practices that the website follows. This is done by using the P3P
+    protocol which allows websites to declare their intended usage that they collect
+    about the user. It is basically an XML file that allows you to programmatically
+    display your privacy policy. The following code is a simple example configuration
+    of how you can define a policy where the data is removed after 4 months:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: This XML put on the server will objectively define the privacy policies of the
+    site to the incoming bots or users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: On enabling this module, some variables are available in the Nginx configuration
+    which allow you do fairly interesting things. You have access to some variables
+    in the configuration contest, like `$uid_got,$uid_set`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These can be used for writing interesting rewrite rules. A simple application
+    using these variables is to log the users coming on your site and then determining
+    the user bounce rates on your website by parsing the logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Re-encoding the response to another encoding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: File encoding is a major issue on most websites, a lot of time the database
+    (MySQL in most cases) is configured to run using the Latin-1 encoding instead
+    of the UTF-8 encoding that is the prevalent standard. Nginx provides an easy solution
+    for changing your web page encoding on-the-fly, so that your users do not end
+    up with garbled characters on your website
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'All you need to do is to place this in the server section of your Nginx configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This basically defines the fact that the source character set is `koi8-r`.
+    If the encoding is different from the charset character set, then re-encoding
+    is carried out. In case your original response already has a "Content-Type" header
+    present then you will need to use the following to override and do the re-encoding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: There's more...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You can also decide how the re-encoding happens by defining a character mapping.
+    A simple example is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: Nginx lets you do these neat little things that can make your site more accessible
+    and usable for the end-user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enabling Gzip compression on some content types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As the Web has evolved, we have had improvements in web server and browser technologies.
+    In recent times, with the booming consumer Internet market, the web application
+    has had to become faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compression techniques, which were already present, have come of age and now
+    most sites enable a fairly high degree of compression on the pages they serve.
+    Nginx being state of the art, has Gzip compression and allows a whole lot of options
+    on how to go about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You will need to modify your Nginx configuration file and add the following
+    directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This sample configuration allows you to turn on the Gzip compression of the
+    outgoing page for all pages which are over 1000 bytes. This limit is set because
+    compression technology performance degrades as the page size becomes smaller.
+    You can then set the various MIME types for which the compression should occur;
+    this particular example will compress only plain text files and XML files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Older browsers are not the best when it comes to utilizing this, and you can
+    disable Gzip depending on the browser type. One of the most interesting settings
+    is the level of compression where you need to make a choice between the amount
+    of CPU that you want to spend on compressing and serving the pages (the *higher
+    this number, more of your CPU time will go towards compressing and sending pages)*.
+    It is recommended to follow a middle path on this particular setting; the client
+    also spends more CPU time decompressing the page if you set this. A sensible setting
+    of this value would be six.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'For proxy requests, `gzip_proxied` actually allows or disallows the compression
+    of the response of the proxy request based on the request and the response. You
+    can use the following parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| parameter | Function |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `off` | Disables compression for all proxy requests |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `expired` | Enables compression, if the `Expires` header prevents caching
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `no-cache` | Enables compression if `Cache-Control` header contains `no-cache`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `no-store` | Enables compression if `Cache-Control` header contains `no-store`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `private` | Enables compression if `Cache-Control` header contains `private`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `no_last_modified` | Enables compression if `Last-Modified` isn''t set |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `no_etag` | Enables compression if there is no `ETag` header |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `auth` | Enables compression if there is an `Authorization` header |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `any` | Enables compression for all requests |'
+  prefs: []
+  type: TYPE_TB
+- en: So in the preceding example (expired `no-cache no-store private auth)` it is
+    clear that the compression is enabled when the `Expires` header prevents caching,
+    when the `Cache-Control` contains `no-cache, no-store`, or `private`, and when
+    there is an `Authorization` header present. This allows tremendous control on
+    how the compression is delivered to the client's browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up 404 and other error pages
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All web applications have errors and missing pages, and Nginx has easy methods
+    of ensuring that the end user has a good experience when the application does
+    not respond correctly. It successfully handles all the HTTP errors with default
+    pages, which can gracefully notify the users that something has gone wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Nginx allows you to do pretty interesting things with error pages. Following
+    are some example configurations which can be placed within the HTTP or server
+    section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are also going to define a named location using the "@" prefix after location.
+    These locations are not used during the normal processing of any request and are
+    intended to only process internally redirected requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The first example allows you to map a simple 404 page to a simple HTML. The
+    next example allows the mapping of various application error codes to another
+    generic application error HTML page. You can also map the error page to some other
+    external site all together (`http://example1.com/forbidden.html`). The fourth
+    example allows you to map the page to another location, defined as `@fallback`.
+    The last example is interesting as it actually allows you to change the response
+    code to a 200 (HTTP OK). This is useful in situations where you have excessive
+    404 pages on the site, and would prefer not sending a 404 back as reply, but a
+    200 with a very small GIF file in return.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can utilize this very effectively to give the end user a better experience
+    when they inadvertently reach dead ends and application errors on your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you do not set these error pages correctly, you will get the default Nginx
+    error pages which may not be useful to the user and may turn them away.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_01_12.jpg)'
+  prefs: []
+  type: TYPE_IMG

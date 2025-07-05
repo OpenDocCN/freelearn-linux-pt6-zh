@@ -1,0 +1,499 @@
+- en: '7'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Introduction to Load Balancing and Optimization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As much as NGINX will help your servers hold the load, there are always limits
+    to what a single machine can process; an aging hard drive or limited bandwidth
+    will eventually induce a bottleneck, resulting in longer request-serving times,
+    which, in turn, leads to the disappointment of your visitors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As your websites grow more popular and your single machine begins to suffer,
+    you will be tempted to simply get a bigger and more expensive server. But this
+    would not be a cost-efficient approach in the long run, and remember that the
+    more strain a server is exposed to, the more likely it is to suffer from hardware
+    failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will investigate two concepts, the first of which is load
+    balancing: the art of distributing a load across several servers and managing
+    this distribution efficiently. The second part will explore the subject of thread
+    pools: a new mechanism relieving servers under heavy loads (more specifically,
+    loads induced by blocking operations) by serving requests in a slightly different
+    manner.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing load balancing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using NGINX as a TCP load balancer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring thread pools and I/O mechanisms
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introducing load balancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All of the most visited websites in the world are built over carefully planned
+    server architectures; fast page loads and download speeds are a requirement for
+    long-term traffic growth. The concept of **load balancing** has the potential
+    to solve problems pertaining to scalability, availability, and performance. After
+    a quick description of the concept, we will elaborate on how NGINX offers to implement
+    such an architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the concept of load balancing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To put it simply, the concept of load balancing consists of distributing the
+    workload (CPU load, hard disk load, or other forms) across several servers, in
+    a manner that is completely transparent to your visitors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the case of a single-server architecture, client requests are received and
+    processed by one machine. A machine has a limited capacity of operation; for example,
+    a web server that is able to respond to 1,000 HTTP requests per second. If the
+    server receives more than 1,000 requests per second, the 1,001st client request
+    received in that second will not be served in a timely manner. From then on, page-serving
+    speeds would begin to increase, resulting in a degraded experience for its visitors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 7.1: An example of how request tops are managed](img/B21787_07_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7.1: An example of how request tops are managed'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributing a load across several servers increases the overall request-serving
+    capacity; with two servers at your disposal, you could theoretically allow 2,000
+    HTTP requests to be served per second. With three servers, you could serve 3,000
+    requests, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several techniques available for achieving load balancing, with `example.com`)
+    into an IP address (`1.2.3.4`). To achieve DNS load balancing, simply associate
+    multiple IP addresses to your domain. Upon visiting your website, the operating
+    systems of your visitors will select one of these IP addresses following a **simple
+    round-robin** algorithm, thus ensuring that on a global scale, all of your servers
+    receive more or less the same amount of traffic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 7.2: Another example of how request tops are managed](img/B21787_07_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7.2: Another example of how request tops are managed'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Albeit simple to implement, this load-balancing method cannot always be applied
+    to high-traffic websites because it has several major issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if the IP address selected by a visitor’s operating system points to a
+    server that is temporarily unavailable?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if your architecture is made of several types of servers, some of which
+    are capable of handling more requests than others?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if a visitor connects to a particular server and logs in to their user
+    account, only to get switched to another server 10 minutes later, losing their
+    session data?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The last of these issues is also known as the **session affinity** problem and
+    is further detailed in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Session affinity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Session affinity is an expression that designates the persistent assignment
+    of a client to a particular server in a load-balanced infrastructure. We use the
+    word *session* to describe a set of requests performed by a client to a server.
+    When a visitor browses a website, they often visit more than one page: they log
+    in to their account, they add a product to their shopping cart, they check out,
+    and so on. Until they close their web browser (or a tab), all of their subsequent
+    page views are part of a session, which is most of the time stateful: the server
+    conserves data relative to the operations performed during the visit. In our example,
+    that server would remember the contents of the shopping cart and the login credentials.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If, at some point during the session, the visitor were to switch servers and
+    connect to **Server B**, they would lose any session information contained on
+    **Server A**. The visitor would then lose the contents of their shopping cart,
+    as well as their login credentials (they would get logged out):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 7.3: When switching the backend server, we might lose the existing
+    session](img/B21787_07_3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7.3: When switching the backend server, we might lose the existing session'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For that reason, it is of utmost importance to maintain session affinity: in
+    other words, to ensure that a visitor remains assigned to a particular server
+    at all times. The DNS load-balancing method does not ensure session affinity,
+    but fortunately, NGINX will help you achieve it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The upstream module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The implementation of load balancing in NGINX is particularly clever as it allows
+    you to distribute a load at several levels of your infrastructure. It isn’t limited
+    to proxying HTTP requests across backend servers; it also offers to distribute
+    requests across FastCGI backends (FastCGI, uWSGI, SCGI, and more), or even distribute
+    queries to Memcached servers. Any directive that ends with `_pass`, such as `proxy_pass`,
+    `fastcgi_pass`, or `memcached_pass`, accepts a reference to a group of servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first step is to declare this group of servers with the help of the *upstream*
+    block, which must be placed within the http block. Within the `upstream` block,
+    declare one or more servers with the `server` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Alternatively, you can also use `include` inside your upstream block to load
+    servers from an external file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that your server group is declared, you can reference it in your virtual
+    host configuration. For example, you can distribute incoming HTTP requests across
+    the server group simply by proxying them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![Figure 7.4: An example of Nginx acting as a relay for internal servers](img/B21787_07_4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7.4: An example of Nginx acting as a relay for internal servers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this most basic state of configuration, requests are distributed across the
+    three servers of the `MyUpstream` group according to a simple round-robin algorithm,
+    without maintaining session affinity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Request distribution mechanisms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'NGINX offers several ways to solve the problems we mentioned earlier. The first
+    and simplest of them is the `weight` flag, which can be enabled in the definition
+    of your server group:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By default, servers have a weight of `1`, unless you specify otherwise. Such
+    a configuration enables you to give more importance to particular servers; the
+    higher their weight, the more requests they will receive from NGINX. In this example,
+    for every six HTTP requests received, NGINX will systematically distribute the
+    following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Three requests to the `10.0.0.201` server (`weight=3`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two requests to the `10.0.0.202` server (`weight=2`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One request to the `10.0.0.203` server (`weight=1`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For every 12 requests, NGINX will distribute the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Six requests to the `10.0.0.201` server (`weight=3`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Four requests to the `10.0.0.202` server (`weight=2`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two requests to the `10.0.0.203` server (`weight=1`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'NGINX also includes a mechanism that will verify the state of servers in a
+    group. If a server doesn’t respond in time, the request will be re-sent to the
+    next server in the group. There are several flags that can be assigned to servers
+    in an upstream block that will allow you to better control this mechanism:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fail_timeout=N`, where `N` is the number of seconds before a request is considered
+    to have failed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`max_fails=N`, where `N` is the number of attempts that should be performed
+    on a server before NGINX gives up and switches to the next server. By default,
+    NGINX only tries once. If all servers become unresponsive, NGINX will wait for
+    `fail_timeout` to expire before resetting all server fail counts and trying again.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`max_conns=N`, where `N` is the number of maximum concurrent connections that
+    can be sent to that server. By default, NGINX will not limit concurrent connections.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`backup` marks the server as a backup server, instructing NGINX to use it only
+    in the case of failure of another server (it is not used otherwise).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`down` marks the server as permanently unavailable, instructing NGINX not to
+    use it anymore.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finally, NGINX offers plenty of options to achieve session affinity. They come
+    in the form of directives that should be inserted within the upstream block. The
+    simplest of them is `ip_hash`; this directive instructs NGINX to calculate a hash
+    from the first 3 bytes of the client IPv4 address (or the full IPv6 address) and,
+    based on that hash, keep the client assigned to a particular server. As long as
+    the client IP address remains the same, NGINX will always forward requests to
+    the same server in the upstream group:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some administrators may deem this method too unreliable, considering the fact
+    that a majority of internet service providers across the globe still provide dynamic
+    IP addresses, renewed on a 24-hour basis. So why not use your own distribution
+    key? Instead of the client IP address, you could separate requests based on the
+    criteria of your choice, thanks to the `hash` directive. Since the directive allows
+    variables, you could decide to separate requests based on a cookie value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Based on the data contained in the `username` cookie, your visitors will be
+    assigned to the first or the second server in the upstream group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have just seen how to use NGINX as an HTTP load balancer. In the next section,
+    we’ll look at how to get the NGINX load balancer working, but this time using
+    TCP instead of HTTP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using NGINX as a TCP/UDP load balancer
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Until recently, the open source version of NGINX would only allow load balancing
+    in the context of HTTP requests. In the meantime, the commercial subscription
+    NGINX Plus took the concept one step further: using NGINX as a TCP/UDP load balancer.
+    This would pave the way to much broader possibilities; you could then set up NGINX
+    to distribute the load across any form of networked servers—database servers,
+    email servers, literally everything that communicates via TCP. In May 2015, the
+    authors decided that TCP/UDP load balancing should be part of the open source
+    version. As of NGINX 1.9.0, the stream module is included in the source code readily
+    available at [https://nginx.org/](https://nginx.org/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The stream module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The way TCP/UDP load balancing works in NGINX is remarkably similar to HTTP
+    load balancing. However, since the module that brings forth the new set of directives
+    is not included in the default build, you will need to run the `configure` command
+    with the following flag before building the program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The stream module offers a new block called `http` block). In this block, you
+    must declare two sets of directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`server` declares a TCP/UDP server listening on a particular port, and optionally,
+    a network interface, with or without SSL'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`upstream` defines a server group in a similar manner as seen previously'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In your server blocks, the requests will be sent to the server group with the
+    `proxy_pass` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example of MySQL load balancing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you already understand how HTTP load balancing works in NGINX, the following
+    example will look spectacularly simple to you. We will configure NGINX to receive
+    MySQL connections and balance them across two backend servers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s all there is to it. All directives and options offered by the upstream
+    module are still there, but keep in mind that you won’t be able to use HTTP-based
+    variables (such as cookies) to achieve session affinity. The stream module comes
+    with a lot more options and flags, but they are not detailed here, as this falls
+    outside the scope of an HTTP server; additional documentation can be found at
+    [https://nginx.org/](https://nginx.org/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now have an overview of how to run a load balancer using NGINX for both HTTP
+    and TCP/UDP requests. In the next section, we’ll look at threads and I/O to better
+    understand and improve your server’s resource management under heavy loads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring thread pools and I/O mechanisms
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before making important financial decisions, such as investing in an additional
+    server or two, you should look to optimize your current setup to make the most
+    of your existing infrastructure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relieving worker processes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the case of websites that require heavy I/O operations, such as file uploads
+    or downloads, the asynchronous architecture of NGINX can present a certain disadvantage:
+    while the master process is able to absorb incoming connections asynchronously,
+    worker processes can be blocked for relatively long periods of time by certain
+    tasks (the most common of which is reading data from hard disk drives or network
+    drives).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider a simplified configuration with two worker processes; each HTTP request
+    received by NGINX gets assigned to either process. Within a process, operations
+    are performed sequentially: receiving and parsing the request, reading the requested
+    file from its storage location, and finally, preparing and sending the response
+    to the client. If for some reason you were to serve files stored on a network
+    drive with a latency of about 100 ms, both of your worker processes would be spending
+    most of their time waiting for the files. As a result, your server would only
+    be able to serve 18 to 20 requests per second:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 7.5: An explanation of how worker processes and latency work](img/B21787_07_5.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7.5: An explanation of how worker processes and latency work'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This isn’t just a problem that occurs for network drives. Even regular hard
+    disk drives can take a certain time to fetch a file if it isn’t in the cache;
+    a 10 ms latency isn’t insignificant when you multiply it by 1,000!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution that has been made available as of NGINX 1.7.11 is called **thread
+    pools**. The basic principle behind this solution is that instead of reading files
+    synchronously within the worker process, NGINX delegates the operation to a thread.
+    This immediately liberates the worker process, which can then move on to the next
+    request in the queue. Whenever the thread finishes performing the operation, the
+    worker process finalizes and sends the response to the client. It is a pretty
+    simple concept to understand, and thankfully, it’s just as simple to configure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AIO, Sendfile, and DirectIO
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In order to enable support for thread pools, NGINX must be built with the `--with-threads`
+    parameter; this functionality doesn’t come by default. The first step of the configuration
+    is to define a thread pool with the `thread_pool` directive at the root of your
+    configuration file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Syntax: `thread_pool name` `threads=N [max_queue=Q];`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this syntax, `name` is the name you wish to give to the thread pool, `N`
+    is the number of threads that should be spawned, and `Q` is the maximum number
+    of operations allowed in the queue. By default, a thread pool exists with the
+    name `default`, coming with 32 threads and a maximum queue of 65,536 operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In `location` blocks that require it, simply insert the `aio` directive and
+    specify the thread pool name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Alternatively, insert `aio threads` without a pool name if you want to use
+    the default thread pool. It is also possible to use both `sendfile` and `aio`
+    in the same location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the file requested by the client is over `8k` (the value specified with the
+    `directio` directive), `aio` will be used. Otherwise, the file will be sent via
+    `sendfile`. For a deeper dive into the specifics of `sendfile` and `directio`,
+    we encourage you to consult the official NGINX documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now have a better understanding of how to manage NGINX server resources,
+    thanks in particular to thread pools. Now it’s time to summarize what we’ve learned
+    in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before adapting your infrastructure to increasingly high traffic, you should
+    always look for solutions offered by your current set of tools. If traffic causes
+    your server to become unresponsive because of blocking operations, such as slow
+    disk reads, you should give thread pools a try. If this turns out to be insufficient,
+    load balancing is the next best thing. Thankfully, as we have discovered in this
+    chapter, implementing a load-balanced architecture is made particularly easy by
+    NGINX; you can even use it to distribute the load of other server applications
+    such as MySQL, email, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have seen a basic yet comprehensive approach to the most advanced
+    mechanisms offered by NGINX, let’s move on to deploying NGINX in a cloud infrastructure
+    (docker) with the knowledge gained throughout this book.
+  prefs: []
+  type: TYPE_NORMAL

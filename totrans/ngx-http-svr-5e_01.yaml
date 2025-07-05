@@ -1,0 +1,1104 @@
+- en: '1'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Downloading and Installing NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**NGINX** (pronounced *engine-x*) has become the leader among web servers ever
+    since it came out 20 years ago. Back in 2004, its main goal was to outperform
+    Apache, and today, NGINX is outperforming every web server when it comes to high-traffic
+    websites or security. Throughout this book, we will discover and learn how to
+    use NGINX, step by step. We will cover many subjects to have a configuration tailored
+    to everyone’s needs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this first chapter, we will proceed with the necessary steps toward establishing
+    a functional setup of NGINX. This moment is crucial for the smooth functioning
+    of your web server—there are some required libraries and tools for installing
+    the web server, some parameters that you will have to decide upon when compiling
+    the binaries, and there may also be some configuration changes to perform on your
+    system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the end of this chapter, you will have installed NGINX either through a public
+    repository or by compiling a custom version embedding all the extra modules you
+    might need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing NGINX via package managers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Downloading and installing the prerequisites for compiling NGINX binaries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Downloading a suitable version of the NGINX source code
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring NGINX compile-time options
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Controlling the application with a `unit` `service` file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring the system to launch NGINX automatically on startup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A quick overview of the possibilities offered by NGINX Plus
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing NGINX via package managers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The quickest, and easiest, way to install NGINX is to simply use your OS-provided
+    version. Most of the time, these are kept fairly updated; however, for some Linux
+    distributions focusing on stability, you may only have older versions of NGINX
+    available. Sometimes, your Linux distribution may provide multiple versions of
+    NGINX with different compile flags.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In general, before embarking on a more complex journey, we should check whether
+    we can use the easy solution. For Red Hat Linux-based operating systems, we need
+    to enable the EPEL repo first and then do the same:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For a Debian-based operating system, we first find the NGINX compiles available
+    and then get the information for the one we want:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the version provided is current enough, then you’re ready to configure NGINX
+    in the next chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the version provided by your distribution is too old, then NGINX provides
+    packages for **RHEL/CentOS distributions** as well as **Debian/Ubuntu distributions**.
+    We encourage you to visit the official NGINX website to make sure the version
+    given by your distribution isn’t outdated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX-provided packages
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To set up a `yum` repository for RHEL/CentOS, create a file named `/etc/yum.repos.d/nginx.repo`
+    with the following contents:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Replace `OS` with `rhel` or `centos`, depending on the distribution used, and
+    `OSRELEASE` with `8` or `9`, for versions 8.x or 9.x, respectively. Afterward,
+    NGINX can now be installed with `yum`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: For Debian-based distributions, we need to first use their signing key to authenticate
+    the package signatures. Download the following file first from [http://nginx.org/keys/nginx_signing.key](http://nginx.org/keys/nginx_signing.key).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With the key added, we can now add the NGINX repository to `sources.list` found
+    in `/etc/apt/sources.list`. For Debian, we add the following lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, `codename` is either `trixie` or `bookworm`, depending on your version
+    of Debian. For Ubuntu, we use the following dependencies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, `codename` is either `noble`, `focal`, or `bionic`, depending on your
+    version of Ubuntu. Finally, we can install NGINX with the `apt` command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have learned how to install NGINX from repositories, let’s have
+    a look at how we can compile it from the source and benefit from having custom
+    modules that are not provided with the default NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling NGINX from source
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are situations where compiling NGINX from source is preferable. It gives
+    us the most flexibility regarding modules, so we can customize better for our
+    intended usage. For example, we could compile a very lean version for embedded
+    hardware.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, we can make sure we use the latest version of NGINX and have all
+    new features available to us. Keep in mind, though, that when installing software
+    from source, you are responsible for keeping it updated. NGINX, just like every
+    other piece of software, sometimes finds security issues that it needs to address.
+    An OS package is much easier to update than a source installation but, so long
+    as you’re aware of the need to maintain it yourself, there is absolutely no problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Depending on the optional modules that you select at compile time, you will
+    perhaps need different prerequisites. We will guide you through the process of
+    installing the most common ones, such as **GCC**, **PCRE**, **zlib**, and **OpenSSL**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing GNU Compiler Collection
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: NGINX is a program written in C, so you will first need to install a compiler
+    tool such as the **GNU Compiler Collection** (**GCC**) on your system. GCC may
+    already be present on your system, but if that is not the case, you will have
+    to install it before going any further.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: GCC is a collection of free open source compilers for various languages – C,
+    C++, Java, Ada, Fortran, and so on. It is the most commonly used compiler suite
+    in the Linux world, and Windows versions are also available. A vast number of
+    processors are supported, such as x86, AMD64, PowerPC, ARM, MIPS, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Follow these steps to install GCC:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, make sure it isn’t already installed on your system:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'apt, execute the following command:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Note that the `apt` and `yum` commands will not only install GCC; they will
+    also proceed to download and install all common requirements for building applications
+    from source, such as code headers and other compilation tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The PCRE library
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `pcre` and `pcre-devel`. The first one provides the compiled version of
+    the library, whereas the second one provides development headers and sources for
+    compiling projects, which are required in our case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here are some example commands that you can run in order to install both packages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using `yum`, execute the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or you can install all PCRE-related packages using the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you use `apt`, use the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If these packages are already installed on your system, you will receive a
+    message saying something like `nothing to do`; in other words, the package manager
+    did not install or update any component:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 1.1: APT showing the PCRE library is already installed.](img/B21787_01_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1.1: APT showing the PCRE library is already installed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding output signifies that both the components, `libpcre3` and `libpcre3-dev`,
+    are already present in the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The zlib library
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `zlib` library provides developers with compression algorithms. It is required
+    for the use of `.gzip` compression in various modules of NGINX. Again, you can
+    use your package manager to install this component as it is part of the default
+    repositories. Similar to PCRE, you will need the `zlib` library and its associated
+    `zlib-dev` component as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using `yum`, execute the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using `apt`, execute the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: These packages install quickly and have no known dependency issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenSSL
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The OpenSSL project is a collaborative effort to develop a robust, commercial-grade,
+    full-featured, and open source toolkit implementing the **Secure Sockets Layer**
+    (**SSL**) v2/v3 and **Transport Layer Security** (**TLS**) v1 protocols as well
+    as a full-strength general-purpose cryptography library. The project is managed
+    by a worldwide community of volunteers who use the internet to communicate, plan,
+    and develop the OpenSSL toolkit and its related documentation. For more information,
+    visit [https://www.openssl.org](https://www.openssl.org).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The OpenSSL library will be used by NGINX to serve secure web pages. We thus
+    need to install the library and its development package. The process remains the
+    same here – you install `openssl` and `openssl-devel`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using `apt`, execute the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Important note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please be aware of the laws and regulations in your own country. Some countries
+    do not allow the use of strong cryptography. The author, publisher, and developers
+    of the OpenSSL and NGINX projects will not be held liable for any violations or
+    law infringements on your part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that you have installed all of the prerequisites, you are ready to download
+    and compile the NGINX source code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading and compiling the NGINX source code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This approach to the download process will lead us to discover the various resources
+    at the disposal of server administrators, websites, communities, and wikis all
+    relating to NGINX. We will also quickly discuss the different version branches
+    available to you, and eventually, select the most appropriate one for your setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Websites and resources
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Although NGINX is a relatively new and growing project, there are already a
+    good number of resources available on the **World Wide Web** (**WWW**) and an
+    active community of administrators and developers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The official website, which is [https://nginx.org/](https://nginx.org/), currently
+    serves as an official documentation reference and provides links from which to
+    download the latest version of the application source code and binaries. A wiki
+    is also available at [https://www.nginx.com/resources/wiki/](https://www.nginx.com/resources/wiki/)
+    and offers a wide selection of additional resources such as installation guides
+    for various operating systems, tutorials related to the different modules of NGINX,
+    and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several ways to get help if you should need it. If you have a specific
+    question, try posting on the NGINX forum at [https://forum.nginx.org/](https://forum.nginx.org/).
+    An active community of users will answer your questions in no time. Additionally,
+    the NGINX mailing list, which is relayed on the NGINX forum, will also prove to
+    be an excellent resource for any question you may have. If you need direct assistance,
+    there is always a group of regulars helping each other out on the IRC channel,
+    `#Nginx`, on `irc.libera.chat`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another interesting source of information is the blogosphere. A simple query
+    on your favorite search engine should return a good number of blog articles documenting
+    NGINX, its configuration, and modules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 1.2: Websites and blogs documenting Nginx](img/B21787_01_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1.2: Websites and blogs documenting Nginx'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s now time to head over to the official website and get started with downloading
+    the source code for compiling and installing NGINX. Before you do so, let us have
+    a quick summary of the available versions and the features that come with them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Version branches
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Igor Sysoev, a talented Russian developer and server administrator, initiated
+    this open source project back in 2002\. Between the first release in 2004 and
+    the current version, the market share of NGINX has been growing steadily. It now
+    serves nearly 26.23% of websites on the internet, according to an April 2023 survey
+    on [https://www.netcraft.com/](https://www.netcraft.com/). The features are numerous
+    and render the application both powerful and flexible at the same time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are currently three version branches of the project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Stable version**: This version is usually recommended, as it is approved
+    by both developers and users, but is usually a little behind the mainline version.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Mainline version**: This is the latest version available for download and
+    comes with the newest developments and bug fixes. It was formerly known as the
+    **development version**. Although it is generally solid enough to be installed
+    on production servers, there is a small chance that you will run into the occasional
+    bug. As such, if you favor stability over novelty, going for the stable version
+    is recommended.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Legacy version**: If, for some reason, you are interested in looking at the
+    older versions, you will find several of them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A recurrent question regarding mainline versions is “*Are they stable enough
+    to be used on production servers?*” Cliff Wells, the original founder and maintainer
+    of the NGINX wiki at [https://www.nginx.com/resources/wiki/](https://www.nginx.com/resources/wiki/),
+    believes so – “*I generally use and recommend the latest development version.
+    It’s only bit me once!*” Early adopters rarely report critical problems. It is
+    up to you to select the version you will be using on your server, knowing that
+    the instructions given in this book should be valid regardless of the release
+    as the NGINX developers have decided to maintain overall backward compatibility
+    in new versions. You can find more information on version changes, new additions,
+    and bug fixes on the dedicated change log page on the official website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Features
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As of the mainline version 1.25.2, NGINX offers an impressive variety of features,
+    which, contrary to what the title of this book indicates, are not all related
+    to serving HTTP content. Here is a list of the main features of the web branch,
+    quoted from the official website ([https://nginx.org/](https://nginx.org/)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serving static and index files, auto indexing; open file descriptor cache; accelerated
+    reverse proxying with caching; load balancing and fault tolerance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Accelerated support with caching of FastCGI, uWSGI, SCGI, and memcached servers;
+    load balancing and fault tolerance; modular architecture. Filters include gzipping,
+    byte ranges, chunked responses, XSLT, SSI, and image transformation filter. Multiple
+    SSI inclusions within a single page can be processed in parallel if they are handled
+    by proxies or FastCGI/uWSGI/SCGI servers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SSL and TLS SNI support.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'NGINX can also be used as a mail proxy server. Although this aspect will not
+    be closely documented in the book, the following will provide you with some insight
+    into it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: User redirection to IMAP/POP3 backend using an external HTTP authentication
+    server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: User authentication using an external HTTP authentication server and connection
+    redirection to an internal SMTP backend
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Authentication methods:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`USER/PASS, APOP,` `AUTH LOGIN/PLAIN/CRAM-MD5`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`LOGIN,` `AUTH LOGIN/PLAIN/CRAM-MD5`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`AUTH LOGIN/PLAIN/CRAM-MD5`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**SSL support**'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**STARTTLS and** **STLS support**'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX is compatible with most computer architectures and operating systems—Windows,
+    Linux, macOS, FreeBSD, and Solaris. The application runs fine on 32- and 64-bit
+    architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading and extracting
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Once you have made your choice as to which version you will be using, head
+    over to [https://nginx.org/](https://nginx.org/) and find the URL of the file
+    you wish to download. Position yourself in your `home` directory, which will contain
+    the source code to be compiled, and download the file using `wget`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will be using version `1.25.2`, the latest stable version as of September
+    2023\. Once downloaded, extract the archive contents in the current folder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: You have successfully downloaded and extracted NGINX. Now, the next step will
+    be to configure the compilation process in order to obtain a binary that perfectly
+    fits your operating system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring the options for configuring the compilation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are usually three steps when building an application from source—*configuration*,
+    *compilation*, and *installation*. The configuration step allows you to select
+    a number of options that will not be editable after the program is built, as it
+    has a direct impact on the project binaries. Consequently, it is a very important
+    stage that you need to follow carefully if you want to avoid surprises later,
+    such as the lack of a specific module or files being located in a random folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The process consists of appending certain switches to the `configure` script
+    that comes with the source code. We will discover the three types of switches
+    that you can activate, but let us first study the easiest way to proceed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The easy way
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If, for some reason, you do not want to bother with the configuration step,
+    such as for testing purposes or simply because you will be recompiling the application
+    in the future, you may simply use the `configure` command with no switches. Execute
+    the following three commands to build and install a working version of NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running this command should initiate a long procedure of verifications to ensure
+    that your system contains all of the necessary components. If the configuration
+    process fails, please make sure you check the prerequisites section again, as
+    it is the most common cause of errors. For information about why the command failed,
+    you may also refer to the `objs/autoconf.err` file, which provides a more detailed
+    report. The `make` command will compile the application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This step should not cause any errors as long as the configuration went fine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: This last step will copy the compiled files as well as other resources to the
+    installation directory, by default `/usr/local/nginx`. You may need to be logged
+    in as `root` to perform this operation depending on permissions granted to the
+    `/``usr/local` directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, if you build the application without configuring it, you take the risk
+    of missing out on a lot of features, such as the optional modules and others that
+    we are about to discover.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Path options
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When running the `configure` command, you are offered the chance to enable some
+    switches that let you specify the directory or file paths for a variety of elements.
+    Please note that the options offered by the configuration switches may change
+    according to the version you downloaded. The following options listed are valid
+    with the stable version, as of release 1.25.2\. If you use another version, run
+    the `./configure --help` command to list the available switches for your setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using a switch typically consists of appending some text to the command line.
+    Here is an example using the `--``conf-path` switch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Most of the time, the default configuration switches do not need customization.
+    However, it is highly recommended to have a look at the configuration switches
+    in the official documentation page, `https`, and libraries such as `geoip`, `gzip`,
+    `zlib`, or `pcre`. Do note that, in this book, we will compile NGINX with the
+    standard switches from **Building NGINX from Sources** and we will be aligned
+    with the compiled binaries used by the popular Linux distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Be aware that these configurations do not include additional third-party modules.
+    Please refer to [*Chapter 5*](B21787_05.xhtml#_idTextAnchor557), for more information
+    about installing add-ons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build configuration issues
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In some cases, the `configure` command may fail – after a long list of checks,
+    you may receive a few error messages on your terminal. In most (if not all) cases,
+    these errors are related to missing prerequisites or unspecified paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In such cases, proceed with the following verifications carefully to make sure
+    you have all it takes to compile the application, and optionally consult the `objs/autoconf.err`
+    file for more details about the compilation problem. This file is generated during
+    the `configure` process and will tell you exactly which part of the process failed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure you installed the prerequisites
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are basically four main prerequisites: GCC, PCRE, `zlib`, and OpenSSL.
+    The last three are libraries that must be installed in two packages: the library
+    itself and its development sources. Make sure you have installed both for each
+    of them. Please refer to the prerequisites at the beginning of this chapter. Note
+    that other prerequisites, such as `LibXML2` or `LibXSLT`, might be required to
+    enable extra modules (for example, in the case of the HTTP XSLT module).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are positive that all of the prerequisites were installed correctly,
+    perhaps the issue comes from the fact that the `configure` script is unable to
+    locate the prerequisite files. In that case, make sure that you include the configuration
+    switches related to file paths, as described earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, the following switch allows you to specify the location of the
+    OpenSSL library files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: The OpenSSL library file will be looked for in the specified folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Directories exist and are writable
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Always remember to check the obvious; everyone makes even the simplest of mistakes
+    sooner or later. Make sure the directory you placed the NGINX files in has *read*
+    and *write* permissions for the user running the configuration and compilation
+    scripts. Also ensure that all paths specified in the `configure` script switches
+    are existing, valid paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling and installing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The configuration process is of the utmost importance—it generates a makefile
+    for the application depending on the selected switches and performs a long list
+    of requirement checks on your system. Once the `configure` script is successfully
+    executed, you can proceed with compiling NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Compiling the project equates to executing the `make` command in the project
+    source directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A successful build should result in a final message appearing: `make[1]: leaving
+    directory` followed by the project source path.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, problems might occur at compile time. Most of these problems can originate
+    from missing prerequisites or invalid paths specified. If this occurs, run the
+    `configure` command again and triple-check the switches and all of the prerequisite
+    options. It may also be that you downloaded a too-recent version of the prerequisites
+    that might not be backward-compatible. In such cases, the best option is to visit
+    the official website of the missing component and download an older version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If the compilation process was successful, you are ready for the next step:
+    installing the application. The following command must be executed with `root`
+    privileges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `make install` command executes the `install` section of the makefile. In
+    other words, it performs a few simple operations, such as copying binaries and
+    configuration files to the specified `install` folder. It also creates directories
+    for storing log and HTML files, if these do not already exist. The `make install`
+    step is not generally a source of problems unless your system encounters an exceptional
+    error, such as a lack of storage space or memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: You might require `root` privileges for installing the application in the `/usr/local/`
+    folder, depending on the folder permissions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX is now ready as it has been compiled successfully. In the next section,
+    we will turn NGINX into a daemon running in the background.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Controlling the NGINX service
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At this stage, you should have successfully built and installed NGINX. The default
+    location for the output files is `/usr/local/nginx`, so we will be basing future
+    examples using this path to start, stop, run at boot, and keep an eye on the NGINX
+    status using a daemon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Daemons and services
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next step is obviously to execute NGINX. However, before doing so, it’s
+    important to understand the nature of this application. There are two types of
+    computer applications—those that require immediate user input, thus running in
+    the foreground, and those that do not, thus running in the background. NGINX is
+    of the latter type, often referred to as daemon. Daemon names usually come with
+    a trailing `d` and a couple of examples can be mentioned here—`httpd` (the HTTP
+    server daemon) is the name given to Apache under several Linux distributions,
+    and `named` is the name server daemon. `cron` is the task scheduler—although,
+    as you will notice, it is not the case for NGINX. When started from the command
+    line, a daemon immediately returns the prompt window, and in most cases, does
+    not even bother outputting data to the terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consequently, when starting NGINX, you will not see any text appear on the screen
+    and the prompt will return immediately. While this might seem startling, it is,
+    on the contrary, a good sign. It means the daemon was started correctly and the
+    configuration did not contain any errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Users and groups
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is of the utmost importance to understand the process architecture of NGINX,
+    particularly the users and groups its various processes run under. A very common
+    source of trouble when setting up NGINX is invalid file access permissions—due
+    to a user or group misconfiguration, you often end up getting `403 Forbidden`
+    HTTP errors because NGINX cannot access the requested files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two levels of processes with possibly different permission sets:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`root`. In most Unix-like systems, processes started with the `root` account
+    are allowed to open TCP sockets on any port, whereas other users can only open
+    listening sockets on a port above `1024`. If you do not start NGINX as `root`,
+    standard ports such as `80` or `443` will not be accessible.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: The user directive that allows you to specify a different user and group for
+    the worker processes will not be taken into consideration for the master process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`user nobody`, and the group will be nobody (or `nogroup`, depending on your
+    OS).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX command-line switches
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The NGINX binary accepts command-line arguments for performing various operations,
+    among which is controlling background processes. To get a full list of commands,
+    you may invoke the **Help** screen using the following commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next few sections will describe the purpose of these switches. Some allow
+    you to control the daemon, and some let you perform various operations on the
+    application configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting and stopping the daemon
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can start NGINX by running the NGINX binary without any switches. If the
+    daemon is already running, a message will show up indicating that a socket is
+    already listening on the specified port:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Beyond this point, you may control the daemon by stopping it, restarting it,
+    or simply reloading its configuration. Controlling is done by sending signals
+    to the process using the `nginx -``s` command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Command** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `nginx -``s stop` | Stops the daemon immediately (using the `TERM` signal)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `nginx -``s quit` | Stops the daemon gracefully (using the `QUIT` signal)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `nginx -``s reopen` | Reopens log files |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `nginx -``s reload` | Reloads the configuration |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 1.1: A table to remember how to control the nginx daemon'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When starting the daemon, stopping it, or performing any of the preceding operations,
+    the configuration file is first parsed and verified. If the configuration is invalid,
+    whatever command you have submitted will *fail*, even when trying to stop the
+    daemon. In other words, in some cases, you will not be able to even stop NGINX
+    if the configuration file is invalid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An alternate way to terminate the process, in desperate cases only, is to use
+    the `kill` or `killall` commands with `root` privileges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Testing the configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As you can imagine, this tiny bit of detail might become an important issue
+    if you constantly tweak your configuration. The slightest mistake in any of the
+    configuration files can result in a loss of control over the service—you are then
+    unable to stop it via regular `init` control commands, and obviously, it will
+    refuse to start again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In consequence, the following command will be useful to you on many occasions.
+    It allows you to check the syntax, validity, and integrity of your configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `-t` switch stands for **test configuration**. NGINX will parse the configuration
+    anew and let you know whether it is valid or not. A valid configuration file does
+    not necessarily mean NGINX will start though as there might be additional problems
+    such as socket issues, invalid paths, or incorrect access permissions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Obviously, manipulating your configuration files while your server is in production
+    is a dangerous thing to do and should be avoided when possible. The best practice,
+    in this case, is to place your new configuration into a separate temporary file
+    and run the test on that file. NGINX makes it possible by offering the `-``c`
+    switch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This command will parse `/home/user/test.conf` and make sure it is a valid
+    NGINX configuration file. When you are done, after making sure that your new file
+    is valid, proceed to replace your current configuration file and reload the server
+    configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Other switches
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Another switch that might come in handy in many situations is `-V`. Not only
+    does it tell you the current NGINX build version but, more importantly, it also
+    reminds you about the arguments that you used during the configuration step –
+    in other words, the command switches that you passed to the `configure` script
+    before compilation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, NGINX was configured with the `--with-http_ssl_module` switch
+    only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why is this so important? Well, if you ever try to use a module that was not
+    included with the `configure` script during the precompilation process, the directive
+    enabling the module will result in a configuration error. Your first reaction
+    will be to wonder where the syntax error comes from. Your second reaction will
+    be to wonder if you even built the module in the first place! Running `nginx -V`
+    will answer this question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additionally, the `-g` option lets you specify additional configuration directives,
+    in case they were not included in the configuration file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the next section, we will configure the daemon through the system to have
+    NGINX integrated and running automatically on your Linux distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding NGINX as a system service
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will create a script that will transform the NGINX daemon
+    into an actual system service. This will result in mainly two outcomes—the daemon
+    will be controllable using standard commands and, more importantly, it will automatically
+    be launched on system startup and stopped on system shutdown.
+  prefs: []
+  type: TYPE_NORMAL
+- en: systemd unit file
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most Linux-based operating systems to date use a systemd-style *service file*.
+    Debian, Ubuntu, RHEL, and centOS all use systemd nowadays; therefore, this service
+    file should work on any popular linux distribution. There is other init software,
+    such as System V and OpenRC; however, we will stick with the more popular and
+    most supported init.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this example, we will be using the NGINX service file provided by the official
+    NGINX website:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Create a file by using the following command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '![Figure 1.3: Default systemd service file for Nginx](img/B21787_01_3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1.3: Default systemd service file for Nginx'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure your paths are correct, as well as the `After=` part which tells `systemd`
+    to execute NGINX only after `syslog.target` and `network-online.target`. Add your
+    own services there, such as your database server, your PHP server, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once your file has been saved, reload the `systemd` configuration using `systemctl
+    daemon-reload`. Then, use `systemctl start nginx` to start the service. You can
+    start, stop, and restart the service in the same way. To enable the service at
+    boot, run the following:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You can check whether your NGINX server will boot by running the `is-enabled`
+    command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Handling system errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Sometimes, you will encounter errors when starting NGINX with `systemd`. Here
+    is an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 1.4: Debugging Nginx through systemd status](img/B21787_01_4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1.4: Debugging Nginx through systemd status'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this case, you check the current status using `systemctl status nginx`.
+    Most of the time, this tells you exactly why your NGINX server won’t start: very
+    often, the NGINX configuration file is incorrect because of typos or forgotten
+    characters. Make sure to double-check your configuration before restarting the
+    NGINX server.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have been diving into the compiling options for NGINX as well as its controlling
+    daemon. Should you need professional support from the experts who have made NGINX
+    what it is today, NGINX Plus might be for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quick overview of the possibilities offered by NGINX Plus
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As of mid-2013, NGINX, Inc., the company behind the NGINX project, also offers
+    a paid subscription called NGINX Plus. The announcement came as a surprise for
+    the open source community but several companies quickly jumped on the bandwagon
+    and reported amazing improvements in terms of performance and scalability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX, Inc., the high-performance web company, today announced the availability
+    of NGINX Plus, a fully-supported version of the popular NGINX open source software
+    complete with advanced features and offered with professional services. The product
+    is developed and supported by the core engineering team at *Nginx Inc.*, and is
+    available immediately on a subscription basis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As business requirements continue to evolve rapidly, such as the shift to mobile
+    and the explosion of dynamic content on the Web, CIOs are continuously looking
+    for opportunities to increase application performance and development agility,
+    while reducing dependencies on their infrastructure. NGINX Plus provides a flexible,
+    scalable, uniformly applicable solution that was purpose built for these modern,
+    distributed application architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Considering the pricing plans ($1,500 per year per instance) and the additional
+    features made available, this platform is indeed clearly aimed at large corporations
+    looking to integrate NGINX into their global architecture seamlessly and effortlessly.
+    Professional support from the NGINX team is included and discounts can be offered
+    for multiple-instance subscriptions. This book covers the open source version
+    of NGINX only and does not detail the advanced functionality offered by NGINX
+    Plus. For more information about the paid subscription, take a look at [https://www.nginx.com/](https://www.nginx.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter covered a number of critical steps. We first made sure that your
+    system contained all the required components for compiling NGINX. We then proceeded
+    to select the proper version branch for your usage – will you be using the stable
+    version or a more advanced yet potentially less stable one? After downloading
+    the source and configuring the compilation process by enabling or disabling features
+    and modules such as SSL, GeoIP, and more, we compiled the application and installed
+    it on the system in the directory of your choice. We created a `unit service`
+    file and modified the system boot sequence to schedule the service to be started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From this point on, NGINX is installed on your server and automatically starts
+    with the system. Your web server is functional, though it does not yet answer
+    the most basic functionality – serving a website. The first step toward hosting
+    a website will be to prepare a suitable configuration file. The next chapter will
+    cover the basic configuration of NGINX and will teach you how to optimize performance
+    based on the expected audience and system resources.
+  prefs: []
+  type: TYPE_NORMAL

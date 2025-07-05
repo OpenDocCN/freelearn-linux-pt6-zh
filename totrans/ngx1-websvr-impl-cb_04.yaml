@@ -1,0 +1,402 @@
+- en: 'Chapter 4. Slow Them Down: Access and Rate Limiting Module'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limiting requests for any given session
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocking and allowing access using IP
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up simple rate limiting for a download directory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Rate limiting search engine bots
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up GeoIP using the MaxMind country database
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using the GeoIP module to set up access and rate control
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this day and age of the Internet, the user is extremely sensitive about the
+    quality of service they get from their online services. There are a lot of small
+    companies with few resources that are able to capture a part of the market by
+    innovating rapidly. Such companies eventually have to rate limit, as inevitably
+    they have more traffic than their servers can handle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Something as simple as getting "digged" ([http://www.digg.com](http://www.digg.com))
+    or "slashdotted" ([http://www.slashdot.org](http://www.slashdot.org)) used to
+    bring down sites, but Nginx provides good protection against situations like this
+    by providing rate limiting and server access based on IP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limiting requests for any given session
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Due to its event driven nature, Nginx is being adopted all over the world whenever
+    one needs performance with resource constraints. However, in a lot of situations,
+    that is not enough and the only way is to limit request to ensure that your site
+    is up and your server does not suffer any downtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following configuration, when applied within a server directive, allows
+    you to limit requests for a given session:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `limit_req_zone` directive basically allows you to define what variable
+    (in this case `$binary_remote_addr)` to act as the key of the sessions, in addition
+    to allocating 10MB for this "zone" and limiting the rate to one request per second.
+    There are no limits to the number of zones one can set up, as long as you have
+    the memory to handle the zone allocations. A given zone which uses, say, the remote
+    address as the key for the session, will be able to handle about 32,000 sessions
+    in 1M of session memory allocated to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the `server` directive, we actually do the request rate limiting by using
+    the `limit_req directive`, which basically uses zone one, which allows no more
+    than an average of one request per second with a maximum burst rate of five requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any request that is beyond the rate capacity will receive a "Service unavailable"
+    503 error page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can use other variables to act as the session key, but it is important to
+    note that the session key variable size must be small to accommodate all the incoming
+    connections (that is total connections x session value size < size of session
+    cache).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blocking and allowing access using IP
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the most important things that a site needs to do is to blacklist some
+    malicious IPs that over time try to probe and cause harm to your site. This can
+    be done at multiple levels like the router, and even at the software firewall
+    level which will also drive away this unnecessary load from Nginx. If you do not
+    have enough control on your stack, then Nginx is the best place to start blocking
+    those bots and hackers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This lets you block some IPs from accessing your site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is clear that the `deny` and `allow` directives are in sequence, so it will
+    deny the IP 192.168.1.1 while it allows the network 192.168.1.0/24 to access.
+    A final `deny all`; directive makes sure that no other IP can access this location
+    (`http://www.example1.com`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So all other IPs, when they try to access this HTTP location, will get a 403
+    forbidden page. You can use the `error_page` directive to rewrite this to a 404
+    page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more....
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'It is important to realize that the sequence of the directives is critical.
+    Something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Will give a 403 forbidden to all the clients that open the location (`http://www.example1.com`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up simple rate limiting for a download directory
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have looked at ways to rate limit requests, but sometimes the issue is that
+    some clients start to hog the bandwidth and pull down the quality of service for
+    the other users. In such scenarios, it is best to use bandwidth based rate limiting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The best application of something like this is with the static files on your
+    site. It ensures that no one leeches your bandwidth for the wrong reasons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following simple configuration in the server directive will allow you to
+    rate limit the whole site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This simple configuration will limit the `/downloads` file downloading speed
+    to 10k for all users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are a lot more things that can be done with this rate limiting; the following
+    configuration will let you limit the rate to 100k after the 1 megabyte of the
+    file has been sent in full throttle to the client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Rate limiting search engine bots
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Till now we have learned about easy ways of blocking, request-limiting, and
+    bandwidth-limiting all clients. We can start applying most of this knowledge to
+    some problems that do come up in the production environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most of the time, it so happens that with content heavy sites, bots and search
+    engines start using up more bandwidth than actual users. In such a scenario, where
+    you want to make sure the actual users are not hindered, yet you have the SEO
+    intact, you will want to rate limit search engine bots.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This following configuration, when placed within the location directive, will
+    help you block and rate limit some bots:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The idea is fairly simple, in cases where it is clear that the bot is not getting
+    you traffic but only leeching your bandwidth, it is best to block them. But not
+    all bots are bad. Googlebot, yahoobot and msnbot are all crucial for your search
+    engine traffic to come through. It is a fine balance that has to be undertaken
+    in situations where you have a high traffic site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more....
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can use this situation to also ensure that your site gets very little spam
+    traffic. It is clear that most commenting bots can be stopped with simple blacklisting
+    of the `HTTP_REFERER`, as shown in the following snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Setting up GeoIP using the MaxMind country database
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: MaxMind is a company that specializes in generating databases which map countries
+    and cities to IP ranges. It allows you to easily locate the geographic location
+    of the end client. This information can be used to show the user geo-dependent
+    data, or maybe redirect to server locations that can serve the end-client faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this recipe, we will install the MaxMind database in Nginx and show the
+    usage of the GeoIP variables inside the Nginx configuration. Check out their demo
+    at: [http://www.maxmind.com/app/locate_my_ip](http://www.maxmind.com/app/locate_my_ip).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up GeoIP using the MaxMind country database](img/4965_04_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Download the Geo-IP database or install the package:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: or
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will need to install some GeoIP libraries:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Then you configure Nginx for installing the GeoIP module as well. This assumes
+    that you have already downloaded the Nginx codebase and have the compilation dependencies
+    already installed. This has been covered in one of the earlier recipes as well.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'We will then add the following configuration user the `http` directive:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The preceding steps installs the databases and configures the GeoIP module in
+    Nginx. This allows the configuration to access the following new variables. These
+    variables can let you write geography specific rules!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Variable | Purpose |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_city_country_code` | Two-letter country code, for example, "RU",
+    "US". |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_city_country_code3` | Three-letter country code, for example, "RUS",
+    "USA". |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_city_country_name` | The name of the country, for example, "Russian
+    Federation", "United States" — if available. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_region` | The name of the region (province, region, state, province,
+    federal land, and the like), for example, "Moscow City", "DC" — if available.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_city` | The name of the city, for example, "Moscow", "Washington",
+    "Lisbon", &c — if available. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_postal_code` | Zip code or postal code — if available. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_city_continent_code` | Continent if available |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_latitude` | Latitude — if available. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$geoip_longitude` | Longitude — if available. |'
+  prefs: []
+  type: TYPE_TB
+- en: Using the GeoIP module to set up access and rate control
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we come to an interesting part of Nginx, where we can use the GeoIP module
+    to set up access and rate control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, you can make your site inaccessible to a whole country depending
+    on your needs. Hulu videos ([http://www.hulu.com](http://www.hulu.com)) are not
+    available to IPs outside of the United States. This is, of course, not completely
+    fool-proof as there are anonymity networks that allow you to mask your actual
+    IP or appear as if you are a client from the US.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This simple configuration, which assumes that you have already installed GeoIP
+    as per the preceding recipe, will allow Bermuda users to access certain content
+    while blocking Bhutan and Bolivia users from accessing the site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The idea behind the GeoIP module is simple. It basically looks at the remote
+    client IP and fills up some variables which let you easily identify the various
+    geographic attributes of the client. In this example, we are filtering requests
+    that are from the Bermudas and rate limiting their bandwidth to 20k, while we
+    are taking requests that are identified as coming from Bhutan and sending a 403
+    forbidden response to them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can extend this to create alternate sites for different countries on the
+    same URL. This is useful for language localization as well. Nginx is clearly state-of-the-art
+    when it comes to GeoIP mapping.
+  prefs: []
+  type: TYPE_NORMAL

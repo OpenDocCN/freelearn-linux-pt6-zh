@@ -1,0 +1,2619 @@
+- en: '3'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Exploring the HTTP Configuration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At this stage, we have a working NGINX setup—not only is it installed on the
+    system and launched automatically on startup but it’s also organized and optimized
+    with the help of basic directives. It’s now time to go one step further into the
+    configuration by discovering the HTTP core module. This module is an essential
+    component of the HTTP configuration—it allows you to set up websites to be served,
+    also referred to as virtual hosts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter will cover the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An introduction to the HTTP core module and its three new blocks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring the HTTP core module directives
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring the directives of HTTP/2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring the variables introduced by the HTTP core module
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Understanding and exploring the `location` block
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: By the end of this chapter, you will know all the main points about configuring
+    the NGINX server, its modules, and you will be able to host your first website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An introduction to the HTTP core module and its three new blocks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The **HTTP core module** is the component that contains all of the fundamental
+    blocks, directives, and variables of the HTTP server. It’s enabled by default
+    when you configure the build (as described in [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014)),
+    but it’s actually optional—you can decide not to include it in your custom build.
+    Doing so will completely disable all HTTP functionalities, and all of the other
+    HTTP modules will not be compiled. Obviously, if you purchased this book, it’s
+    highly likely that you are interested in the web-serving capacities of NGINX,
+    so you will have this enabled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is the largest of all standard NGINX modules—it provides an impressive
+    number of directives and variables. In order to understand all of these new elements
+    and how they come into play, we first need to understand the logical organization
+    introduced by the three main blocks—`http`, `server`, and `location`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, we discovered the core module by studying the default
+    NGINX configuration file, which includes a sequence of directives and values with
+    no apparent organization. Then came the `events` module, which introduced the
+    first block, (`events`). This block is the only placeholder for all directives
+    brought in by the `events` module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As it turns out, the HTTP module introduces three new logical blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http`: This block is inserted at the root of the configuration file. It allows
+    you to start defining directives and blocks from all modules related to the HTTP
+    facet of NGINX. Although there is no real purpose in doing so, the block can be
+    inserted multiple times, in which case the directive values inserted in the last
+    block will override the previous ones.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`server`: This block allows you to declare a website. In other words, a specific
+    website (identified by one or more hostnames—for example, `www.mywebsite.com`)
+    becomes acknowledged by NGINX and receives its own configuration. This block can
+    only be used within the `http` block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`location`: This block lets you define a group of settings to be applied to
+    a particular location on a website. This block can be used within a `server` block
+    or nested within another `location` block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following diagram summarizes the final structure by providing a couple
+    of basic examples corresponding to actual situations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 3.1: Diagram showing block structure and hierarchy with a few examples](img/B21787_03_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3.1: Diagram showing block structure and hierarchy with a few examples'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The HTTP section, defined by the `http{...}` block, encompasses the entire web-related
+    configuration. It may contain one or more `server{...}` blocks, defining the domains
+    and subdomains that you are hosting. For each of these websites, you have the
+    possibility of defining `location` blocks that let you apply additional settings
+    to a particular request URI, or request URIs matching a pattern.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember that the principle of setting inheritance applies here. If you define
+    a setting at the `http{...}` block level (for example, `gzip on` to enable gzip
+    compression), the setting will preserve its value in the potentially incorporated
+    `server` and `location` blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have learned about the NGINX block structure, and we have put it into practice
+    with a concrete example. We will now cover the modules available in each of these
+    three blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring the HTTP core module directives
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At each of the three levels (the blocks discussed previously), directives can
+    be inserted in order to affect the behavior of the web server. The following subsections
+    cover all directives that are introduced by the main HTTP module, grouped thematically.
+    For each directive, an indication regarding the context is given. Some cannot
+    be used at certain levels. For instance, it would make no sense to insert a `server_name`
+    directive at the `http` block level, since `server_name` is a directive directly
+    affecting a virtual host—it should only be inserted in the `server` block. To
+    that extent, the table indicates the possible levels where each directive is allowed—the
+    `http` block, the `server` block, the `location` block, and, additionally, the
+    `if` block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This documentation is valid as of Stable version `1.25`. Future updates may
+    alter the *syntax of some directives* or provide new features that are not discussed
+    here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Socket and host configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This set of directives will allow you to configure your virtual hosts, in practice,
+    by creating `server` blocks that you identify either by a hostname or by an IP
+    address and port combination. In addition, some directives will let you fine-tune
+    your network settings by configuring TCP socket options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: listen
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifies the IP address and/or the port to be used by the listening socket
+    that will serve the website. Sites are generally served on port `80` (the default
+    value) via HTTP or `443` via HTTPS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`listen [address][:port] [``additional options];`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additional options include the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`default_server`: Specifies that this `server` block is to be used as the default
+    website for any request received at the specified IP address and port'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl`: Specifies that the website should be served using SSL'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http2`: Enables support for the HTTP/2 protocol, if the `http2` module is
+    present'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_protocol`: Enables the proxy protocol for all connections accepted on
+    this port'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Other options are related to the `bind` and `listen` system calls:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Here are some examples:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: server_name
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `server_name` directive assigns one or more hostnames to the `server` block.
+    When NGINX receives an HTTP request, it matches the `Host` header of the request
+    against all `server` blocks. The first `server` block to match this hostname is
+    selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If no `server` block matches the desired host, NGINX selects the first `server`
+    block that matches the parameters of the `listen` directive (for example, `listen
+    *:80` would be a catch-all for all requests received on port `80`), giving priority
+    to the first block that has the `default_server` option enabled on the `listen`
+    directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Important note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive accepts wildcards as well as regular expressions. In this case,
+    the hostname should start with the `~` character.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`server_name` `hostname1 [hostname2...];`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Examples**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You may use an empty string as the directive value in order to catch all requests
+    that do not come with a `Host` header, but only after at least one regular name
+    (or `_` for a dummy hostname):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: server_name_in_redirect
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive applies to internal redirects. If set to `on`, NGINX will use
+    the first hostname specified in the `server_name` directive. If set to `off`,
+    NGINX will use the value of the `Host` header from the HTTP request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: server_names_hash_max_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX uses hash tables for various data collections (maps, mimes, headers, and
+    so on) in order to speed up the processing of requests. This directive defines
+    the maximum size of the server names hash table. The default value should fit
+    with most configurations. If this needs to be changed, NGINX will automatically
+    tell you on startup or when you reload its configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`512`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: server_names_hash_bucket_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the bucket size for the server names hash table. Similarly, you should
+    only change this value if NGINX tells you to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`32` (or `64` or `128`, depending on your processor cache specifications).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: port_in_redirect
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If disabled, redirects issued by NGINX will be relative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: absolute_redirect
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of a redirect, this directive defines whether or not NGINX should
+    append the port number to the redirection URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: sendfile
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this directive is enabled, NGINX will use the `sendfile` kernel call to handle
+    file transmission. If disabled, NGINX will handle the file transfer by itself.
+    Depending on the physical location of the file being transmitted (such as NFS),
+    this option may affect the server’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On Linux, using `sendfile` automatically disables asynchronous I/O. If using
+    FreeBSD, it is possible to combine the use of `aio` and `sendfile`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: sendfile_max_chunk
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive defines a maximum data size to be used for each call to `sendfile`
+    (read the previous entry).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value (size)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: send_lowat
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An option allowing you to make use of the `SO_SNDLOWAT` flag for TCP sockets
+    under FreeBSD only. This value defines the minimum number of bytes in the buffer
+    for output operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value (size)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: reset_timedout_connection
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a client connection times out, its associated information may remain in
+    memory depending on the state it was in. Enabling this directive will erase all
+    memory associated with the connection after it times out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paths and documents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This section describes directives that configure the documents that should be
+    served for each website, such as the document root, the site index, error pages,
+    and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: root
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`, and `if`. Variables are accepted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the document root, containing the files you wish to serve to your visitors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Directory path'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`html`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Example**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: alias
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`location`. Variables are accepted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`/`) or file path'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`alias` is a directive that you place in a `location` block only. It assigns
+    a different path for NGINX to retrieve documents for a specific request. As an
+    example, consider the following configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: When a request for `http://localhost/` is received, files are served from the
+    `/var/www/website.com/html/` folder. However, if NGINX receives a request for
+    `http://localhost/admin/`, the path used to retrieve the files is `/home/website.com/locked/`.
+    Moreover, the value of the document root directive (`root`) is not altered. This
+    procedure is invisible in the eyes of dynamic scripts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: error_page
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`, and `if`. Variables are accepted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Allows you to affect URIs to HTTP response code and, optionally, to replace
+    the code with another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`error_page code1 [code2...] [=replacement code] [=@block | URI]`, where the
+    replacement code (denoted by `=code`) is one of `301`, `302`, `303`, `307`, or
+    `308`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Examples**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: if_modified_since
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines how NGINX handles the `If-Modified-Since` HTTP header. This header is
+    mostly used by search engine spiders (such as Google web crawling bots). The robot
+    indicates the date and time of the last pass. If the requested file has not been
+    modified since then, the server simply returns a `304 Not Modified` response code
+    with no body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive accepts the following three values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Ignores the `If-Modified-Since` header.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`exact`: Returns `304 Not Modified` if the date and time specified in the HTTP
+    header are an exact match with the actual requested file modification date. If
+    the file modification date is earlier or later, the file is served normally (`200`
+    `OK` response).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`before`: Returns `304 Not Modified` if the date and time specified in the
+    HTTP header is earlier than, or equal to, the requested file modification date.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`if_modified_since off | exact |` `before`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`exact`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: index
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`. Variables are accepted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the default page that NGINX will serve if no filename is specified in
+    the request (in other words, the index page). You may specify multiple filenames,
+    and the first file to be found will be served. If none of the specified files
+    are found, NGINX will either attempt to generate an automatic index of the files
+    if the `autoindex` directive is enabled (check the `HTTP Autoindex` module) or
+    return a `403 Forbidden` error page. Optionally, you may insert an absolute filename
+    (such as `/page.html`, based on the document root directory) but only as the last
+    argument of the directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index file1 [``file2...] [absolute_file];`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index.html`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Examples**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: recursive_error_pages
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes an error page, itself served by the `error_page` directive, may trigger
+    an error; in this case, the `error_page` directive is used again (recursively).
+    This directive enables or disables recursive error pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: try_files
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`server`, `location`. Variables are accepted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Attempts to serve the specified files (arguments *1* to *N-1*); if none of these
+    files exist, it jumps to the respective named `location` block (last argument)
+    or serves the specified URI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`location` block or a URI'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Example**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, NGINX tries to serve files normally. If the request URI does
+    not correspond to any existing file, NGINX appends `.html` to the URI and tries
+    to serve the file again. If it still fails, it tries with `.xml`. Eventually,
+    if all of these possibilities fail, another `location` block (`@proxy`) handles
+    the request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is important to note that, except for the final argument, `try_files` will
+    serve the literal file with no internal redirect. That means you *cannot* do a
+    `try_files` directive as follows, as this would result in any file matching `$uri.php`
+    being served with the PHP source code. This would leave a security vulnerability
+    where a user could request a `/config` URI and get the contents of `/config.php`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may also specify `$uri/` in the list of values in order to test for the
+    existence of a directory with that name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client requests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This section documents the way that NGINX handles client requests. Among other
+    things, you are allowed to configure the keep-alive mechanism behavior and possibly
+    log client requests into files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: keepalive_requests
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maximum number of requests served over a single keep-alive connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`100`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: keepalive_timeout
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive defines the number of seconds the server will wait before closing
+    a keep-alive connection. The second (optional) parameter is transmitted as the
+    value of `Keep-Alive: timeout= <HTTP response header>`. The intended effect is
+    to let the client browser close the connection itself after this period has elapsed.
+    Note that some browsers ignore this setting. Internet Explorer, for instance,
+    automatically closes the connection after around 60 seconds.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`keepalive_timeout` `time1 [time2];`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`75`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Examples**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: keepalive_disable
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This option allows you to disable the `keepalive` functionality for browser
+    families of your choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`keepalive_disable` `browser1 browser2;`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msie6`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: send_timeout
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The number of times after which NGINX closes an inactive connection. A connection
+    becomes inactive the moment a client stops transmitting data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Time value (in seconds)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`60`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client_body_in_file_only
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this directive is enabled, the body of incoming HTTP requests will be stored
+    in actual files on the disk. The client body corresponds to the client HTTP request
+    raw data, minus the headers (in other words, the content transmitted in `POST`
+    requests). Files are stored as plain-text documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive accepts three values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Do not store the request body in a file'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`clean`: Store the request body in a file and remove the file after a request
+    is processed'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`on`: Store the request body in a file, but do not remove the file after the
+    request is processed (not recommended unless for debugging purposes)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`client_body_in_file_only on | clean |` `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client_body_in_single_buffer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines whether or not NGINX should store the request body in a single buffer
+    in memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client_body_buffer_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifies the size of the buffer holding the body of client requests. If this
+    size is exceeded, the body (or at least part of it) will be written to the disk.
+    Note that, if the `client_body_in_file_only` directive is enabled, request bodies
+    are always stored into a file on the disk, regardless of their size (whether they
+    fit in the buffer or not).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`8k` or `16k` (two memory pages) depending on your computer architecture.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client_body_temp_path
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Allows you to define the path of the directory that will store client request
+    body files. An additional option lets you separate those files into a folder hierarchy
+    over as many as three levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`client_body_temp_path path [level1] [``level2] [level3]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`client_body_temp`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Examples**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: client_body_timeout
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the inactivity timeout while reading a client request body. A connection
+    becomes inactive the moment the client stops transmitting data. If the delay is
+    reached, NGINX returns a `408 Request timeout` HTTP error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Time value (in seconds)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`60`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client_header_buffer_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive allows you to define the size of the buffer that NGINX allocates
+    to request headers. Usually, `1k` is enough. However, in some cases, headers contain
+    large chunks of cookie data, or the request URI is lengthy. If that is the case,
+    then NGINX allocates one or more larger buffers (the size of larger buffers is
+    defined by the `large_client_header_buffers` directive).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`1k`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client_header_timeout
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the inactivity timeout while reading a client request header. A connection
+    becomes inactive the moment the client stops transmitting data. If the delay is
+    reached, NGINX returns a `408 Request timeout` HTTP error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Time value (in seconds)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`60`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: client_max_body_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the maximum size of a client request body. If this size is exceeded,
+    NGINX returns a `413 Request entity too large` HTTP error. This setting is particularly
+    important if you are going to allow users to upload files to your server over
+    HTTP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`1m`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: large_client_header_buffers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the number and size of larger buffers to be used for storing client
+    requests, in the event the default buffer (`client_header_buffer_size`) was insufficient.
+    Each line of the header must fit in the size of a single buffer. If the request
+    URI line is greater than the size of a single buffer, NGINX returns a `414 Request
+    URI too large` error. If another header line exceeds the size of a single buffer,
+    NGINX returns a `400 Bad` `request` error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`large_client_header_buffers` `amount size`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Default value**: *4*8* kilobytes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: lingering_time
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive applies to client requests with a request body. As soon as the
+    amount of uploaded data exceeds `max_client_body_size`, NGINX immediately sends
+    a `413 Request entity too large` HTTP error response. However, most browsers continue
+    uploading data regardless of that notification. This directive defines the amount
+    of time NGINX should wait after sending this error response before closing the
+    connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value (time)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`30` seconds'
+  prefs: []
+  type: TYPE_NORMAL
+- en: lingering_timeout
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive defines the amount of time that NGINX should wait between two
+    read operations before closing the client connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value (time)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`5` seconds'
+  prefs: []
+  type: TYPE_NORMAL
+- en: lingering_close
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Controls the way NGINX closes client connections. Set this to `off` to immediately
+    close connections after all request data has been received. The default value
+    (`on`) allows waiting time to process additional data if necessary. If set to
+    `always`, NGINX will always wait to close the connection. The amount of waiting
+    time is defined by the `lingering_timeout` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`, `off`, or `always`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ignore_invalid_headers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this directive is disabled, NGINX returns a `400 Bad Request` HTTP error
+    if request headers are malformed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: chunked_transfer_encoding
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enables or disables chunked transfer encoding for HTTP/1.1 requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: max_ranges
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines how many byte ranges NGINX will serve when a client requests partial
+    content from a file. If you do not specify a value, there is no limit. If you
+    set this to `0`, the byte range functionality is disabled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MIME types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'NGINX offers two particular directives that will help you configure MIME types:
+    `types` and `default_type`, which defines the default MIME types for documents.
+    This will affect the `Content-Type` HTTP header sent within responses. Read on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive allows you to establish correlations between MIME types and
+    file extensions. It’s actually a block accepting a particular syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: When NGINX serves a file, it checks the file extension in order to determine
+    the MIME type. The MIME type is then sent as the value of the `Content-Type` HTTP
+    header in the response. This header may affect the way browsers handle files.
+    For example, if the MIME type of the file you are requesting is `application/pdf`,
+    your browser may, for instance, attempt to render the file using a plugin associated
+    with that MIME type instead of merely downloading it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'NGINX includes a basic set of MIME types as a standalone file (`mime.types`)
+    to be included with the `include` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This file already covers the most important file extensions, so you will probably
+    not need to edit it. If the extension of the served file is not found within the
+    listed types, the default type is used, as defined by the `default_type` directive
+    (see the next entry).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that you may override the list of types by re-declaring the `types` block.
+    A useful example would be to force all files in a folder to be downloaded instead
+    of being displayed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Some browsers ignore MIME types and may still display files if their filename
+    ends with a known extension, such as `.html` or `.txt`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To control the way files are handled by your visitors’ browsers in a more certain
+    and definitive manner, you should make use of the `Content-Disposition` HTTP header
+    via the `add_header` directive, detailed in the *HTTP headers* module ([*Chapter
+    4*](B21787_04.xhtml#_idTextAnchor412)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The default values, if the `mime.types` file is not included, are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: default_type
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the default MIME type. When NGINX serves a file, the file extension
+    is matched against the known types declared within the `types` block in order
+    to return the proper MIME type as a value of the `Content-Type` HTTP response
+    header. If the extension doesn’t match any of the known MIME types, the value
+    of the `default_type` directive is used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: MIME type'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`text/plain`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: types_hash_max_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the maximum size of an entry in the MIME types’ hash tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`4k` or `8k` (one line of CPU cache)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: types_hash_bucket_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the bucket size for the MIME types’ hash tables. You should only change
+    this value if NGINX tells you to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`64`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limits and restrictions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This set of directives will allow you to add restrictions that apply when a
+    client attempts to access a particular location or document on your server. Note
+    that you will find additional directives for restricting access in the next chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: limit_except
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive allows you to prevent the use of all HTTP methods, except ones
+    that you explicitly allow. Within a `location` block, you may want to restrict
+    the use of some HTTP methods, such as forbidding clients from sending `POST` requests.
+    You need to define two elements: first, methods that are not forbidden (allowed
+    methods; all others will be forbidden); and second, the audience that is affected
+    by the restriction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: This example applies a restriction to the `/admin/` location—all visitors are
+    only allowed to use the `GET` method. Visitors that have a local IP address, as
+    specified with the `allow` directive (detailed in the HTTP access module), are
+    not affected by this restriction. If a visitor uses a forbidden method, NGINX
+    will return a `403 Forbidden` HTTP error. Note that the `GET` method implies the
+    `HEAD` method (if you allow `GET`, both `GET` and `HEAD` are allowed).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The syntax is specific:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Directives that you are allowed to insert within the block are documented in
+    their respective module section in [*Chapter 4*](B21787_04.xhtml#_idTextAnchor412).
+  prefs: []
+  type: TYPE_NORMAL
+- en: limit_rate
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`, and `if`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Allows you to limit the transfer rate of individual client connections. The
+    rate is expressed in bytes per second:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will limit connection transfer rates to `500` kilobytes per second. If
+    a client opens two connections, the client will be allowed *2*500* kilobytes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Default value**: No limit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: limit_rate_after
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`, and `if`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Defines the number of data transferred before the `limit_rate` directive takes
+    effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: NGINX will send the first 10 megabytes at maximum speed. Past this size, the
+    transfer rate is limited by the value specified with the `limit_rate` directive
+    (see the previous entry). Similar to the `limit_rate` directive, this setting
+    only applies to a single connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Default**: None'
+  prefs: []
+  type: TYPE_NORMAL
+- en: satisfy
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `satisfy` directive defines whether clients require all access conditions
+    to be valid (satisfy all), or at least one (satisfy any):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the previous example, there are two conditions for clients to be able to
+    access the resource:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Through the `allow` and `deny` directives (HTTP access module), we only allow
+    clients that have a local IP address; all other clients are denied access
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Through the `auth_basic` and `auth_basic_user_file` directives (the HTTP `auth_basic`
+    module), we only allow clients that provide a valid username and password
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With `satisfy all`, the client must satisfy both conditions in order to gain
+    access to the resource. With `satisfy any`, if the client satisfies either condition,
+    they are granted access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`satisfy any |` `all`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`all`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: internal
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive specifies that the `location` block is internal. In other words,
+    the specified resource cannot be accessed by external requests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the previous configuration, clients will not be able to browse `http://website.com/admin/`.
+    Such requests will be met with `404 Not Found` errors. The only way to access
+    the resource is via internal redirects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: File processing and caching
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It’s important for your websites to be built upon solid foundations. File access
+    and caching are critical aspects of web serving. In this regard, NGINX lets you
+    perform precise tweaking with the use of the following directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: disable_symlinks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This directive allows you to control the way NGINX handles symbolic links when
+    they are to be served. By default (the directive value is `off`), symbolic links
+    are allowed, and NGINX follows them. You may decide to disable the following symbolic
+    links under different conditions by specifying one of these values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`: If any part of the requested URI is a symbolic link, access to it is
+    denied, and NGINX returns a `403 HTTP` error page.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`if_not_owner`: Similar to the previous link, but access is denied only if
+    the link and the object it points to have different owners.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The optional `from=` parameter allows you to specify a part of the URL that
+    will not be checked for symbolic links. For example, `disable_symlinks on from=$document_root`
+    will tell NGINX to normally follow symbolic links in the URI up to the `$document_root`
+    folder. If a symbolic link is found in the URI parts after that, access to the
+    requested file will be denied.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: directio
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this directive is enabled, files with a size greater than the specified value
+    will be read with the Direct I/O system mechanism. This allows NGINX to read data
+    from the storage device and place it directly in memory with no intermediary caching
+    process involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: directio_alignment
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets byte alignment when using `directio`. Set this value to `4k` if you use
+    XFS under Linux.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`512`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: open_file_cache
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive allows you to enable the cache that stores information about
+    open files. It does not actually store file contents but only information such
+    as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: File descriptors (file size, modification time, and so on).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The existence of files and directories.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File errors, such as permission denied, file not found, and so on. Note that
+    this can be disabled with the `open_file_cache_errors` directive.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This directive accepts two arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`max=X`, where `X` is the number of entries that the cache can store. If this
+    number is reached, older entries will be deleted in order to leave room for newer
+    entries.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optionally, `inactive=Y`, where `Y` is the of seconds that a cache entry should
+    be stored. By default, NGINX will wait *60* seconds before clearing a cache entry.
+    If the cache entry is accessed, the timer is reset. If the cache entry is accessed
+    more than the value defined by `open_file_cache_min_uses`, the cache entry will
+    not be cleared (until NGINX runs out of space and decides to clear out older entries).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`open_file_cache max=X [inactive=Y] |` `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Example**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: open_file_cache_errors
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enables or disables the caching of file errors with the `open_file_cache` directive
+    (read the previous entry).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: open_file_cache_min_uses
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By default, entries in the `open_file_cache` directive are cleared after a
+    period of inactivity (60 seconds, by default). If there is activity, though, you
+    can prevent NGINX from removing the cache entry. This directive defines the number
+    of times an entry must be accessed in order to be eligible for protection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the cache entry is accessed more than three times, it becomes permanently
+    active and is not removed until NGINX decides to clear out older entries to free
+    up some space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: open_file_cache_valid
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The open file cache mechanism is important, but cached information quickly becomes
+    obsolete, especially in the case of a fast-moving filesystem. In that regard,
+    information needs to be re-verified after a short period of time. This directive
+    specifies the number of seconds that NGINX will wait before revalidating a cache
+    entry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Time value (in seconds)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`60`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: read_ahead
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines the number of bytes to pre-read from files. Under Linux-based operating
+    systems, setting this directive to a value above `0` will enable reading ahead,
+    but the actual value you specify has no effect. Set this to `0` to disable pre-reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following directives relate to various aspects of web server logging, URI
+    composition, DNS, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: log_not_found
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enables or disables logging of `404 Not Found` HTTP errors. If your logs get
+    filled with `404` errors due to missing `favicon.ico` or `robots.txt` files, you
+    might want to turn this off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: log_subrequest
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enables or disables logging of sub-requests triggered by internal redirects
+    or **server-side includes** (**SSI**) requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: merge_slashes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Enabling this directive will have the effect of merging multiple consecutive
+    slashes in a URI. It turns out to be particularly useful in situations resembling
+    the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: By default, if the client attempts to access `http://website.com//documents/`
+    (note `//` in the middle of the URI), NGINX will return a `404 Not Found` HTTP
+    error. If you enable this directive, the two slashes will be merged into one,
+    and the location pattern will be matched.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: msie_padding
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive functions with the `400` or higher), if the length of the response
+    body is less than 512 bytes, these browsers will display their own error page,
+    sometimes at the expense of a more informative page provided by the server. If
+    you enable this option, the body of responses with a status code of `400` or higher
+    will be padded to 512 bytes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: msie_refresh
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is another MSIE-specific directive that will take effect in the case of
+    the following HTTP response codes, `301 Moved Permanently` and `302 Moved Temporarily`.
+    When enabled, NGINX sends clients running an MSIE browser a response body containing
+    a refresh meta tag (`<meta http-equiv="Refresh"...>`) in order to redirect the
+    browser to the new location of the requested resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: resolver
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifies the name servers that should be employed by NGINX to resolve hostnames
+    to IP addresses and vice versa. DNS query results are cached for some time, either
+    by respecting the **time to live** (**TTL**) provided by the DNS server or by
+    specifying a time value to the valid argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If more than one DNS server is specified, NGINX will query them using a round-robin
+    algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`valid=Time` `value, ipv6=on|off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Default value**: None (system default)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Examples**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Important note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although NGINX supports external DNS resolvers, we strongly recommend you use
+    a local resolver such as `dnsmasq` and have NGINX query `dnsmasq` instead. NGINX
+    might struggle to work with external resolvers under heavy load, and having a
+    local resolver removes any network issue such as latency between NGINX and the
+    DNS server. By doing so, you can optimize `dnsmasq` or use an alternative such
+    as `dnscrypt` to keep your DNS requests private. Once set, a local DNS server
+    can be used for any other server application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: resolver_timeout
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Timeout for a hostname resolution query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Time value (in seconds)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`30`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: server_tokens
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This directive allows you to define whether or not NGINX should inform clients
+    of the running version number. There are three situations where NGINX indicates
+    its version number:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the server header of HTTP responses (such as `nginx/1.25.0`). If you set
+    `server_tokens` to `off`, the server header will only indicate `Nginx`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On error pages, NGINX indicates the version number in the footer. If you set
+    `server_tokens` to `off`, the footer on error pages will only indicate `Nginx`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If using the build value, NGINX will output the build value specified during
+    compilation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you are running an older version of NGINX and do not plan to update it, it
+    might be a good idea to *hide* your version number for security reasons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`, `off`, or `build`. Default value: `on`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: underscores_in_headers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Allows or disallows underscores in custom HTTP header names. If this directive
+    is set to `on`, the following example header is considered valid by `Nginx:` `test_header:
+    value`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: variables_hash_max_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive defines the maximum size of variable hash tables. If your server
+    configuration uses a total of more than 1,024 variables, you will have to increase
+    this value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`1024`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: variables_hash_bucket_size
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This directive allows you to set the bucket size for variable hash tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Numeric value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`64` (or `32` or `128`, depending on your processor cache specifications)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: post_action
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`http`, `server`, `location`, and `if`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines a post-completion action, a URI that will be called by NGINX after the
+    request has been completed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`location` block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Example**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: We covered most of the directives we might need in the future. Here’s an example
+    of another set of optional directives that we recommend you use. Please note that
+    at the time of writing this book, HTTP/3 and **Quick UDP Internet Connections**
+    (**QUIC**) are neither fully supported nor deployed in NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring the directives of HTTP/2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX added support for `1.9.5` and superseded the `1.9.5`, SPDY is no longer
+    available, and we now have to use HTTP/2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you installed NGINX via a package manager, this module is most likely enabled;
+    if you compiled it yourself, please make sure you compiled NGINX using the `--with_http_v2_module`
+    configure flag.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly to SPDY, HTTP/2 requires the use of SSL, which is good practice regardless.
+    These days, SSL certificates can be issued for free by services such as *Let’s
+    Encrypt*, so this is highly recommended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To enable HTTP/v2, add the `http2` flag to the `listen` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s explore the different module directives in this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_chunk_size
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http`, `server`, and `location`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the maximum size of chunks into which the response body is sliced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`8k`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_body_preread_size
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the size of the request buffer in which the body may be saved before it
+    is processed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`64k`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_idle_timeout
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the time after which the connection is closed due to inactivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Time'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`3m`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_max_concurrent_streams
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the maximum number of concurrent HTTP/2 streams in a connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Number'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`128`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_max_field_size
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limits the maximum size of a compressed request header field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`4k`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_max_header_size
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limits the maximum size of the entire request header list after decompression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`16k`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_max_requests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the maximum number of requests that can be served through one HTTP/2 connection,
+    after which the connection is closed and the client should use a new connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Number'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`1000`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_recv_buffer_size
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the size of the per-worker input buffer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Size'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`256k`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: http2_recv_timeout
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`http` and `server`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sets the timeout for expecting more data from the client, after which the connection
+    is closed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Syntax**: Time'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`30`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Module variables
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The HTTP/2 module sets only a single variable to determine whether HTTP/2 is
+    used or not:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Variable** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http2` | `h2` if HTTP/2 over TLS, `h2c` if over cleartext TCP. Empty
+    string (`( )`) if HTTP/2 is not used. |'
+  prefs: []
+  type: TYPE_TB
+- en: Now that we have finished covering most of the directives, let’s move on to
+    variables and the extended configuration of these directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring the variables introduced by the HTTP core module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The HTTP core module introduces a large set of variables that you can use within
+    the value of directives. Be careful, though, as only a handful of directives accept
+    variables in the definition of their value. If you insert a variable in the value
+    of a directive that does not accept variables, no error is reported; instead,
+    the variable name appears as raw text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are three different kinds of variables that you will come across. The
+    first set represents the values transmitted in the headers of the client request.
+    The second set corresponds to the headers of the response sent to the client.
+    Finally, the third set comprises variables that are completely generated by NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Request headers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'NGINX lets you access client request headers in the form of variables that
+    you will be able to employ later on in the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Variable** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http_host` | Value of the `Host` HTTP header, a string indicating the
+    hostname that the client is trying to reach. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http_user_agent` | Value of the `User-Agent` HTTP header, a string indicating
+    the web browser of the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http_referer` | Value of the `Referer` HTTP header, a string indicating
+    the URL of the previous page from which the client comes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http_via` | Value of the `Via` HTTP header, which informs us about possible
+    proxies used by the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http_x_forwarded_for` | Value of the `X-Forwarded-For` HTTP header, which
+    shows the actual IP address of the client if the client is behind a proxy. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http_cookie` | Value of the `Cookie` HTTP header, which contains cookie
+    data sent by the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``http_...` | Additional headers sent by the client can be retrieved using
+    `$http_` followed by the header name in lowercase and with dashes (`-`) replaced
+    by underscores (`_`). |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 3.1: A list of customizable HTTP request headers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Response headers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In a similar fashion, you are allowed to access the HTTP headers of the response
+    that was sent to the client. These variables are not available at all times—they
+    will only carry a value after the response is sent; for instance, at the time
+    of writing messages in the logs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Variable** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_content_type` | Value of the `Content-Type` HTTP header, indicating
+    the MIME type of the resource being transmitted. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_content_length` | Value of the `Content-Length` HTTP header,
+    informing the client of the response body length. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_location` | Value of the `Location` HTTP header, which indicates
+    that the location of the desired resource is different from the one specified
+    in the original request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_last_modified` | Value of the `Last-Modified` HTTP header,
+    corresponding to the modification date of the requested resource. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_connection` | Value of the `Connection` HTTP header, defining
+    whether the connection will be kept alive or closed. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_keep_alive` | Value of the `Keep-Alive` HTTP header that defines
+    the amount of time a connection will be kept alive. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_transfer_encoding` | Value of the `Transfer-Encoding` HTTP
+    header, giving information about the response body encoding method (such as compress,
+    gzip). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_cache_control` | Value of the `Cache-Control` HTTP header,
+    telling us whether the client browser should cache the resource or not. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``sent_http_...` | Additional headers sent to the client can be retrieved
+    using `$sent_http_` followed by the header name, in lowercase and with dashes
+    (`-`) replaced by underscores (`_`). |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 3.2: A list of customizable HTTP response headers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX-generated headers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Apart from HTTP headers, NGINX provides a large of variables concerning the
+    request, the way it was and will be handled, as well as settings in use with the
+    current configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Variable** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``arg_XXX` | Allows you to access the query string (`GET` parameters),
+    where `XXX` is the name of the parameter you want to utilize. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``args` | All of the arguments of the query string combined together. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``binary_remote_addr` | IP address of the client as binary data (4 bytes).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``body_bytes_sent` | Amount of bytes sent in the body of the response (does
+    not include response headers). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``bytes_sent` | Amount of bytes sent to the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``connection` | Serial number identifying a connection. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``connection_requests` | Amount of requests already served by the current
+    connection. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``content_length` | Equates to the `Content-Length` HTTP header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``content_type` | Equates to the `Content-Type` HTTP header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``cookie_XXX` | Allows you to access cookie data where `XXX` is the name
+    of the parameter you want to utilize. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``document_root` | Returns the value of the `root` directive for the current
+    request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``document_uri` | Returns the current URI of the request. It may differ
+    from the original request URI if internal redirects were performed. It is identical
+    to the `$``uri` variable. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``host` | This variable equates to the `host` HTTP header of the request.
+    NGINX itself gives this variable a value for cases where the `host` header is
+    not provided in the original request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``hostname` | Returns the system hostname of the server computer. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``https` | Set to `on` for HTTPS connections; empty otherwise. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``is_args` | If the `$args` variable is defined, `$is_args` equates to
+    `?`. If `$args` is empty, `$is_args` is empty as well. You may use this variable
+    for constructing a URI that optionally comes with a query string, such as `index.php$is_args$args`.
+    If there is any query string argument in the request, `$is_args` is set to `?`,
+    making this a valid URI. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``limit_rate` | Returns the per-connection transfer rate limit, as defined
+    by the `limit_rate` directive. You are allowed to edit this variable by using
+    `set` (directive from the *Rewrite module*): `set $``limit_rate 128k;`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``msec` | Returns the current time (in seconds and milliseconds). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``nginx_version` | Returns the version of NGINX you are running. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``pid` | Returns the NGINX process identifier. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``pipe` | If the current request is pipelined, this variable is set to
+    `p`; otherwise, the value is `[.]`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``proxy_protocol_addr` | If the `proxy_protocol` parameter is enabled on
+    the `listen` directive, this variable will contain the client address. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``query_string` | Identical to `$args`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``remote_addr` | Returns the IP address of the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``remote_port` | Returns the port of the client socket. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``remote_user` | Returns the client username if they used authentication.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``realpath_root` | Returns the document root in the client request, with
+    symbolic links resolved into the actual path. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_body` | Returns the body of the client request, or `–` if the
+    body is empty. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_body_file` | If the request body was saved (see the `client_body_in_file_only`
+    directive), this variable indicates the path of the temporary file. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_completion` | Returns `OK` if the request is completed; an *empty*
+    *string* otherwise. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_filename` | Returns the *full filename* served in the current
+    request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_length` | Returns the *total length* of the client request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_method` | Indicates the HTTP method used in the request, such
+    as `GET` or `POST`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_time` | Returns the amount of time elapsed since the first byte
+    was read from the client (seconds and milliseconds value). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_id` | Unique request identifier generated from 16 random bytes,
+    in hexadecimal. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``request_uri` | Corresponds to the original URI of the request; remains
+    unmodified all through the process (unlike `$document_uri/$uri`). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``scheme` | Returns either `http` or `https`, depending on the request.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``server_addr` | Returns the IP address of the server. Be careful, as each
+    use of the variable requires a system call, which could potentially affect overall
+    performance in the case of high-traffic setups. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``server_name` | Indicates the value of the `server_name` directive that
+    was used while processing the request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``server_port` | Indicates the port of the server socket that received
+    the request data. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``server_protocol` | Returns the protocol and version, usually HTTP/1.0
+    or HTTP/1.1. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``status` | Returns the response status code. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$tcpinfo_rtt, $tcpinfo_rttvar, $``tcpinfo_snd_cwnd, $tcpinfo_rcv_space`
+    | If your operating system supports the `TCP_INFO` socket option, these variables
+    will be populated with information on the current client TCP connection. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``time_iso8601, $time_local` | Provides the current time respectively in
+    *ISO 8601* and local formats for use with the `access_log` directive. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$``uri` | Identical to `$document_uri`. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 3.3: A list of various customizable variables; these variables are optional
+    but might come in handy'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding and exploring the location block
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have established that NGINX lets you fine-tune your configuration down to
+    three levels—at the protocol level (the `http` block), the server level (the `server`
+    block), and the requested URI level (the `location` block). Let’s now go into
+    more detail about the third one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Location modifier
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'NGINX allows you to define `location` blocks by specifying a pattern that will
+    be matched against the requested document URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Instead of a simple folder name, you can indeed insert complex patterns. The
+    syntax of the `location` block is shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first optional argument is a symbol called `location` that will define the
+    way NGINX matches the specified pattern and also defines the very nature of the
+    pattern (a simple string or regular expression). The underlying subsections detail
+    the different modifiers and their behavior.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The = modifier
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The requested document URI must match the specified pattern exactly. The pattern
+    here is limited to a simple literal string; you cannot use a regular expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The configuration in the `location` block has the following attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd` (exact match)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: May apply to `http://website.com/ABCD` (it is case-sensitive if your operating
+    system uses a case-sensitive filesystem)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd?param1&param2` (regardless of query string
+    arguments)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does not apply to `http://website.com/abcd/` (trailing slash)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does not apply to `http://website.com/abcde` (extra characters after the specified
+    pattern)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No modifier
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The requested document URI must begin with the specified pattern. You may not
+    use regular expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The configuration in the `location` block has the following attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd` (exact match)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: May apply to `http://website.com/ABCD` (it is case-sensitive if your operating
+    system uses a case-sensitive filesystem)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd?param1&param2` (regardless of query string
+    arguments)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd/` (trailing slash)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcde` (extra characters after the specified
+    pattern)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ~ modifier
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The requested URI must be a case-sensitive match for the specified regular
+    expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `^/abcd$` regular expression used in this example specifies that the pattern
+    must begin (`^`) with `/`, be followed by `abc`, and finish (`$`) with `d`. Consequently,
+    the configuration in the `location` block has the following attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd` (exact match)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does not apply to `http://website.com/ABCD` (case-sensitive)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd?param1&param2` (regardless of query string
+    arguments)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does not apply to `http://website.com/abcd/` (trailing slash) due to the specified
+    regular expression
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does not apply to `http://website.com/abcde` (extra characters) due to the specified
+    regular expression
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: With operating systems such as Microsoft Windows, `~` and `~*` are both case-insensitive,
+    as the OS uses a case-insensitive filesystem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ~* modifier
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The requested URI must be a case-insensitive match for the specified regular
+    expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The regular expression used in the example is similar to the previous one.
+    Consequently, the configuration in the `location` block has the following attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd` (exact match)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/ABCD` (case-insensitive)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Applies to `http://website.com/abcd?param1&param2` (regardless of query string
+    arguments)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does not apply to `http://website.com/abcd/` (trailing slash) due to the specified
+    regular expression
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Does not apply to `http://website.com/abcde` (extra characters) due to the specified
+    regular expression
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ^~ modifier
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Similar to the no-symbol behavior, the location URI must begin with the specified
+    pattern. The difference is that, if the pattern is matched, NGINX stops searching
+    for other patterns (read the *Search order and* *priority* section).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The @ modifier
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Defines a named `location` block. These blocks cannot be accessed by the client
+    but only by internal requests generated by other directives, such as `try_files`
+    or `error_page`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Search order and priority
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Since it’s possible to define multiple `location` blocks with different patterns,
+    you need to understand that when NGINX receives a request, it searches for the
+    `location` block that best matches the requested URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: When a client visits `http://website.com/files/doc.txt`, the first `location`
+    block applies. However, when they visit `http://website.com/files/`, the second
+    block applies (even though the first one matches) because it has priority over
+    the first one (it is an exact match).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The order you established in the configuration file (placing the `/files/`
+    block before the `= /files/` block) is irrelevant. NGINX will search for matching
+    patterns in a specific order:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`location` blocks with the `=` modifier: If the specified string exactly matches
+    the requested URI, NGINX retains the `location` block'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`location` blocks with no modifier: If the specified string *exactly* matches
+    the requested URI, NGINX retains the `location` block'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`location` blocks with the `^~` modifier: If the specified string matches the
+    beginning of the requested URI, NGINX retains the `location` block'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`location` blocks with the `~` or `~*` modifier: If the regular expression
+    matches the requested URI, NGINX retains the `location` block'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`location` blocks with no modifier: If the specified string matches the *beginning*
+    of the requested URI, NGINX retains the `location` block'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To that extent, the `^~` modifier begins to make sense, and we can envision
+    cases where it becomes useful, as shown in the following three subsections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Case 1
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here’s an example of two `location` blocks both starting with `/doc`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You might wonder: When a client requests `http://website.com/document`, which
+    of these two `location` blocks applies? Indeed, both blocks match this request.
+    Again, the answer does not lie in the order in which the blocks appear in the
+    configuration files. In this case, the second `location` block will apply as the
+    `~*` modifier has priority over the other.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Case 2
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here’s an example of two `location` blocks for a similar URL. The first `location`
+    block starts with `/document[+]`, while the last one is an exact match for `/document`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The question remains the same: What happens when a client sends a request to
+    download `http://website.com/document`? There is a trick here. The string specified
+    in the first block now exactly matches the requested URI. As a result, NGINX prefers
+    it over the regular expression.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Case 3
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Here’s an example of a corresponding string to the second `location` block
+    and being processed by the first `location` block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: This last case makes use of the `^~` modifier. Which block applies when a client
+    visits `http://website.com/document`? The answer is the first block. The reason
+    is that `^~` has priority over `~*`. As a result, any request with a URI beginning
+    with `/doc` will be affected by the first block, even if the request URI matches
+    the regular expression defined in the second block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve now covered the `location` block, its modifiers, and reusable use cases
+    as we learned to prioritize certain requests according to their paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All through this chapter, we studied key concepts of the NGINX HTTP configuration.
+    First, we learned about creating virtual hosts by declaring `server` blocks. Then,
+    we discovered the directives and variables of the HTTP core module that can be
+    inserted within those blocks and eventually understood the mechanisms governing
+    the `location` block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The job is done. Your server now actually serves websites. We are going to take
+    it one step further by discovering the modules that truly form the powerhouse
+    of NGINX. The next chapter will deal with advanced topics, such as the rewrite
+    and SSI modules, as well as additional components of the HTTP server.
+  prefs: []
+  type: TYPE_NORMAL

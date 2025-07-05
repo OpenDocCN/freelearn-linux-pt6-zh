@@ -1,0 +1,2117 @@
+- en: Appendix A. Directive Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This appendix lists the configuration directives used throughout the book. There
+    are also some directives that did not appear in the book, but are listed here
+    for completeness. The entries have been expanded to show under which context each
+    directive may be used. If a directive has a default value, it has been listed
+    as well. These directives are current as of NGINX Version 1.3.9\. The most up-to-date
+    list can be found at [http://nginx.org/en/docs/dirindex.html](http://nginx.org/en/docs/dirindex.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Directive reference'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation | Context/Default |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `accept_mutex` | Serializes the `accept()` method on new connections by worker
+    processes. | Valid context: `events`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `accept_mutex_delay` | The maximum time a worker process will wait to accept
+    new connections if another worker is already doing this. | Valid context: `events`Default
+    value: `500ms` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `access_log` | Describes where and how access logs are to be written. The
+    first parameter is a path to the file where the logs are to be stored. Variables
+    may be used in constructing the path. The special value `off` disables the access
+    log. An optional second parameter indicates the `log_format` that will be used
+    to write the logs. If no second parameter is configured, the predefined combined
+    format is used. An optional third parameter indicates the size of the buffer if
+    write buffering should be used to record the logs. If write buffering is used,
+    this size cannot exceed the size of the atomic disk write for that filesystem.
+    | Valid contexts: `http`, `server`, `location`, `if in location`, `limit_except`Default
+    value`: logs`/`access.log combined` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `add_after_body` | Adds the result of processing a subrequest after the response
+    body. | Valid context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `add_before_body` | Adds the result of processing a subrequest before the
+    response body. | Valid context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `add_header` | Adds fields to a header present in responses with the HTTP
+    codes 200, 204, 206, 301, 302, 303, 304, or 307. | Valid contexts: `http`, `server`,
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `addition_types` | Lists the MIME types of a response in addition to `text/html`,
+    in which an addition will be made. May be `*` to enable all MIME types. | Valid
+    contexts: `http`, `server`, `location`Default value: `text/html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `aio` | This directive enables the use of asynchronous file I/O. It is available
+    on all modern versions of FreeBSD and distributions of Linux. On FreeBSD, `aio`
+    may be used to preload data for `sendfile`. Under Linux, `directio` is required,
+    which automatically disables `sendfile`. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `alias` | Defines another name for the `location`, as found on the filesystem.
+    If the location is specified with a regular expression, the alias should reference
+    captures defined in that regular expression. | Valid context: `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `allow` | Allows access from this IP address, network, or `all`. | Valid
+    contexts: `http`, `server`, `location`, `limit_except`Default value: -. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ancient_browser` | Specifies one or more strings, which if found in the
+    `User-Agent` header, will indicate that the browser is considered ancient by setting
+    the `$ancient_browser` variable to the `ancient_browser_value` directive. | Valid
+    contexts: `http`, `server`, `location`Default value: -. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ancient_browser_value` | The value to which the `$ancient_browser` variable
+    will be set. | Valid contexts: `http`, `server`, `location`Default value: `1`.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `auth_basic` | Enables authentication using HTTP Basic Authentication. The
+    parameter string is used as the realm name. If the special value `off` is used,
+    this indicates that the `auth_basic` value of the parent configuration level is
+    negated. | Valid contexts: `http`, `server`, `location`, `limit_except`Default
+    value: `off`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `auth_basic_user_file` | Indicates the location of a file of `username:password:comment`
+    tuples used to authenticate users. The `password` needs to be encrypted with the
+    crypt algorithm. The comment is optional. | Valid contexts: `http`, `server`,
+    `location`, `limit_except`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `auth_http` | This directive specifies the server used for authenticating
+    the POP3/IMAP user. | Valid contexts: `mail`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `auth_http_header` | Sets an additional header (first parameter) to the specified
+    value (second parameter). | Valid contexts: `mail`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `auth_http_timeout` | The maximum amount of time NGINX will wait when communicating
+    with an authentication server. | Valid contexts: `mail`, `server`Default value:
+    `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `autoindex` | Activates the automatic generation of a directory listing page.
+    | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `autoindex_exact_size` | Indicates whether the file sizes in a directory
+    listing page should be listed in bytes or rounded to kilobytes, megabytes, and
+    gigabytes. | Valid contexts: `http`, `server`, `location`.Default value: `on`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `autoindex_localtime` | Sets the file modification time in a directory listing
+    page to either local time (`on`) or UTC (`off`). | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `break` | Ends the processing of the `rewrite` module directives found within
+    the same context. | Valid contexts: `server`, `location`, `if`Default value: -
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `charset` | Adds the character set specified to the `Content-Type` response
+    header. If this is different than the `source_charset` directive, a conversion
+    is performed. | Valid contexts: `http`, `server`, `location`, `if in location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `charset_map` | Sets up a conversion table from one character set to another.
+    Each character code is specified in hexadecimal. The files `conf/koi-win`, `conf/koi-utf`,
+    and `conf/win-utf` include mappings from `koi8-r` to `windows-1251`, from `koi8-r`
+    to `utf-8`, and from `windows-1251` to `utf-8`, respectively. | Valid context:
+    `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `charset_types` | Lists the MIME types of a response in addition to `text/html`,
+    in which a character set conversion will be made. It may be `*` to enable all
+    MIME types. | Valid contexts: `http`, `server`, `location`Default value: `text/html`,
+    `text/xml`, `text/plain`, `text/vnd.wap.wml`, `application/x-javascript`, `application/rss+xml`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `chunked_transfer_encoding` | Allows disabling the standard HTTP/1.1 chunked
+    transfer encoding in responses to the clients. | Valid contexts: `http`, `server`,
+    `location`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_buffer_size` | Used to set a buffer size for the client request
+    body larger than the default two memory pages, in order to prevent temporary files
+    from being written to disk. | Valid contexts: `http`, `server`, `location`Default
+    value: `8k&#124;16k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_in_file_only` | Used for debugging or further processing of
+    the client request body, this directive can be set to `on` to force saving the
+    client request body to a file. The value `clean` will cause the files to be removed
+    after the request processing is finished. | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_in_single_buffer` | This directive will force NGINX to save
+    the entire client request body in a single buffer, to reduce copy operations.
+    | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_temp_path` | Defines a directory path for saving the client
+    request body. If a second, third, or fourth parameter is given, these specify
+    a subdirectory hierarchy with the parameter value as the number of characters
+    in the subdirectory name. | Valid contexts: `http`, `server`, `location`Default
+    value: `client_body_temp` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_body_timeout` | Specifies the length of time between successive read
+    operations of the client body. If reached, the client receives a 408 error message
+    (`Request Timeout`). | Valid contexts: `http`, `server`, `location`Default value:
+    `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_header_buffer_size` | Used for specifying a buffer size for the client
+    request header, when this needs to be larger than the default 1 KB. | Valid contexts:
+    `http`, `server`Default value: `1k` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_header_timeout` | Specifies the length of time for reading the entire
+    client header. If reached, the client receives a 408 error message (`Request Timeout`).
+    | Valid contexts: `http`, `server`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `client_max_body_size` | Defines the largest allowable client request body,
+    before a 413 (`Request Entity Too Large`) error is returned to the browser. |
+    Valid contexts: `http`, `server`, `location`Default value: `1m` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `connection_pool_size` | Fine tunes per-connection memory allocation. | Valid
+    contexts: `http`, `server`Default value: `256` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `create_full_put_path` | Allows recursive directory creation when using WebDAV.
+    | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `daemon` | Sets whether or not to daemonize the `nginx` process. | Valid
+    context: `main`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `dav_access` | Sets filesystem access permissions for newly-created files
+    and directories. If `group` or `all` is specified, `user` may be omitted. | Valid
+    contexts: `http`, `server`, `location`Default value: `user:rw` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `dav_methods` | Allows the specified HTTP and WebDAV methods. When `PUT`
+    is used, a temporary file is first created and then renamed. So, it''s recommended
+    to put `client_body_temp_path` on the same filesystem as the destination. A modification
+    date for such files may be specified in the `Date` header. | Valid contexts: `http`,
+    `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_connection` | Enables debug logging for any client matching the value
+    of this directive. It may be specified multiple times. To debug UNIX-domain sockets,
+    use `unix:`. | Valid contexts: `events`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_points` | When debugging, the process will either create a core file
+    (`abort`) or stop (`stop`) so that a system debugger may be attached. | Valid
+    context: `main`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `default_type` | Sets the default MIME type of a response. This comes into
+    play if the MIME type of the file cannot be matched to one of those specified
+    by the `types` directive. | Valid contexts: `http`, `server`, `location`Default
+    value: `text/plain` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `deny` | Denies access from this IP address, network, or `all`. | Valid contexts:
+    `http`, `server`, `location`, `limit_except`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `directio` | Enables the operating system-specific flag or function for serving
+    files larger than the parameter given. Required when using `aio` on Linux. | Valid
+    contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `directio_alignment` | Sets the alignment for `directio`. The default of
+    `512` is usually enough, although it''s recommended to increase this to `4K` when
+    using XFS on Linux. | Valid contexts: `http`, `server`, `location`Default value:
+    `512` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `disable_symlinks` | Refer to the *HTTP file path directives* table in the
+    *Finding files* section in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP Server"),
+    *The NGINX HTTP Server*. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `empty_gif` | Causes a 1x1 pixel transparent GIF to be emitted for that `location`.
+    | Valid context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `env` | Sets environment variables for use in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: inheritance during a live upgrade
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: making use of them in the `perl` module
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: making them available to worker processes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Specifying the variable alone will use the value found in the `nginx` environment.
+    Setting a variable may be done in the form `var=value`.N.B. NGINX is an internal
+    variable and shouldn''t be set by the user. | Valid context: `main`Default value:
+    `TZ` |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `error_log` | The `error_log` file is where all errors will be written. It
+    may be set to a file or `stderr`. If no other `error_log` is given in a separate
+    context, this log file will be used for all errors, globally. A second parameter
+    to this directive indicates at which level (`debug`, `info`, `notice`, `warn`,
+    `error`, `crit`, `alert`, `emerg`) errors will be written to the log. Note that
+    `debug` level errors are only available if the `--with-debug` configuration switch
+    was given at compile time. | Valid contexts: `main`, `http`, `server`, `location`Default
+    value: `logs/error.log error` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `error_page` | Defines a URI to be served when an error level response code
+    is encountered. Adding an `=` parameter allows the response code to be changed.
+    If the argument to this parameter is left empty, the response code will be taken
+    from the URI, which must in this case be served by an upstream server of some
+    sort. | Valid contexts: `http`, `server`, `location`, `if in location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `etag` | Disables automatically generating the `ETag` response header for
+    static resources. | Valid contexts: `http`, `server`, `location`Default value:
+    `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `events` | Defines a new context in which connection-processing directives
+    are specified. | Valid context: `main`.Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `expires` | Refer to the *Header modifying directives* table in the *Caching
+    in the filesystem* section in [Chapter 7](ch07.html "Chapter 7. NGINX for the
+    Developer"), *NGINX for the Developer*. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_bind` | Specifies which address should be used for the outgoing
+    connections to a FastCGI server. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_buffer_size` | The size of the buffer used for the first part of
+    the response from the FastCGI server, in which the response headers are found.
+    | Valid contexts: `http`, `server`, `location`Default value: `4k&#124;8k` (platform
+    dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_buffers` | The number and size of buffers used for the response
+    from a FastCGI server, for a single connection. | Valid contexts: `http`, `server`,
+    `location`Default value: `4k`&#124;`8k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_busy_buffers_size` | The total size of the buffer space allocated
+    to sending the response to the client while still being read from the FastCGI
+    server. This is typically set to two `fastcgi_buffers`. | Valid contexts: `http`,
+    `server`, `location`default value: `4k&#124;8k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache` | Defines a shared memory zone to be used for caching. |
+    Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_bypass` | One or more string variables, which when non-empty
+    or non-zero, will cause the response to be taken from the FastCGI server instead
+    of the cache. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_key` | A string used as the key for storing and retrieving
+    cache values. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_lock` | Enabling this directive will prevent multiple requests
+    from making an entry into the same cache key. | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_lock_timeout` | The length of time a request will wait for
+    an entry to appear in the cache or for the `fastcgi_cache_lock` to be released.
+    | Valid contexts: `http`, `server`, `location`Default value: `5s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_min_uses` | The number of requests for a certain key needed
+    before a response is cached. | Valid contexts: `http`, `server`, `location`Default
+    value: `1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_path` | Refer to the *FastCGI directives* table in the *Using
+    NGINX with PHP-FPM* section in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP
+    Server"), *The NGINX HTTP Server*. | Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_use_stale` | The cases under which it is acceptable to serve
+    stale cached data when an error occurs while accessing the FastCGI server. The
+    `updating` parameter indicates the case when fresh data are being loaded. | Valid
+    contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_valid` | Indicates the length of time for which a cached response
+    with response code 200, 301, or 302 is valid. If an optional response code is
+    given before the time parameter, that time is only for that response code. The
+    special parameter `any` indicates that any response code should be cached for
+    that length of time. | Valid contexts: `http`, `server`, `location`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_connect_timeout` | The maximum amount of time NGINX will wait for
+    its connection to be accepted when making a request to a FastCGI server. | Valid
+    contexts: `http`, `server`, `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_hide_header` | A list of header fields that should not be passed
+    on to the client. | Valid contexts: `http`, `server`, `location`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_ignore_client_abort` | If set to `on`, NGINX will not abort the
+    connection to a FastCGI server if the client aborts the connection. | Valid contexts:
+    `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_ignore_headers` | Sets which headers may be disregarded when processing
+    the response from the FastCGI server. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_index` | Sets the name of a file to be appended to `$fastcgi_script_name`
+    that ends with a slash. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_intercept_errors` | If enabled, NGINX will display a configured
+    `error_page` directive instead of the response directly from the FastCGI server.
+    | Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_keep_conn` | Enables the `keepalive` connections to the FastCGI
+    servers by instructing the server not to immediately close the connection. | Valid
+    contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_max_temp_file_size` | The maximum size of the overflow file, written
+    when the response doesn''t fit into the memory buffers. | Valid contexts: `http`,
+    `server`, `location`Default value: `1024m` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_next_upstream` | Refer to the *FastCGI directives* table in the
+    *Using NGINX with PHP-FPM* section in [Chapter 6](ch06.html "Chapter 6. The NGINX
+    HTTP Server"), *The NGINX HTTP Server*. | Valid contexts: `http`, `server`, `location`Default
+    value: error timeout |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_no_cache` | One or more string variables, which when non-empty or
+    non-zero will instruct NGINX not to save the response from the FastCGI server
+    in the cache. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_param` | Sets a parameter and its value to be passed to the FastCGI
+    server. If the parameter should only be passed when the value is non-empty, the
+    additional `if_not_empty` parameter should be set. | Valid contexts: `http`, `server`,
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_pass` | Specifies the FastCGI server to which the request is passed,
+    either as an `address:port` combination or as `unix:path` for a UNIX-domain socket.
+    | Valid contexts: `location`, `if in location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_pass_header` | Overrides the disabled headers set in `fastcgi_hide_header`,
+    allowing them to be sent to the client. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_read_timeout` | Specifies the length of time that needs to elapse
+    between two successive read operations from a FastCGI server before the connection
+    is closed. | Valid contexts: `http`, `server`, `location`Default value: `60s`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_send_lowat` | This is a FreeBSD directive. When non-zero, it will
+    tell NGINX to use either the `NOTE_LOWAT` kqueue method or the `SO_SNDLOWAT` socket
+    option with the specified size when communicating with an upstream server. Ignored
+    in Linux, Solaris, and Windows. | Valid contexts: `http`, `server`, `location`Default
+    value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_send_timeout` | The length of time that needs to elapse between
+    two successive write operations to a FastCGI server before the connection is closed.
+    | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_split_path_info` | Defines a regular expression with two captures.
+    The first capture will be the value of the `$fastcgi_script_name` variable. The
+    second capture becomes the value of the `$fastcgi_path_info` variable. | Valid
+    context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_store` | Enables storing responses retrieved from a FastCGI server
+    as files on the disk. The `on` parameter will use the `alias` or `root` directive
+    as the base path under which to store the file. A string may instead be given,
+    to indicate an alternative location to store the files. | Valid contexts: `http`,
+    `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_store_access` | Sets file access permissions for the newly-created
+    `fastcgi_store` files. | Valid contexts: `http`, `server`, `location`Default value:
+    `user:rw` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_temp_file_write_size` | Limits the amount of data buffered to a
+    temporary file at one time, so that NGINX will not be blocked for too long on
+    a single request. | Valid contexts: `http`, `server`, `location`Default value:
+    `8k&#124;16k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_temp_path` | A directory where temporary files may be buffered as
+    they are proxied from the FastCGI server, optionally multilevel deep. If a second,
+    third, or fourth parameter is given, these specify a subdirectory heirarchy with
+    the parameter value as the number of characters in the subdirectory name. | Valid
+    contexts: `http`, `server`, `location`Default value: `fastcgi_temp` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `flv` | Activates the `flv` module for this `location`. | Valid context:
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `geo` | Defines a new context, in which a variable is set to a specified
+    value, dependent on the IP address found in another variable. If no other variable
+    is specified, `$remote_addr` is used to determine the IP address. The format of
+    the context definition is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following parameters are recognized within the context:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`delete`: Deletes the specified network'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`default`: The variable will be set to this value if no IP address matches'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`include`: Includes a file of address-to-value mappings'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy`: Defines an address or network of a direct connection from which the
+    IP address will be taken from the `X-Forwarded-For` header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_recursive`: Works with `proxy` to specify that the last address in a
+    multi-valued `X-Forwarded-For` header will be used'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ranges`: When defined, indicates that the following addresses are specified
+    as ranges'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `geoip_city` | The path to a GeoIP database file containing IP address-to-city
+    mappings. The following variables then become available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$geoip_city_country_code`: Two-letter country code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city_country_code3`: Three-letter country code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city_country_name`: Country name'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_region`: Country region name'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city`: City name'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_postal_code`: Postal code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `geoip_country` | The path to a GeoIP database file containing the IP address-to-country
+    mappings. The following variables then become available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$geoip_country_code`: Two-letter country code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_country_code3`: Three-letter country code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_country_name`: Country name'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `geoip_org` | The path to a GeoIP database file containing the IP address-to-organization
+    mappings. The following variable then becomes available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$geoip_org`: Organization name'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid context: `http`.Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `geoip_proxy` | Defines an address or network of a direct connection from
+    which the IP address will be taken from the `X-Forwarded-For` header. | Valid
+    context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `geoip_proxy_recursive` | Works with `geoip_proxy`, to specify that the last
+    address in a multivalued `X-Forwarded-For` header will be used. | Valid context:
+    `http`Default value: `off`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gunzip` | Enables the decompression of gzipped files when the client doesn''t
+    support gzip. | Valid contexts: `http`, `server`, `location`Default value: `off`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gunzip buffers` | Specifies the number and size of buffers used for decompressing
+    a response. | Valid contexts: `http`, `server`, `location`Default value: `32 4k&#124;16
+    8k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip` | Enables or disables the compression of responses. | Valid contexts:
+    `http`, `server`, `location`, `if in location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_buffers` | Specifies the number and size of buffers used for compressing
+    a response. | Valid contexts: `http`, `server`, `location`Default value: `32 4k&#124;16
+    8k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_comp_level` | The gzip compression level (1-9). | Valid contexts: `http`,
+    `server`, `location`Default value: `1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_disable` | A regular expression of `User-Agents` that shouldn''t receive
+    a compressed response. The special value `msie6` is a shortcut for `MSIE [4-6]\.`,
+    excluding `MSIE 6.0; ... SV1`. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_http_version` | The minimum HTTP version of a request before compression
+    is considered. | Valid contexts: `http`, `server`, `location`Default value: `1.1`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_min_length` | The minimum length of a response before compression is
+    considered, determined by the `Content-Length` header. | Valid contexts: `http`,
+    `server`, `location`Default value: `20` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_proxied` | Refer to the *Gzip module directives* table in the *Compressing*
+    section in [Chapter 5](ch05.html "Chapter 5. Reverse Proxy Advanced Topics"),
+    *Reverse Proxy Advanced Topics*. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_static` | Enables checking for precompressed files, to be delivered
+    directly to clients which support gzip compression. | Valid contexts: `http`,
+    `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_types` | The MIME types that should be compressed with gzip, in addition
+    to the default `text/html`. It may be `*` to enable all MIME types. | Valid contexts:
+    `http`, `server`, `location`Default value: `text/html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_vary` | Enables or disables the response header `Vary: Accept-Encoding`
+    if `gzip` or `gzip_static` is active. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `http` | Sets up a configuration context in which HTTP server directives
+    are specified. | Valid context: `main`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `if` | Refer to the *Rewrite module directives* table in the *Introducing
+    the rewrite module* section in [Appendix B](apb.html "Appendix B. Rewrite Rule
+    Guide"), *Rewrite Rule Guide*. | Valid contexts: `server`, `location`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `if_modified_since` | Controls how the modification time of a response is
+    compared to the value of the `If-Modified-Since` request header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: The `If-Modified-Since` header is ignored'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`exact`: An exact match is made (default)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`before`: The modification time of the response is less than or equal to the
+    value of the `If-Modified-Since` header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid contexts: `http`, `server`, `location`Default value: `exact` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ignore_invalid_headers` | Disables ignoring headers with invalid names.
+    A valid name is composed of ASCII letters, numbers, the hyphen, and possibly the
+    underscore (controlled by the `underscores_in_headers` directive). | Valid contexts:
+    `http`, `server`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter` | Refer to the *Image filter directives* table in the *Generating
+    images* section in [Chapter 7](ch07.html "Chapter 7. NGINX for the Developer"),
+    *NGINX for the Developer*. | Valid context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_buffer` | The size of the buffer used to process images. If
+    more memory is needed, the server will return a 415 error (`Unsupported Media
+    Type`). | Valid contexts: `http`, `server`, `location`Default value: `1M` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_jpeg_quality` | The quality of the resulting JPEG image, after
+    processing. Not recommended to exceed 95. | Valid contexts: `http`, `server`,
+    `location`Default value: `75` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_sharpen` | Increases the sharpness of a processed image by
+    this percentage. | Valid contexts: `http`, `server`, `location`Default value:
+    `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_transparency` | Disables preserving transparency of transformed
+    GIF and PNG images. The default `on` preserves transparency. | Valid contexts:
+    `http`, `server`, `location`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `imap_auth` | Sets the supported client authentication mechanism. It can
+    be one or more of `login`, `plain`, or `cram-md5`. | Valid contexts: `mail`, `server`Default
+    value: `plain` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `imap_capabilities` | Indicates which IMAP4 capabilities are supported by
+    the backend server. | Valid contexts: `mail`, `server`Default value: `IMAP4 IMAP4rev1
+    UIDPLUS` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `imap_client_buffer` | Sets the size of the read buffer for IMAP commands.
+    | Valid contexts: `mail`, `server`Default value: `4k&#124;8k` (platform dependent)
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `include` | The path to a file containing additional configuration directives.
+    It may be specified as a glob to include multiple files. | Valid context: `any`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `index` | Defines which file will be served to the client when a URI ending
+    with `/` is received. It may be multivalued. | Valid contexts: `http`, `server`,
+    `location`Default value: `index.html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `internal` | Specifies a `location` that can only be used for internal requests
+    (redirects defined in other directives, rewrite requests, and similar request
+    processing directives). | Valid context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ip_hash` | Ensures the distribution of clients evenly over all `server`
+    by hashing the IP address, keying on its class C network. | Valid context: `upstream`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive` | The number of connections to upstream servers that are cached
+    per worker process. When used with HTTP connections, `proxy_http_version` should
+    be set to `1.1` and `proxy_set_header` to `Connection`. | Valid context: `upstream`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive_disable` | Disables keep-alive requests for certain browser types.
+    | Valid contexts: `http`, `server`, `location`Default value: `msie6` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive_requests` | Defines how many requests may be made over one `keepalive`
+    connection before it is closed. | Valid contexts: `http`, `server`, `location`Default
+    value: `100` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `keepalive_timeout` | Specifies how long a `keep-alive` connection will stay
+    open. A second parameter may be given, to set a Keep-Alive header in the response.
+    | Valid contexts: `http`, `server`, `location`Default value: `75s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `large_client_header_buffers` | Defines the maximum `number` and `size` of
+    a large client request header. | Valid contexts: `http`, `server`Default value:
+    `4 8k` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `least_conn` | Activates the load-balancing algorithm where the server with
+    the least number of active connections is chosen for the next new connection.
+    | Valid context: `upstream`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_conn` | Specifies a shared memory zone (configured with `limit_conn_zone`)
+    and the maximum number of connections that are allowed per key value. | Valid
+    contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_conn_log_level` | When NGINX limits a connection due to the `limit_conn`
+    directive, this directive specifies at which log level that limitation is reported.
+    | Valid contexts: `http`, `server`, `location`Default value: `error` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_conn_zone` | Specifies the key to be limited in `limit_conn` as the
+    first parameter. The second parameter, `zone`, indicates the name of the shared
+    memory zone used to store the key and current number of connections per key and
+    the size of that zone (`name:size`). | Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_except` | Will limit a `location` to the specified HTTP verb(s) (`GET`
+    also includes `HEAD`). | Valid context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_rate` | Limits the rate (in bytes per second) at which clients can
+    download content. The rate limit works on a connection level, meaning that a single
+    client could increase their throughput by opening multiple connections. | Valid
+    context: `http`, `server`, `location`, `if in location`Default value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_rate_after` | Starts the `limit_rate` after this number of bytes have
+    been transferred. | Valid contexts: `http`, `server`, `location`, `if in location`Default
+    value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_req` | Sets a limit with bursting capability on the number of requests
+    for a specific key in a shared memory store (configured with `limit_req_zone`).
+    The burst may be specified with the second parameter. If there shouldn''t be a
+    delay in between requests up to the burst, a third parameter `nodelay` needs to
+    be configured. | Valid context: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_req_log_level` | When NGINX limits the number of requests due to the
+    `limit_req` directive, this directive specifies at which log level that limitation
+    is reported. A delay is logged at a level one less than the one indicated here.
+    | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_req_zone` | Specifies the key to be limited in `limit_req` as the
+    first parameter. The second parameter, `zone`, indicates the name of the shared
+    memory zone used to store the key and current number of requests per key and the
+    size of that zone (`name:size`). The third parameter, `rate`, configures the number
+    of requests per second (r/s) or per minute (r/m) before the limit is imposed.
+    | Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_zone` | Deprecated. Use `limit_conn_zone` instead. | Valid context:
+    `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lingering_close` | This directive specifies how a client connection will
+    be kept open for more data. | Valid contexts: `http`, `server`, `location`Default
+    value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lingering_time` | In connection with the `lingering_close` directive, this
+    directive will specify how long a client connection will be kept open for processing
+    more data. | Valid contexts: `http`, `server`, `location`Default value: `30s`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lingering_timeout` | Also in conjunction with `lingering_close`, this directive
+    indicates how long NGINX will wait for additional data before closing the client
+    connection. | Valid contexts: `http`, `server`, `location`default value: `5s`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `listen` (http) | Refer to the *listen parameters* table in the section named
+    *The virtual server section* in [Chapter 2](ch02.html "Chapter 2. A Configuration
+    Guide"), *A Configuration Guide*. | Valid context: `server`Default value: `*:80
+    &#124; *:8000` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `listen` (mail) | The `listen` directive uniquely identifies a socket binding
+    under NGINX. It takes the following parameter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bind`: make a separate `bind()` call for this `address:port` pair.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid context: `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `location` | Defines a new context based on the request URI. | Valid context:
+    `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lock_file` | The prefix name for lock files. Depending on the platform,
+    a lock file may be needed to implement `accept_mutex` and shared memory access
+    serialization. | Valid context: `main`Default value: `logs/nginx.lock`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `log_format` | Specifies which fields should appear in the log file and what
+    format they should take. | Valid context: `http`Default value: combined `$remote_addr
+    - $remote_user [$time_local], "$request" $status $body_bytes_sent, "$http_referer""$http_user_agent"''`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `log_not_found` | Disables reporting of 404 errors in the error log. | Valid
+    contexts: `http`, `server`, `location`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `log_subrequest` | Enables logging of subrequests in the access log. | Valid
+    contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `mail` | Sets up a configuration context in which mail server directives
+    are specified. | Valid context: `main`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `map` | Defines a new context, in which a variable is set to a specified
+    value, dependent on the value of a source variable. The format of the context
+    definition is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The string or strings to be mapped may also be regular expressions. The following
+    parameters are recognized within the context:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`default`: Sets a default value for the variable if the value of the source
+    variable didn''t match any of the strings or regular expressions specified'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`hostnames`: Indicates that source values may be hostnames with a prefix or
+    suffix glob'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`include`: Includes a file with string-to-value mappings'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `map_hash_bucket_size` | The bucket size used to hold the `map` hash tables.
+    | Valid context: `http`Default value: `32&#124;64&#124;128` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `map_hash_max_size` | The maximum size of the `map` hash tables. | Valid
+    context: `http`Default value: `2048` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `master_process` | Determines whether or not to start worker processes. |
+    Valid context: `main`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `max_ranges` | Sets the maximum number of ranges allowed in a byte-range
+    request. Specifying `0` disables byte-range support. | Valid contexts: `http`,
+    `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_bind` | Specifies which address should be used for outgoing connections
+    to a memcached server. | Valid contexts: `http`, `server`, `location`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_buffer_size` | The size of the buffer for the response from memcached.
+    This response is then sent synchronously to the client. | Valid contexts: `http`,
+    `server`, `location`Default value: `4k&#124;8k` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_connect_timeout` | The maximum length of time NGINX will wait
+    for its connection to be accepted when making a request to a memcached server.
+    | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_gzip_flag` | Specifies a value, when found in the response from
+    a memcached server, which will set the `Content-Encoding` header to `gzip`. |
+    Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_next_upstream` | Refer to the *Memcached module directives* table
+    in the *Caching in the database* section in [Chapter 7](ch07.html "Chapter 7. NGINX
+    for the Developer"), *NGINX for the Developer*. | Valid contexts: `http`, `server`,
+    `location`Default value: error timeout |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_pass` | Specifies the name or address of a memcached server and
+    its port. It may also be a `server` group, as declared in an `upstream` context.
+    | Valid contexts: `location`, `if in location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_read_timeout` | Specifies the length of time that needs to elapse
+    between two successive read operations from a memcached server before the connection
+    is closed. | Valid contexts: `http`, `server`, `location`Default value: `60s`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_send_timeout` | The length of time that needs to elapse between
+    two successive write operations to a memcached server before the connection is
+    closed. | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `merge_slashes` | Disables the removal of multiple slashes. The default value
+    of `on` means that NGINX will compress two or more `/` characters into one. |
+    Valid contexts: `http`, `server`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `min_delete_depth` | Allows the WebDAV `DELETE` method to remove files when
+    at least this number of elements is present in the request path. | Valid contexts:
+    `http`, `server`, `location`Default value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `modern_browser` | Specifies a `browser` and `version` parameter, which together
+    will indicate that the browser is considered modern by setting the `$modern_browser`
+    variable to `modern_browser_value`. The `browser` parameter may take one of the
+    following values: `msie`, `gecko`, `opera`, `safari`, or `konqueror`. An alternative
+    parameter `unlisted` may be specified to indicate that any browser not found in
+    `ancient_browser` nor in `modern_browser` or has a missing `User-Agent` header
+    is considered modern. | Valid contexts: `http`, `server`, `location`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `modern_browser_value` | The value to which the `$modern_browser` variable
+    will be set. | Valid contexts: `http`, `server`, `location`Default value: `1`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `mp4` | Activates the `mp4` module for this `location`. | Valid context:
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `mp4_buffer_size` | Sets the initial buffer size for delivering MP4 files.
+    | Valid contexts: `http`, `server`, `location`Default value: `512K` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `mp4_max_buffer_size` | Sets the maximum size of the buffer used to process
+    MP4 metadata. | Valid contexts: `http`, `server`, `location`Default value: `10M`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `msie_padding` | Enables the disabling of adding comments to responses with
+    a status greater than 400 for MSIE clients, in order to pad the response size
+    to 512 bytes. | Valid contexts: `http`, `server`, `location`Default value: `on`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `msie_refresh` | This directive enables the sending of a `refresh` instead
+    of a `redirect` for MSIE clients. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `multi_accept` | Instructs a worker process to accept all new connections
+    at once. Disregarded if the `kqueue` event method is used because `kqueue` reports
+    the number of new connections waiting to be accepted. | Valid context: `events`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache` | Configures a cache that can store open file descriptors,
+    directory lookups, and file lookup errors. | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache_errors` | Enables the caching of the file lookup errors
+    by the `open_file_cache` directive. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache_min_uses` | Configures the minimum number of uses for a
+    file within the `inactive` parameter to `open_file_cache` for that file descriptor
+    to remain open in the cache. | Valid contexts: `http`, `server`, `location`Default
+    value: `1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_file_cache_valid` | Specifies the time interval between the validity
+    checks for the items in the `open_file_cache` directive. | Valid contexts: `http`,
+    `server`, `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_log_file_cache` | Refer to the *HTTP logging directives* table in the
+    *Logging* section in [Chapter 6](ch06.html "Chapter 6. The NGINX HTTP Server"),
+    *The NGINX HTTP Server*. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `optimize_server_names` | This is deprecated. Use the `server_name_in_redirect`
+    directive instead. | Valid contexts: `http`, `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `override_charset` | Indicates whether the charset specified in the `Content-Type`
+    header of a response received from a `proxy_pass` or `fastcgi_pass` request should
+    be converted or not. If the response comes as a result of a subrequest, conversion
+    to the main request''s charset will always be performed. | Valid contexts: `http`,
+    `server`, `location`, `if in location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pcre_jit` | Enables just-in-time compilation of Perl-compatible regular
+    expressions known at configuration time. JIT support needs to be enabled in the
+    PCRE library to make use of this speedup. | Valid context: `main`Default value:
+    `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl` | Activates a Perl handler for this location. The argument is the
+    name of the handler or a string describing a full subroutine. | Valid contexts:
+    `location`, `limit_except`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl_modules` | Specifies an additional search path for Perl modules. |
+    Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl_require` | Indicates a Perl module that will be loaded at each NGINX
+    reconfiguration. It may be specified multiple times for separate modules. | Valid
+    context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl_set` | Installs a Perl handler to set the value of a variable. The
+    argument is the name of the handler or a string describing a full subroutine.
+    | Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pid` | This is the file where the process ID of the main process will be
+    written, overwriting the compiled-in default. | Valid context: `main`Default value:
+    `nginx.pid` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pop3_auth` | Sets the supported client authentication mechanism. It can
+    be one or more of `plain`, `apop`, or `cram-md5`. | Valid contexts: `mail`, `server`Default
+    value: `plain` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pop3_capabilities` | Indicates which POP3 capabilities are supported by
+    the backend server. | Valid contexts: `mail`, `server`Default value: `TOP USER
+    UIDL` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `port_in_redirect` | Determines whether or not the port will be specified
+    in a `redirect` method issued by NGINX. | Valid contexts: `http`, `server`, `location`Default
+    value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `postpone_output` | Specifies the minimum size of data for NGINX to send
+    to the client. If possible, no data will be sent until this value is reached.
+    | Valid contexts: `http`, `server`, `location`Default value: `1460` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `protocol` | Indicates which protocol is supported by this mail server context.
+    It may be one of `imap`, `pop3`, or `smtp`. | Valid context: `server`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy` | Enables or disables mail proxying. | Valid context: `server`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_bind` | Specifies which address should be used for outgoing connections
+    to a proxied server. | Valid contexts: `http`, `server`, `location`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffer` | Allows setting the size of the buffer used for the mail
+    proxy connection beyond the default of one page. | Valid contexts: `mail`, `server`Default
+    value: `4k&#124;8k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffer_size` | The size of the buffer used for the first part of the
+    response from the upstream server, in which the response headers are found. |
+    Valid contexts: `http`, `server`, `location`Default value: `4k&#124;8k` (platform
+    dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffering` | Activates buffering of proxied content; when switched
+    off, responses are sent synchronously to the client as soon as they are received.
+    | Valid contexts: `http`, `server`, `location`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffers` | The number and size of buffers used for responses from
+    upstream servers. | Valid contexts: `http`, `server`, `location`Default value:
+    `8 4k&#124;8k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_busy_buffers_size` | The total size of buffer space allocated to sending
+    the response to the client while still being read from the upstream server. This
+    is typically set to two `proxy_buffers`. | Valid contexts: `http`, `server`, `location`Default
+    value: `8k&#124;16k` (platform dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache` | Defines a shared memory zone to be used for caching. | Valid
+    contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_bypass` | One or more string variables, which when non-empty
+    or non-zero, will cause the response to be taken from the upstream server instead
+    of the cache. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_key` | A string used as the key for storing and retrieving cache
+    values. | Valid contexts: `http`, `server`, `location`Default value: `$scheme$proxy_host$request_uri`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_lock` | Enabling this directive will prevent multiple requests
+    from making an entry into the same cache key. | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_lock_timeout` | The length of time a request will wait for an
+    entry to appear in the cache or for the `proxy_cache_lock` directive to be released.
+    | Valid contexts: `http`, `server`, `location`Default value: `5s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_min_uses` | The number of requests for a certain key needed
+    before a response is cached. | Valid contexts: `http`, `server`, `location`Default
+    value: `1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_path` | Refer to the *Proxy module caching directives* table
+    in the *Caching* section in [Chapter 5](ch05.html "Chapter 5. Reverse Proxy Advanced
+    Topics"), *Reverse Proxy Advanced Topics*. | Valid context: `http`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_use_stale` | The cases under which it is acceptable to serve
+    stale cached data when an error occurs when accessing the upstream server. The
+    `updating` parameter indicates the case when fresh data are being loaded. | Valid
+    contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_valid` | Indicates the length of time for which a cached response
+    with response code 200, 301, or 302 is valid. If an optional response code is
+    given before the time parameter, that time is only for that response code. The
+    special parameter `any` indicates that any response code should be cached for
+    that length of time. | Valid contexts: `http`, `server`, `location`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_connect_timeout` | The maximum amount of time NGINX will wait for
+    its connection to be accepted when making a request to an upstream server. | Valid
+    contexts: `http`, `server`, `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cookie_domain` | Replaces the domain attribute of the `Set-Cookie`
+    header from the upstream server; the domain to be replaced can either be a string
+    or a regular expression, or reference a variable. | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cookie_path` | Replaces the path attribute of the `Set-Cookie` header
+    from the upstream server; the path to be replaced can either be a string or a
+    regular expression, or reference a variable. | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_header_hash_bucket_size` | The bucket size used to hold proxy header
+    names (one name cannot be longer than the value of this directive). | Valid contexts:
+    `http`, `server`, `location`, `if`Default value: `64` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_header_hash_max_size` | The total size of headers received from the
+    upstream server. | Valid contexts: `http`, `server`, `location`Default value:
+    `512` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_hide_header` | A list of header fields that should not be passed on
+    to the client. | Valid contexts: `http`, `server`, `location`Default value: -
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_http_version` | The HTTP protocol version used to communicate with
+    upstream servers (use `1.1` for `keepalive` connections). | Valid contexts: `http`,
+    `server`, `location`Default value: `1.0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_ignore_client_abort` | If set to `on`, NGINX will not abort the connection
+    to an upstream server if the client aborts the connection. | Valid contexts: `http`,
+    `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_ignore_headers` | Sets which headers may be disregarded when processing
+    the response from the upstream server. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_intercept_errors` | If enabled, NGINX will display a configured `error_page`
+    instead of the response directly from the upstream server. | Valid contexts: `http`,
+    `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_max_temp_file_size` | The maximum size of the overflow file, written
+    when the response doesn''t fit into memory buffers. | Valid contexts: `http`,
+    `server`, `location`Default value: `1024m` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_next_upstream` | Indicates the conditions under which the next upstream
+    server will be selected for the response. This won''t be used if the client has
+    already been sent something. The conditions are specified using the following
+    parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`error`: An error occurred while communicating with the upstream server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`timeout`: A timeout occurred while communicating with the upstream server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`invalid_header`: The upstream server returned an empty or otherwise invalid
+    response'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http_500`: The upstream server responded with a 500 error code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http_503`: The upstream server responded with a 503 error code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http_504`: The upstream server responded with a 504 error code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http_404`: The upstream server responded with a 404 error code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`off`: Disables passing the request to the next upstream server when an error
+    occurs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid contexts: `http`, `server`, `location`Default value: `error timeout`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_no_cache` | Defines the conditions under which the response will not
+    be saved to the cache. The parameters are string variables, which evaluate to
+    something non-empty and non-zero to not cache. | Valid contexts: `http`, `server`,
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass` | Specifies the upstream server to which the request is passed,
+    in the form of a URL. | Valid contexts: `location`, `if in location`, `limit_except`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_error_message` | Useful in situations where the backend authentication
+    process emits a useful error message to the client. | Valid contexts: `mail`,
+    `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_header` | Overrides the disabled headers set in `proxy_hide_header`,
+    allowing them to be sent to the client. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_request_body` | Prevents sending the body of the request to the
+    upstream server if set to `off`. | Valid contexts: `http`, `server`, `location`Default
+    value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_request_headers` | Prevents sending the headers of the request
+    to the upstream server if set to `off`. | Valid contexts: `http`, `server`, `location`Default
+    value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_read_timeout` | Specifies the length of time that needs to elapse
+    between two successive read operations from an upstream server before the connection
+    is closed. | Valid contexts: `http`, `server`, `location`Default value: `60s`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_redirect` | Rewrites the `Location` and `Refresh` headers received
+    from the upstream servers; useful for working around assumptions made by an application
+    framework. | Valid contexts: `http`, `server`, `location`Default value: `default`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_send_lowat` | If non-zero, NGINX will try to minimize the number of
+    send operations on outgoing connections to a proxied server. It is ignored in
+    Linux, Solaris, and Windows. | Valid contexts: `http`, `server`, `location`Default
+    value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_send_timeout` | The length of time that needs to elapse between two
+    successive write operations to an upstream server before the connection is closed.
+    | Valid contexts: `http`, `server`, `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_set_body` | The body of a request sent to an upstream server may be
+    altered by setting this directive. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_set_header` | Rewrites the contents of the headers sent to an upstream
+    server; may also be used to not send certain headers by setting its value to the
+    empty string. | Valid contexts: `http`, `server`, `location`Default value: `Host
+    $proxy_host`, `Connection close` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_ssl_session_reuse` | Sets whether or not SSL sessions may be reused
+    when proxying. | Valid contexts: `http`, `server`, `location`Default value: `on`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_store` | Enables storing responses retrieved from an upstream server
+    as files on disk. The `on` parameter will use the `alias` or `root` directive
+    as the base path under which to store the file. A string may instead be given,
+    to indicate an alternative location to store the files. | Valid contexts: `http`,
+    `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_store_access` | Sets file access permissions for the newly-created
+    `proxy_store` files. | Valid contexts: `http`, `server`, `location`Default value:
+    `user:rw` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_temp_file_write_size` | Limits the amount of data buffered to a temporary
+    file at one time, so that NGINX will not be blocked for too long on a single request.
+    | Valid contexts: `http`, `server`, `location`Default value: `8k&#124;16k` (platform
+    dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_temp_path` | A directory where temporary files may be buffered as
+    they are proxied from the upstream server, optionally multilevel deep. If a second,
+    third, or fourth parameter is given, these specify a subdirectory hierarchy with
+    the parameter value as the number of characters in the subdirectory name. | Valid
+    contexts: `http`, `server`, `location`Default value: `proxy_temp` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_timeout` | If a timeout beyond the default of 24 hours is required,
+    this directive can be used. | Valid contexts: `mail`, `server`Default value: `24h`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `random_index` | Activates randomly choosing a file to be served to the client
+    when a URI ending with `/` is received. | Valid context: `location`Default value:
+    `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `read_ahead` | If possible, the kernel will preread files up to the `size`
+    parameter. Supported on current FreeBSD and Linux (the `size` parameter is ignored
+    on Linux). | Valid contexts: `http`, `server`, `location`Default value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `real_ip_header` | Sets the header whose value is used as the client IP address
+    when `set_real_ip_from` matches the connecting IP. | Valid contexts: `http`, `server`,
+    `location`Default value: `X-Real-IP` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `real_ip_recursive` | Works with `set_real_ip_from`, to specify that the
+    last address in a multi-valued `real_ip_header` header will be used. | Valid contexts:
+    `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `recursive_error_pages` | Enables doing more than one redirect using the
+    `error_page` directive (default is `off`). | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `referer_hash_bucket_size` | The bucket size of the valid referers hash tables.
+    | Valid contexts: `server`, `location`Default value: `64` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `referer_hash_max_size` | The maximum size of the valid referers hash tables.
+    | Valid contexts: `server`, `location`Default value: `2048` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `request_pool_size` | Fine tunes per-request memory allocation. | Valid contexts:
+    `http`, `server`Default value: `4k` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `reset_timedout_connection` | With this directive enabled, connections that
+    have been timed out will immediately be reset, freeing all associated memory.
+    The default is to leave the socket in the `FIN_WAIT1` state, which will always
+    be the case for the `keepalive` connections. | Valid contexts: `http`, `server`,
+    `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `resolver` | Configures one or more name servers to be used to resolve upstream
+    server names into IP addresses. An optional `valid` parameter overrides the TTL
+    of the domain name record. | Valid contexts: `http`, `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `resolver_timeout` | Sets the timeout for name resolution. | Valid contexts:
+    `http`, `server`, `location`Default value: `30s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `return` | Stops processing and returns the specified code to the client.
+    The non-standard code 444 will close the connection without sending any response
+    headers. If a code additionally has text accompanying it, the text will be placed
+    in the response body. If instead, a URL is given after the code, that URL will
+    be the value of the `Location` header. A URL without a code is treated as a code
+    302. | Valid contexts: `server`, `location`, `if`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `rewrite` | Refer to the *Rewrite module directives* table in the *Introducing
+    the rewrite module* section in [Appendix B](apb.html "Appendix B. Rewrite Rule
+    Guide"), *Rewrite Rule Guide*. | Valid contexts: `server`, `location`, `if`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `rewrite_log` | Activates `notice` level logging of `rewrites` to the `error_log`.
+    | Valid contexts: `http`, `server`, `if in server`, `location`, `if in location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `root` | Sets the path to the document root. Files are found by appending
+    the URI to the value of this directive. | Valid contexts: `http`, `server`, `location`,
+    `if in location`Default value: `html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `satisfy` | Allows access if `all` or `any` of the `access` or `auth_basic`
+    directives grant access. The default value `all` indicates that a user must come
+    from a specific network address and enter the correct password. | Valid contexts:
+    `http`, `server`, `location`Default value: `all` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `satisfy_any` | This is deprecated. Use the `any` parameter of the `satisfy`
+    directive. | Valid contexts: `http`, `server`, `location`Default value: `off`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `secure_link_secret` | A salt used to compute the MD5 hash of a URI. | Valid
+    context: `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `send_lowat` | If non-zero, NGINX will try to minimize the number of send
+    operations on client sockets. Ignored in Linux, Solaris, and Windows. | Valid
+    contexts: `http`, `server`, `location`Default value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `send_timeout` | This directive sets a timeout between two successive write
+    operations for a client receiving a response. | Valid contexts: `http`, `server`,
+    `location`Default value: `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sendfile` | Enable using `sendfile(2)` to directly copy data from one file
+    descriptor to another. | Valid contexts: `http`, `server`, `location`, `if in
+    location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sendfile_max_chunk` | Sets the maximum size of data to copy in one `sendfile(2)`
+    call to prevent a worker from seizing. | Valid contexts: `http`, `server`, `location`Default
+    value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server` (`http`) | Creates a new configuration context, defining a virtual
+    host. The `listen` directive specifies the IP address(es) and port(s); the `server_name`
+    directive lists the `Host` header values that this context matches. | Valid context:
+    `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server` (upstream) | Refer to the *Upstream modules directives* table in
+    the *The upstream module* section in [Chapter 4](ch04.html "Chapter 4. NGINX as
+    a Reverse Proxy"), *NGINX as a Reverse Proxy*. | Valid context: `upstream`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server` (`mail`) | Creates a new configuration context, defining a mail
+    server. The `listen` directive specifies the IP address(es) and port(s); the `server_name`
+    directive sets the name of the server. | Valid context: `mail`Default value: -
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_name` (`http`) | Configures the names that a virtual host may respond
+    to. | Valid context: `server`Default value: "" |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_name` (`mail`) | Sets the name of the server, which is used in the
+    following ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The POP3/SMTP server greeting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The salt for SASL CRAM-MD5 authentication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The EHLO name when using `xclient` to talk to an SMTP backend
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid contexts: `mail`, `server`Default value: `hostname` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_name_in_redirect` | Activates using the first value of the `server_name`
+    directive in any redirect issued by NGINX within this context. | Valid contexts:
+    `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_names_hash_bucket_size` | The bucket size used to hold the `server_name`
+    hash tables. | Valid context: `http`Default value: `32&#124;64&#124;128` (processor
+    dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_names_hash_max_size` | The maximum size of the `server_name` hash
+    tables. | Valid context: `http`Default value: `512` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `server_tokens` | Disables sending the NGINX version string in error messages
+    and the `Server` response header (default value is `on`). | Valid contexts: `http`,
+    `server`, `location`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `set` | Sets a given variable to a specific value. | Valid context: `server`,
+    `location`, `if`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `set_real_ip_from` | Defines the connecting address(es) from which the client
+    IP will be extracted from the `real_ip_header` directive. The value `unix:` means
+    that all connections from UNIX-domain sockets will be treated this way. | Valid
+    contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `smtp_auth` | Sets the supported SASL client authentication mechanism. It
+    can be one or more of `login`, `plain`, or `cram-md5`. | Valid contexts: `mail`,
+    `server`Default value: `login`, `plain` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `smtp_capabilities` | Indicates which SMTP capabilities are supported by
+    the backend server. | Valid contexts: `mail`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `so_keepalive` | Sets the TCP `keepalive` parameter on the socket connection
+    to the proxied server. | Valid contexts: `mail`, `server`Default value: `off`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `source_charset` | Defines the charset of a response. If it is different
+    from the defined charset, a conversion is performed. | Valid contexts: `http`,
+    `server`, `location`, `if in location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `split_clients` | Creates a context in which variables appropriate to A/B
+    (or split) testing are set. The string specified in the first parameter is hashed
+    using `MurmurHash2`. The variable specified in the second parameter is then set
+    to a value based on how the string falls within the range of hash values. The
+    match is specified as either a percentage or `*` to place weights on the values.
+    | valid context(s): httpdefault value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi` | Enables the processing of SSI files. | Valid contexts: `http`, `server`,
+    `location`, `if in location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi_min_file_chunk` | Sets the minimum size of a file above which it should
+    be sent using `sendfile(2)`. | Valid contexts: `http`, `server`, `location`Default
+    value: `1k` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi_silent_errors` | Suppresses the error message normally output when an
+    error occurs during SSI processing. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi_types` | Lists the MIME types of a response in addition to `text/html`
+    in which SSI commands are processed. It may be `*` to enable all MIME types. |
+    Valid contexts: `http`, `server`, `location`Default value: `text/html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi_value_length` | Sets the maximum length of values for parameters used
+    in Server Side Includes. | Valid contexts: `http`, `server`, `location`Default
+    value: `256` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl` (`http`) | Enables the HTTPS protocol for this virtual server. | Valid
+    contexts: `http`, `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl` (`mail`) | Indicates if this context should support SSL/TLS transactions.
+    | Valid contexts: `mail`, `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate` (`http`) | The path to the file containing the SSL certificate
+    for this `server_name` in PEM format. If intermediate certificates are required,
+    they need to be added in order after the certificate corresponding to the `server_name`
+    directive, up to the root, if necessary. | Valid contexts: `http`, `server`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate` (`mail`) | The path to the PEM-encoded SSL certificate(s)
+    for this virtual server. | Valid contexts: `mail`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate_key` (`http`) | The path to the file containing the SSL
+    certificate''s secret key. | Valid contexts: `http`, `server`Default value: -
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate_key` (`mail`) | The path to the PEM-encoded SSL secret key
+    for this virtual server. | Valid contexts: `mail`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_ciphers` | The ciphers that should be supported in this virtual server
+    context (OpenSSL format). | Valid contexts: `http`, `server`Default value: `HIGH:!aNULL:!MD5`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_client_certificate` | The path to the file containing the PEM-encoded
+    public CA certificate(s) of the certificate authorities used to sign client certificates.
+    | Valid contexts: `http`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_crl` | The path to the file containing the PEM-encoded **certificate
+    revocation list** (**CRL**) for the client certificates that are to be verified.
+    | Valid contexts: `http`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_dhparam` | The path to a file containing DH parameters, used for EDH
+    ciphers. | Valid contexts: `http`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_engine` | Specifies a hardware SSL accelerator. | Valid context: `main`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_prefer_server_ciphers` (`http`) | Indicates that the server ciphers
+    are to be preferred over the client''s ciphers when using the SSLv3 and TLS protocols.
+    | Valid contexts: `http`, `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_prefer_server_ciphers` (`mail`) | Indicates that SSLv3 and TLSv1 server
+    ciphers are preferred over the client''s ciphers. | Valid contexts: `mail`, `server`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_protocols` (`http`) | Indicates which SSL protocols should be enabled.
+    | Valid contexts: `http`, `server`Default value: `SSLv3`, `TLSv1`, `TLSv1.1`,
+    `TLSv1.2` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_protocols` (`mail`) | Indicates which SSL protocols should be enabled.
+    | Valid contexts: `mail`, `server`Default value: `SSLv3`, `TLSv1`, `TLSv1.1`,
+    `TLSv1.2` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_cache` (`http`) | Sets the type and size of the SSL cache to
+    store session parameters. A cache can be one of the following types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Clients are told that sessions won''t be reused at all'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`none`: Clients are told that sessions are reused, but they aren''t really'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`builtin`: An OpenSSL builtin cache used by only one worker with a size specified
+    in sessions'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`shared`: A cache shared by all worker processes, given a name and session
+    size specified in megabytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid contexts: `http`, `server`Default value: `none` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_cache` (`mail`) | Sets the type and size of the SSL cache to
+    store session parameters. A cache can be one of the following types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Clients are told that sessions won''t be reused at all'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`none`: Clients are told that sessions are reused, but they aren''t really'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`builtin`: An OpenSSL builtin cache used by only one worker with a size specified
+    in sessions'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`shared`: A cache shared by all worker processes, given a name and session
+    size specified in megabytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid contexts: `mail`, `server`Default value: `none` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_timeout` (`http`) | How long the client can use the same SSL
+    parameters, provided they are stored in the cache. | Valid contexts: `http`, `server`Default
+    value: `5m` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_timeout` (`mail`) | How long the client can use the same SSL
+    parameters, provided they are stored in the cache. | Valid contexts: `mail`, `server`Default
+    value: `5m` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_stapling` | Enables stapling of OCSP responses. The CA certificate of
+    the server''s issuer should be contained in the file specified by `ssl_trusted_certificate`.
+    A resolver should also be specified to be able to resolve the OCSP responder hostname.
+    | Valid contexts: `http`, `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_stapling_file` | The path to a DER-formatted file containing the stapled
+    OCSP response. | Valid contexts: `http`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_stapling_responder` | A URL specifying the OCSP responder. Only URLs
+    beginning with `http://` are currently supported. | Valid contexts: `http`, `server`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_stapling_verify` | Enables verification of OCSP responses. | Valid contexts:
+    `http`, `server`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_trusted_certificate` | The path to a file containing PEM-formatted SSL
+    certificates of the CA''s signing client certificates and OCSP responses when
+    `ssl_stapling` is enabled. | Valid contexts: `http`, `server`Default value: -
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_verify_client` | Enables verification of SSL client certificates. If
+    the `optional` parameter is specified, a client certificate will be requested
+    and if present, verified. If the `optional_no_ca` parameter is specified, a client
+    certificate is requested, but doesn''t require it to be signed by a trusted CA
+    certificate. | Valid contexts: `http`, `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_verify_depth` | Sets how many signers will be checked before declaring
+    the certificate invalid. | Valid contexts: `http`, `server`Default value: `1`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `starttls` | Indicates whether or not STLS/STARTTLS are supported and/or
+    required for further communication with this server. | Valid contexts: `mail`,
+    `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sub_filter` | Sets the string to be matched without regards to case and
+    the string to be substituted into that match. The substitution string may contain
+    variables. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sub_filter_once` | Setting to `off` will cause the match in `sub_filter`
+    to be made as many times as the string is found. | Valid contexts: `http`, `server`,
+    `location`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sub_filter_types` | Lists the MIME types of a response in addition to `text/html`
+    in which a substitution will be made. It may be `*` to enable all MIME types.
+    | Valid contexts: `http`, `server`, `location`Default value: `text/html` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tcp_nodelay` | Enables or disables the `TCP_NODELAY` option for the `keep-alive`
+    connections. | Valid contexts: `http`, `server`, `location`Default value: `on`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tcp_nopush` | Relevant only when the `sendfile` directive is used. Enables
+    NGINX to attempt to send response headers in one packet, as well as sending a
+    file in full packets. | Valid contexts: `http`, `server`, `location`Default value:
+    `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `timeout` | The amount of time NGINX will wait before a connection to the
+    backend server is finalized. | Valid contexts: `mail`, `server`Default value:
+    `60s` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `timer_resolution` | Specifies how often `gettimeofday()` is called instead
+    of each time a kernel event is received. | Valid context: `main`Default value:
+    - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `try_files` | Tests the existence of files given as parameters. If none of
+    the previous files are found, the last entry is used as a fallback, so ensure
+    that this path or named `location` exists. | Valid contexts: `server`, `location`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `types` | Sets up a map of MIME types to filename extensions. NGINX ships
+    with a `conf/mime.types` file that contains most MIME type mappings. Using `include`
+    to load this file should be sufficient for most purposes. | Valid contexts: `http`,
+    `server`, `location`Default value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `types_hash_bucket_size` | The bucket size used to hold the `types` hash
+    tables. | Valid contexts: `http`, `server`, `location`Default value: `32&#124;64&#124;128`
+    (processor dependent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `types_hash_max_size` | The maximum size of the `types` hash tables. | Valid
+    contexts: `http`, `server`, `location`Default value: `1024` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `underscores_in_headers` | Enables the use of the underscore character in
+    client request headers. If left at the default value `off`, evaluation of such
+    headers is subject to the value of the `ignore_invalid_headers` directive. | Valid
+    contexts: `http`, `server`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `uninitialized_variable_warn` | Controls whether or not warnings about uninitialized
+    variables are logged. | Valid contexts: `http`, `server`, `location`, `if`Default
+    value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `upstream` | Sets up a named context in which a group of servers is defined.
+    | Valid context: `http`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `use` | The `use` directive indicates which connection processing method
+    should be used. This will overwrite the compiled-in default, and must be contained
+    in an `events` context, if used. It is especially useful when the compiled-in
+    default is found to produce errors over time. | Valid context: `events`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `user` | The `user` and `group` under which the worker processes will run
+    is configured using this parameter. If the `group` is omitted, a group name equal
+    to that of the `user` will be used. | Valid context: `main`Default value: `nobody
+    nobody` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid` | Activates the module according to the following parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`: Sets Version 2 cookies and logs those received'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`v1`: Sets Version 1 cookies and logs those received'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`log`: Disables setting of cookies, but enables logging them'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`off`: Disables both the setting of cookies and the logging of them'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid contexts: `http`, `server`, `location`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_domain` | Configures a domain to be set in the cookie. | Valid contexts:
+    `http`, `server`, `location`Default value: `none` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_expires` | Sets the age of the cookie. If the keyword `max` is used,
+    this translates to `31 Dec 2037 23:55:55 GMT`. | Valid contexts: `http`, `server`,
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_mark` | Sets the first character of the tail of the `userid_name`
+    cookie''s base64 representation. | Valid contexts: `http`, `server`, `location`Default
+    value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_name` | Sets the name of the cookie. | Valid contexts: `http`, `server`,
+    `location`Default value: `uid` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_p3p` | Configures the P3P header. | Valid contexts: `http`, `server`,
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_path` | Defines the path set in the cookie. | Valid contexts: `http`,
+    `server`, `location`Default value: `/` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_service` | Identity of the service that set the cookie. For example,
+    the default value for Version 2 cookies is the IP address of the server that set
+    the cookie. | Valid contexts: `http`, `server`, `location`Default value: IP address
+    of the server |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `valid_referers` | Defines which values of the `Referer` header will cause
+    the `$invalid_referer` variable to be set to an empty string. Otherwise it will
+    be set to `1`. The parameters can be one or more of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`none`: There is no `Referer` header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`blocked`: The `Referer` header is present, but empty or lacking a scheme'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`server_names`: The `Referer` value is one of the `server_names`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'arbitrary string: the value of the `Referer` header is a server name with or
+    without URI prefixes and `*` at the beginning or end'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'regular expression: matches the text after the scheme in the `Referer` header''s
+    value'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Valid context: `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `variables_hash_bucket_size` | The bucket size used to hold the remaining
+    variables. | Valid context: `http`Default value: `64` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `variables_hash_max_size` | The maximum size of the hash that holds the remaining
+    variables. | Valid context: `http`Default value: `512` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_aio_requests` | The number of open asynchronous I/O operations for
+    a single worker process when using `aio` with `epoll`. | Valid context: `events`Default
+    value: `32` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_connections` | This directive configures the maximum number of simultaneous
+    connections that a worker process may have open. This includes, but is not limited
+    to, client connections and connections to upstream servers. | Valid context: `events`Default
+    value: `512` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_cpu_affinity` | Binds worker processes to CPU sets, as specified
+    by a bitmask. Only available on FreeBSD and Linux. | Valid context: `main`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_priority` | Sets the scheduling priority for worker processes. Works
+    like the nice command, with a negative number being a higher priority. | Valid
+    context: `main`Default value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_processes` | This is the number of worker processes that will be
+    started. These will handle all connections made by clients. Choosing the right
+    number is a complex process, a good rule of thumb is to set this equal to the
+    number of CPU cores. | Valid context: `main`Default value: `1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_rlimit_core` | Changes the limit on core file size of a running process.
+    | Valid context: `main`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_rlimit_nofile` | Changes the limit on the number of open files of
+    a running process. | Valid context: `main`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_rlimit_sigpending` | Changes the limit on the number of pending signals
+    of a running process when using the `rtsig` connection processing method. | Valid
+    context: `main`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `working_directory` | The current working directory for worker processes.
+    It should be writable by the worker to produce core files. | Valid context: `main`Default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xclient` | The SMTP protocol allows checking based on `IP/HELO/LOGIN` parameters,
+    which are passed via the `XCLIENT` command. This directive enables NGINX to communicate
+    this information. | Valid contexts: `mail`, `server`Default value: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xml_entities` | The path to the DTD that declares the character entities
+    referenced in the XML to be processed. | Valid contexts: `http`, `server`, `location`default
+    value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_param` | Parameters passed to the stylesheets, whose values are XPath
+    expressions. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_string_param` | Parameters passed to the stylesheets, whose values
+    are strings. | Valid contexts: `http`, `server`, `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_stylesheet` | The path to an XSLT stylesheet used to transform an XML
+    response. Parameters may be passed as a series of key/value pairs. | Valid context:
+    `location`Default value: - |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_types` | Lists the MIME types of a response in addition to `text/xml`,
+    in which a substitution will be made. It may be `*` to enable all MIME types.
+    If the transformation results in an HTML response, the MIME type will be changed
+    to `text/html`. | Valid contexts: `http`, `server`, `location`Default value: `text/xml`
+    |'
+  prefs: []
+  type: TYPE_TB

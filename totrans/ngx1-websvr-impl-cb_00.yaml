@@ -1,0 +1,294 @@
+- en: Preface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx is an open source high-performance web server, which has gained quite
+    some popularity recently. Due to its modular architecture and small footprint,
+    it has been the default choice for a lot of smaller Web 2.0 companies to be used
+    as a load-balancing proxy server. It supports most of the existing backend web
+    protocols such as FCGI, WSGI, and SCGI. This book is for you if you want to have
+    in-depth knowledge of the Nginx server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Nginx 1 Web Server Implementation Cookbook* covers the whole range of techniques
+    that would prove useful for you in setting up a very effective web application
+    with the Nginx web server. It has recipes for lesser-known applications of Nginx
+    like a mail proxy server, streaming of video files, image resizing on the fly,
+    and much more.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first chapter of the book covers the basics that would be useful for anyone
+    who is starting with Nginx. Each recipe is designed to be independent of the others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The book has recipes based on broad areas such as core, logging, rewrites, security,
+    and others. We look at ways to optimize your Nginx setup, setting up your WordPress
+    blog, blocking bots that post spam on your site, setting up monitoring using munin,
+    and much more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Nginx 1 Web Server Implementation Cookbook* makes your entry into the Nginx
+    world easy with step-by-step recipes for nearly all the tasks necessary to run
+    your own web application.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A practical guide for system administrators and web developers alike to get
+    the best out of the open source Nginx web server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What this book covers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Chapter 1](ch01.html "Chapter 1. The Core HTTP Module"), *The Core HTTP Module*,
+    deals with the basics of Nginx configuration and implementation. By the end of
+    it you should be able to compile Nginx on your machine, create virtual hosts,
+    set up user tracking, and get PHP to work.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 2](ch02.html "Chapter 2. All About Rewrites: The Rewrite Module"),
+    *All About Rewrites: The Rewrite Module*, is devoted to the rewrite module; it
+    will teach you the basics and also allow you to configure various commonly available
+    web development frameworks to work correctly with your Nginx setup using the correct
+    rewrite rules.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 3](ch03.html "Chapter 3. Get It All Logged: The Logging Module"),
+    *Get It All Logged: The Logging Module*, aims to teach the basics as well as the
+    advanced configurations that can be done around the Nginx logging module, like
+    log management, backup, rotation, and more. Logging is very crucial as it can
+    help you identify and track various attributes of your application like performance,
+    user behavior, and much more. It also helps you as a system administrator to identify,
+    both reactively and proactively, potential security issues.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 4](ch04.html "Chapter 4. Slow Them Down: Access and Rate Limiting
+    Module"), *Slow Them Down: Access and Rate Limiting Module*, explains how Nginx
+    provides good protection against cases such as bringing down sites by providing
+    rate limiting and server access based on IP.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 5](ch05.html "Chapter 5. Let''s be Secure: Security Modules"), *Let''s
+    be Secure: Security Modules*, looks at how we can use the security modules built-in
+    Nginx to secure your site and user''s data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 6](ch06.html "Chapter 6. Setting Up Applications: FCGI and WSGI Modules"),
+    *Setting Up Applications: FCGI and WSGI Modules*, has a practical section devoted
+    to helping programmers and system administrators understand and install their
+    applications using Nginx as the web server. Due to the lack of integrated modules
+    for running PHP and Python, the setting up of such systems can be an issue for
+    non-experienced system administrators.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 7](ch07.html "Chapter 7. Nginx as a Reverse Proxy"), *Nginx as a Reverse
+    Proxy*, deals with the usage of Nginx as a reverse proxy in various common scenarios.
+    We will have a look at how we can set up a rail application; set up load balancing,
+    and also have a look at caching setup using Nginx, which will potentially enhance
+    the performance of your existing site without any codebase changes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 8](ch08.html "Chapter 8. Improving Performance and SEO Using Nginx"),
+    *Improving Performance and SEO Using Nginx*, is all about how you can make your
+    site load faster and possibly get more traffic on your site. We will cover the
+    basics of optimizing your Nginx setup and some SEO tricks. These techniques will
+    not only be useful for your SEO, but also for the overall health of your site
+    and applications.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 9](ch09.html "Chapter 9. Using Other Third-party Modules"), *Using
+    Other Third-party Modules*, a look at some inbuilt and third-party modules which
+    allow us to extend and use Nginx with other protocols such as IMAP, POP3, WebDAV,
+    and much more. Due to the flexible and well-defined module API, many module developers
+    have used Nginx for interesting web-based tasks such as XSLT transformations,
+    image resizing, and HTTP publish-subscribe server.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 10](ch10.html "Chapter 10. Some More Third-party Modules"), *Some
+    More Third-party Modules*, looks at various web situations such as load balancing,
+    server health checks, and more which will be very useful in a production environment.
+    These simple recipes will be highly applicable in enterprise scenarios where you
+    may need to have analytics, external authentication schemes, and many other situations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What you need for this book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In terms of understanding, a bit of web server administration experience would
+    help. If you understand how a basic site works, it would be easier to follow some
+    of the more production oriented configurations. A look at the index of recipes
+    would give you a good overview of the topics and also show some of the connectivity
+    throughout the book at a glace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the code in this book has been tried and tested on the following software
+    setup
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ubuntu/debian linux with 2.6.x kernel
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Nginx 0.7.x+ to 1.0.0
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Installed compiler dependencies for Nginx
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Nginx binaries are available for windows as well, compiling the modules however
+    will be easier to by using cygwin based setups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some patience and reading maybe required to make more effective use of what
+    you can do with the learnings in the book. Have fun 'Nginx'ing !
+  prefs: []
+  type: TYPE_NORMAL
+- en: Who this book is for
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you are tired of Apache consuming all your server memory with little traffic,
+    and to overcome this, or for some other reason, you are looking for a high-performance
+    load-balancing proxy server and have tried using Nginx, then this book is for
+    you. You need some basic knowledge of Nginx. System administrators and web developers
+    will benefit greatly from this book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conventions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this book, you will find a number of styles of text that distinguish between
+    different kinds of information. Here are some examples of these styles, and an
+    explanation of their meaning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Code words in text are shown as follows: "We can include other contexts through
+    the use of the `include` directive."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A block of code is set as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When we wish to draw your attention to a particular part of a code block, the
+    relevant lines or items are set in bold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any command-line input or output is written as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**New terms** and **important words** are shown in bold. Words that you see
+    on the screen, in menus or dialog boxes for example, appear in the text like this:
+    "clicking the **Next** button moves you to the next screen".'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Warnings or important notes appear in a box like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Tips and tricks appear like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reader feedback
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Feedback from our readers is always welcome. Let us know what you think about
+    this book—what you liked or may have disliked. Reader feedback is important for
+    us to develop titles that you really get the most out of.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To send us general feedback, simply send an e-mail to `<[feedback@packtpub.com](mailto:feedback@packtpub.com)>`,
+    and mention the book title via the subject of your message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is a book that you need and would like to see us publish, please send
+    us a note in the **SUGGEST A TITLE** form on [www.packtpub.com](http://www.packtpub.com)
+    or e-mail `<[suggest@packtpub.com](mailto:suggest@packtpub.com)>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is a topic that you have expertise in and you are interested in either
+    writing or contributing to a book, see our author guide on [www.packtpub.com/authors](http://www.packtpub.com/authors).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Customer support
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that you are the proud owner of a Packt book, we have a number of things
+    to help you to get the most from your purchase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading the example code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can download the example code files for all Packt books you have purchased
+    from your account at [http://www.PacktPub.com](http://www.PacktPub.com). If you
+    purchased this book elsewhere, you can visit [http://www.PacktPub.com/support](http://www.PacktPub.com/support)
+    and register to have the files e-mailed directly to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Errata
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Although we have taken every care to ensure the accuracy of our content, mistakes
+    do happen. If you find a mistake in one of our books—maybe a mistake in the text
+    or the code—we would be grateful if you would report this to us. By doing so,
+    you can save other readers from frustration and help us improve subsequent versions
+    of this book. If you find any errata, please report them by visiting [http://www.packtpub.com/support](http://www.packtpub.com/support),
+    selecting your book, clicking on the **errata submission form** link, and entering
+    the details of your errata. Once your errata are verified, your submission will
+    be accepted and the errata will be uploaded on our website, or added to any list
+    of existing errata, under the Errata section of that title. Any existing errata
+    can be viewed by selecting your title from [http://www.packtpub.com/support](http://www.packtpub.com/support).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Piracy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Piracy of copyright material on the Internet is an ongoing problem across all
+    media. At Packt, we take the protection of our copyright and licenses very seriously.
+    If you come across any illegal copies of our works, in any form, on the Internet,
+    please provide us with the location address or website name immediately so that
+    we can pursue a remedy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please contact us at `<[copyright@packtpub.com](mailto:copyright@packtpub.com)>`
+    with a link to the suspected pirated material.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We appreciate your help in protecting our authors, and our ability to bring
+    you valuable content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Questions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can contact us at `<[questions@packtpub.com](mailto:questions@packtpub.com)>`
+    if you are having a problem with any aspect of the book, and we will do our best
+    to address it.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,296 @@
+- en: '9'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Fully Deploy, Manage, and Auto-Update NGINX with Ansible
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous chapter, we discussed how NGINX works within a cloud infrastructure
+    and how to use Docker Compose configuration files. Beyond the cloud, configuration
+    management stands out for its ability to strengthen the resilience of any infrastructure
+    and streamline compliance with security standards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we’ll dive into the practical uses of Ansible, giving you a
+    hands-on tour of its capabilities. You’ll learn to employ Ansible for efficient
+    configuration management, allowing you to deploy NGINX with precision on any number
+    of servers, from a single machine to an entire fleet, all with a unified configuration
+    approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding configuration management
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Your first steps with configuration management using Ansible
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up NGINX using Ansible
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up automatic updates using Ansible
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Understanding configuration management
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Configuration management** is like having a master key for your infrastructure’s
+    setup, especially when dealing with multiple deployments. We’ve seen a glimpse
+    of this with Docker Compose, where all configurations live in Docker, ready to
+    be reused. This approach isn’t just tidy; it ensures every part of your system
+    walks in step, making it easy to scale or clone configurations when needed. It’s
+    all about saving time, staying organized, and automating wherever possible.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stepping into configuration management, we turn to **Ansible**, a tool celebrated
+    for its simplicity and efficiency. Unlike other management tools that require
+    installing agents on each server, Ansible operates over SSH, minimizing setup
+    overhead and maintaining a lightweight presence. It is an agentless orchestration
+    tool that brings simplicity and security to the forefront of server automation.
+    While our tutorials will primarily focus on Ubuntu due to its widespread adoption,
+    the principles and practices are transferable to other distributions such as Debian,
+    RHEL, or Fedora, with minor adjustments to adapt to different package managers
+    and system layouts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now have a better idea of what configuration management is. In the next section,
+    we will run our first playbook with Ansible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running your first Ansible playbook
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Ansible is an orchestration tool organized as playbooks. Each playbook can have
+    multiple roles. We’ll start with installing Ansible, to run our first playbook
+    for installing NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ansible orchestrates tasks through playbooks composed of multiple roles. Our
+    initial step is installing Ansible to execute our first role: *installing Nginx*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s begin with the installation of Ansible. Ansible can be set up on either
+    a remote server or your local Linux system, as long as there is connectivity to
+    your NGINX server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ll be using the root account every step of the way:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Ensure Ansible is installed by checking its version:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: root@ansible:~# ansible-galaxy init nginx_install
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: nginx_install with subdirectories for tasks, handlers, templates, and more.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Next, create the path `roles/nginx_install/tasks` with the `mkdir -p roles/nginx_install/tasks`
+    command, then create the `roles/nginx_install/tasks/main.yml` file with the following
+    content:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This will define a single task to install NGINX using Ubuntu’s package manager.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Next, we’ll create a playbook to use the role. At the root of your `nginx_install`
+    project, create the `nginx_install.yml` file, with the following content:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'This will apply the role to all the hosts set (group: `webservers`).'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Our last file needed for the playbook is the inventory. This is where your
+    machine’s addresses are stored. Create the `inventory.ini` file with the following
+    content:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Please make sure to use an SSH key and replace `server_ip` with the IP of your
+    server in order to connect to the server.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'In this inventory, we created a group of hosts called `webservers`. Within
+    this group, we added one server, `server_ip`. For scenarios involving multiple
+    servers, your inventory would expand to list each one under this group, allowing
+    for parallel management across your infrastructure. Here’s another example of
+    `inventory.ini` with multiple servers:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'We now have all the files needed to run our first playbook. Let’s run the playbook:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Great, our first Ansible playbook has successfully installed NGINX. If you run
+    the playbook again, it will recognize that NGINX is already installed and won’t
+    attempt a reinstallation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can now access your web server on port `80` to check whether NGINX is available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 9.1: Default Nginx configuration installed by Ansible](img/B21787_09_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 9.1: Default Nginx configuration installed by Ansible'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve installed Ansible, and installed NGINX on a remote server using Ansible.
+    In the next section, we’ll learn how to handle configuration files using Ansible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up NGINX using Ansible
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In the last section, we made a project called `nginx_install`. We’ll continue
+    with this project in order to have Ansible write the `nginx.conf` file for us.
+    So let’s get started:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, create a directory at `roles/nginx_install/files` with the `mkdir -p
+    roles/nginx_install/files` command, then add your `nginx.conf` file to this folder.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Then, make a new task to copy the `nginx.conf` file. Edit the existing `roles/nginx_install/tasks/main.yml`
+    file and add the following:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This will send the `nginx.conf` file from your `files` directory to the `/etc/nginx/`
+    directory on your remote server.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Next, we’ll define a handler within Ansible. Handlers are tasks that only run
+    when notified by another task. In our case, we’ll set up a handler to restart
+    NGINX, but it will only trigger if there’s been a change to the configuration
+    file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Let’s create our handler by creating the `roles/nginx_install/handlers` directory
+    with the `mkdir -p roles/nginx_install/handlers` command. Then, let’s create a
+    `roles/nginx_install/handlers/main.yml` file with the following content:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Let’s run the playbook again:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: NGINX has been installed with Ansible. In the next section, we will learn about
+    automatic updates and how to secure your server environment directly with Ansible
+    configuration files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up automatic updates using Ansible
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '`unattended-upgrades` takes care of the update process, providing peace of
+    mind that your server remains secure without manual intervention.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To install the `unattended-upgrades` package, you can edit the existing file
+    `roles/nginx_install/tasks/main.yml` and add the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Rerun the playbook to install the package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: With `unattended-upgrades` installed, your system is configured for automatic
+    security updates. For those seeking comprehensive updates beyond security, the
+    package’s documentation provides guidance for fine-tuning your settings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we explored the power of configuration management with Ansible,
+    learning to orchestrate our NGINX setup seamlessly. Through Ansible’s capabilities,
+    we’ve initiated package installations, updated configurations, and embraced the
+    efficiency of automated updates. The scalability of these processes has opened
+    new doors for system administration. While we’ve only scratched the surface, further
+    exploration into Ansible can unlock automated deployments of dynamic configurations,
+    TLS certificates, comprehensive firewall setups, and much more. For those interested
+    in deepening their understanding of Ansible, a variety of playbooks can be found
+    at [docs.ansible.com](http://docs.ansible.com).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we’ll explore the practical applications and real-world
+    scenarios for implementing NGINX.
+  prefs: []
+  type: TYPE_NORMAL

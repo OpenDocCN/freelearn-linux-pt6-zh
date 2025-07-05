@@ -1,0 +1,1862 @@
+- en: Chapter 1. Instant Nginx Starter
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Welcome to *Instant Nginx Starter*. With this book I aim to give you a solid
+    start to your nginx adventure. You will learn the basic features of nginx and
+    be guided through your first virtual host to a point where you will know how to
+    build on top of the basics to get to advanced features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This book contains the following sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*So, what is nginx?* teaches you what nginx actually is, how it can be used,
+    and how it fares against similar technologies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Installation* helps us learn the procedure to download and install nginx with
+    different methods, and the cons and pros of each.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Quick start* covers nginx configuration syntax while creating our first virtual
+    host through some simple steps. After this section you will be comfortable with
+    the working of an nginx configuration.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Top 9 features you need to know about* helps you learn to perform nine useful
+    tasks that the nginx modules offer. By the end of this section, you will be able
+    to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: G-zip assets for optimal page load time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pre-zip assets for optimal page load time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use nginx as a micro cache
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to use WebSockets with nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use nginx with other software
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Set up backend authentication for nginx downloads
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do GeoIP lookups in nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Limiting user requests to prevent abuse
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create seekable video streaming with nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*People and places you should get to know* provides you with many useful links
+    to resources about nginx, while keeping in mind that the community is important
+    to nginx and it''s where most support happens and where a lot of module development
+    takes place.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, what is nginx?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The best way to describe nginx (pronounced engine-x) is as an event-based multi-protocol
+    reverse proxy. This sounds fancy, but it's not just buzz words and actually affects
+    how we approach configuring nginx. It also highlights some of the flexibility
+    that nginx offers. While it is often used as a web server and an HTTP reverse
+    proxy, it can also be used as an IMAP reverse proxy or even a raw TCP reverse
+    proxy. Thanks to the plug-in ready code structure, we can utilize a large number
+    of first and third party modules to implement a diverse amount of features to
+    make nginx an ideal fit for many typical use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![So, what is nginx?](img/5125OS_01_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: A more accurate description would be to say that nginx is a reverse proxy first,
+    and a web server second. I say this because it can help us visualize the request
+    flow through the configuration file and rationalize how to achieve the desired
+    configuration of nginx. The core difference this creates is that nginx works with
+    URIs instead of files and directories, and based on that determines how to process
+    the request. This means that when we configure nginx, we tell it what should happen
+    for a certain URI rather than what should happen for a certain file on the disk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A beneficial part of nginx being a reverse proxy is that it fits into a large
+    number of server setups, and can handle many things that other web servers simply
+    aren't designed for. A popular question is "Why even bother with nginx when Apache
+    httpd is available?"
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer lies in the way the two programs are designed. The majority of Apache
+    setups are done using prefork mode, where we spawn a certain amount of processes
+    and then embed our dynamic language in each process. This setup is synchronous,
+    meaning that each process can handle one request at a time, whether that connection
+    is for a PHP script or an image file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, nginx uses an asynchronous event-based design where each spawned
+    process can handle thousands of concurrent connections. The downside here is that
+    nginx will, for security and technical reasons, not embed programming languages
+    into its own process - this means that to handle those we will need to reverse
+    proxy to a backend, such as Apache, PHP-FPM, and so on. Thankfully, as nginx is
+    a reverse proxy first and foremost, this is extremely easy to do and still allows
+    us major benefits, even when keeping Apache in use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's take a look at a use case where Apache is used as an application server
+    described earlier rather than just a web server. We have embedded PHP, Perl, or
+    Python into Apache, which has the primary disadvantage of each request becoming
+    costly. This is because the Apache process is kept busy until the request has
+    been fully served, even if it's a request for a static file. Our online service
+    has gotten popular and we now find that our server cannot keep up with the increased
+    demand. In this scenario introducing nginx as a spoon-feeding layer would be ideal.
+    When an nginx server with a spoon-feeding layer will sit between our end user
+    and Apache and a request comes in, nginx will reverse proxy it to Apache if it
+    is for a dynamic file, while it will handle any static file requests itself. This
+    means that we offload a lot of the request handling from the expensive Apache
+    processes to the more lightweight nginx processes, and increase the number of
+    end users we can serve before having to spend money on more powerful hardware.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another example scenario is where we have an application being used from all
+    over the world. We don't have any static files so we can't easily offload a number
+    of requests from Apache. In this use case, our PHP process is busy from the time
+    the request comes in until the user has finished downloading the response. Sadly,
+    not everyone in the world has fast internet and, as a result, the sending process
+    could be busy for a relatively significant period of time. Let's assume our visitor
+    is on an old 56k modem and has a maximum download speed of 5 KB per second, it
+    will take them five seconds to download a 25 KB gzipped HTML file generated by
+    PHP. That's five seconds where our process cannot handle any other request. When
+    we introduce nginx into this setup, we have PHP spending only microseconds generating
+    the response but have nginx spend five seconds transferring it to the end user.
+    Because nginx is asynchronous it will happily handle other connections in the
+    meantime, and thus, we significantly increase the number of concurrent requests
+    we can handle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous two examples I used scenarios where nginx was used in front
+    of Apache, but naturally this is not a requirement. nginx is capable of reverse
+    proxying via, for instance, FastCGI, UWSGI, SCGI, HTTP, or even TCP (through a
+    plugin) enabling backends, such as PHP-FPM, Gunicorn, Thin, and Passenger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are two ways to install nginx, either by building it from source, or by
+    installing a binary package via a package manager, such as yum or apt. Each method
+    has its own pros and cons, and which method we choose depends on what we need
+    nginx to do and which OS we're using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Historically nginx, Inc has only provided the source files for nginx so that
+    we could compile the software ourselves, and only recently have they begun distributing
+    binary packages for the various Linux distributions. Additionally, nginx requires
+    that third party modules are compiled statically instead of being loaded at runtime.
+    The end result of this is that the nginx ecosystem ends up with a number of native
+    binary packages and custom binary packages built by different people to include
+    different modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even today many of the Linux distributions ship very old versions of nginx,
+    which means we'll have to be careful when we install nginx to make sure we get
+    the version we need. If we need any third party modules enabled, we are almost
+    guaranteed to have to build from source. Thankfully, nginx is easy to install
+    from source and this book details how to do it without suffering a nervous breakdown.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A last note before we continue to the installation process. nginx has three
+    versions available: development, stable, and legacy. Development here refers to
+    the program API stability, not runtime stability. This means that the development
+    version is usually just as stable, or even more stable than the stable branch.
+    This is because bug fixes are added to the development branch before the stable
+    branch. In general, if I personally want features in a new development version,
+    I will give it a week or two to be tested by the community and then feel safe
+    upgrading to it. Legacy versions should be avoided, as they are not supported
+    by either nginx, Inc or the community, and usually bugs are fixed by simply updating
+    to the stable or development version.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1 – Different operating systems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now, we will have a look at installing nginx on different operating systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Windows
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Installing on Windows is the easiest of them all, as it's really only available
+    as a binary file unless we want to start compiling through Cygwin, for most people
+    this is overkill. Instead, just head to the nginx download page and get one of
+    the Windows releases as signified by **nginx/Windows-1.X.XX**. Extract that anywhere
+    and we're ready to go!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A word of warning about nginx on Windows though. Windows has a unique version
+    of event polling called IOCP and nginx does not currently support this. This means
+    that nginx falls back to a slower variant, which means that nginx on Windows is
+    not at the same performance standard as nginx on Linux. Additionally, there are
+    a number of limitations that we should be aware of. At the time of writing the
+    following are the known limitations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Only one worker will be used
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A worker can handle no more than 1,024 concurrent connections
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cache modules do not work on Windows Vista or later
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'nginx, Inc maintains an updated list of known limitations at the following
+    URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://www.nginx.org/en/docs/windows.html](http://www.nginx.org/en/docs/windows.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linux
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To install on Linux we first need to decide whether we''ll compile from source
+    or install via a binary package. To help decide, here''s a brief overview of the
+    pros and cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installation via source
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The pros of installing nginx on Linux via source are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can easily use third party modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can use the latest version immediately
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The cons of installing nginx on Linux via source are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is more difficult than installing a binary package
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You have to keep on top of updates yourself
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Installation via binary package
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The pros of installing nginx on Linux via binary package are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is very easy to install
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You don't have to keep track of updates yourself
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The cons of installing nginx on Linux via binary package are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is difficult to find a binary package with third party modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is potentially lagging behind on versions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It has many different versions, need to research them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ultimately I personally think it comes down to whether or not you need third
+    party modules. Finding binary packages that contain the modules you need is often
+    difficult and you rely on external people to keep their binary package updated.
+    Compiling from source if you need third party modules also means that we can restrict
+    binary packages to the official nginx provided repositories. This makes it far
+    easier and reduces the research required into the various custom repositories
+    and **Ubuntu Personal Package Archives** (**PPAs**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing from source
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Installing nginx from source is not as daunting as it might sound, as nginx
+    is a fairly simple piece of software and we can still utilize yum and apt-get
+    to simplify the installation of the dependencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If using apt, simply run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: To automatically install the dependencies for their nginx package, usually these
+    are the same as for what we will install.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If using yum, run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At this point we have the dependencies and are ready to compile nginx. Make
+    sure we''re in the directory we want to download the source code into and then
+    run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: After running the last command we should get a large amount of text on the screen.
+    If you're not used to compiling from source, this would probably be pretty daunting
+    at first, but let's read through the important points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This sets the base path where nginx is installed. If not defined, this will
+    default to `/usr/local/nginx`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This sets the path where the binary file is installed. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This sets the path of the configuration file. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Any of the other install specific switches can be configured in the configuration
+    file, so those really aren''t important to set yet. Further down we start seeing
+    switches named as `—with-*` and `—without-*`. Each of these allow us to define
+    which standard modules go into our compiled binary package, and the switches we
+    use depend on which features we want. Each module we include increases the size
+    of the binary package, which increases memory usage. Although, even if we include
+    all the modules, the memory size won''t be more than a few megabytes. Do note
+    that some modules might have other dependencies, for instance the GeoIP module
+    relies on external GeoIP software which will have to be installed through your
+    package manager. To read about what each module does, please refer to the official
+    documentation at: [http://www.nginx.org/en/docs/](http://www.nginx.org/en/docs/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once we have decided the modules we want to be included, simply run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If all the dependencies are correct, a summary screen should be presented as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Installing from source](img/5125OS_02_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'If the information there is as expected, complete the compile by running the
+    follow commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we already have nginx installed, we can have the make script automatically
+    and seamlessly rotate the running binary package by using the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we did everything right, we should get the following message after running
+    `make install`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The quickest way to install from a binary package is to simply use the native
+    packages and run either of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: or
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the version installed is fairly recent, we might want to do just that for
+    convenience, if it's old then move on and use the nginx provided binary packages.
+    To use these first install the repository like so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For yum:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Create the file `/etc/yum.repos.d/nginx.repo` and add the following to it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Where `OS` is *centos* if CentOS is used and *rhel* if RHEL, or another RHEL-based
+    distribution is used. `OSRELEASE` is the OS version number, being either *5* or
+    *6*. If unsure check `uname -a` for a clue, or use the tried and tested method
+    of trial and error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For apt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Add the following to `/etc/apt/sources.list` for Debian:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For Ubuntu, add the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Where codename is one of lucid, oneiric, precise, or quantal, depending on
+    which version is used and then run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Step 2- Starting nginx
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Regardless of how nginx was installed, we will most likely want to start it
+    by using a script. Our options are the classic `init.d` script or an `upstart/systemd`
+    script depending on our platform. If nginx was installed via a binary package,
+    one such script should already have been provided for us and can be used by running:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If nginx was installed via source, we''ll need to install the init script ourselves.
+    An nginx community effort to gather `.init` scripts can be found at: [http://wiki.nginx.org/InitScripts](http://wiki.nginx.org/InitScripts),
+    which will help us get set up quickly.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Download the `init` script for the relevant platform and save it to `/etc/rc.d/init.d/nginx`,
+    check the paths in the `.init` file to make sure they fit the install configurations
+    we set with the `./configure arguments` (or the defaults!), and then run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now run the preceding command up above to see the options available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And that's it
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point nginx should be installed and ready to be configured. It's time
+    to experiment a bit and learn the good stuff!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quick start – Creating your first virtual host
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It's finally time to get nginx up and running. To start out, let's quickly review
+    the configuration file. If you installed via a system package, the default configuration
+    file location is most likely `/etc/nginx/nginx.conf`. If you installed via source
+    and didn't change the path prefix, nginx installs itself into `/usr/local/nginx`
+    and places `nginx.conf` in a `/conf` subdirectory. Keep this file open as a reference
+    to help visualize many of the things described in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1 – Directives and contexts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To understand what we'll be covering in this section, let me first introduce
+    a bit of terminology that the nginx community at large uses. Two central concepts
+    to the nginx configuration file are those of **directives** and **contexts**.
+    A directive is basically just an identifier for the various configuration options.
+    Contexts refer to the different sections of the nginx configuration file. This
+    term is important because the documentation often states which context a directive
+    is allowed to have within.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A glance at the standard configuration file should reveal that nginx uses a
+    layered configuration format where blocks are denoted by curly brackets `{}`.
+    These blocks are what are referred to as contexts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The topmost context is called main, and is not denoted as a block but is rather
+    the configuration file itself. The main context has only a few directives we're
+    really interested in, the two major ones being `worker_processes` and user. These
+    directives handle how many worker processes nginx should run and which user/group
+    nginx should run these under.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within the main context there are two possible subcontexts, the first one being
+    called **events**. This block handles directives that deal with the event-polling
+    nature of nginx. Mostly we can ignore every directive in here, as nginx can automatically
+    configure this to be the most optimal; however, there's one directive which is
+    interesting, namely `worker_connections`. This directive controls the number of
+    connections each worker can handle. It's important to note here that nginx is
+    a terminating proxy, so if you HTTP proxy to a backend, such as Apache httpd,
+    that will use up two connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second subcontext is the interesting one called `http`. This context deals
+    with everything related to HTTP, and this is what we will be working with almost
+    all of the time. While there are directives that are configured in the `http`
+    context, for now we'll focus on a subcontext within `http` called `server`. The
+    `server` context is the nginx equivalent of a virtual host. This context is used
+    to handle configuration directives based on the host name your sites are under.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within the `server` context, we have another subcontext called `location`. The
+    `location` context is what we use to match the URI. Basically, a request to nginx
+    will flow through each of our contexts, matching first the server block with the
+    hostname provided by the client, and secondly the location context with the URI
+    provided by the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Depending on the installation method, there might not be any server blocks in
+    the `nginx.conf` file. Typically, system package managers take advantage of the
+    include directive that allows us to do an in-place inclusion into our configuration
+    file. This allows us to separate out each virtual host and keep our configuration
+    file more organized. If there aren't any server blocks, check the bottom of the
+    file for an `include` directive and check the directory from which it includes,
+    it should have a file which contains a server block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 2 – Define your first virtual hosts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, let us define our first server block!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**Downloading the example code**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can download the example code files for all Packt books you have purchased
+    from your account at [http://www.packtpub.com](http://www.packtpub.com). If you
+    purchased this book elsewhere, you can visit [http://www.packtpub.com/support](http://www.packtpub.com/support)
+    and register to have the files e-mailed directly to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is basically all we need, and strictly speaking, we don't even need to
+    define which port to listen on as port 80 is default. However, it's generally
+    a good practice to keep it in there should we want to search for all virtual hosts
+    on port 80 later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quick start – Interacting with backends
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Obviously, this virtual host is quite boring, all it does is serve a static
+    file, and while that is certainly useful, it's practically never all we want to
+    do. Something more interesting would be to serve PHP requests, perhaps even for
+    a framework with a front controller pattern and search engine friendly URLs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1 – A quick backend communication example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Communicating with a backend is done by passing the request to the backend
+    if certain conditions are met. For example, in the following server block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we are using a regular expression location block to define what should
+    happen when a request with a URI ending in `.php` comes in. If the URI does not
+    end in `.php` but, for instance, `/contact-us/`, `location /` is used instead
+    that tries to find a file on the disk using our root directive and the URI. If
+    that's not found, it tries to search for a directory instead and uses our index
+    directive to find an index file. If that is not found either, then it finally
+    rewrites internally to `/index.php` and restarts location evaluation with the
+    URI now ending in `.php` and as such the PHP location will be used and send the
+    request to PHP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 2 – Location blocks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As we''ll pass requests to a backend by using location blocks, it''ll be useful
+    to understand the different types of location blocks available. Did you notice
+    in the preceding section how the location blocks use different modifiers before
+    the URI? In the first location there is no modifier, and in the second `a ~` is
+    used. This modifier changes how nginx matches the location to the URI sent by
+    the end user. The modifiers and rules are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Modifier | Result |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| No modifier | This will match as a prefix value. `location /` will match
+    any URI beginning with `/`, while `location /foo` will match any URI beginning
+    with `/foo`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `=` | This will match as an exact value. `location = /foo` will only match
+    the exact `URI /foo` not the `URI /foobar` or even `/foo/`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `~` | This will match as a case sensitive regular expression using the PCRE
+    library. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `~*` | This will match as a case insensitive regular expression using the
+    PCRE library. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^~` | Will match as a prefix value, which is more important than a regular
+    expression. |'
+  prefs: []
+  type: TYPE_TB
+- en: With all of these different location modifiers, nginx needs a way to know which
+    one to use if multiple matches occur. To do this nginx assigns each type of modifier
+    a certain specificity, which helps to determine how important a location is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Modifier | Specificity |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `=` | This is the most specific modifier possible, as it matches only the
+    exact string. If this location matches, it will be chosen first. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^~` | This modifier is used specifically when you want a prefix match to
+    be more important than a regular expression location. If you have multiple matching
+    locations of this type, the longest match will be used. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `~` and `~*` | nginx has no way to decide how specific a regular expression
+    is, so these are matched in the order they are defined. This means that if multiple
+    regular expression locations match, the first one defined will be used. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| No modifier | Finally if nothing else matches, a standard prefix match is
+    used. If multiple prefix locations match, the longest match will be used. |'
+  prefs: []
+  type: TYPE_TB
+- en: Knowing how nginx chooses a location is quite essential because of how nginx
+    inheritance works. The common thing with every directive is that it will only
+    ever inherit downwards, never up and never across contexts. In effect this means
+    that we cannot have nginx apply two locations at the same time. As soon as we
+    internally rewrite a request and locations are re-evaluated, nginx will forget
+    about the directives in the old location and only care about the ones in the new
+    location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For an illustration of this behavior, see this following server block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: When a request comes in for `/phpmyadmin/image/foo.jpg`, the `/phpmyadmin` location
+    will be considered most specific and `try_files` will find the image. In contrast,
+    if a request comes in for `/phpmyadmin`, it will first use the `/phpmyadmin` location
+    and then `try_files` will rewrite the request into the PHP location. When this
+    happens everything from the previous location is discarded and now the root is
+    inherited from the server context making the `root /home/bill/www` instead, and
+    the request results in a 404 error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, what we need to do here is use a sublocation so that nginx does not
+    have to inherit across.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example we don't need `try_files`, as we have no need to rewrite the
+    request. If the URI matches `/phpmyadmin/`, it will be chosen before the PHP location
+    at the bottom, and if it then also matches the PHP sublocation, it will flow into
+    that one, maintaining the root directive from the parent location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The positive aspect of the preceding scenario is that it will always be simple
+    to tell which directives will apply to any given request, by just following the
+    rewrites to the final location and checking directives in the parent contexts.
+    There are no complicated inheritance paths across contexts with some values being
+    overridden by new directives, while others persist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Related to location blocks is something called a **named location**. A named
+    location is essentially a location that isn't reached via the URI, but rather
+    by internal references. A named location is denoted by a `@`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: This location is useful when you want to logically separate out some directives,
+    but don't want that part of the config accessible through the URI. The previously
+    named location might be used for an error page, for example, where it would only
+    be called when a request would result in a 404 error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Step 3 – Directive types
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In nginx, a directive will usually inherit based on a simple `http`-`server`-`location`
+    flow. Mostly, anyway. nginx has different types of directives and each type inherits
+    a bit differently. How a directive inherits depends on its type. In nginx, there
+    are three types of directives and `try_files`. The three types are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The standard directive
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The array directive
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The action directive
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The vast majority of directives are **standard directives**. These are passive
+    configuration directives that do nothing but configure some aspect of nginx. They
+    follow the standard inheritance of nginx and inherit downwards unless the lower
+    context specifies the same directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Array directives** differ a bit, as multiple directives can be specified
+    in the same context. An example of an array directive would be the `access_log`
+    directive. If we use the array directive three times in the same location block,
+    nginx will create all three access logs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The possible confusion with array directives comes from the fact that while
+    we can use the directive multiple times in the same context, when we try to use
+    it multiple times in two different contexts, the lower context will replace the
+    higher one, not add to it. Consider the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding example, there are two access logs defined but only one of
+    them will ever be written to, depending upon whether the PHP location matches
+    or not. If the goal is to log to both the server context access log and the PHP
+    specific one, we need to define the server context access log twice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The final type of directive is the action directive. These are directives that
+    cause an immediate action, and as such do not inherit but rather execute immediately
+    if the relevant context becomes active. Take, for example, the `rewrite` directive
+    in the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here the `rewrite` directive in the `server` context will always execute, thus
+    the regex parser will always start and see if the pattern `^/booking(.*)` matches
+    the current URI; the request will then flow into the `/calendar` location and
+    the next rewrite will trigger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, there's `try_files`, which is a bit of an outlier. This is because
+    `try_files` does not fit any of the other directive types. It is perhaps closest
+    to an action directive in the sense that it will not inherit, the difference is
+    that when placed in the `server` context nginx actually creates a special pseudo-location
+    that is the least specific location possible. This essentially means that `try_files`
+    in the `server` context will only ever execute if no location matches the request.
+    This if of course a possible scenario, however, if `location /` is used, this
+    location will always match and thus `try_files` is never used. It's highly recommended
+    that `try_files` is never placed outside a location, so as to avoid confusion
+    if suddenly `try_files` no longer executes when the configuration is changed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, this behavior only holds true when we consider the contexts
+    `http`-`server`-`location`. Locations can have three different subcontexts of
+    nested location, if-in-location and `limit_except`. The bad news here is that
+    how directive inheritance works for these contexts is entirely up to the module
+    that defines the directive. The good news is that the modules included with nginx
+    have a standardized behavior and that standard and array directives function much
+    like they normally do. The only real difference is with action directives which
+    not only won''t inherit, but also won''t execute if a nested location matches.
+    The following example illustrates this scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `rewrite` directive in the outer location will execute only if the inner
+    location does not match.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 4 – Location reevaluation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A useful thing to talk about when following action directives is the effect
+    these directives have when executed, as they cause an internal rewrite. With every
+    internal rewrite nginx will reevaluate the locations and possibly select a new
+    one. Keeping internal redirects simple and few in number can often result in less
+    debugging when problems arise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It''s useful to know that while `try_files` was listed as similar to action
+    directives, only the final argument to `try_files` will actually cause a location
+    reevaluation. This can cause issues with `try_files` like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: While initially this may seem to enable pretty URLs, it will actually cause
+    nginx to potentially output the source code of PHP files to the user, as `$uri.php`
+    is not the last argument to `try_files`, and will therefore only set the internal
+    `$uri` pointer and not reevaluate locations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another useful thing to know is that rewrites can be made to not trigger location
+    reevaluation by using the `break` flag at the end, for example, if you wish to
+    rewrite from an old PHP script to a new one, you can avoid nginx going through
+    the entire location evaluation process again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Step 5 – Dealing with backends
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Backends come into play once we need to use nginx for something more than just
+    static file serving. nginx is designed to not embed anything within itself, but
+    rather use transport protocols to talk to backends. There are multiple protocols
+    available, such as HTTP, FastCGI, uWSGI, SCGI, and Memcached. Third party plugins
+    may add even more possible protocols, allowing nginx to talk to more different
+    backends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As nginx separates itself from backends using transport protocols, the management
+    of these backends becomes a separate issue as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to have nginx talk to a backend, we'll have to tell the backend which
+    file to execute as well as provide it some other information. Thankfully, nginx
+    provides configuration for this with its default install. Check for files `fastcgi.conf`,
+    `uwsgi_params`, and `scgi_params`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For HTTP proxying we usually need to provide the backend with some information
+    through HTTP headers. Most backends will expect the `HOST` header to be set as
+    well as the end user IP. Typically, a configuration for proxying would look like
+    the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Step 6 – What can you do if you get stuck?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Getting stuck is an inevitable part of dealing with servers. The information
+    from the *Step 5 – Dealing with backends* section will help us understand the
+    flow of a request, and thus allow us to know which directives apply to the request.
+    Sometimes, though, it's nice with a bit more information to help us debug a problem
+    faster. For this nginx provides the error log. Most errors go in the error log,
+    even if its a 404 error, or the backend reporting an error. Therefore, it's critical
+    to have an error log defined with a proper log level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The error log directive in nginx is defined as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: When faced with a problem, the first thing to do is set the log level to info
+    and check for any entry in the error log. Usually, there will be something to
+    give a clue, for instance if a 404 error occurs where it shouldn't, the nginx
+    error log will explain where it's trying to find the file and that can help us
+    visualize where in our configuration we've gone wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If things still aren''t making sense at this point, nginx offers one more easy
+    way to look at a request. The return directive allows us to return a status code
+    and a string. For instance, we use the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can get the content of that variable output. This can function as a poor
+    man's debugger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Top 9 features you need to know about
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While nginx at the core is designed to be a standard reverse proxy and HTTP
+    web server, we can take it much further and use nginx as a central part in our
+    toolchain, if we look into some of the more esoteric modules as well as the ones
+    not included in the default compile. Thankfully, these modules are very often
+    included in the binary packages provided by repositories, so regardless of which
+    method was used to install nginx, they should be available for us to play with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compressing site assets is one of the most important methods to optimize the
+    perceived load time of a first time visitor, and even for subsequent page loads
+    when compressing the HTML backend response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gzipping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Gzipping the JavaScript, CSS, and HTML responses is of utmost importance if
+    load time is considered important, which naturally means that nginx offers this
+    as a core feature. If we include the optional gzip static module, we can optimize
+    this process even further by compressing the assets ahead of time, so that nginx
+    can merely serve the static gzip file instead of having to compress it on-the-fly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start off with, let's look at how to enable normal on-the-fly gzip compression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: These directives are valid in an `http` context, which means that if we specify
+    them in the `http` block they will apply to every `server` block, thus enabling
+    us to specify compression only once. Using our knowledge of **nginx inheritance**
+    from the *Quick Start* section we can still override this on a server or location
+    basis if required by simply setting the `gzip` directive to `off`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The different directives are as always explained in detail in the documentation;
+    however, here''s a brief overview of what each does:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Directive | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip` | On or off, that is enables or disables gzipping. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_min_length` | This is the minimum response size in bytes before nginx
+    will compress the response. It Defaults to 20 bytes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_proxied` | This defines if nginx should compress the response when
+    nginx is behind other proxy software, such as Varnish or HAProxy. It defaults
+    to off. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_comp_level` | This defines the gzip compression level, default being
+    `1`. It gives diminishing returns past level `4`, and past level `5` there''s
+    rarely any difference at all. Higher levels use more CPU resources. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_types` | The mime types to compress. Text/html is always compressed
+    if gzipping is enabled. To compress everything use `*`, though, this also compresses
+    resources which are already compressed, thus wasting server resources. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_disable` | Regex matched against the user agent to determine when to
+    not compress in case the user agent is buggy. `msie6` is a special value for Internet
+    Explorer 4 to 6, which were buggy. |'
+  prefs: []
+  type: TYPE_TB
+- en: Pre-gzipping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Using the pre-gzipping module has the advantage of saving CPU resources, as
+    the site assets will already be stored in a compressed format instead of having
+    to be compressed on each request. Making use of the pre-gzipping module is both
+    simpler and more complicated at the same time. More complicated as we have to
+    gzip the files ourselves, but simpler as there are far less configuration directives.
+    To enable the precompressed gzip module we simply use the following configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Immediately, we'll see that the only new directive is really `gzip_static` which,
+    like the `gzip` directive, takes an `on` or `off` value to enable or disable it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gzipping files is a bit outside the scope of this book. It can either be done
+    by hand using the command line gzip application, or automated as part of a build
+    process, but it has to be done outside of nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using nginx as a full-page micro cache
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It's noon and you've just sat down for lunch when your monitoring service sends
+    you a text message saying your start-up's newly launched web service is down.
+    Seconds later your cofounder texts you in a panic that the website is down, and
+    just as his submissions to HackerNews and Reddit got on the front page too. Ars
+    Technica and The Next Web are currently writing articles covering your start-up
+    and the world is literally about to go under if you don't get the website online
+    immediately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enter the micro cache. The concept is that any page which doesn't contain user
+    specific information should be cached in nginx, so that the backend application
+    isn't even touched. This relieves load on the backend and allows most applications
+    to handle far more traffic. Normally, an application will have to be written with
+    caching in mind to handle invalidation of cached pages whenever content updates.
+    The micro cache concept handles this by only caching things for a short period
+    of time. If traffic spikes to 20 requests per second, and the micro cache is set
+    to expire after 10 seconds, that's 200 requests the backend application did not
+    have to handle, which makes micro caching a good tool to use when in a pinch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the concept of micro cache is simple, the execution can be a bit more
+    complicated depending on the application. The key aspect is to only cache pages
+    that contain no user specific information. If no such thing exists, it's very
+    simple, otherwise we'll need to control when to cache and when not to cache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two approaches to do this. The first is to use the built-in FastCGI
+    cache or the equivalent for the other modules, such as proxy, uWSGI, SCGI, and
+    so on. The second is to use Memcached as a cache, which is agnostic to the proxy
+    method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference between the two methods is that the built-in FastCGI cache is
+    read and write, while Memcached cache is read-only. Essentially, it becomes a
+    question of where the responsibility for writing to the cache lies. With the built-in
+    FastCGI cache the logic is placed in the nginx config, while with Memcached the
+    logic is placed in the application, as it will need to write to the cache itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memcached micro cache
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Lets start with the Memcached scenario, as that''s simpler from an nginx point
+    of view and largely similar in construct for us to build on later. A basic Memcached
+    micro cache would look like the following in the nginx configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding configuration, the important aspects take place inside the
+    location to handle PHP requests. Specifically, the variable `$memcached_key` is
+    the most important, as this defines the key to request from Memcached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A potential complication here is if pages with user data and without user data
+    share the same request URI. In this case, extra configuration is needed to check
+    if a page contains user data. This is always application specific, but common
+    methods are checking for cookies via `$http_cookie` or checking the URL arguments
+    through `$args`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another thing to notice is that only `GET` requests use the cache, anything
+    not a `GET` request will instead `fastcgi_pass` to our backend, thus bypassing
+    the cache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a request passes all the validation and is sent to Memcached and Memcached
+    returns a 404 not found status, `error_page` will send the request to the `@nocache`
+    named location, which will `fastcgi_pass` to our backend. The backend is then
+    responsible for populating the proper key in Memcached for the next request to
+    use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the application is writing to the cache here, remember to set the cache expire
+    time to something low enough that we won't have stale cache entries for long when
+    the application date updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Built-in FastCGI cache
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Using the built-in caches is very similar in construct to the previous config
+    example. The main difference is that not only do we have to define when to read
+    from the cache, but also when to write to it. A typical configuration would look
+    like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: As can be seen, the concept is largely the same. Set up the cache `keys_zone`,
+    figure out whether to cache or not and finally set the cache key. To fully explain
+    what's going on, let's have a look at what the different directives actually do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Directive | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_path` | Sets the path to store cached responses under. Also
+    names the key zone associated with this cache path and specifies how much metadata
+    and data can be stored there. In this example, `keys_zone` is called micro cache.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_no_cache` | Specifies whether to write to the cache or not. Anything
+    other than an empty string or the value numeric `0` will cause it to not write
+    to the cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_bypass_cache` | Specifies whether to read from the cache or not.
+    Anything other than an empty string or the numeric value `0` will cause it to
+    not read from the cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache` | Specifies `keys_zone` to use. In this example, the `keys_zone`
+    used is micro cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_key` | The key used to identify data in the cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_valid` | Sets the caching time for a given response code.
+    In this example, we want to cache only 200 responses and we will cache them for
+    5 seconds. Our application can override this directive using the `X-Accel-Expires`
+    header from the X-Accel module or by using standard caching headers `Expires`
+    and `Cache-Control`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache_use_stale` | Specifies when the cache will use a cache entry
+    after it''s expired. In this example, we use `updating` to allow us to use the
+    cache while it''s being updated, thus preventing a sudden flood of connections
+    when a key expires. |'
+  prefs: []
+  type: TYPE_TB
+- en: Using nginx behind other proxies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While nginx can certainly be used as the only reverse proxy in our stack, there
+    are scenarios where we might want to use alternative software in front of nginx
+    because we have in-house expertise or are already using them. Popular choices
+    here are Varnish and HAProxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case we can have nginx handle such a scenario transparently using the
+    optional module Real IP. With this we can have nginx transparently replace the
+    variables referencing an IP with the IP of the proxy, thus keeping logs and the
+    configuration of the same while giving us the ability to turn frontends on and
+    off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are only three directives associated with the real IP module, thus making
+    it fairly simple to implement and understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Directive | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `set_real_ip_from` | This specifies an IP to enable the real IP module from.
+    Preventing random people from pretending to be a frontend to nginx. This can be
+    specified multiple times. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `real_ip_header` | This specifies the header to get the real IP from. X-Forwarded-For
+    and X-Real-IP are the most commonly used. This defaults to X-Real-IP. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `real_ip_recursive` | This specifies the IP to use. If off, this will use
+    the last address in header defined by `real_ip_header`. If on, this will search
+    the IP list until it finds one not in the trusted IP list. This is useful when
+    a request has been forwarded multiple times. This defaults to off. |'
+  prefs: []
+  type: TYPE_TB
+- en: Setting up secure downloads
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: nginx has a feature called X-Accel which is meant as a replacement for the `mod_sendfile`
+    functionality found in Apache httpd and lighttpd. The concept is mostly the same.
+    A request is sent to a backend application, which can then do whatever it needs
+    to do, for instance it might log a download or validate user credentials. Once
+    the backend application is done doing its work it issues a non-standard HTTP header
+    `X-Accel-Redirect` with a path to the file relative to the document root. nginx
+    will detect this header and look for a matching location based on the path sent.
+    An example of this would be a PHP backend application issuing a header X-Accel-Redirect,
+    that is, `/video/birthday/dad.mp4`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In nginx, we would then have the following configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this scenario, nginx would then look for the file at the path `/mnt/data/video/birthday/dad.mp4`.
+    If the file is not found it will send a 404 status error; if the file is found
+    it will start sending the file to the end user, thus relieving the backend application
+    of this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: nginx has a number of X-Accel headers available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Header | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| X-Accel-Redirect | Specifies a URI relative to the root directive in nginx
+    configuration to the file to send to the user. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| X-Accel-Buffering | Specifies whether to allow nginx to buffer the connection
+    or not. Turn off if doing Comet style application. Defaults to yes. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| X-Accel-Charset | Specifies the character set of the connection. Defaults
+    to utf-8. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| X-Accel-Expires | Used to control whether nginx will cache the application
+    response or not. Defaults to off. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| X-Accel-Limit-Rate | Specifies a rate limit for the connection. |'
+  prefs: []
+  type: TYPE_TB
+- en: Doing GeoIP lookups
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To do a GeoIP lookup, nginx will need the MaxMind GeoIP database. Both the
+    paid and free versions are compatible with this module. The free version can be
+    downloaded from:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://dev.maxmind.com/geoip/geolite](http://dev.maxmind.com/geoip/geolite)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Every directive in this module has to be defined in the `http` section and
+    looks like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Directive | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Specifies the path to the country level GeoIP database. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Specifies the path to the city level GeoIP database. This database also contains
+    the data from the country database. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Specifies the path to the organization level GeoIP database. The GeoIP organization
+    database is a paid-only database that nginx also supports. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| When nginx is used behind other proxy software, this can be used to specify
+    the IP of that proxy and have nginx do a lookup on the IP in X-Forwarded-For instead.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Functionally similar to `real_ip_recursive` from the using nginx behind other
+    proxies example. |'
+  prefs: []
+  type: TYPE_TB
+- en: When the proper database is loaded into nginx, the following variables will
+    become available to be used through the config, for instance in the access log
+    or to be passed on to a backend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Variable | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Variable name depends on the database specified. Contains the two letter
+    country code. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Variable name depends on the database specified. Contains the three letter
+    country code. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Variable name depends on the database specified. Contains the full country
+    name. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the two letter code for the continent. Only available in city database.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains US region DMA code. Only available in city database. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the latitude of the users location. Only available in city database.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the longitude of the users location. Only available in city database.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the two symbol country region code. Only available in city database.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the full country region name. Only available in city database. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the full city name. Only available in city database. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the postal code of the city. Only available in city database. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Contains the organization name. Could for instance be a university. Only
+    available in organization database. |'
+  prefs: []
+  type: TYPE_TB
+- en: Limiting user requests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are two ways to limit requests in nginx, concurrent requests and frequency
+    of requests. Both can be used simultaneously and multiple times on different factors.
+    For instance, we can limit concurrent requests per IP while we limit concurrent
+    requests per server block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To achieve this, nginx has two modules; one which limits concurrency and the
+    other which limits frequency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limiting concurrent connections
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To limit concurrent requests, we use the **limit conn** module. The concept
+    is fairly simple, we create a memory zone based on a variable and nginx will then
+    track concurrent requests grouped by this variable. We could, for instance, use
+    the `$server_name` variable to limit concurrent requests per vhost, or we could
+    use `$binary_remote_addr` to limit on a users IP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Directive | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_conn_zone` | This creates the memory zone. This also specifies the
+    variable to limit based on as well as the maximum size of the memory zone. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_conn` | This specifies which zone to limit by and how many concurrent
+    connections to allow. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_conn_log_level` | This specifies the log level required before the
+    module will log that the concurrent connection limit was exceeded. This defaults
+    to error. Generally, it is not advised to set it lower unless needed, as it can
+    quickly flood the error log and hide more useful data. |'
+  prefs: []
+  type: TYPE_TB
+- en: Limit frequency of connections
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To limit the frequency of connections we can use the **limit req** module. It's
+    syntactically similar with only some minor changes to control rate instead of
+    concurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| Directive | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_req_zone` | This creates the memory zone. This specifies the variable
+    to limit based on the variable used as well as the maximum size of the memory
+    zone and the rate at which connections should be allowed. Requests exceeding this
+    rate will be buffered until they reach the limit set by burst at which point they
+    will return 503 instead. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_req` | This specifies which zone to limit by and the size of the request
+    buffer, called **burst**. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `limit_req_log_level` | This specifies the log level required before module
+    will log that the connection frequency limit was exceeded. This defaults to error.
+    Generally, it is not advised to set it lower unless needed, as it can quickly
+    flood the error log and hide more useful data. |'
+  prefs: []
+  type: TYPE_TB
+- en: Using nginx for streaming videos
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Streaming videos with nginx is extremely easy. nginx has two optional modules
+    for streaming videos, FLV and MP4, which enable it to stream flash video formats
+    and MP4 containers with H.264/AAC encoding. These modules are compatible with
+    all the traditional Flash and HTML5 players available today.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Streaming FLV files
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The FLV module is the simplest of the two and contains only a single directive.
+    To enable it, simply specify `flv` in a location as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: That's literally everything there is to FLV streaming on the nginx side. If
+    the `.flv` files are properly prepared with metadata and keyframes, they should
+    stream smoothly and be seekable with this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Streaming MP4 files
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The MP4 module is pretty much exactly the same with only a few extra directives
+    for additional control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The buffers control how much memory nginx can use to process the file. This
+    is only limiting during metadata parsing where a large buffer may be required.
+    For this the maximum buffer size becomes relevant. If it''s set too small, nginx
+    will output a 500 status error and log the error as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using WebSockets with nginx
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Version 1.3.13 introduced connection upgrading support to nginx, which means
+    WebSocket support. As WebSockets use the standard HTTP protocol for the initial
+    handshake, nginx can make WebSocket support part of the standard proxy module.
+    This means that all the features available to normal HTTP backends are also available
+    to WebSocket proxying.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The configuration required for handling connection upgrading is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: A few things to notice about WebSocket support are that they can time out just
+    like any other HTTP proxied request. WebSockets are affected by `proxy_read_timeout`
+    that defaults to 60 seconds. The **keepalive** feature in nginx is not of use
+    here, as keepalive pings are empty packets and as such contain no data for nginx
+    to pass to the backend. To combat this, you either need to raise the time out,
+    or implement your own keepalive ping message. The added benefit of the latter
+    solution is that it will also function as a health check for the connection itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: People and places you should get to know
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The following links are a collection of individuals, aggregating sites, and
+    articles that are worth following for the occasional nugget of nginx wisdom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Official links
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Website for nginx, Inc, the company behind the nginx software:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://nginx.com](http://nginx.com)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Website for the nginx software, includes documentation and links to resources,
+    such as books:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://nginx.org](http://nginx.org)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Articles and tutorials
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following link is community-curated but is also the officially hosted documentation,
+    which sometimes contains additional information compared to official documentation,
+    not always updated, though:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://wiki.nginx.org](http://wiki.nginx.org)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Community
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A web interface for the mailing list, the only official way to get help:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://forum.nginx.org](http://forum.nginx.org)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Community supported IRC channel with high activity:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Irc://irc.freenode.org/nginx](http://Irc://irc.freenode.org/nginx) (#nginx
+    channel on [irc.freenode.org](http://irc.freenode.org))'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Blogs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'An aggregator of various nginx blogs at:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://planet.ngx.cc/](http://planet.ngx.cc/)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'A community supporter who blogs about nginx:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://kbeezie.com/tag/nginx/](http://kbeezie.com/tag/nginx/)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'A community supporter who blogs about nginx:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://michael.lustfield.net/category/linux/nginx](http://michael.lustfield.net/category/linux/nginx)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Blog of a prolific module creator; mostly writes about his own third party
+    modules but occasionally has insights into nginx internals:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://agentzh.blogspot.com](http://agentzh.blogspot.com)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Blog of a module creator, Valery Kholodkov, who also blogs about the internals
+    of nginx:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://www.nginxguts.com/category/nginx/](http://www.nginxguts.com/category/nginx/)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'An editorial on the nginx code architecture by Andrew Alexeev of nginx, Inc:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://www.aosabook.org/en/nginx.html](http://www.aosabook.org/en/nginx.html)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: A somewhat outdated, but still relevant guide to nginx module development
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://www.evanmiller.org/nginx-modules-guide.html](http://www.evanmiller.org/nginx-modules-guide.html)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: A somewhat outdated, but still relevant guide to advanced nginx module development
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://www.evanmiller.org/nginx-modules-guide-advanced.html](http://www.evanmiller.org/nginx-modules-guide-advanced.html)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'As a community supporter, I blog about nginx at:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[http://blog.martinfjordvald.com/category/nginx/](http://blog.martinfjordvald.com/category/nginx/)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Twitter
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The official nginx Twitter account:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://twitter.com/nginxorg](https://twitter.com/nginxorg)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Core developer of nginx; tends to be active in support channels:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://twitter.com/mdounin](https://twitter.com/mdounin)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'My Twitter account is:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://twitter.com/mfjordvald](https://twitter.com/mfjordvald)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'A Twitter search for nginx sometimes reveals some interesting articles:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://twitter.com/search?q=nginx](https://twitter.com/search?q=nginx)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL

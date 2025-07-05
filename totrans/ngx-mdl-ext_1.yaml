@@ -1,0 +1,595 @@
+- en: Chapter 1. Installing Nginx Core and Modules from Source
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter serves as a quick reference to downloading and installing Nginx
+    using binary and source distribution and compilation options related to different
+    modules and add-ons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are reading this book, you are already familiar with Nginx (pronounced
+    as engine-x). Therefore, we will not spend too much time discussing the basics.
+    However, you will need a working copy of Nginx before proceeding to advanced topics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing binary distribution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most UNIX and Linux distributions have Nginx included in their package manager
+    repositories. Use package manager commands on your platform to install it. For
+    example, use **apt-get** on Ubuntu or Debian, and **emerge** on Gentoo. For Red
+    Hat, Fedora, or CentOS, see the instructions that follow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find binary installation instructions for different platforms such as
+    Red Hat and Ubuntu on the Nginx installation wiki at [http://wiki.nginx.org/Install](http://wiki.nginx.org/Install).
+    However, we will briefly describe the process here, quoting from the wiki.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Red Hat, Fedora, and CentOS
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To add the Nginx yum repository, create a file named `/etc/yum.repos.d/nginx.repo`
+    and paste one of the following configurations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**For CentOS**:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '**For RHEL**:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: CentOS, RHEL, and Scientific Linux, each populate the `$releasever` variable
+    differently. Therefore, depending on your OS version, replace `$releasever` with
+    `5` (for 5.x) or `6` (for 6.x). Therefore, `baseurl` for 6.x would look like `baseurl=http://nginx.org/packages/rhel/6/$basearch/`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Official Debian/Ubuntu packages
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Append the following lines to the `/etc/apt/sources.list` file, and replace
+    the codename with the one appropriate for the release that you are using, for
+    example, Ubuntu 13.10 is codenamed `saucy`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**For Ubuntu 12.10**:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Please note that when you will run the apt-get update after adding the repository,
+    you will get a **GPG** error of not being able to verify keys. If this happens
+    and you find it hard to ignore it, do the following:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '**For Debian 6**:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '**For Ubuntu PPA**: This PPA is maintained by volunteers and is not distributed
+    by [nginx.org](http://nginx.org). It has some additional compiled-in modules,
+    and it may be more fitting for your environment. You can get the latest stable
+    version of Nginx from **Nginx PPA** on Launchpad: You will require root privileges
+    to execute the following commands.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**For Ubuntu 10.04 and newer**:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: If you get an error about add-apt-repository not existing, you will want to
+    install python-software-properties. For other Debian/Ubuntu based distributions,
+    you can try the lucid variant of the PPA that is the most likely to work on older
+    package sets.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_PRE
+- en: FreeBSD
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Update the BSD ports tree using the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Install the web server using the following commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Type the following command to turn the Nginx server on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To start Nginx, enter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: OpenBSD
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: OpenBSD, as of Version 5.1, includes Nginx as part of the base system. This
+    means Nginx comes pre-installed along with all the library dependencies. The version
+    is not always the latest and greatest one. However, this allows you to start migrating
+    Apache applications over to Nginx. In the future, it is expected that the default
+    httpd will be Nginx instead of Apache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Official Win32 binaries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As of Version 0.8.50 of Nginx, the official Windows binary is now available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Windows version is provided as binary-only due to the current build process,
+    which uses WineTools at the moment. You will not be able to compile a Windows
+    version from source. Once you download the Windows ZIP file, perform the following
+    steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Installation**:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '**Control**:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: For problems, look in the `c:\nginx\logs\error.log` file or in `EventLog`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing source distribution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx binary packages are outdated and usually have an older version. If the
+    binaries on your platform are not the latest and up-to-date, you can download
+    the source from [http://nginx.org/en/download.html](http://nginx.org/en/download.html).
+    At the time of writing this chapter, Version 1.4.3 is the stable downloadable
+    version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also checkout or clone the latest source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Read-only Subversion repositories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`code: svn://svn.nginx.org/nginx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Read-only Mercurial repositories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`site: http://hg.nginx.org/nginx.org`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After you have downloaded the source archive, un-tar it and use the following
+    standard build commands to build a standard binary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: This places the Nginx binary under `user/local`. However, you can override this
+    path through configure options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx library dependencies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you want to build Nginx from source, the following libraries are needed
+    at the minimum:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GCC
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Autotools (automake and autoconf)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PCRE (Perl Compatible Regular Expressions)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: zlib
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OpenSSL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You also have the option to disable the dependency on PCRE, zlib, and OpenSSL
+    by disabling the compilation of rewrite, gzip, and ssl modules. These modules
+    are enabled by default.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring options
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Compile-time options are provided through `configure`. You can also find documentation
+    related to the configure-time options online at [http://wiki.nginx.org/InstallOptions](http://wiki.nginx.org/InstallOptions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `configure` command defines various aspects of the system including the
+    methods that Nginx is allowed to use for connection processing. At the end, it
+    creates a makefile. You can use `./configure --help` to see a full list of options
+    supported by the `configure` command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following section is extracted from the Nginx online wiki.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Files and permissions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`--prefix=path`: It is set to the `/usr/local/nginx` directory by default.
+    The path specified here is the root folder for keeping the server files. This
+    includes the executable files, server log files, configuration files, and html
+    documentation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--sbin-path=path`: The default Nginx executable name is `/sbin/nginx`. You
+    can change the name using this configure option.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--conf-path=path`: The default for this option is `prefix/conf/nginx.conf`.
+    This is the default path for the Nginx configuration file. This file, as you will
+    learn later, is used to configure everything about the Nginx server. The path
+    also contains a number of other configuration files such as a sample `fastcgi`
+    configuration file and character-set maps. You can always change this path later
+    on in the configuration file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--pid-path=path`: This option allows you to change the name of the pid file.
+    The pid files are used by various utilities (including start/stop scripts) to
+    determine if the server is running. Normally, it is a plain text file with the
+    server process ID in it. By default, the file is named `prefix/logs/nginx.pid`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--error-log-path=path`: This option allows you to specify the location of
+    the error log. By default, the file is named `prefix/logs/error.log`. You can
+    set this value to `stderr`. It will redirect all the error messages to the standard
+    error on your system. Normally, this will be your console or the screen.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--http-log-path=path`: This sets the name of the log file where all HTTP requests
+    are logged. By default, the file is named `prefix/logs/access.log`. Like other
+    options, this can be changed anytime by providing the `access_log` directive in
+    the configuration file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--user=USER`: This sets the username that will be used to run the Nginx worker
+    processes. You should make sure that this is an unprivileged or non-root user.
+    The default user name is `nobody`. You can change it later through the `user`
+    directive in the configuration file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--group=name`: This sets the name of the group used to run the worker processes.
+    The default group name is `nobody`. You can change this through the `user` directive
+    in the configuration file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Event loop
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'One of the reasons for Nginx being so fast and stable is its ability to use
+    event-based functions. Input/Output. The event-based coding ensures maximum performance
+    within a single core by allowing it to be non-blocking. However, event-based code
+    needs the underlying platform support such as `kqueue` (FreeBSD, NetBSD, OpenBSD,
+    and OSX), `epoll` (Linux), and `/dev/poll` (Solaris, HPUX).In cases where these
+    methods are not available, Nginx can work with more traditional `select()` and
+    `poll()` methods as well. The following options affect this behavior:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`--with-select_module`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--without-select_module`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These enable or disable building of a module that allows the server to work
+    with the `select()` method. This module is built automatically if the platform
+    does not appear to support more appropriate methods such as `kqueue`, `epoll`,
+    `rtsig`, or `/dev/poll`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`--with-poll_module`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--without-poll_module`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These enable or disable the building of a module that allows the server to work
+    with the `poll()` method. This module is built automatically if the platform does
+    not appear to support more appropriate methods such as `kqueue`, `epoll`, `rtsig`,
+    or `/dev/poll`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optional modules
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The optional modules are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`--without-http_gzip_module`: This option allows you to disable over-the-wire
+    compression. This can be quite useful if you are sending or receiving large text
+    documents over HTTP. However, if you don''t want to build this compression into
+    Nginx binary, or you don''t have access to the zlib library that is required to
+    enable this support, you can disable it using this option.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--without-http_rewrite_module`: This option allows you to disable the HTTP
+    rewrite module. The HTTP rewrite module allows you to redirect HTTP requests by
+    modifying URIs that match a given pattern. You need the PCRE library to enable
+    this module.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--without-http_proxy_module`: This disables `ngx_http_proxy_module`. The proxy
+    module allows you to pass the HTTP request to another server.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--with-http_ssl_module`: This enables the SSL support in the server. This
+    is not enabled by default and you need OpenSSL in order to build SSL support in
+    the Nginx binary.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--with-pcre=path`: If you have downloaded the PCRE source on your machine,
+    you can provide its path through this parameter. Nginx will automatically build
+    this library before building the Nginx server. Please make sure that the version
+    of PCRE source is 4.4 or higher.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--with-pcre-jit`: This builds the PCRE library with the "just-in-time compilation"
+    support. This is significantly to improve the pattern matching or rewriting speed
+    by converting the regular expressions into machine code.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--with-zlib=path`: If you have already downloaded the zlib library source,
+    you can provide its path here. Nginx will build the zlib library before building
+    the server binary. Please make sure that the source version is 1.1.3 or higher.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compilation controls
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The compilation controls are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`--with-cc-opt=parameters`: Additional options for the CFLAGS variable'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--with-ld-opt=parameters`: Additional parameters for the linker (`LD_LIBRAY_PATH`)
+    that you should provide `--with-ld-opt="-L /usr/local/lib` when building on FreeBSD'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Example
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Example of parameters usage (all of this needs to be typed in one line):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When using the system PCRE library under FreeBSD, the following options should
+    be specified:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: --with-ld-opt="-L /usr/local/lib" \
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: --with-cc-opt="-I /usr/local/include"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If the number of files supported by `select()` needs to be increased, it can
+    also be specified like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: --with-cc-opt="-D FD_SETSIZE=2048"
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Custom module
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One of the great strengths of Nginx is its modular design. You are able to hook
+    in third-party modules or modules that you write yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`--add-module=path` compiles the module located at `path` into Nginx binary.
+    You can find a list of third-party modules available for Nginx at [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Debugging
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '`--with-debug` enables debug logging. This option is already enabled in the
+    Windows binary. Once you compile Nginx with this option, you then have to set
+    the debug level with the `error_log` directive in the configuration file, and
+    so on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In addition to debug logging, you can also attach a debugger to a running version
+    of Nginx. If you intend to do so, enable the debugging symbols in the Nginx binary.
+    Compile with `-g` or `-ggdb` and recommended compiler optimization level of `O0`
+    or `O2` (this makes the debugger output easier to understand). The optimization
+    level `O3` auto-vectorizes the code and introduces certain other optimizations
+    that make debugging harder. Set the CFLAGS environment variable as follows and
+    run `configure`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Installing on other platforms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let us install Nginx on other platforms such as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Gentoo: To get the latest version of Nginx, add a platform mask in your portage
+    configuration file `/etc/portage/package.keywords`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: X86/ 64 builds for Solaris are available on [http://joyent.com/blog/ok-nginx-is-cool](http://joyent.com/blog/ok-nginx-is-cool)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'MacOSX: Install Xcode or Xcode command-line tools to get all the required compilers
+    and libraries'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A detailed account of how to resolve dependencies like PCRE and others is described
+    in detail for Solaris 10 u5 [http://wiki.nginx.org/Installing_on_Solaris_10_u5](http://wiki.nginx.org/Installing_on_Solaris_10_u5)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Verifying your Nginx installation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Following are the steps to verify that Nginx has been installed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you have successfully compiled and built Nginx, verify it by running the
+    `nginx -V` command.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: As a root user, run the Nginx server using `prefix/ nginx/sbin/nginx`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You will see the `nginx.pid` file once the server is running. The location of
+    this file depends on the option that you provided while running the configure
+    script. On Ubuntu, the default location is `/var/run/nginx.pid`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'You can reload the Nginx configuration once you edit the `nginx.conf` file.
+    To do this, send SIGNUP to the main process. The PID of this process is in the
+    `nginx.pid` file. The following command will reload the configuration on Ubuntu:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we learned how to download binary and source releases of Nginx
+    and install binary releases. We have also learned how to compile and install Nginx
+    from source, how to override installation paths and other properties using configure
+    options, how to compile Nginx with debugging symbols, and finally, how to verify
+    the installation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will learn more about configuration of core Nginx modules.
+  prefs: []
+  type: TYPE_NORMAL

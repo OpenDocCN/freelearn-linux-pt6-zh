@@ -1,0 +1,976 @@
+- en: Chapter 9. Using Other Third-party Modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up an IMAP/POP3 proxy server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up authentication for mail services
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up SSL for mail authentication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using Nginx as a WEBDAV reverse proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dynamic image resizing using Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Replacing and searching text in Nginx response
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Assembling ZIP files on the fly
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using Nginx as a HTTP publish-subscribe server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transforming XML responses using XSLT templates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up Etags for static content
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy logging of page load times
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Streaming of MP4/H.264 files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up SCGI sites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up expiring links
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter will have a look at some inbuilt, third-party modules which allow
+    us to extend and use Nginx with other protocols, such as IMAP, POP3, WebDAV, and
+    much more. Due to the flexible and well-defined module API, many module developers
+    have used Nginx for interesting web-based tasks, such as XSLT transformations,
+    image resizing, and HTTP publish-subscribe server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up an IMAP/POP3 proxy server
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the most understated uses of Nginx is that of acting as a mail proxy
+    server. It understands the IMAP, SMTP, and the POP3 protocols. In this recipe
+    we will set up Nginx as a proxy for your test IMAP/POP3 server. However, you will
+    need to have an authentication script that will basically return a response redirecting
+    the incoming client to its correct IMAP or POP3 server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up an IMAP/POP3 proxy server](img/4965OS_09_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You need to put the following configuration in your setup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This setup takes any incoming request and sends back a response outlining the
+    POP3 or IMAP server it must connect with. We can see the necessary capabilities
+    that the connecting client must have in order to work with the POP3 or IMAP server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The auth endpoint will return something as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This basically tells the client that they need to connect with 192.168.1.10
+    on port 110 to continue further interaction with the backend POP3 server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up authentication for mail services
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Mail being a personal form of communication inevitably requires authentication
+    of some form or another. We will use embedded Perl to do the authentication in
+    this example. This is driven in the backend with a table that contains the user
+    and corresponding mail server list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'All you need to enable IMAP and POP3 support is to paste the following configuration
+    in your Nginx setup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now you will also need to create a file called `mailauth.pm` in the configuration
+    directory and paste the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The preceding configuration basically works in the following way; the authorization
+    information is passed in the header to the proxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then the Perl code will actually verify the information in the header, and based
+    on the protocol it will choose the mail server it needs to redirect to. The end-point
+    then sends back the following on the success of the request; this will be the
+    backend that the service will connect to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Setting up SSL for mail authentication
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe will look at how one can set up SSL for the mail proxy you have
+    working with Nginx. This will add a significant layer of security to the initial
+    authentication exchange, which would happen in plain text and would be exposed
+    to the man in the middle and replay attacks easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up SSL for mail authentication](img/4965OS_09_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You will need to put the following configuration in your setup and ensure the
+    certificates are in the correct places:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This recipe simply sets up a set of certificates that will be used for every
+    proxy request that comes through Nginx. It uses TLS and SSL, which ensure reliable
+    security based on the browser you have in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other directives help you set the cache sizes and timeout sizes, the defaults
+    are fairly optimal in most use cases and would require tweaking in the event of
+    a significant rise in secure certificate-driven traffic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Nginx as a WEBDAV reverse proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Web-based Distributed Authoring and Versioning (WebDAV) is a set of methods
+    based on the Hypertext Transfer Protocol (HTTP) that facilitates collaboration
+    between users in editing and managing documents and files stored on World Wide
+    Web servers. WEBDAV adds more keywords on top of HTTP which support many more
+    keywords, such as PUT, DELETE, MKCOL, COPY, and MOVE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The WebDAV protocol makes the Web a readable and writable medium. It provides
+    a framework for users to create, change, and move documents on a server (typically
+    a web server or "web share").
+  prefs: []
+  type: TYPE_NORMAL
+- en: This recipe will help us proxy WEBDAV correctly over Nginx. It finds application
+    in SVN over HTTP and many other situations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using Nginx as a WEBDAV reverse proxy](img/4965OS_09_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will first set up the module and then add the configuration necessary for
+    WEBDAV to work properly behind Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will start with installing the module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: We will then add configuration in the location directives where we want the
+    WEBDAV supports.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now we will restart the server to see the changes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this configuration, we set up the various WEBDAV methods that Nginx will
+    support. We then enable the ability to create intermediary directories when a
+    new file is PUT (and the directories above it do not exist). We then use some
+    basic group level permission on which user or group can make the calls and modify
+    the files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also put a limit rule that does not allow computers outside the subnet to
+    make anything other than a GET method call. That ensures that someone cannot modify
+    the files maliciously from outside.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dynamic image resizing using Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Today the Web is about multimedia, and images that form an important part of
+    it. Image resizing, as a result, has become one of the more common web-based tasks.
+    Writing image manipulation code can be tedious and at times, inefficient. To solve
+    this issue, we will have a look at how can one resize images on the fly using
+    Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Dynamic image resizing using Nginx](img/4965_09_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So you will need to follow these steps to install the module and then configure
+    Nginx to resize images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will first need to compile Nginx with this module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will then need to add the following configuration in your site configuration:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: You will then need to restart Nginx to complete the installation and configuration.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The idea is fairly simple; it acts as an image filter, resizing any image that
+    is uploaded to this endpoint. The directive `image_filter` takes the `resize`
+    and size (100 X 100) parameter to do the necessary filtering:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_09_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: There's more...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You can set other parameters for the `image_filter` directive and can get it
+    do other forms of image manipulation. The following table lists the possibilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Parameter value | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `test` | This checks if the image type is an image format, otherwise it returns
+    an HTTP 415 error code |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `size` | It gives information about the image in the JSON format, for example:
+    `{ "img" : { "width": 100, "height": 100, "type": "gif" } }` If it is not an image
+    it returns {} |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `resize` | This proportionally scales the images to the given height and
+    width |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `Crop` | This does not scale, but crops the image to the given height and
+    width |'
+  prefs: []
+  type: TYPE_TB
+- en: Replacing and searching text in Nginx response
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is sometimes possible that you would need to block or remove certain keywords
+    from the entire site at the shortest notice possible. With much larger sites,
+    and static page sites, this can be a very tedious and time-consuming process.
+    Nginx provides you with a quick way of replacing and searching texts in the response
+    it sends out. In this example, we will clear swear words out of the outputted
+    response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Replacing and searching text in Nginx response](img/4965OS_09_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will first need to install the module, and then we will put in some configuration
+    that will remove all kinds of swear words.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will first compile Nginx with the substitution module.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now we will enter the required configuration to enable the substitution:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: We can now safely restart Nginx to complete the installation and see the module
+    in action.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This piece of configuration basically takes all occurrences of `bad_word` in
+    the response and substitutes it with`'**This is censored**'`. The directive `sub_filter_once`
+    basically ensures that the replacement happens for the first occurrence only;
+    we have switched it off as we want to replace all occurrences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965OS_09_07.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Assembling ZIP files on the fly
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An often needed feature on most sites nowadays is the ability to download a
+    compressed version of a file. We will, in this recipe, introduce a module that
+    will take a set of files in the local files system and serve them as a single
+    ZIP file. This is a very efficient module which can easily archive hundreds of
+    megabytes of files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Assembling ZIP files on the fly](img/4965_09_08.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this recipe, we will first install the module, and then we will see how it
+    works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will need to first download the code for the module and then configure Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: You should restart Nginx; the command will differ based on your platform.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You can then try testing the module by making the following HTTP request. This
+    request should contain "X-Archive-Files: zip" in its header:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This should trigger the download of a ZIP archive.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The working of this module is interesting, in that we are making a special
+    HTTP request with the "X-Archive-Files: zip" header which triggers this module.
+    What we send is a list of the files that need to be in the archive in the following
+    format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<CRC-32 value> <Filesize in bytes> <file location> <filename in archive>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is any error in the list of files, then the download is aborted. It
+    is also important to notice in the example that sometimes the CRC-32 value of
+    a file may not be at hand, so you can send "-"in the place of that parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is any error in the list of files, then the download is aborted. It
+    is also important to notice in the example that sometimes the CRC-32 value of
+    a file may not be at hand, so you can send "-"in the place of that parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Nginx as a HTTP publish-subscribe server
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most of us are using one social network or another, and in recent years it is
+    very clear that the social Internet is all about real-time. Driving this forward
+    is asynchronous JavaScript HTTP calls which come in two forms, the short poll
+    and the long poll.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To explain this let's take the simple example of a real-time updating status
+    page. There are two possible ways of updating this page, one is that the JavaScript
+    periodically fires a request, say every second, and gets an update from the server.
+    This has its pros and cons, as it is clearly not real-time in the true sense.
+    The other approach is the event driven one, where the JavaScript opens a connection
+    with the server and waits till the server responds (which may take quite a while
+    in some cases). The issue with this approach is that this potentially eats up
+    resources for the web server as it waits to send a response to the client. However,
+    due to Nginx's event-driven architecture, it is very cheap for Nginx to keep many
+    connections open concurrently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this recipe, we will have a look at an Nginx module that helps you easily
+    implement the HTTP publish-subscribe model using Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using Nginx as a HTTP publish-subscribe server](img/4965OS_09_09.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this recipe we will first install the module and then set up the configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will first download the module and then compile it into Nginx:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now the following configuration needs to be inserted in the server directive:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: We will then restart Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This configuration creates a publishing end-point that will take an ID parameter
+    to publish in. It will store the last 10 messages in a buffer for the new recipients
+    who join the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It also creates an activity endpoint, which is actually the long-polling endpoint,
+    which the JavaScript will call and wait for. In its current configuration, it
+    will allow any client who joins the channel to long-poll this end-point. This
+    will make your application dependant on Nginx for the long-poll ability, thus
+    freeing up resources on your application server. Nginx has a lot less overhead
+    for maintaining open connections, which is a necessity in long-poll based activities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_09_10.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The preceding site has the TV chatter feed which is driven by the Nginx's publish-subscribe
+    module and scales easily for thousands of users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can also use this same channel broadcasting mechanism for one-to-one communication
+    as well. So you can set values to the `push_subscriber_concurrency` directive
+    depending on which you can achieve other communication modes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Modes | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| last | Only the most recent listener request is kept, 409 for others |'
+  prefs: []
+  type: TYPE_TB
+- en: '| first | Only the oldest listener request is kept, 409 for others |'
+  prefs: []
+  type: TYPE_TB
+- en: '| broadcast | Any number of listener requests may be long-polling |'
+  prefs: []
+  type: TYPE_TB
+- en: Transforming XML responses using XSLT templates
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before the advent of JavaScript as the primary client side language, JSON or
+    JavaScript object notation had not really caught on. XML has been the dominant
+    format of exchange for quite some time and most systems continue to support one
+    XML format or another. It is also interesting to note how the newer document formats
+    (new office and open office formats) are also primarily XML standards in a well-packaged
+    archive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Nginx gives us the ability to transform the XML responses that it generates
+    into another XML format by the application of a XSLT. This can be very useful
+    in situations where one requires API outputs to fit an external client's requirements
+    without a change to the end-point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Transforming XML responses using XSLT templates](img/4965OS_09_11.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will first install the module and then configure your site setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to install the XSL module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Insert the following configuration into your server directive:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Restart Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This configuration allows you to apply one XSLT transform on all the XML responses
+    that the `/xml_api` endpoint generates. This also allows you to set parameters
+    in the XSLT based on your Nginx variables (or GET parameters).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Etags for static content
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Etags are a part of the HTTP protocol and is utilized for cache validation.
+    This allows more efficiency on the part of the web browser and saves bandwidth
+    as well. You can think of Etags as Unique IDs which represent the current state
+    of a URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx does not generate Etags for the static content that it serves, and as
+    a result you are not able to make full use of the advantages of Etags. In this
+    recipe, we will install a module that will get your static content running with
+    Etags in a jiffy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up Etags for static content](img/4965_09_12.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will first install the module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now we can place the following directives in the locations where we want the
+    static files to contain the Etags directive:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: You need to restart Nginx to see the affect.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This directive basically adds the ability for Nginx to have a look at the static
+    files being served and add an ETag to the HTTP header. When the files change,
+    the Etag header changes accordingly, this ensures cache invalidation on the client's
+    browser and downloading of the new updated static file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Easy logging of page load times
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you are in the business of running portals or websites, the speed of your
+    site is one of the most important parts of your interaction with the end user.
+    You would want to find out the slower parts of your website and possibly optimize
+    your codebase to respond to those requests faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This recipe has a look at a module that helps you log the page load times and
+    then you can parse those logs to find out the part of the sites that take the
+    most amount of time to load up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This recipe involves the setting up of the module and then a re-configuration
+    of the logging format to output the page load time variable. We also run a parser
+    to get a list of the slower pages on the site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will need to install this module first:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'We will configure Nginx to log the page loading times as well:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now we need to restart Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Run the site for some time, and then you can run the log parser to see some
+    analysis:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the preceding steps we have installed the plugin which adds a Nginx variable
+    that keeps track of the amount of time the backend takes to respond. This variable
+    can now be easily logged, giving you performance insights without writing extra
+    code. After logging, you can use a simple script for this extra column to find
+    out the slower pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The directive `log_request_speed_filter_timeout` basically sets a cut-off of
+    three seconds, above which all pages will be logged. This prevents unnecessary
+    time logging of pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Streaming of MP4/H.264 files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Video streaming has become a social phenomenon with the rise of sites such as
+    YouTube ([http://youtube.com](http://youtube.com)), Metacafe ([http://metacafe.com](http://metacafe.com)),
+    and Dailymotion ([http://dailymotion.com](http://dailymotion.com)). Most of these
+    sites either stream FLV files or MP4 files. We have covered how you can efficiently
+    stream FLV files and now we will cover MP4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx supports an MP4 streaming module that allows you to easily stream and
+    seek MP4 files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Streaming of MP4/H.264 files](img/4965_09_13.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this recipe, we will first install the module and then configure a particular
+    location to serve the MP4 video files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will first install the module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now we will add the following configuration to the location directive where
+    your video files reside:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: We will need to restart Nginx to apply the settings.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All you require to support MP4 files streaming is to add the directive above.
+    This module ensures that you can seek to random parts of the file as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up SCGI sites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx supports SCGI out of the box, and as a result it is rather straightforward
+    to set up. This is supposed to be an alternative to CGI, much like FastCGI. In
+    this recipe, we will assume that you already have an SCGI backend and we will
+    go ahead and set up Nginx as the frontend proxy server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FastCGI has a fairly complicated protocol, as compared to SCGI which makes it
+    prone to efficiency issues. Due to the simplicity of the protocol definition which
+    is 100 lines long ([http://python.ca/nas/scgi/protocol.txt](http://python.ca/nas/scgi/protocol.txt)),
+    SCGI is considered and often found to be a faster and more efficient CGI replacement
+    as compared to FastCGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up SCGI sites](img/4965OS_09_14.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To get this running, all you need to do is to use the following configuration
+    in your setup and then restart Nginx:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This assumes that you have an SCGI backend running on localhost on port 9000\.
+    This configuration sets up an SCGI cache of 10MBs which caches all 200OK files
+    for a minute. This is very similar to how the FastCGI cache works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up expiring links
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A lot of the time, security comes as a factor of time limits and obfuscation.
+    We will explore a module here which will let you generate links that are valid
+    until a certain Date/Time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will set up the module and then setup the secure download location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will first install the module:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'We will need to add the following configuration under the server directive:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: We will need to restart Nginx for the configurations to apply.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this configuration, we have enabled the module and set the md5 secret as
+    `IAmSalt$remote_addr`. The path mode is file which means that the hash created
+    contains the file name. The URL generated has the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<real_path>/<md5_hash>/<expiration_timestamp>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The md5 hash gets generated out of the following string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<real_path>/<secret>/<expiration_timestamp>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`real_path` can be either the path of the file which you want to access or
+    the folder which contains the file'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`secret` is the hash defined'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`expiration_timestamp` is a unix_timestamp (seconds since beginning of 1970)
+    in hexadecimal format'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'So an example URL would be like the one below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http://www.example1.com/timefolder/protected.html/f901b5272c17b456fabf49c3e9bcc120/49F71056`'
+  prefs: []
+  type: TYPE_NORMAL

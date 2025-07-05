@@ -1,0 +1,767 @@
+- en: '6'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX as a Reverse Proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The web has traditionally consisted of, relatively speaking, simple websites.
+    The past few years have seen that change, though. The modern web comprises as
+    many complex SaaS applications as it does personal blogs, news sites, and so on.
+    As the web evolves, so does the list of technologies used to power these applications.
+    No longer is it enough to just be a fast static file server with a FastCGI interface.
+    These days, we need to consider technologies such as web sockets, as well as the
+    expanded complexity of web application architectures and the demands they put
+    on the front line of our web stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thankfully, NGINX was originally built not only as a fast static file server
+    but also as a reverse proxy. This means that NGINX was always intended to sit
+    in front of other backend servers, farm out requests to different servers on the
+    internal network, and serve up the response to the end user. In this chapter,
+    we will take a look at the basics of how to do this with NGINX, and also at some
+    of the more advanced things NGINX can do to make our life easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As such, we will cover the following main topics in the chapter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reverse proxy mechanism
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The NGINX proxy module
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NGINX and microservices
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring the reverse proxy mechanism
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Running NGINX as an application server is somewhat like the **FastCGI architecture**
+    described in the previous chapter; we are going to be running NGINX as a frontend
+    server, and for the most part, reverse proxy requests to our backend servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, it will be in direct communication with the outside world whereas
+    our backend servers, whether Node.js, Apache, and so on, will only exchange data
+    with NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 6.1: An example of using Nginx as a proxy server](img/B21787_06_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 6.1: An example of using Nginx as a proxy server'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are now two web servers running and processing requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX, positioned as a frontend server (in other words, as a reverse proxy),
+    receives all the requests coming from the outside world. It filters them, either
+    serving static files directly to the client or forwarding dynamic content requests
+    to our backend server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our backend server only communicates with NGINX. It may be hosted on the same
+    computer as the frontend, in which case the listening ports must be edited to
+    leave ports `80` and `443` available to NGINX. Alternatively, you can employ multiple
+    backend servers on different machines and load balance between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To communicate and interact with each other, neither process will be using FastCGI.
+    Instead, as the name suggests, NGINX acts as a simple proxy server; it receives
+    HTTP requests from the client (acting as the HTTP server) and forwards them to
+    the backend server (acting as the HTTP client). There is thus no new protocol
+    or software involved. The mechanism is handled by the proxy module of NGINX, as
+    detailed later in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring the NGINX proxy module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Similar to the previous chapter, the first step toward establishing the new
+    architecture will be to discover the appropriate module. The default NGINX build
+    comes with the proxy module, which allows the forwarding of HTTP requests from
+    the client to a backend server. We will be configuring multiple aspects of the
+    module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic address and port information of the backend server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Caching, buffering, and temporary file options
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Limits, timeout, and error behavior
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other miscellaneous options
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All these options are available via directives that we will learn to configure
+    throughout this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Main directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The first set of directives will allow you to establish a basic configuration
+    such as the location of the backend server, information to be passed, and how
+    it should be passed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass`Context: `location`, `if` | This specifies that the request should
+    be forwarded to the backend server by indicating its location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For regular HTTP forwarding, the syntax is `proxy_pass` http://hostname:port;.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For Unix domain sockets, the syntax is `proxy_pass` http://unix:/path/to/file.socket;.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You may also refer to upstream blocks `proxy_pass` http://myblock;.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Instead of http://, you can use `https://` for secure traffic. Additional URI
+    parts as well as the use of variables are allowed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`proxy_pass` http://localhost:8080;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_pass` http://127.0.0.1:8080;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_pass` http://unix:/tmp/nginx.sock;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_pass` https://192.168.0.1;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_pass` http://localhost:8080/uri/;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_pass` http://unix:/tmp/nginx.sock:/uri/;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_pass` http://$server_name:8080;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `proxy_pass`Context: `location`, `if` | Using an upstream block:`upstream`
+    `backend {``server 127.0.0.1:8080;``server 127.0.0.1:8081;``}``location ~* .``php$``{``proxy_pass`
+    http://backend;`}` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_method`Context: http, `server`, `location` | This allows the overriding
+    of the HTTP method of the request to be forwarded to the backend server. If you
+    specify `POST`, for example, all requests forwarded to the backend server will
+    be `POST` requests.Syntax: `proxy_method method;`Example: `proxy_method POST;`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_hide_header`Context: `http`, `server`, `location` | By default, as
+    NGINX prepares the response received from the backend server to be forwarded back
+    to the client, it ignores some of the headers, such as `Date`, `Server`, `X-Pad`,
+    and `X-Accel-*`. With this directive, you can specify an additional header line
+    to be hidden from the client. You may insert this directive multiple times with
+    one header name for each.Syntax: `proxy_hide_header header_name;`Example: `proxy_hide_header
+    Cache-Control;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_header`Context: `http`, `server`, `location` | Related to the
+    previous directive, this directive forces some of the ignored headers to be passed
+    on to the client.Syntax: `proxy_pass_header headername;`Example: `proxy_pass_header
+    Date;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_pass_request_body``proxy_pass_request_headers`Context: `http`, `server`,
+    `location` | This defines whether or not, respectively, the request body and extra
+    request headers should be passed on to the backend server.Syntax: `on` or `off`Default:
+    `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_redirect`Context: `http`, `server`, `location` | This allows you to
+    rewrite the URL appearing in the Location HTTP header on redirections triggered
+    by the backend server.Syntax: `off`, `default`, or the URL of your choice.`off`:
+    Redirections are forwarded *as* *it is*.`default`: The value of the `proxy_pass`
+    directive is used as the hostname and the current path of the document is appended.
+    Note that the `proxy_redirect` directive must be inserted after the `proxy_pass`
+    directive as the configuration is parsed sequentially.URL: Replace a part of the
+    URL with another.Additionally, you may use variables in the rewritten URL.Examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`proxy_redirect off;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_redirect default;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_redirect` `http://localhost:8080/ http://example.com/;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_redirect` `http://localhost:8080/wiki/ /w/;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_redirect` `http://localhost:8080/ http://$host/;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `proxy_next_upstream`Context: `http`, `server`, `location` | When `proxy_pass`
+    is connected to an upstream block, this directive defines the cases where requests
+    should be abandoned and resent to the next upstream server of the block. The directive
+    accepts a combination of values among the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`error`: An error occurred while communicating or attempting to communicate
+    with the server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`timeout`: A timeout occurred during transfers or connection attempts'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`invalid_header`: The backend server returned an empty or invalid response'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http_500`, `http_502`, `http_503`, `http_504`, `http_40`: In case such HTTP
+    errors occur, NGINX switches to the next upstream'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`off`: Forbids you from using the next upstream server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`proxy_next_upstream error` `timeout http_504;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_next_upstream` `timeout invalid_header;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `proxy_next_upstream_timeout`Context: `http`, `server`, `location` | This
+    defines the timeout to be used in conjunction with `proxy_next_upstream`. Setting
+    this directive to `0` disables it.Syntax: Time value (in seconds) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_next_upstream_tries`Context: `http`, `server`, `location` | This defines
+    the maximum number of upstream servers tried before returning an error message,
+    to be used in conjunction with `proxy_next_upstream`.Syntax: Numeric value (default:
+    `0`) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 6.1: The main directives for the proxy module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching, buffering, and temporary files
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Ideally, as much as possible, you should reduce the number of requests being
+    forwarded to the backend server. The following directives will help you build
+    a caching system, as well as control buffering options and the way NGINX handles
+    temporary files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffer_size`Context: `http`, `server`, `location` | This sets the
+    size of the buffer for reading the beginning of the response from the backend
+    server, which usually contains simple header data.The default value corresponds
+    to the size of `1` buffer, as defined by the previous directive (`proxy_buffers`).Syntax:
+    Numeric value (size)Example: `proxy_buffer_size 4k;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffering, proxy_request_buffering`Context: `http`, `server`, `location`
+    | This defines whether or not the response from the backend server should be buffered
+    (or client requests, in the case of `proxy_request_buffering`). If set to `on`,
+    NGINX will store the response data in memory using the memory space offered by
+    the buffers. If the buffers are full, the response data will be stored as a temporary
+    file. If the directive is set to `off`, the response is directly forwarded to
+    the client.Syntax: `on` or `off`Default: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffers`Context: `http`, `server`, `location` | This sets the amount
+    and size of buffers that will be used for reading the response data from the backend
+    server.Syntax: `proxy_buffers` `amount size;`Default: 8 buffers, `4k` or `8k`
+    each, depending on the platformExample: `fastcgi_buffers` `8 4k;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_busy_buffers_size`Context: `http`, `server`, `location` | When the
+    backend-received data accumulated in buffers exceeds the specified value, buffers
+    are flushed and data is sent to the client.Syntax: Numeric value (size)Default:
+    `2 *` `proxy_buffer_size` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache`Context: `http`, `server`, `location` | This defines a cache
+    zone. The identifier given to the zone is to be reused in further directives.Syntax:
+    `proxy_cache zonename;`Example: `proxy_cache cache1;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_key`Context: `http`, `server`, `location` | This directive defines
+    the cache key; in other words, it differentiates one cache entry from another.
+    If the cache key is set to `$uri`, as a result, all requests with `$uri` will
+    work as a single cache entry. But that’s not enough for most dynamic websites.
+    You also need to include the query string arguments in the cache key so that `/index.php`
+    and `/index.php?page=contact` do not point to the same cache entry.Syntax: `proxy_cache_key
+    key;`Example: `proxy_cache_key "$``scheme$host$request_uri $cookie_user";` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_path`Context: `http` | This indicates the directory for storing
+    cached files, as well as other parameters.Syntax: `proxy_cache_path path [use_temp_path=on&#124;off]
+    [levels=numbers keys_zone=name:size` `inactive=time max_size=size];`The additional
+    parameters are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`use_temp_path`: Set this flag to `on` if you want to use the path defined
+    via the `proxy_temp_path` directive'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`levels`: This indicates the depth level of subdirectories (usually *1:2* is
+    enough)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`keys_zone`: This lets you make use of the zone you previously declared with
+    the `proxy_cache` directive and indicates the size to occupy in memory'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`inactive`: If a cached response is not used within the specified timeframe,
+    it is removed from the cache'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`max_size`: This defines the maximum size of the entire cache'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: `proxy_cache_path /tmp/nginx_cache levels=1:2 zone=zone1:10m` `inactive=10m
+    max_size=200M;` |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `proxy_cache_methods`Context: `http`, `server`, `location` | This defines
+    the HTTP methods eligible for caching. `GET` and `HEAD` are included by default
+    and cannot be disabled.Syntax: `proxy_cache_methods METHOD;`Example: `proxy_cache_methods
+    OPTIONS;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_min_uses`Context: `http`, `server`, `location` | This defines
+    the minimum number of hits before a request is eligible for caching. By default,
+    the response of a request is cached after one hit (next requests with the same
+    cache key will receive the cached response).Syntax: Numeric valueExample: `proxy_cache_min_uses
+    1;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_valid`Context: `http`, `server`, `location` | This directive
+    allows you to customize the caching time for different kinds of response codes.
+    You may cache responses associated with `404` error codes for `1` minute, and
+    on the opposite cache, `200 OK` responses for `10` minutes or more. This directive
+    can be inserted more than once:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`proxy_cache_valid` `404 1m;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_cache_valid 500` `502` `504 5m;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_cache_valid` `200 10;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Syntax: `proxy_cache_valid code1 [``code2...] time;` |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `proxy_cache_use_stale`Context: `http`, `server`, `location` | This defines
+    whether or not NGINX should serve stale cached data in certain circumstances (in
+    regard to the gateway). If you use `proxy_cache_use_stale timeout`, and if the
+    gateway times out, then NGINX will serve cached data.Syntax: `proxy_cache_use_stale
+    [updating] [error] [timeout] [``invalid_header] [http_500];`Example: `proxy_cache_use_stale`
+    `error timeout;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_max_temp_file_size`Context: `http`, `server`, `location` | Set this
+    directive to `0` to disable the use of temporary files for requests eligible for
+    proxy forwarding or specify a maximum file size.Syntax: Size valueDefault value:
+    1 GBExample: `proxy_max_temp_file_size 5m;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_temp_file_write_size`Context: `http`, `server`, `location` | This
+    sets the write buffer size when saving temporary files to the storage device.Syntax:
+    Size valueDefault value: `2 *` `proxy_buffer_size` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_temp_path`Context: `http`, `server`, `location` | This sets the path
+    of temporary and cache store files.Syntax: `proxy_temp_path path [``level1 [level2...]]`Examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`proxy_temp_path /tmp/nginx_proxy;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_temp_path /tmp/cache` `1 2;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table 6.2: The caching, buffering, and temporary file directives for the proxy
+    module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limits, timeouts, and errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following directives will help you define timeout behavior, as well as
+    various limitations regarding communications with the backend server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_connect_timeout`Context: `http`, `server`, `location` | This defines
+    the backend server connection timeout. This is different from the read/send timeout.
+    If NGINX is already connected to the backend server, the `proxy_connect_timeout`
+    is not applicable.Syntax: `Time value` (in seconds)Example: `proxy_connect_timeout
+    15;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_read_timeout`Context: `http`, `server`, `location` | This is the timeout
+    for reading data from the backend server. This timeout isn’t applied to the entire
+    response delay but between two read operations instead.Syntax: `Time value` (in
+    seconds)Default value: `60`Example: `proxy_read_timeout 60;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_send_timeout`Context: `http`, `server`, `location` | This timeout
+    is for sending data to the backend server. The timeout isn’t applied to the entire
+    response delay but between two write operations instead.Syntax: `Time value` (in
+    seconds)Default value: `60`Example: `proxy_send_timeout 60;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_ignore_client_abort`Context: `http`, `server`, `location` | If set
+    to `on`, NGINX will continue processing the proxy request, even if the client
+    aborts its request. In the other case (`off`), when the client aborts its request,
+    NGINX also aborts its request to the backend server.Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_intercept_errors`Context: `http`, `server`, `location` | By default,
+    NGINX returns all error pages (HTTP status code `400` and higher) sent by the
+    backend server directly to the client. If you set this directive to `on`, the
+    error code is parsed and can be matched against the values specified in the `error_page`
+    directive.Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_send_lowat`Context: `http`, `server`, `location` | This option allows
+    you to make use of the `SO_SNDLOWAT` flag for TCP sockets under BSD-based operating
+    systems only. This value defines the minimum number of bytes in the buffer for
+    output operations.Syntax: Numeric value (size)Default value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_limit_rate`Context: `http`, `server`, `location` | This allows you
+    to limit the rate at which NGINX downloads the response from the backend proxy.Syntax:
+    Numeric value (bytes per second) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 6.3: The directives relevant to limits, timeouts, and errors'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Finally, the last set of directives available in the proxy module is uncategorized
+    and is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_headers_hash_max_size`Context: `http`, `server`, `location` | This
+    sets the maximum size for the proxy header’s hash tables.Syntax: Numeric valueDefault
+    value: `512` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_headers_hash_bucket_size`Context: `http`, `server`, `location` | This
+    sets the bucket size for the proxy header’s hash tables.Syntax: Numeric valueDefault
+    value: `64` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_force_ranges`Context: `http`, `server`, `location` | When set to `on`,
+    NGINX will enable byte-range support on responses from the backend proxy.Syntax:
+    `on` or `off`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_ignore_headers`Context: `http`, `server`, `location` | This prevents
+    NGINX from processing one of the following four headers from the backend server
+    response: `X-Accel-Redirect`, `X-Accel-Expires`, `Expires`, and `Cache-Control`.Syntax:
+    `proxy_ignore_headers` `header1 [header2...];` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_set_body`Context: `http`, `server`, `location` | This allows you to
+    set a static request body for debugging purposes. Variables may be used in the
+    directive value.Syntax: String value (any value)Example: `proxy_set_body test;`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_set_header`Context: `http`, `server`, `location` | This directive
+    allows you to redefine header values to be transferred to the backend server.
+    It can be declared multiple times.Syntax: `proxy_set_header` `Header Value;`Example:
+    `proxy_set_header` `Host $host;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_store`Context: `http`, `server`, `location` | This specifies whether
+    or not the backend server response should be stored as a file. Stored response
+    files can be reused for serving other requests.Possible values are `on`, `off`,
+    or a path relative to the document root (or alias). You may also set this to `on`
+    and define the `proxy_temp_path` directive.Examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`proxy_store on;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_temp_path /temp/store;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `proxy_store_access`Context: `http`, `server`, `location` | This directive
+    defines file access permissions for the stored response files.Syntax: `proxy_store_access
+    [user:[r&#124;w&#124;rw]][group:[r&#124;w&#124;rw]][all:[r&#124;w&#124;rw]];`Example:
+    `proxy_store_access user:rw` `group:rw all:r;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_http_version`Context: `http`, `server`, `location` | This sets the
+    HTTP version to be used for communicating with the proxy backend. HTTP `1.0` is
+    the default value, but if you are going to enable keepalive connections, you might
+    want to set this directive to `1.1`.Syntax: `proxy_http_version 1.0 &#124;` `1.1;`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cookie_domain``proxy_cookie_path`Context: `http`, `server`, `location`
+    | This applies an on-the-fly modification to the domain or path attributes of
+    a cookie (case-insensitive).Syntaxes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`proxy_cookie_domain off &#124;` `domain replacement;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_cookie_path off &#124; domain` `replacement ;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table 6.4: Uncategorized directives for the proxy module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Variables
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The proxy module offers several variables that can be inserted in various locations,
+    for example, in the `proxy_set_header` directive or the logging-related directives
+    such as `log_format`. The available variables are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$proxy_host`: This contains the hostname of the backend server used for the
+    current request.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$proxy_port`: This contains the port of the backend server used for the current
+    request.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$proxy_add_x_forwarded_for`: This variable contains the value of the `X-Forwarded-For`
+    request header followed by the remote address of the client. Both values are separated
+    by a comma. If the `X-Forwarded-For` request header is unavailable, the variable
+    only contains the client’s remote address.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$proxy_internal_body_length`: Length of the request body (set with the `proxy_set_body`
+    directive or `0`).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although the directives and variables mentioned are for informational purposes
+    at this stage, we will actively apply them in upcoming chapters, exploring their
+    practical uses in scenarios such as load balancing and beyond.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at NGINX and microservices
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we’ve explored the proxy module in depth, it’s time to have a look
+    at what a modern web application architecture might look like. There are entire
+    books dedicated to this topic but we only really need to know how NGINX can enable
+    various setups, and the NGINX part doesn’t differ too much between different setups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For any given task that we need our application to do, we have two options:
+    we can either proxy to a backend server such as Node.js and have that handle the
+    work, or we can implement it directly in NGINX. Which option you go with depends
+    on a lot of factors, but the two main factors to consider are speed and complexity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proxying to a complex backend server has an overhead cost but usually allows
+    you to code reusability and use package managers such as Packagist and NPM. Conversely,
+    implementing a feature in NGINX puts us closer to the user so we have less overhead,
+    but the development itself also becomes more difficult.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most setups will choose to proxy to a backend for simplicity. An example of
+    a feature implemented in NGINX would be Cloudflare and its proxy/CDN service.
+    Since they deal with a huge scale of requests and response time is critical to
+    them, they have implemented their security filtering (web application firewall)
+    directly in NGINX using a module to add Lua support in the NGINX config file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cloudflare has hundreds of developers, including people who have worked on the
+    core part of NGINX code before, so don’t expect to quite reach their level, but
+    there are also simpler scenarios where NGINX can implement part of the application
+    logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A simple example of application logic in NGINX is to move our cache from inside
+    our backend server to NGINX itself. In the following example, we’re checking Memcached
+    for a cached version of a page, and only if we don’t find it do we proxy to our
+    application backend:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we go into more advanced logic, the NGINX configuration gets a bit complicated.
+    We will look at several proxy configuration scenarios in more detail in the next
+    chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we had a look at how reverse proxying works and how NGINX fits
+    into the modern picture of microservices and complex web applications, both in
+    the sense of enabling the microservice architecture and also in the sense of building
+    application logic directly into NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter should have given you an idea of the possibilities that NGINX provides
+    as an application server, and hopefully clarified the complexity/speed trade-off
+    of implementing logic in NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we’ve got an overview of the possibilities offered by NGINX, we’re
+    going to put what we’ve learned to good use. In the next chapter, we’ll cover
+    a specific case: NGINX with Docker, using the NGINX proxy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 3: NGINX in Action'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this final part of the book, you’ll explore how NGINX can be integrated into
+    larger IT infrastructures, with advanced deployment strategies, cloud environments,
+    and automated management. This section focuses on the real-life use cases of NGINX
+    within complex systems, including load balancing, cloud deployments, and maintaining
+    high availability and security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This part includes the following chapters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 7*](B21787_07.xhtml#_idTextAnchor653)*, Introduction to Load Balancing
+    and Optimization*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 8*](B21787_08.xhtml#_idTextAnchor688)*, NGINX within a Cloud Infrastructure*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 9*](B21787_09.xhtml#_idTextAnchor701)*, Fully Deploy, Manage, and
+    Auto-Update NGINX with Ansible*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 10*](B21787_10.xhtml#_idTextAnchor708)*, Case Studies*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 11*](B21787_11.xhtml#_idTextAnchor749)*, Troubleshooting*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,339 @@
+- en: Preface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*NGINX Cookbook* covers the basics of configuring NGINX as a web server for
+    use with common web frameworks such as WordPress and Ruby on Rails, through to
+    utilization as a reverse proxy. Designed as a go-to reference guide, this book
+    will give you practical answers based on real-world deployments to get you up
+    and running quickly.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recipes have also been provided for multiple SSL configurations, different logging
+    scenarios, practical rewrites, and multiple load balancing scenarios. Advanced
+    topics include covering bandwidth management, Docker container usage, performance
+    tuning, OpenResty, and the NGINX Plus commercial features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the time you've read this book, you will be able to adapt and use a wide
+    variety of NGINX implementations to solve any problems you have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What this book covers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml), *Let''s Get Started*,
+    goes through some of the basics of NGINX as a refresher. It''s aimed as an entry
+    point so that there''s no assumed knowledge when we move onto some of the more
+    complex structures.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 2](a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml), *Common PHP Scenarios*,
+    covers examples of the more common PHP scenarios and how to implement them with
+    NGINX. The readers will learn how to configure NGINX and how to deploy a basic
+    site.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 3](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml), *Common Frameworks*,
+    covers non-PHP-based frameworks. It will help the readers to understand and implement
+    all of the common non-PHP-based platforms via NGINX.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml), *All About SSLs*,
+    covers installing the various SSL certificates via NGINX and also covers the configuration
+    required to tweak it for certain scenarios.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 5](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml), *Logging*, explains
+    that monitoring for errors and access patterns are fundamental to running a server.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 6](167eb81c-9694-4e0f-a7ba-5676f2da6874.xhtml), *Rewrites*, covers
+    how rewrites work and also specific implementations of many of the common scenarios.
+    It will be full of specific, practical examples based on real-world scenarios.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 7](bc04362e-995f-4550-92b7-183754306d34.xhtml), *Reverse Proxy*, covers
+    a basic proxy with specific examples of caching and content expiry. This chapter
+    will explain how to configure NGINX as a reverse proxy, content caching, monitoring
+    cache status, microcaching, and many more important scenarios.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 8](4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml), *Load Balancing*,
+    talks about the load balancing components of NGINX and how to implement them for
+    specific scenarios. In this chapter, you will learn the three important load balancing
+    techniques—round-robin, least connection, and hash-based load balancing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 9](c879c343-0d45-42e7-9f86-2217fd837e4d.xhtml), *Advanced Features*,
+    covers some of the lesser used features of NGINX, why they''re available, and
+    then how to implement them. This chapter includes authentication, WebDAV, bandwidth
+    management, connection limiting, and header modification with NGINX.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 10](61d21603-6359-492f-8855-a603e3472882.xhtml), *Docker Containers*,
+    runs you through real-world scenarios of using NGINX within a container. It will
+    provide basic Dockerfile configs for common scenarios.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 11](482173df-c31a-4082-abc0-6d6aafd4a5e6.xhtml), *Performance Tuning*,
+    is designed to build upon the existing NGINX configurations and enable specific
+    performance enhancements.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 12](b246f9b2-d556-4079-9dfe-b16f23c6da16.xhtml), *OpenResty*, introduces
+    the concept of OpenResty, a combination of NGINX, Lua scripting, and several additional
+    third-party modules all packaged up ready to use.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Chapter 13](fff6205a-633e-4c22-bf99-420c274e6379.xhtml), *NGINX Plus – The
+    Commercial Offering*, shows the readers what features are in the Plus version,
+    as well as how to implement them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What you need for this book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following is the list of software you require to go through the recipes
+    covered in this book:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PHP 7
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ubuntu/CentOS/RHEL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Who this book is for
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This book is aimed at beginner-to-medium developers who are just getting started
+    with NGINX. It assumes that they already understand the basics of how a web server
+    works and how basic networking works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sections
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this book, you will find several headings that appear frequently (Getting
+    ready, How to do it…, How it works…, There''s more…, and See also). To give clear
+    instructions on how to complete a recipe, we use these sections as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section tells you what to expect in the recipe, and describes how to set
+    up any software or any preliminary settings required for the recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it…
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section contains the steps required to follow the recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works…
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section usually consists of a detailed explanation of what happened in
+    the previous section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more…
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section consists of additional information about the recipe in order to
+    make the reader more knowledgeable about the recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section provides helpful links to other useful information for the recipe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conventions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this book, you will find a number of text styles that distinguish between
+    different kinds of information. Here are some examples of these styles and an
+    explanation of their meaning. Code words in text, database table names, folder
+    names, filenames, file extensions, pathnames, dummy URLs, user input, and Twitter
+    handles are shown as follows: "To install the latest NGINX release, add the NGINX
+    mainline repository by adding the following to `/etc/yum.repos.d/nginx.repo`."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A block of code is set as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any command-line input or output is written as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**New terms** and **important words** are shown in bold. Words that you see
+    on the screen, for example, in menus or dialog boxes, appear in the text like
+    this: "As our configuration is very simple, we can simply accept the default settings
+    and hit Create."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warnings or important notes appear like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tips and tricks appear like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reader feedback
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Feedback from our readers is always welcome. Let us know what you think about
+    this book-what you liked or disliked. Reader feedback is important for us as it
+    helps us develop titles that you will really get the most out of. To send us general
+    feedback, simply email `feedback@packtpub.com`, and mention the book's title in
+    the subject of your message. If there is a topic that you have expertise in and
+    you are interested in either writing or contributing to a book, see our author
+    guide at [www.packtpub.com/authors](http://www.packtpub.com/authors) .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Customer support
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that you are the proud owner of a Packt book, we have a number of things
+    to help you to get the most from your purchase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading the example code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'You can download the example code files for this book from your account at
+    [http://www.packtpub.com](http://www.packtpub.com). If you purchased this book
+    elsewhere, you can visit [http://www.packtpub.com/support](http://www.packtpub.com/support)
+    and register to have the files e-mailed directly to you. You can download the
+    code files by following these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log in or register to our website using your e-mail address and password.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hover the mouse pointer on the SUPPORT tab at the top.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click on Code Downloads & Errata.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Enter the name of the book in the Search box.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select the book for which you're looking to download the code files.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose from the drop-down menu where you purchased this book from.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click on Code Download.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'You can also download the code files by clicking on the Code Files button on
+    the book''s web page at the Packt Publishing website. This page can be accessed
+    by entering the book''s name in the Search box. Please note that you need to be
+    logged in to your Packt account. Once the file is downloaded, please make sure
+    that you unzip or extract the folder using the latest version of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: WinRAR / 7-Zip for Windows
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Zipeg / iZip / UnRarX for Mac
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 7-Zip / PeaZip for Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The code bundle for the book is also hosted on GitHub at [https://github.com/PacktPublishing/NGINX-Cookbook](https://github.com/PacktPublishing/NGINX-Cookbook).
+    We also have other code bundles from our rich catalog of books and videos available
+    at **[https://github.com/PacktPublishing/](https://github.com/PacktPublishing/)**.
+    Check them out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading the color images of this book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We also provide you with a PDF file that has color images of the screenshots/diagrams
+    used in this book. The color images will help you better understand the changes
+    in the output. You can download this file from [https://www.packtpub.com/sites/default/files/downloads/NGINXCookbook_ColorImages.pdf](https://www.packtpub.com/sites/default/files/downloads/NGINXCookbook_ColorImages.pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Errata
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although we have taken every care to ensure the accuracy of our content, mistakes
+    do happen. If you find a mistake in one of our books-maybe a mistake in the text
+    or the code-we would be grateful if you could report this to us. By doing so,
+    you can save other readers from frustration and help us improve subsequent versions
+    of this book. If you find any errata, please report them by visiting [http://www.packtpub.com/submit-errata](http://www.packtpub.com/submit-errata),
+    selecting your book, clicking on the Errata Submission Form link, and entering
+    the details of your errata. Once your errata are verified, your submission will
+    be accepted and the errata will be uploaded to our website or added to any list
+    of existing errata under the Errata section of that title. To view the previously
+    submitted errata, go to [https://www.packtpub.com/books/content/support](https://www.packtpub.com/books/content/support)
+    and enter the name of the book in the search field. The required information will
+    appear under the Errata section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Piracy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Piracy of copyrighted material on the Internet is an ongoing problem across
+    all media. At Packt, we take the protection of our copyright and licenses very
+    seriously. If you come across any illegal copies of our works in any form on the
+    Internet, please provide us with the location address or website name immediately
+    so that we can pursue a remedy. Please contact us at `copyright@packtpub.com`
+    with a link to the suspected pirated material. We appreciate your help in protecting
+    our authors and our ability to bring you valuable content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Questions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you have a problem with any aspect of this book, you can contact us at `questions@packtpub.com`,
+    and we will do our best to address the problem.
+  prefs: []
+  type: TYPE_NORMAL

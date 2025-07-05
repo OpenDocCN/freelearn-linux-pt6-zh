@@ -1,0 +1,48 @@
+- en: Appendix D. Persisting Solaris Network Tunings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In [Chapter 8](ch08.html "Chapter 8. Troubleshooting Techniques"), *Troubleshooting
+    Techniques*, we saw how to change different network tuning parameters for different
+    operating systems. This appendix details what is necessary to persist these changes
+    under Solaris 10 and above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following script is what is actually run by the **Service Management Framework**
+    (**SMF**) to set the network parameters with ndd. Save it as `/lib/svc/method/network-tuning.sh`
+    and make it executable, so that it can be run at any time on the command line
+    to test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following snippet is the content of the `/lib/svc/method/network-tuning.sh`
+    file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The following manifest serves to define the network-tuning service and will
+    run the script at boot time. Note that we specify a duration of *transient* to
+    let SMF know that this is a run-once script and not a persistent daemon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Place it in `/var/svc/manifest/site/network-tuning.xml` and import with the
+    following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see the following output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This service is intentionally kept simple, for demonstration purposes. The interested
+    reader can explore SMF in the Solaris man pages and online resources.
+  prefs: []
+  type: TYPE_NORMAL

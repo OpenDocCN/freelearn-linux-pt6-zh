@@ -1,0 +1,548 @@
+- en: Rewrites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following recipes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirecting non-www to www-based sites
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Redirecting to a new domain
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocking malicious user agents
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Redirecting all calls to HTTPS to secure your site
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Redirecting pages and directories
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Redirecting `404` errors through a search page
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The ability to rewrite URLs gives us a number of different abilities within
+    NGINX. First and foremost, we can display neat URLs to the end user when we have
+    a dynamically driven system such as WordPress. For example, instead of trying
+    to remember `index.php?page_id=124`, we can simply use `/about/`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, when we move content, change platforms, or update a system, we want
+    to make sure all the old URLs still work. This is especially important for **Search
+    Engine Optimization** (**SEO**), as well as for anyone who has your old page bookmarked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we'll run through a number of recipes describing how to activate
+    all of the common rewrites and also describing a few of these rewrites to provide
+    great flexibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirecting non-www to www-based sites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The debate about using a non-www prefixed URL versus including the www still
+    rages on in the SEO world, but the key thing is to ensure there is consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that if you choose to have the `www` prefix, then you'll want to
+    ensure all URL calls are to this pattern. Especially since there are SEO implications
+    involved with any URL change, attention to detail is critical here. For this recipe,
+    we'll redirect all non-www to www-based calls, but the reverse is simply a matter
+    of slightly modifying the rewrite rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you''re used to the Apache way of doing things, this may look a little different.
+    In the NGINX world, *if is evil* and needs to be avoided at all costs. Instead,
+    we set one `server` block up for the non-www site and set it to redirect and a
+    separate `server` block for the www-based site. Here''s an example code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using the Chrome DevTools (or the equivalent), we can see the following sequence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/d31e6386-07f0-4893-9ff5-de05026894ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The original request to `redirect.nginxcookbook.com` sends a `301` to immediately
+    load `www.redirect.nginxcookbook.com`. The browser then makes a request for this
+    new URL, which, in the preceding example, responded with a HTTP 200.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this rewrite, we use a `301` HTTP call, which means that the URL has moved
+    permanently. This indicates to any upstream system (be it a web crawler or proxy)
+    that the change is final and not to look for the old URL. From an SEO perspective,
+    this is critical, as any links or rankings applied to the old link should then
+    be transferred to the new link.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `$request_uri` variable passes the full URI, including arguments. This means
+    that scenarios such as subdirectories (for example, `/about/`) as well as any
+    arguments (for example, `id=123`) are redirected. This ensures that all bookmarks
+    and direct links will remain working seamlessly after the change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Moz redirection: [https://moz.com/learn/seo/redirection](https://moz.com/learn/seo/redirection)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'NGINX redirect blog: [https://www.nginx.com/blog/creating-nginx-rewrite-rules/](https://www.nginx.com/blog/creating-nginx-rewrite-rules/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Redirecting to a new domain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If a product or company decides to rebrand and rename, then one key part of
+    this is to redirect the old domain to the new one. Even the top names such as
+    Google (who started as BackRub) and eBay (who started as AuctionWeb) have had
+    to go through this process, so it's more common than people realize.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to maintain all previous links and functionalities, ensuring all URLs
+    are redirected to the new domain is critical. Thankfully, all that's required
+    is a simple redirect with a rewrite to ensure that the full URL and all arguments
+    are correctly sent to the new domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As in the previous recipe, we need to have two distinct `server` blocks. Here''s
+    how to redirect the old site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like our non-www redirect, this recipe works in the same fashion. In fact, a
+    redirect for a subdomain isn't functionally any different from a completely different
+    domain altogether.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The return rule works just the same, where calls to subdirectories and all arguments
+    are passed to the new domain without breaking their functionality. For example,
+    using our preceding code, if we made a call to `http://oldsite.nginxcookbook.com/pages/?item=1951`,
+    it would send a `301` redirect to `http://newsite.nginxcookbook.com/pages/?item=1951`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While redirecting the domain fixes one part of the problem, you may need to
+    make code changes as well. CMSes such as WordPress also need to have both the
+    site URL and internal links updated as well. Make sure you consult the documentation
+    for your respective application to ensure you take the necessary steps to migrate
+    internal calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blocking malicious user agents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As the saying goes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"Just because you''re not paranoid doesn''t mean they aren''t after you*."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: –Joseph Heller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the web world, hackers are continually scanning your servers and sites regardless
+    of who you are and what sort of site you have. In 99 percent of all instances,
+    they don't care who you are or what your site is, but only see how easily they
+    can manipulate it to do what they want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even if you're 100 percent sure that your website is secure, you can save a
+    lot of CPU cycles and potential **Denial of Service** (**DOS**) attacks by blocking
+    these agents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The `server` block contains an `if` statement, which generally should be avoided,
+    but it''s necessary here. Performance wise, evaluating it for each call is necessary
+    for interrogating the user agent anyway, so there''s no degradation. In the following
+    configuration, we''ll drop out the bots we don''t want to be able to access our
+    site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is of course, just a very small amount of user agents to block, but some
+    of the more common. Ideally, you should keep the list small; the larger the list
+    the larger the chance of blocking the wrong thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we view the logs, we can see that the access has been blocked:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before our `location` block, we add an `if` statement to compare against the
+    user agent. This ensures it's evaluated for every call. If your intent is to drop
+    the CPU load by blocking malicious requests, it can be a good compromise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The tilde (`~`) performs a case-sensitive match against the user agent (`$http_user_agent`),
+    and allows for a partial match. This means that if the user agent string contains
+    `Yandex1.0` or `Yandex2.0`, both will still match the rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The list of blocked agents (`Baiduspider|Yandex|DirBuster|libwww|""`), uses
+    the pipe (`|`) as an OR so that any of the strings can be matched. The double
+    quotes at the end are there to block any system which doesn't report any user
+    agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need complexity and more dynamic protection, then a proper **Web Application
+    Firewall** (**WAF**) may be a better fit. A WAF has the ability to block other
+    threats, such as SQL injection and **Cross-site Scripting** (**XSS**) as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'During the writing of this chapter, a site I manage was hit with over 200,000
+    malicious connections a minute and I needed these rules in place to ensure it
+    remained operational. The attack was a WordPress pingback DOS attack, which exploits
+    the fact that the WordPress pingback doesn''t have a way of validating the return
+    address. Since the site itself wasn''t WordPress-based, we could simply block
+    WordPress as the user agent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this rule in place, the site remained operational and the only negative
+    issue was slightly increased traffic. The server was easily able to cope with
+    the normal traffic and the rise in CPU usage was only minimal. Being able to turn
+    a site which was completely offline back into an operational site within five
+    minutes was a great outcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirecting all calls to HTTPS to secure your site
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Back in [Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml), *All About
+    SSLs*, we covered installing and configuring an SSL certificate with NGINX. However,
+    one thing we didn't cover was, ensuring that all calls to your site or application
+    are always encrypted. This is especially critical if you're handling private data
+    or payment information, which could be mandated by law to ensure the transmissions
+    of the data is encrypted. Thankfully, enforcing HTTPS is simple to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Like our previous redirects, using two `server` blocks is the most efficient
+    method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we have our standard `server` block listening on port `80` and then redirecting
+    all calls back to our calls to the HTTPS version. With the whole site redirected,
+    even if there's a mistaken link to the HTTP version of the site, it will be automatically
+    redirected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While a `server` block for each named site to redirect works perfectly, we can
+    easily convert this back into a generic `server` block. This way, it's a simple
+    configuration file between different sites and ensures that all other virtual
+    servers on the same system also redirect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Set `default_server` to the `server` block of any undefined server. The underscore
+    (`_`) is simply a placeholder in NGINX; because we've set this `server` block
+    to be the default, it will process all non-matching requests anyway. The underscore
+    simply makes it easy to view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The NGINX `server_name` documentation: [http://nginx.org/en/docs/http/server_names.html](http://nginx.org/en/docs/http/server_names.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirecting pages and directories
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the most common uses of rewrites is to automatically redirect a URL from
+    an old platform to your new site. If you've ever changed your platform (for example,
+    moved from a proprietary system to WordPress or similar), then you'll have a large
+    amount of existing links which will already be bookmarked and ranked within Google.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like our `404` recipe, many modern CMSes can do this, but most can't do it with
+    the efficiency that NGINX can. Anything which can reduce the server load on a
+    production system is always a good thing, especially if you have a very busy site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The following are a number of quick references to redirect your page or directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Single page redirect
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you''ve moved a page or have a new CMS, you can redirect each page using
+    the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This simply has to be within your `server` block directive. It''s important
+    to note that the syntax needs to be an exact match. In the preceding example,
+    if you called the URL without the trailing slash, it would fail to redirect. We
+    can account for both these scenarios by modifying the `rewrite` directive quickly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: As explained in detail later, this means that the trailing slash is now optional,
+    so that both call to `/originalpage` and `/originalpage/` will now both redirect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Full directory redirect
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you want everything within a whole directory to redirect, this can also
+    be easily covered with one line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, this needs to go within your existing `server` block directive. While
+    similar to the single page, there are a few key differences. First, we add a subexpression
+    (`.*`), which we then pass to the new URL as a variable (`$1`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if we call the `/oldproduct/information` URL, it will redirect
+    to `/newproduct/information`. This will match anything in the URL, so if you have
+    parameters in the call (for example, `id=1`), these will also be passed to the
+    new URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The rewrite rules use **Perl Compatible Regular Expressions** (**PCRE**), which
+    is a pattern matching system for textual content. While the more complex scenarios
+    can be quite complex to read, you can quickly grasp the basics by understanding
+    the basics of the syntax. Here''s a reference table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Syntax** | **Meaning** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^` | The start of the string to match |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$` | The end of the string to match |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `.` | Any character (except newline) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `\d` | Any digit |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `\D` | Any non-digit |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `\w` | Word, meaning letters, digits, and underscore (`_`) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `*` | Zero or more of the previous expression |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `+` | One or more of the previous expression |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `?` | Zero or one of the previous expression |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `()` | Group the expression to allow the subexpression to be used separately
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'These are just the basics, but it does allow a very rapid understanding of
+    the more simplistic rules. The following table has a number of quick examples
+    of a match against the `/oldproduct/show.php?id=1` string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Rule** | **Meaning** | **Match** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^.*$` | This matches everything on a line | `/oldproduct/show.php?id=1`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^/oldproduct/$` | This looks for a string which must be exactly `/oldproduct/`
+    | No match |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^/oldproduct/` | This looks for a string which must start with `/oldproduct/`
+    but only matches that phrase | `/oldproduct/` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^/oldproduct.*` | This looks for a string which must start with `/oldproduct/`
+    and also matches everything after that | `/oldproduct/show.php?id=1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `\w+\.php` | This looks for any letters, numbers, or underscores and match
+    at least 1 ending in `.php` | `show.php` |'
+  prefs: []
+  type: TYPE_TB
+- en: Unless you do it day in and day out, don't expect to have your regular expression
+    work perfectly the first time. There are a number of handy tools online (such
+    as [regex101.com](http://regex101.com)), which allows you to test your expressions
+    and give a detailed feedback. For complex scenarios, these tools are critical
+    and allow detailed testing before adding the rules to a live server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The regular expression test tool: [https://regex101.com/](https://regex101.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirecting 404 errors through a search page
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you have moved URLs or have an incorrect link to your site, it will generally
+    generate a `404 Not Found` error to the browser. While you can also style this
+    page to make it match the site, the end result is generally the same. If a user
+    hits this link, either way, they won't find the content they were originally searching
+    for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With a small amount of trickery, we can instead turn the `404` into search parameters
+    to push through to your site. This way, you can either match the page or item
+    the user was looking for or at least display the best guesses for them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While most modern CMSes either have this functionality built in or have a plugin
+    to handle it for you, if you're stuck with an older system or custom coded site,
+    then you can quickly add this functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In order to convert the `404` requests into arguments, here''s our `server`
+    directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this `server` block, we've assumed that the site uses PHP, but static files
+    with a search file just for the `404` errors will also work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For our `404` errors, we override the default NGINX 404 page to a custom location
+    (`error_page 404 @404page;`). The reason we need to use a custom location is so
+    that we can rewrite the URI and arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Within our `@404page` location, we rewrite the URI and arguments to the search
+    page (`/search.php?uri=$uri&$args`), so that they can be used as variables. For
+    example, if we make a call to `/oldpage/index.asp?id=44`, it will send this to
+    `/search.php` as the following variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`[uri] => /oldpage/index.asp`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[id] => 44`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lastly, we also include a `try_files` call to ensure that any missing PHP files
+    are also rewritten to the `search.php` file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `search.php` file could include the ability to have a lookup table or it
+    could incorporate a database search to do a fuzzy search and either automatically
+    redirect or simply present options to the user.
+  prefs: []
+  type: TYPE_NORMAL

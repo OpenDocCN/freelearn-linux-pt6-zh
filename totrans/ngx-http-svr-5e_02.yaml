@@ -1,0 +1,1042 @@
+- en: '2'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Basic NGINX Configuration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we will begin to establish an appropriate configuration for
+    your web server. For this purpose, we need to first discover the syntax that is
+    used in the NGINX configuration files. Then, we need to understand the various
+    directives that will let you prepare and optimize your web server for different
+    traffic patterns and hardware setups. Finally, we will create some test pages
+    to make sure that everything has been done correctly and that the configuration
+    is valid. We will only approach basic configuration directives here. This chapter
+    and the next ones will detail more advanced topics, such as HTTP module configuration
+    and usage, creating virtual hosts, and setting up SSL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The presentation of the configuration syntax
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Basic module directives
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Testing and maintaining your web server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Delving into the configuration file syntax
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A configuration file is generally a text file that is edited by the administrator
+    and parsed by a program. By specifying a set of values, you define the behavior
+    of the program. In Linux-based operating systems, the majority of applications
+    rely on vast, complex configuration files that often turn out to be a nightmare
+    to manage. Apache, Postfix, and Bind – all of these names bring up bad memories
+    in the mind of a Linux system administrator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The fact is that all of these applications use their own configuration files
+    with different syntaxes and styles. PHP works with a Windows-style `.ini` file,
+    Sendmail uses the M4 macro-processor to compile configuration files, Zabbix pulls
+    its configuration from a MySQL database, and so on. There is, unfortunately, no
+    well-established standard, and the same applies to NGINX – you will be required
+    to study a new syntax with its own particularities and its own vocabulary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 2.1: A famous website among tech enthusiasts that makes fun of the
+    situation regarding standards](img/B21787_02_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2.1: A famous website among tech enthusiasts that makes fun of the situation
+    regarding standards'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why isn’t there a universal standard for configuration file syntax? A possible
+    explanation is provided by *Randall Munroe* at [https://xkcd.com/](https://xkcd.com/)
+    (reproduced with authorization).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conversely (and this is one of its advantages), configuring NGINX turns out
+    to be rather simple, at least in comparison to Apache or other mainstream web
+    servers. There are only a few mechanisms that need to be mastered – *directives*,
+    *blocks*, and the *overall logical structure* (which will be covered in [*Chapter
+    3*](B21787_03.xhtml#_idTextAnchor179)). Most of the actual configuration process
+    will consist of writing values for directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuration directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The NGINX configuration file can be described as a list of directives organized
+    in a logical structure. The entire behavior of the application is defined by the
+    values that you give to those directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By default, NGINX makes use of one main configuration file. The path of this
+    file was defined in the steps described in [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014),
+    in the *Build configuration issues* section. If you did not edit the configuration
+    file path and prefix options, they should be located at `/usr/local/nginx/conf/nginx.conf`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, if you installed NGINX with a package manager, your configuration
+    file will likely be located at `/etc/nginx/nginx.conf`, and the contents of the
+    file may be quite different from the version that comes in the original NGINX
+    source code package. Now, let’s take a quick peek at the first few lines of this
+    initial setup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 2.2: nano is used to edit the nginx.conf file](img/B21787_02_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2.2: nano is used to edit the nginx.conf file'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: A default configuration file is bundled with the `Nginx` source code package.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s take a closer look at the first two lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can probably make out from the `#` character, the first line is a comment.
+    In other words, it is a piece of text that is not interpreted and has no value
+    whatsoever. Its sole purpose is to be read by whoever opens the file, or to temporarily
+    disable parts of an existing configuration section. You can use the `#` character
+    at the beginning of a line or after a directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second line is an actual statement – a directive. The first bit (`worker_processes`)
+    represents a setting key, to which you append one or more values. In this case,
+    the value is `1`, indicating that NGINX should function with a single worker process
+    (more information about this particular directive is given in further sections).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Directives always end with a semicolon (`;`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each directive has a unique meaning and defines a particular feature of an application.
+    It may also have a particular syntax. For example, the `worker_process` directive
+    only accepts one numeric value, whereas the `user` directive lets you specify
+    up to two character strings, one for the user account (that the NGINX worker processes
+    should run as) and a second for the `user` group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX works in a modular way, and as such, each module comes with a specific
+    set of directives. The most fundamental directives are part of the NGINX core
+    module and will be detailed in this chapter. As for other directives brought in
+    by other modules, they will be explored in the later chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Organization and inclusions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In *Figure 2**.2*, you may have noticed a particular directive – `include`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As the name suggests, this directive will perform an inclusion of the specified
+    file. In other words, the contents of the file will be inserted at this exact
+    location. Here is a practical example that will help you understand:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nginx.conf`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`other_settings.conf`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Inclusions are processed recursively. In this case, you have the possibility
+    to use the `include` directive again in the `other_settings.conf` file, in order
+    to include yet another file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the initial configuration setup, there are two files in use – `nginx.conf`
+    and `mime.types`. However, in the case of a more advanced configuration, there
+    may be five or more files, as described in the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Standard name** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `nginx.conf` | The base configuration of the application. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `mime.types` | A list of file extensions and their associated MIME types.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi.conf` | A FastCGI-related configuration. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy.conf` | A proxy-related configuration. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sites.conf` | The configuration of the websites served by NGINX, also known
+    as **virtual hosts**. It’s recommended to create separate files for each domain.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 2.1: A table detailing the configuration files included by default'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These filenames were defined conventionally; nothing actually prevents you from
+    regrouping your FastCGI and proxy settings into a common file named `proxy_and_fastcgi_config.conf`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `include` directive supports filename globbing – in other words, filenames
+    referenced with the `*` wildcard, where `*` can match zero, one, or more consecutive
+    characters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will include all files with a name that ends with `.conf` in the `sites`
+    folder. This mechanism allows you to create a separate file for each of your websites
+    and include them all at once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Be careful when including a file. If the specified file does not exist, the
+    configuration checks will fail and NGINX will not start:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The previous statement is not true for inclusions with wildcards. Moreover,
+    if you insert `include dummy*.conf` into your configuration and test it (whether
+    there is any file matching this pattern on your system or not), here is what should
+    happen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Directive blocks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Directives are brought in by modules; if you activate a new module, a specific
+    set of directives becomes available. Modules can also enable **directive blocks**,
+    which allow for a logical construction of the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `events` block that you can find in the default configuration file is brought
+    in by the `events` module. The directives that the module enables can only be
+    used within that block. In the preceding example, `worker_connections` will only
+    make sense in the context of the `events` block. Conversely, some directives must
+    be placed at the root of the configuration file because they have a global effect
+    on the server. The root of the configuration file is also known as the **main
+    block**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the most part, blocks can be nested into each other, following a specific
+    logic. The following sequence demonstrates the structure of a simple website setup,
+    making use of nested blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The topmost directive block is the `http` block, in which you may declare a
+    variety of configuration directives, as well as one or more `server` blocks. A
+    `server` block allows you to configure a virtual host – in other words, a website
+    that is to be hosted on your machine. The `server` block, in this example, contains
+    some configuration that applies to all HTTP requests with a `Host` header exactly
+    matching `example.com`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within this `server` block, you may insert one or more `location` blocks. These
+    allow you to enable settings only when the requested URI matches the specified
+    path. More information is provided in the *The Location block* section of [*Chapter
+    3*](B21787_03.xhtml#_idTextAnchor179).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Last but not least, configuration is inherited within children blocks. The
+    `access_log` directive (defined at the `server`-block level in this example) specifies
+    that all HTTP requests for this server should be logged into a text file. This
+    is still true within the `location` child block, although you have the possibility
+    of disabling it by reusing the `access_log` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, logging will be enabled everywhere on the website, except for
+    the `/admin/` location path. The value set for the `access_log` directive at the
+    `server`-block level is overridden by the one at the `location`-block level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advanced language rules
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are a number of important observations regarding the NGINX configuration
+    file syntax. These will help you understand certain language rules that may seem
+    confusing if you have never worked with NGINX before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Directives accept specific syntaxes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You may indeed stumble upon complex syntaxes that can be confusing at first
+    sight:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Syntaxes are directive-specific. While the `root` directive only accepts a simple
+    character string, defining the folder containing files that should be served for
+    a website, the `location` block or the `rewrite` directive supports complex expressions
+    in order to match particular patterns. Some other directives, such as `listen`,
+    accept up to *17* different parameters. Syntaxes will be explained along with
+    directives in their respective chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Later on, we will detail a module (the *rewrite* module) that allows for a much
+    more advanced logical structure through the `if`, `set`, `break`, and `return`
+    blocks and directives, as well as the use of variables. With all of these new
+    elements, configuration files will begin to look like programming scripts. Anyhow,
+    the more modules we discover, the richer the syntax becomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Diminutives in directive values
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Finally, you cany use the following diminutives to specify a file size in the
+    context of a directive value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**k or** **K**: **Kilobytes**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**m or** **M**: **Megabytes**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**g or** **G**: **Gigabytes**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As a result, the following three syntaxes are correct and equal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: NGINX does not allow you to insert the same directive more than once within
+    the same block (although there are a few exceptions, such as `allow` or `deny`);
+    should you do so, the configuration will be considered invalid, and NGINX will
+    refuse to start up or reload.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additionally, when specifying a time value, you can use the following shortcuts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ms**: **Milliseconds**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**s**: **Seconds**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**m**: **Minutes**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**h**: **Hours**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**d**: **Days**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**w**: **Weeks**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**M**: **Months** (30 days)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**y**: **Years** (365 days)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This becomes especially useful in the case of directives that accept a period
+    of time as a value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The default time unit is seconds; the last two preceding lines thus result
+    in identical behavior. It is also possible to combine two values with different
+    units:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The latter variant is enclosed in quotes, since values are separated by spaces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Variables
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Modules also provide variables that can be used in the definition of directive
+    values. For example, the NGINX HTTP core module defines the `$nginx_version` variable.
+    Variables in NGINX always start with `$` – the dollar sign. When setting the `log_format`
+    directive, you can include all kinds of variables in the format string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some directives do not allow you to use variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The preceding directive is valid, syntax-wise. However, it simply generates
+    a file named `error-$nginx_version.log`, without parsing the variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: String values
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Character strings that you use as directive values can be written in three
+    forms. First, you can enter a value without quotes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However, if you want to use a particular character, such as a blank space (),
+    a semicolon (`;`), or a pair of curly braces (`{` `}`), you will need to either
+    prefix said character with a backslash (`\`) or enclose the entire value in single
+    or double quotes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: NGINX makes no difference whether you use single or double quotes. Note that
+    variables inserted in strings within quotes will be expanded normally unless you
+    prefix the `$` character with a backslash (`\`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now have a better understanding of how the configuration works, as we’ve
+    learned about the syntax and the diminutives. We are now ready to cover the NGINX
+    modules in depth, allowing us to fine-tune NGINX to take full advantage of the
+    hardware and network to better cover our needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the base module directives
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will take a closer look at the base modules. We are particularly
+    interested in answering two questions – *what are base modules?* and *what directives
+    are* *made available?*
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are base modules?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The base modules offer directives that allow you to define the parameters of
+    the basic functionality of NGINX. They cannot be disabled at compile time, and
+    as a result, the directives and blocks they offer are always available. Three
+    base modules are distinguished:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Core module**: This has essential features and directives, such as process
+    management and security'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Events module**: This lets you configure the inner mechanisms of the networking
+    capabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Configuration module**: This enables the inclusion mechanism'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These modules offer a large range of directives; we will detail them individually,
+    with their syntaxes and default values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX process architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we start detailing the basic configuration directives, it is necessary
+    to understand the overall process architecture – that is, how the NGINX daemon
+    works behind the scenes. Although the application comes as a simple binary file
+    (and a somewhat lightweight background process), the way it functions at runtime
+    can be relatively complex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the very moment of starting NGINX, one unique process exists in memory –
+    `master process`. It is launched with the current user and group permissions,
+    usually `root/root` if the service is launched at boot time by an `init` script.
+    The master process itself does not process any client requests; instead, it spawns
+    processes that do – *worker processes*, which are affected by a customizable user
+    and group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From the configuration file, you are able to define the number of worker processes,
+    the maximum connections per worker process, the user and group the worker processes
+    run under, and so on. The following screenshot shows an example of a running instance
+    of NGINX, with eight worker processes running under the `www-data` user account:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: "![Figure 2.3: ps faux is used to list the processes and grep is u\uFEFFs\uFEFF\
+    ed to show only nginx](img/B21787_02_3.jpg)"
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2.3: ps faux is used to list the processes and grep is used to show
+    only nginx'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Core module directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following is the list of directives made available by the core module. Most
+    of these directives must be placed at the root of the configuration file and can
+    only be used once. However, some of them are valid in multiple contexts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If that is the case, the following is the list of valid contexts under the
+    directive name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Name** **and context** | **Syntax** **and description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `daemon` | `on` or `off`.`daemon on;`.`on`.Enables or disables daemon mode.
+    If you disable it, the program will not be started in the background; it will
+    stay in the foreground when launched from the shell. This may come in handy for
+    debugging, in situations where you need to know what causes NGINX to crash, and
+    when. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_points` | `stop` or `abort`.`debug_points stop;`.**Default** **value**:
+    None.Activates debug points in NGINX. Use `stop` to interrupt the application
+    when a debug point comes about in order to attach a debugger. Use `abort` to abort
+    the debug point and create a core dump file.To disable this feature, simply do
+    not use the directive. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `Env` | `env MY_VARIABLE;` `env MY_VARIABLE=my_value;`.Allows you to define
+    or redefine environment variables |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `error_log``main`, `http`, `server`, and `location` | `error_log /``file/path
+    level;`.`logs/error.log error`.`debug`, `info`, `notice`, `warn`, `error`, `crit`,
+    `alert`, and `emerg` (from most to least detailed – `debug` provides frequent
+    log entries, while `emerg` only reports the most critical errors).**Enables error
+    logging at different levels**: The application, HTTP server, virtual host, and
+    virtual host directory.By redirecting the log output to `/dev/null`, you can disable
+    error logging. Use the following directive at the root of the configuration file:`error_log
+    /``dev/null crit;`Instead of specifying a file path, you might also select one
+    of the following alternatives – `stderr` will send log entries to the standard
+    error file, and `Syslog` will send them to the system log. These alternatives
+    are further detailed in C*hapter 11*. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `lock_file` | `lock_file logs/nginx.lock;`.**Default value**: Defined at
+    compile time.Use a lock file for mutual exclusion. This is disabled by default,
+    unless you enabled it at compile time. On most operating systems, the locks are
+    implemented using atomic operations, so this directive is ignored anyway. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `load_module``main` | `load_module` `modules/ngx_http_geoip_module.so;`.**Default**
+    **value**: None.Load a dynamically compiled module at runtime |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `log_not_found``main`, `http`, `server`, and `location` | `on` or `off`.`log_not_found
+    on;`.`on`.Enables or disables logging of `404` not found HTTP errors. If your
+    logs get filled with `404` errors due to missing `favicon.ico` or `robots.txt`
+    files, you might want to turn this off. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `master_process` | `on` or `off`.`master_process on;`.`on`.If enabled, NGINX
+    will start multiple processes – the main process (the master process) and worker
+    processes. If disabled, NGINX works with a unique process. This directive should
+    be used for testing purposes only, as it disables the master process; clients
+    thus cannot connect to your server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `pcre_jit` | `on` or `off`.`pcre_jit on;`.Enables or disables `--enable-jit`
+    configuration argument. When configuring your NGINX build, you must also add the
+    `--``with-pcre-jit` argument. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `Pid` | `pid logs/nginx.pid;`.**Default value**: Defined at compile time.The
+    path of the `pid` file for the NGINX daemon. The default value can be configured
+    at compile time. Make sure to enable this directive and set its value properly,
+    since the `pid` file can be used by the NGINX `init` script, depending on your
+    operating system. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_engine` | `ssl_engine enginename;`.**Default** **value**: None.Where
+    `enginename` is the name of an available hardware SSL accelerator on your system.
+    To check for available hardware SSL accelerators, run this command from the shell:`openssl`
+    `engine -t` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `thread_pool` | **Syntax**:`thread_pool name` `threads=number [max_queue=number];`.`thread_pool
+    default` `threads=32 max_queue=65536;`.Defines a thread pool reference that can
+    be used with the `aio` directive, in order to serve larger files asynchronously.
+    Further details are provided in [*Chapter 9*](B21787_09.xhtml#_idTextAnchor701).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `timer_resolution` | `timer_resolution 100ms;`.**Default** **value**: None.Controls
+    the interval between system calls to `gettimeofday()` to synchronize the internal
+    clock. If this value is not specified, the clock is refreshed after each kernel
+    event notification. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `user` | **Syntax**:`user` `username groupname;``user username;.`**Default
+    value**: Defined at compile time. If still undefined, the user and group of the
+    NGINX master process are used.Allows you to define the user account and, optionally,
+    the user group used to start the NGINX worker processes. For security reasons,
+    you should make sure to specify a user and group with limited privileges. For
+    example, create a new user and group dedicated to NGINX, and remember to apply
+    proper permissions on the files that will be served. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_cpu_affinity` | **Syntax**:`worker_cpu_affinity 1000 0100 0010 0001;
+    worker_cpu_affinity 10 10` `01 01;``worker_cpu_affinity auto;`.**Default** **value**:
+    None.This directive works in conjunction with `worker_processes`. It lets you
+    affect worker processes to CPU cores.There are as many series of digit blocks
+    as worker processes; there are as many digits in a block as your CPU has cores.If
+    you configure NGINX to use three worker processes, there are three blocks of digits.
+    For a dual-core CPU, each block has two digits:`worker_cpu_affinity 01` `01 10;`The
+    first block (`01`) indicates that the first worker process should be effected
+    to the second core.The second block (`01`) indicates that the second worker process
+    should be affected to the second core.The third block (`10`) indicates that the
+    third worker process should be affected to the first core.The auto value allows
+    NGINX to automatically manage the process binding. This differs from the default
+    of not being specified, which means the OS will manage it.Note that affinity is
+    only recommended for multi-core CPUs, not for processors with hyperthreading or
+    similar technologies. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_priority` | `worker_priority 0;`.`0`.Defines the priority of the
+    worker processes, from `-20` (highest) to `19` (lowest). The default value is
+    `0`. Note that kernel processes run at priority level `-5`, so it’s not recommended
+    that you set the priority to `-5` or less. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_processes` | `worker_processes 4;`.`1`.Defines the number of worker
+    processes. NGINX offers to separate the treatment of requests into multiple processes.
+    The default value is `1`, but it’s recommended to increase this value if your
+    CPU has more than one core. Besides, if a process gets blocked due to slow I/O
+    operations, incoming requests can be delegated to the other worker processes.Alternatively,
+    you may use the `auto` value, which will let NGINX select an appropriate value
+    for this directive. By default, it is the amount of CPU cores detected on the
+    system. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_rlimit_core` | `worker_rlimit_core 100m;`.**Default** **value**:
+    None.Defines the size of core files per worker process |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_rlimit_nofile` | `worker_rlimit_nofile 10000;`.**Default** **value**:
+    None.Defines the number of files a worker process can use simultaneously. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `working_directory` | `working_directory /usr/local/nginx/;`.**Default value**:
+    The prefix switch defined at compile time.Working directory used for worker processes;
+    it is only used to define the location of core files. The worker process user
+    account (the `user` directive) must have write permissions on this folder in order
+    to be able to write core files. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_aio_requests` | `worker_aio_requests 10000;`.If you are using `aio`
+    with the `epoll` connection processing method, this directive sets the maximum
+    number of outstanding asynchronous I/O operations for a single worker process.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_shutdown_timeout` | `worker_shutdown_timeout 5s;`.Configures the
+    time limit for the graceful shutdown of worker processes. If exceeded, NGINX will
+    try to forcefully close workers to complete the shutdown. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 2.2: A table detailing the core module directives'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The events module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `events` module comes with directives that allow you to configure network
+    mechanisms. Some of the parameters have an important impact on an application’s
+    performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All of the directives listed in the following table must be placed in the events
+    block, which is located at the root of the configuration file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These directives cannot be placed elsewhere (if you do so, the configuration
+    test will fail):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive name** | **Syntax** **and description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `accept_mutex` | `on` or `off`.`accept_mutex` `on;` .`off`; prior to version
+    1.11.3, `on`.Enables or disables the use of an accept mutex (mutual exclusion)
+    to open listening sockets. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `accept_mutex_delay` | `accept_mutex_delay 500ms;`.**Default value**: 500
+    milliseconds.Defines the amount of time a worker process should wait before trying
+    to acquire the resource again. This value is not used if the `accept_mutex` directive
+    is set to `off`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `debug_connection` | **Syntax (IP address or** **CIDR block)**:`debug_connection`
+    `172.63.155.21;``debug_connection` `172.63.155.0/24;`.**Default** **value**: None.Writes
+    detailed logs for clients matching this IP address or address block. The debug
+    information is stored in the file specified with the `error_log` directive, enabled
+    with the debug level.NGINX must be compiled with the `--debug` switch in order
+    to enable this feature. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `multi_accept` | `multi_accept` `off;` .`off`.Defines whether or not NGINX
+    should accept all incoming connections at once from the listening queue. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `use` | `/dev/poll`, `epoll`, `eventport`, `kqueue`, `rtsig`, or `select`.`use
+    kqueue;`.**Default value**: Defined at compile time.Selects the `event` model
+    among the available ones (the ones that you enabled at compile time). NGINX automatically
+    selects the most appropriate one, so you should not have to modify this value.The
+    supported models are as follows:`select`: The default and standard module, which
+    is used if the OS does not support a more efficient one (it’s the only available
+    method under Windows). This method is not recommended for servers that expect
+    to be under high load.`poll`: This is automatically preferred over `select` but
+    is not available on all systems.`kqueue`: An efficient method for FreeBSD 4.1+,
+    OpenBSD 2.9+, NetBSD 2.0, and macOS OSes.`epoll`: An efficient method for Linux
+    2.6+ based OSes.`rtsig`: Real-time signals, available as of Linux 2.2.19 but unsuitable
+    for high-traffic profiles, as default system settings only allow 1,024 queued
+    signals.`/dev/poll`: An efficient method for Solaris 7 11/99+, HP/UX 11.22+, IRIX
+    6.5.15+, and Tru64 UNIX 5.1A+ OSes.`eventport`: An efficient method for Solaris
+    10, although a security patch is required. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `worker_connections` | `worker_connections 1024;`.**Default** **value**:
+    None.Defines the number of connections that a worker process may treat simultaneously.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 2.3: A table detailing the events module directives'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuration module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The NGINX `configuration` module is a simple module that enables file inclusions
+    with the `include` directive, as previously described in the *Organization and
+    inclusions* section. The directive can be inserted anywhere in the configuration
+    file and accepts a single parameter – a file path:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you do not specify an absolute path, the file path is relative to the configuration
+    directory. By default, `include sites/example.conf` will include the
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`/``usr/local/nginx/conf/sites/example.conf` file.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Necessary adjustments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Several core directives deserve to be adjusted carefully upon preparing the
+    initial setup of NGINX on your server. We will review several of these directives
+    and the possible values you can set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`user root;`: This directive specifies that the worker processes will be started
+    as `root`. It is dangerous for security, as it grants NGINX full permissions over
+    your filesystem. You need to create a new user account on your system and make
+    use of it here. The recommended value (granted that a `www-data` user account
+    and group exist on the system) is `user` `www-data www-data;`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`worker_processes 1;`: With this setting, only one worker process will be started,
+    which implies that all requests will be processed by a unique execution flow.
+    This also implies that the execution is delegated to only one core of your CPU.
+    It is highly recommended to increase this value; you should have at least one
+    process per CPU core. Alternatively, just set this to `auto` to leave it up to
+    NGINX to determine the optimal value. The recommended value is `worker_processes
+    auto;`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`worker_priority 0;`: By default, the worker processes are started with a regular
+    priority. If your system performs other tasks simultaneously, you might want to
+    grant a higher priority to the NGINX worker processes. In this case, you should
+    decrease the value; *the smaller the value, the higher the priority*. Values range
+    from `-20` (the highest priority) to `19` (the lowest priority). There is no recommended
+    value here, as it completely depends on your situation. However, you should not
+    set it to under `-5`, as it is the default priority for kernel processes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`log_not_found on;`: This directive specifies whether NGINX should log `404
+    errors` or not. While these errors may, of course, provide useful information
+    about missing resources, a lot of them may be generated by web browsers trying
+    to reach the *favicon* (the conventional `/favicon.ico` of a website) or robots
+    trying to access the indexing instructions (`robots.txt`). Set this to `off` if
+    you want to ensure your log files don›t get cluttered by **Error 404** entries,
+    but keep in mind that this could deprive you of potentially important information
+    about other pages that visitors failed to reach. Note that this directive is part
+    of the HTTP core module. Refer to the next chapter for more information.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`worker_connections 1024;`: This setting, combined with the number of worker
+    processes, allows you to define the total number of connections accepted by the
+    server simultaneously. If you enable four worker processes, each accepting 1,024
+    connections, your server will treat a total of 4,096 simultaneous connections.
+    You need to adjust this setting to match your hardware – the more RAM and CPU
+    power your server relies on, the more connections you can accept concurrently.
+    If your server is a huge monster meant to host high-traffic sites, you will want
+    to increase this value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We’ve taken a look at the configuration. Next, we are going to put this into
+    practice by trying our configuration and launching a test server to see how NGINX
+    behaves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing your server
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At this point, you have configured several basic directives that affect the
+    core functioning of NGINX. We will perform a simple test to ensure that all is
+    working as expected and that you are ready to further configure and deploy your
+    websites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a test server
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In order to perform simple tests, such as connecting to a server with a web
+    browser, we need to set up a website for NGINX to serve. A test page comes with
+    the default package in the `html` folder (`/usr/local/nginx/html/index.html`),
+    and the original `nginx.conf` is configured to serve this page. Here is the section
+    that we are interested in for now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As you can perhaps already tell, this segment configures NGINX to serve a website:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It opens a listening socket on port `80`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Accessible at the `http://localhost/` address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With the `index.html` index page
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For more details about these directives, refer to the *HTTP module configuration*
+    section in [*Chapter 3*](B21787_03.xhtml#_idTextAnchor179). Anyhow, fire up your
+    favorite web browser and visit `http://localhost/`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 2.4: The default page for the NGINX server](img/B21787_02_4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2.4: The default page for the NGINX server'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should be greeted with a welcome message; if you aren’t, then check the
+    configuration again and make sure you reloaded NGINX in order to apply the changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upgrading NGINX gracefully
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are many situations where you will need to replace the NGINX binary –
+    for example, when you compile a new version and wish to put it in production,
+    or simply after having enabled new modules and rebuilt the application. What most
+    administrators would do in this situation is stop the server, copy the new binary
+    over the old one, and restart NGINX. While this is not considered to be a problem
+    for most websites, there may be some cases where uptime is critical and connection
+    losses should be avoided at all costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fortunately, NGINX embeds a mechanism that allows you to switch binaries with
+    uninterrupted uptime; zero percent request loss is guaranteed if you follow these
+    steps carefully:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replace the old NGINX binary (by default, `/usr/local/nginx/sbin/nginx`) with
+    the new one.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find `pid` of the NGINX master process – for example, with `ps x` | `grep nginx`
+    | `grep master` or by looking at the value found in the `.``pid` file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Send a `USR2` (`12`) signal to the master process, `kill -USR2 1234`, replacing
+    `1234` with the `pid` found in *step 2*. This will initiate the upgrade by renaming
+    the old `.pid` file and running the new binary.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Send a `WINCH` (`28`) signal to the old master process, `kill -WINCH 1234`,
+    replacing `1234` with the `pid` found in *step 2*. This will engage a graceful
+    shutdown of the old worker processes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Make sure that all of the old worker processes are terminated, and then send
+    a `QUIT` signal to the old master process, `kill -QUIT 1234`, replacing `1234`
+    with the `pid` found in *step 2*.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Congratulations! You have successfully upgraded NGINX and have not lost a single
+    connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter provided a first approach to the configuration architecture by
+    studying the syntax and the core module directives that have an impact on the
+    overall server performance. We then went through a series of adjustments in order
+    to fit your own profile, followed by a procedure to upgrade your running NGINX
+    server without losing connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this is just the beginning. Practically everything that we will do
+    from now on is to prepare configuration sections. The next chapter will detail
+    more advanced directives by further exploring the module system and the exciting
+    possibilities that are offered to you by it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Dive into NGINX'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this part, you’ll deepen your knowledge of NGINX by exploring its various
+    modules and advanced configuration options. In this part, you’ll delve into the
+    intricacies of basic modules such as the HTTP module and the rewriting module,
+    as well as integration with PHP and Python. You’ll also learn how to adapt NGINX
+    to your specific needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This part includes the following chapters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Chapter 3*](B21787_03.xhtml#_idTextAnchor179)*,* *Exploring the HTTP Configuration*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 4*](B21787_04.xhtml#_idTextAnchor412)*, Exploring Module Configuration
+    in NGINX*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 5*](B21787_05.xhtml#_idTextAnchor557)*, PHP and Python with NGINX*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[*Chapter 6*](B21787_06.xhtml#_idTextAnchor621)*, NGINX as a Reverse Proxy*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

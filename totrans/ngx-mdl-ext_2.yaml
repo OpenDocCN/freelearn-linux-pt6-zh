@@ -1,0 +1,522 @@
+- en: Chapter 2. Configuring Core Modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter we will explore the configuration of the `Main` and `Events`
+    modules of Nginx, which are also called the core modules. We will discuss the
+    module-related configuration options and important points that one needs to remember
+    while using these options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the Main module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The Nginx `Main` module consists of the following configuration directives
+    or commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Name | Value | Default | Example |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| daemon | on, off | on |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| master_process | on, off | on |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| timer_resolution | interval | 0 | 100ms |'
+  prefs: []
+  type: TYPE_TB
+- en: '| pid | file | logs/nginx.pid | /var/log/nginx.pid |'
+  prefs: []
+  type: TYPE_TB
+- en: '| lock_file | file | logs/nginx.lock | /var/log/nginx.lock |'
+  prefs: []
+  type: TYPE_TB
+- en: '| worker_processes | number, auto | 1 | 2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| debug_points | stop, abort | null | stop |'
+  prefs: []
+  type: TYPE_TB
+- en: '| user | user [group] | nobody nobody | www users |'
+  prefs: []
+  type: TYPE_TB
+- en: '| worker_priority | number | 0 | 15 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| worker_cpu_affinity | cpu mask |   | 0101 1010 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| worker_rlimit_nofile | number |   | 1000 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| worker_rlimit_core | size |   | 500M |'
+  prefs: []
+  type: TYPE_TB
+- en: '| worker_rlimit_sigpending | number |   | 1000 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| working_directory | directory | compile time | /usr/local/nginx |'
+  prefs: []
+  type: TYPE_TB
+- en: '| env | variable = value |   | PERL5LIB=/data/site/modules |'
+  prefs: []
+  type: TYPE_TB
+- en: Explaining directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will now discuss all the `Main` module's directives mentioned in the preceding
+    table in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: daemon
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `daemon` directive determines if Nginx will run in the daemon mode. A daemon
+    (or a service) is a background process that is designed to run autonomously, with
+    little or no user intervention. Since Version 1.0.9 of Nginx, it is safe to run
+    Nginx with this option turned off. It is not possible to do a binary upgrade of
+    Nginx without stopping it, if this option is off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx's master process is responsible for nonstop binary upgrades. The signal
+    that is used for this purpose is `SIGUSR2`. However, when the daemon mode is off,
+    this signal is ignored because the master process will still have the old binary.
+    This is unlike the daemon mode, where the parent of the new worker process is
+    switched to the `Init` process, and therefore, you can start a new worker process
+    with new binaries. The only reason you might want to run the daemon mode with
+    `master_process` off would be for debugging purposes. Turning these options off
+    will run Nginx in the foreground without a master process, and you can terminate
+    it simply by pressing *Ctrl* + *R*. However, you should not run Nginx in production
+    without the daemon mode and `master_process`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: master_process
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `master_process` directive determines if Nginx will run with a master process.
+    It has many responsibilities in Nginx, including spawning off worker processes.
+    Nginx will run in the single-process mode if you set `master_process` off. You
+    should always run in production with the `master_process` option turned on. The
+    only reason you might want to turn `master_process` off is for debugging reasons,
+    as it might be much simpler to debug the code in a single-process mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: timer_resolution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Setting the `timer_resolution` directive will reduce the number of `gettimeofday()`
+    system calls. Instead of doing this system call for each kernel event, `gettimeofday()`
+    is only called once per specified interval. You might want to turn this option
+    off if `gettimeofday()` shows up as an overhead on a busy server. You won't notice
+    any difference on an idle server though. One good reason to use `timer_resolution`
+    is to get the exact time in logs for the upstream response times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: pid
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `pid` directive specifies the filename for the `PID` file of the master
+    process. The default value is relative to the `--prefix` configure option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: lock_file
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `lock_file` directive specifies the filename of the lock file. The default
+    value is relative to the `--prefix` configure option. You can also specify this
+    option during the compile time through the following configure script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: worker_processes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `worker_processes` directive defines the maximum number of worker processes.
+    A worker process is a single-threaded process spawned by the master process. If
+    you set this option to `auto`, Nginx will automatically try to determine the number
+    of CPUs/core and set this option equal to that number. The `auto` parameter is
+    supported starting from Versions 1.3.8 and 1.2.5\. If you want Nginx to only use
+    a limited number of cores on your server, setting this value explicitly would
+    be a good idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: debug_points
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `debug_points` directive is useful to debug Nginx. If you set this directive
+    to `abort`, Nginx will produce a core dump file whenever there is an internal
+    error. You can use this core dump file to obtain an error trace in a system debugger
+    such as `gdb`. In order to obtain the core dump file, you will also need to configure
+    the `working_rlimit_core` and `working_directory` directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this directive is set to `stop`, any internal error will lead to the stopping
+    of the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: user
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `user` directive is used to specify the user and the group of the worker
+    processes. If no group name is specified, the same group name as that of the user
+    is used. You can override the default nobody nobody by specifying the user and
+    the group with the following `configure` script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: worker_priority
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `worker_priority` directive allows you to set the nice priority of the worker
+    processes. Nginx will use the `setpriority()` system call to set the priority.
+    Setting the priority to a lower value can result in favorable scheduling of the
+    worker processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The actual priority range varies between kernel versions. Before 1.3.36, Linux
+    had a range from –infinity to 15\. Since kernel 1.3.43, Linux has the range from
+    -20 to 19\. On some systems, the range of nice values is from -20 to 20.
+  prefs: []
+  type: TYPE_NORMAL
+- en: worker_cpu_affinity
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `worker_cpu_affinity` directive allows you to set the affinity masks for
+    the worker processes. Affinity masks are bit masks, which can bind a process to
+    a certain CPU. This can lead to better performance on some systems such as Windows,
+    where several system processes are restricted to the first CPU/core. Therefore,
+    excluding the first CPU/core can lead to better performance. We can bind each
+    worker process to a different CPU with the following code snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can set the CPU affinity value to up to 64 CPU/core.
+  prefs: []
+  type: TYPE_NORMAL
+- en: worker_rlimit_nofile
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `worker_rlimit_nofile` directive sets the maximum limit on open files (`RLIMIT_NOFILE`)
+    that a worker process can use. When this directive is set, the `setrlimit()` system
+    call is used to set the resource limit. Any attempt to exceed this limit will
+    result in an error `EFILE` (signifying too many open files).
+  prefs: []
+  type: TYPE_NORMAL
+- en: worker_rlimit_core
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `worker_rlimit_core` directive sets the maximum size of the core dump file
+    created by a worker process. When this option is set, the `setrlimit()` system
+    call is used to set the resource limit of the file size. When this option is `0`,
+    no core dump files are created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: worker_rlimit_sigpending
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `worker_rlimit_sigpending` directive specifies the limit on the number of
+    signals that may be queued for the real user ID of the calling process. If you
+    are using a Linux kernel version newer than 2.6.6, it will support real-time signals
+    (`rtsig`), and each process will have its own queue as opposed to a system-wide
+    queue in the earlier implementations. When this option is set, a `setrlimit()`
+    system call is used to set the resource limit `RLIMIT_SIGPENDING`. In order to
+    enforce this limit, both standard and real-time signals are counted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: working_directory
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `working_directory` directive specifies the path where the core dump files
+    are created. This path should be an absolute path. You must make sure that the
+    user or group specified via the `user` option has a write permission in this folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: env
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `env` directive allows you to set some environment variables, which will
+    be inherited by the worker processes. If you set some environment variables on
+    a shell, they will be erased by Nginx, except `TZ`. This directive allows you
+    to preserve some of the inherited variables, change their values, or create new
+    environment variables. The environment variable `NGINX` is used internally by
+    the server and should not be set by the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you specify an environment variable's name without specifying its value,
+    the value from the parent process, that is, the shell will be retained by Nginx.
+    But if you specify a value as well, this new value will be used by the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding code snippet, the value of the environment variable `MALLOC_OPTIONS`
+    is retained from the parent process, while the other two environment variables
+    are defined or redefined and any value set by the parent process is wiped off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the Events module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The `Events` module deals with the configuration of `epoll`, `kqueue`, `select`,
+    `poll`, and more. This module consists of the following directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Name | Value | Default | Example |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| accept_mutex | on, off | on | off |'
+  prefs: []
+  type: TYPE_TB
+- en: '| accept_mutex_delay | interval (ms) | 500ms | 500ms |'
+  prefs: []
+  type: TYPE_TB
+- en: '| debug_connection | ip, cidr | none | 192.168.1.1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| devpoll_changes | number | 32 | 64 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| devpoll_events | number | 32 | 64 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| kqueue_changes | number | 512 | 512 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| kqueue_events | number | 512 | 512 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| epoll_events | number | 512 | 512 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| multi_accept | on, off | off | on |'
+  prefs: []
+  type: TYPE_TB
+- en: '| rtsig_signo | signal number | SIGRTMIN+10 |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| rtsig_overflow_events | number | 16 | 24 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| rtsig_overflow_test | number | 32 | 40 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| rtsig_overflow_threshold | number | 10 | 3 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| use | Kqueue, rtsig, epoll, /dev/poll, select | decided by the configure
+    script | rtsig |'
+  prefs: []
+  type: TYPE_TB
+- en: '| worker_connections | number | 512 | 200 |'
+  prefs: []
+  type: TYPE_TB
+- en: Explaining directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will now discuss the `Events` module's directives summarized in the preceding
+    table, in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: accept_mutex
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `accept_mutex` directive tries to prevent workers from competing over `accept()`
+    for listing sockets (in the kernel). In other words, without `accept_mutex`, workers
+    may try to simultaneously check for new events on sockets, which may lead to a
+    slight increase in the CPU usage. Depending on your OS and the event-notification
+    mechanisms, the results may vary. If you are using `rtsig` as the signal-processing
+    mechanism, this option needs to be enabled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: accept_mutex_delay
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As enabling `accept_mutex` serializes the `accept()` call from worker processes,
+    that is, one worker process does one `accept` at a time, the `accept_mutex_delay`
+    directive determines how long the other worker processes will wait before they
+    are ready to accept new connections while another process is already doing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: debug_connection
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In order to use the `debug_connection` directive, Nginx needs to be built with
+    the -- `debug-enabled` option while running the configure script. You can specify
+    the IPv4 or IPv6 address of the clients for which the debugging log will be enabled.
+    You can also provide a domain name or unix: for Unix domain socket connections.
+    The log level for the rest of the clients is determined through the `error_log`
+    option. The debug log is written to the logfile specified in the `error_log` option
+    as defined in the following code snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: devpoll_changes and devpoll_events
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `/dev/poll` directive is an efficient method used in Solaris 7 11/99+, HP/UX
+    11.22+ (eventport), IRIX 6.5.15+, and Tru64 UNIX 5.1A+. The `devpoll_changes`
+    and `devpoll_events` parameters define the number of changes and events that can
+    move to and from the kernel. Nginx only writes the `devpoll_changes` or `devpoll_events`
+    number of events and changes to `/dev/poll` at a time while processing events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: kqueue_changes and kqueue_events
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `kqueue` directive is an efficient event-notification interface used in
+    FreeBSD 4.1+, OpenBSD 2.9+, NetBSD 2.0, and Mac OS X. It provides efficient input
+    and output event pipelines between the `kernel` and `user` processes. It is possible
+    to receive pending events while using only a single system call `kevent()`. This
+    contrasts with older traditional polling system calls such as `poll` and `select`,
+    which are less efficient, especially while polling for events on a large number
+    of file descriptors. Other advanced event mechanisms such as `/dev/poll` and `epoll`
+    allow you to do the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These parameters control how many changes and events are passed at a time to
+    the `kevent()` system call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: epoll_events
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `epoll_events` directive is an efficient event-notification method used
+    in Linux 2.6+. There are patches present to port this functionality to older kernels
+    as well. This parameter determines the buffer size where the events are returned
+    at a time before they are processed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: multi_accept
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The worker process will try to accept all or as many incoming connections as
+    possible when the `multi_accept` directive is enabled. Turning this option off
+    will result in worker processes only accepting one connection at a time. This
+    option is ignored if the `kqueue_events` notification method is used. If you use
+    the `rtsig` method, this option is automatically enabled. By default, this option
+    is turned off. It can be a high-performance tweak; however, the bad thing with
+    `multi_accept` is that if you have a constant stream of incoming connections at
+    a high rate, it may overflow your `worker_connections` directive without any chance
+    of processing the already-accepted connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: rtsig_signo
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Linux supports 32 real-time signals, numbered from 32 (`SIGRTMIN`) to 63 (`SIGRTMAX`).
+    Programs should always refer to real-time signals using the notation `SIGRTMIN+n`,
+    since the range of real-time signal numbers varies across *nix platforms. Nginx
+    uses two signals when the `rtsig` method is used. The directive specifies the
+    first signal number. The second signal number is one more than the first signal
+    number. By default, `rtsig_signo` is SIGRTMIN+10 (42), and the second signal number
+    in this case would be 43.
+  prefs: []
+  type: TYPE_NORMAL
+- en: rtsig_overflow_events, rtsig_overflow_test, and rtsig_overflow_threshold
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `rtsig_overflow_events`, `rtsig_overflow_test`, and `rtsig_overflow_threshold`
+    directives define how the queue overflow is handled while using real-time signals.
+    When overflow occurs, Nginx flushes the `rtsig` queue, then handles the switching
+    of events between `poll()` and `rtsig poll()`, and handles all the unhandled events
+    consecutively, while `rtsig` periodically drains the queues to prevent a new overflow.
+    When the overflow is handled completely, Nginx switches to the `rtsig` method
+    again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `rtsig_overflow_events` directive specifies the number of events to be passed
+    via `poll()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `rtsig_overflow_test` directive specifies the number of events handled by
+    `poll()`, after which, Nginx will drain the `rtsig` queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `rtsig_overflow_threshold` directive works in Linux 2.4.x only. Before draining
+    the `rtsig` queue, Nginx looks at the extent to which the queue has been filled
+    up. The default is 1/10\. `rtsig_overflow_threshold 3` means a value of 1/3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: use
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `use` directive specifies the event-notification method that should be used
+    (`kqueue`, epoll, and more). This is useful for platforms where multiple options
+    are available. During the configuration time, the best method for event notification
+    is selected automatically, so in most cases, you don't need to set this directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: worker_connections
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The `worker_connections` directive specifies the maximum number of simultaneous
+    connections that can be opened by a worker process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It should be kept in mind that this number includes all the connections and
+    not just the client connections. Another consideration is that the actual number
+    of simultaneous connections should not exceed the current limit on the maximum
+    number of open files that can be changed by `worker_rlimit_nofile`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we have looked at the configuration details of the two core
+    modules of Nginx, that is, the `Main` and `Events` modules. These modules can't
+    be opted out of, and you can't disable them. So, we went through each option and
+    the suitable situations to use them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will look at installing and configuring HTTP modules
+    and the configuration options related to those modules.
+  prefs: []
+  type: TYPE_NORMAL

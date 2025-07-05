@@ -1,0 +1,862 @@
+- en: 'Chapter 3. Get It All Logged: The Logging Module'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up error log path and levels
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Logging it like Apache
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Disabling logging of 404 in error logs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using different logging profiles in the same setup
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling a log file cache
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Utilizing separate error logs per virtual host
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up log rotation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling remote logging with syslog-ng
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up your custom logs for easy parsing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter aims to teach the basics as well as the advanced configurations
+    that can be done around the Nginx logging module, like log management, backup,
+    rotation, and more. Logging is very crucial as it can help you identify and track
+    various attributes of your application, like performance, user behavior, and much
+    more. It also helps you as a system administrator to identify, both reactively
+    and proactively, potential security issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up error log path and levels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The basic configurations that one needs to get the logging modules working properly
+    are setting up the location of the logging files and configuring the level of
+    the logging that will take place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx allows a clear separation of the access and the error logs, thus letting
+    you easily track your error lists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can use the following configuration to setup a file path for logging in
+    addition to setting the format in which to log in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This simple configuration will allow us to log the various HTTP activities
+    that occur on all the sites hosted in the particular environment. Here is a sample
+    log from the access log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is easy to see how the various variables are outputted in order, as defined
+    with the combined format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The error log, which is now logged at `/var/log/nginx/error.log`, will start
+    logging all the critical errors, and here is a sample entry from an error log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can change the level of error logging (error_log) to `debug,info,notice,warn
+    ,error,crit`, or `alert`, based upon your application needs. It is usually best
+    to try out the various levels to understand what exactly it outputs, and weather
+    that can satisfy your current debugging needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Error level | What does it mean? |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Alert | Emergency conditions |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Crit | Critical conditions |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Error | Error conditions |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Warn | Warning conditions |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Notice | Normal, but significant conditions |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Info | Information messages |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Debug | Debug-level messages |'
+  prefs: []
+  type: TYPE_TB
+- en: Logging it like Apache
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Apache or httpd is the most used open source web server out there. It has a
+    very stable codebase and community which has made it more or less the standard
+    for open source enterprise applications out there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most of the log analyzers are configured with Apache logging format in mind.
+    Our goal in this recipe is to enable us to use log analyzing tools which already
+    work well with Apache in our Nginx setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you want the log to look like the Apache logs, you will need to enter the
+    following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this, we basically create a new Apache compatible format which will be easily
+    read with tools like AWStats. We then set the standard as the Nginx access log
+    format in the preceding configuration. The format has the following fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Variable | What is it? |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$remote_addr` | This is the IP of the remote address that was accessing
+    the site. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$remote_user` | If the user is logged in with HTTP authentication, this
+    would be their username. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$time_local` | This is the local timestamp of the server when the request
+    was made. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$request` | The request that was made on the server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$status` | The HTTP response code (200, 404, 500, and so on). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$body_bytes_sent` | This is the size of the response that was sent to the
+    server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$http_referer` | This is the site from where the user has arrived on to
+    this particular page/made this HTTP request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$http_user_agent` | This is the browser type that was used to make this
+    HTTP request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$http_x_forwarded_for` | If the server is running as a reverse proxy then
+    this will display the actual IP of the server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The preceding lines from the access log display the format in action. This particular
+    format will easily work with all the web log parsing and analyzing tools, such
+    as webalizer and AWStats, with no changes at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disabling logging of 404 in error logs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the age of Google, we can see that there are thousands of crawlers out there
+    trying to get the most out of your site and content by reading through all your
+    pages. In a lot of situations, when you update or upgrade a site, these crawlers
+    start to take up system resources by trying to access pages that used to exist
+    and do not anymore. This also increases the system overheads of logging and can
+    potentially become a bottleneck for your site. This recipe will address this particular
+    issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This piece of configuration is placed in the location context of the configuration,
+    as shown in the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This simple configuration will not log when the `/robots.txt` file is not found
+    on the server. This will save the unnecessary overhead of opening the error log
+    file and writing out an 404 entry indicating that the file, robots.txt(cit) is
+    being found.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using different logging profiles in the same setup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As we have seen before, Nginx allows you to easily set up a logging format.
+    In this recipe, we will explore how one configuration file can exploit multiple
+    logging formats. This neat functionality can help you generate custom logs specific
+    to a particular section of the site whenever necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This particular configuration will implement three logging formats and then
+    effectively utilize them for logging different sections of the site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `main` log format will be used to log the normal dynamic PHP request, while
+    the `static_main` log format is being used to log the static requests that come
+    to Nginx. Finally we use an `error_main` format to keep track of the errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You have access to the following variables to use in the `log_format` structure.
+    These can be utilized effectively to gather and understand whatever Nginx can
+    access in your stack:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Variable | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$arg_PARAMETER` | This variable contains the value of the GET request variable
+    PARAMETER if present in the query string. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$args` | This variable is the GET parameter''s in request line, for example,
+    `foo=123&bar=blahblah`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$binary_remote_addr` | The address of the client in binary form. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$body_bytes_sent` | The bytes of the body sent. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$content_length` | This variable is equal to line Content-Length in the
+    header of request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$content_type` | This variable is equal to line Content-Type in the header
+    of request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$document_root` | This variable is equal to the value of directive root
+    for the current request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$document_uri` | The same as `$uri`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$host` | This variable is equal to line Host in the header of request or
+    name of the server processing the request if the Host header is not available.
+    This variable may have a different value from `$http_host` when the Host input
+    header is absent or has an empty value. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$http_HEADER` | The value of the HTTP header HEADER when converted to lowercase
+    and with "dashes" converted to "underscores", for example, `$http_user_agent,
+    $http_referer`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$is_args` | Evaluates to "?" if `$args` is set, returns "" otherwise. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$request_uri` | This variable is equal to the *original* request URI as
+    received from the client including the args. It cannot be modified. Look at `$uri`
+    for the post-rewrite/altered URI. Does not include host name. Example:`"/foo/bar.php?arg=baz"`.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$scheme` | The HTTP scheme (that is http, https). Evaluated only on demand,
+    for example:`rewrite ^(.+)$ $scheme://example.com$1 redirect`; |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_addr` | Equal to the server address. As a rule, for obtaining the
+    value of this variable is done one system call. In order to avoid system call,
+    it is necessary to indicate addresses in directives, listen, and to use parameter
+    bind. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_name` | The name of the server. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_port` | This variable is equal to the port of the server, to which
+    the request arrived. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$server_protocol` | This variable is equal to the protocol of request, usually
+    this HTTP/1.0 or HTTP/1.1. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `$uri` | This variable is equal to current URI in the request (without arguments,
+    those are in `$args.)` It can differ from `$request_uri` which is what is sent
+    by the browser. Examples of how it can be modified are internal redirects, or
+    with the use of index. Does not include host name. Example:`"/foo/bar.html"`.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Enabling a log file cache
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Logging is primarily a disk based activity, and on a busy server, that requires
+    logging as an audit requirement. It is crucial to ensure that you enable file
+    descriptor caching in Nginx. This is a performance enhancement recipe that will
+    also increase the life of your server hard drive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can put this configuration in the `http` part of the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This simple configuration sets up the following flags which are described in
+    the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Flag | Utility |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Max | Maximal number of descriptors in the cache, with overflow Least Recently
+    Used removed (LRU) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Inactive | Sets the time after which descriptor without hits during this
+    time are removed; default is 10 seconds |'
+  prefs: []
+  type: TYPE_TB
+- en: '| min_uses | Sets the minimum number of file usage within the time specified
+    in parameter inactive, after which the file descriptor will be put in the cache;
+    default is 1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Valid | Sets the time until it will be checked if file still exists under
+    same name; default is 60 seconds |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Off | Disables the cache |'
+  prefs: []
+  type: TYPE_TB
+- en: These settings can be optimized over some span of testing, thus giving you the
+    best of what Nginx has to offer with logging and reducing your performance overheads
+    for the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Utilizing separate error logs per virtual host
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We looked earlier at how simple it is in Nginx to set up virtual hosts and manage
+    them clearly in their separate files. In this recipe, we are going to have a look
+    at how we create different access and error logs for each virtual host.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This is a configuration that takes three virtual hosts (www.example1.com ,
+    [www.example2.com](http://www.example2.com), and [www.example3.com)](http://www.example3.com))
+    which have different access and error logs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As you can see, we can place `access_log` and `error_log` directives individually
+    in each of the virtual host configurations. This allows us to create different
+    files for each of those sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can potentially combine the earlier recipe of different log formats and
+    this recipe to create different kinds of access and error logs for each of your
+    sites. This clearly exhibits the immense power that the Nginx logging module brings
+    to the table for the system administrators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The preceding example shows how we are logging the access and error logs with
+    different formats, which are `main` and `error_main` respectively. This may be
+    necessary in cases where one logs fewer variables for the access logs purposes
+    and more esoteric variables to track errors in the error logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up log rotation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In production sites that have been running for a decent amount of time, log
+    archiving becomes a necessity. For proper log archiving, you will need to have
+    a proper log rotation system in place. Every website request generates more than
+    one log entry (as there are logging for the static files as well), so logs tend
+    to bloat up quickly. This recipe helps you tackle the log rotation setup with
+    Nginx, making sure you are archiving your logs correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This depends on the logrotate script that is available, for example, on both
+    Fedora and Debian distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You will need to add a configuration to the logrotate conf file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This assumes that the Nginx configurations are placed in the `/var/log/nginx`
+    directory and the Nginx PID file exists at `/var/run/nginx.pid`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This is a simple configuration for logrotate which effectively carries out
+    the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moves the existing log file with a new filename and compresses it.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Makes a USR1 signal call to the Nginx master process, which releases the log
+    which has just been moved and starts writing into a normal log file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The logrotate script allows very interesting configurations which allow you
+    great control over when the log needs to be rotated, what compressions you need,
+    and with what permissions the files to be archived.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enabling remote logging with syslog-ng
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imagine running a cluster of servers spread out over various geographies. In
+    such a scenario, one will probably need to do remote logging on a set of redundant
+    central logging servers. It makes life easier for log parsing and system administration
+    tasks as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this recipe, we will have a look at syslog-ng and Nginx to get them working
+    together in a networked environment. This will involve some interesting things,
+    like patching the Nginx codebase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you want to get the Nginx installation to interact with syslog-ng, you will
+    need to carry out the following steps carefully. This recipe assumes that you
+    have already installed syslog-ng on your system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to download Nginx from the following URL: ([http://nginx.org/download/nginx-0.7.67.tar.gz](http://nginx.org/download/nginx-0.7.67.tar.gz))'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Then untar the downloaded file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Download the patch: ([http://bugs.gentoo.org/attachment.cgi?id=197180](http://bugs.gentoo.org/attachment.cgi?id=197180))'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Apply the patch:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Configure Nginx:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Build and install Nginx:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will now need to configure the syslog client, adding the following configuration
+    to `/etc/syslog-ng/syslog-ng.conf` and restarting the syslog-ng service:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will now need to configure the remote logging server `nginx_log` , adding
+    the following configuration to `/etc/syslog-ng/syslog-ng.conf` and restarting
+    the syslog-ng service:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You can test this configuration out by running the following:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Nginx, by default, does not support syslog-ng and needs some patching to work
+    correctly. So in the first set of steps we actually install Nginx with the patch
+    and then proceed to configure syslog-ng.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two parts to the syslog-ng configuration. In the first we actually
+    configure the client on which Nginx is running and make the local5 facility (where
+    Nginx logs in our case) point to the syslog-ng server running on the `nginx_log`
+    server. The second part involved configuring the syslog-ng server to accept log
+    request from the remote client and putting them at certain locations on the hard
+    drive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a small utility called "logger", which allows you to test out the logging
+    on your machine without invoking Nginx. It's pretty nifty and lets you easily
+    debug your syslog-ng setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up your custom logs for easy parsing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The point of logging is not only to find out errors in a setup, but also for
+    various analytics that one can perform on the usage of the sites running on the
+    server. There are various tools that are available that one can use to analyze
+    your web logs. Some of the open source and freely available ones are AWstats,
+    webalizer, and so on. We will have a look at how to set up for AWstats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following screenshot is a sample of the AWstats generated HTML report:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up your custom logs for easy parsing](img/4965_03_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will first have a look at how to install AWstats, and then configure it to
+    create a continuous report around Nginx logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Add the following to the Nginx configuration file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now we need to install the AWstats package, so download the latest version
+    and then run the configuration wizard `awstats_configure.pl` to create a new statistics
+    profile:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: You can now open the file generated `/etc/awstats/awstats.www.example1.com.conf`
+    and update the LogFile variable to the path of the Nginx log file (assuming that
+    they are being log rotated).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now you can test out the new log analysis by using the following command. This
+    will also depend on where you installed the AWstats package:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now you need to generate the reports in HTML, so you will need to create a
+    directory and then run the HTML generation script:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You can now add some configuration to Nginx to expose this HTML analysis on
+    your own domain:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now you can visit [http://example1.com/awstats/awstats.www.example1.com.html](http://example1.com/awstats/awstats.www.example1.com.html)
+    to see the resultant HTML.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a fairly simple setup, where we are initially setting up the logging
+    format on Nginx so that we are able to fully exploit all that AWstats can generate
+    for us. Then we go on to install AWstats, which is a set of Perl scripts. We generate
+    a configuration for our domain `www.example1.com` and then start analyzing the
+    log. In addition to the basic analysis, we can also generate really easy-to-use
+    HTML reports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A tool like AWstats allows you to track things like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visits (the number of unique visitors)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Access time and the last visit
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: User authentication (last time logged in using site credentials)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Weekly peak time (the number of pages, click-through rate per hour, and week
+    kilobytes)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Name/country hosts visitors (pages, click-through rate, byte, 269 domains/ countries
+    detected, GeoIP detection)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Host list of recently visited and did not resolve the IP address list
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Most read entry and exit pages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File types
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Site compression tables (mod_gzip or mod_deflate)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Operating system (one for each operating system, the number of pages, click-through
+    rate, byte, 35 OS detected)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Type of browsers used
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Robot visits (319 robots detected)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Worm attacks (5 worm family)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Search engines statistics about what keywords lead users to your site
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: HTTP protocol error (the most recent inspection did not find the page)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other reports based on the personalized URL and link parameters, involving the
+    field of integrated marketing purpose
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Your site by adding "favorite bookmarks" views
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Screen size (in the index page of the need to add some HTML tags)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The proportion of browser support: Java, Flash, RealG2 reader, Quicktime reader,
+    WMA reader, PDF reader'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ratio of load-balancing server cluster report
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The preceding setup was not completely automated after you run the script for
+    the first time. We can take a step ahead and put all this in a cron script that
+    will help us run it as a cron job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will need to add the following in your cron (crontab `e):`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: This above cron job basically fires up a script every day at 1:00AM. The job
+    of the script is to parse and generate the reports for the sites that it is configured
+    for.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,989 @@
+- en: Chapter 3. Troubleshooting Functionality
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You get a call in the middle of the night. "Our website isn't working," your
+    boss yells. In seconds, you are wide awake and trying to remember "what exactly
+    did we change yesterday?"—this is a very natural reaction for every system administrator
+    on this planet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Have you ever been in such a situation? This is a stress test for each young
+    sysadmin, and we hope you have had this earlier in your career rather than later
+    because it is a teaching experience. Fortunately, websites usually malfunction
+    when they are mostly loaded and this happens during the late morning or early
+    evening hours—if you are lucky to live in roughly the same time zone as your target
+    audience. For example, this is a traffic graph for a big website in Russia, which
+    is a country very centered around its two capitals, and those cities are both
+    in UTC+03 time zone as of 2016:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Troubleshooting Functionality](img/B04329_03_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: As you can see, the real traffic comes in the morning, has a peak in the evening,
+    and falls sharply as people go to bed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter will cover the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A process to use when working on such an incident, far from perfect but very
+    workable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A description of some of the most shameful failures
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A brief section on how to restart Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More information about some ways you may save the day with Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Processing a complain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let us call any expressed case of unexpected behavior a complain. The term is
+    vague enough not to imply that it is always a problem or an error, which was introduced
+    during development and needs to be fixed. Working on a complain starts with investigation.
+    The only thing that you know from the beginning is that something on your website
+    does not work for someone. The incidents raised as a result of automatic monitoring
+    systems are a separate case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Surprisingly, people in general are rarely capable of answering the question
+    of "What exactly does not work for you?" Some of them get confused or even angry.
+    While you must always ask this, do not get high hopes. Let us analyze some of
+    the possible answers from the most popular to less so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"Nothing!"*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*"I load the page, I click there and there, order a book, get to my shopping
+    cart, initiate payment, get confirmation and on the last step there a security
+    warning about some sort of certificate which expired yesterday"*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Most of the time, the burden of determining how exactly the problem manifests
+    itself is on you. You need to get your priorities right and act quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter presents you with a series of steps to perform when all you have
+    is a report of your website not working. The list is not flat; there are branches
+    here and there, which you must follow. At the same time, we recommend reading
+    all the steps as this will help you grasp the general procedure better. You may
+    also use the steps during an incident. In that case, you will start at the very
+    beginning and then choose the appropriate next step while skipping the irrelevant.
+    For many of the readers, a description of this format as similar to a very simple
+    finite-state machine may be helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will move from one state to another by interpreting additional signals
+    and hope to arrive to the finish. This is a three-level scheme of a simple troubleshooting
+    process that we prefer. Each of the boxes will be explained later:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Processing a complain](img/B04329_03_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Rolling back
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We need to provide a very important sidenote here. A step zero, if you want,
+    is always trying to bring the system into a working state by removing recent changes.
+    Websites are software that is infinitely more dynamic than anything we had before.
+    If you deploy weekly, you are actually slower than many of your competitors. So
+    when something happens, the probability of a recent set of changes being the culprit
+    is very high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is very important to always hold dearly to the main goal of all your actions
+    during such an event; you are searching for a workaround that will allow the business
+    to go on. You need to bring the operations back as soon as possible and only after
+    that you should start searching for the root cause and inventing a strategy of
+    dealing with it once and for all. One of the great sins of young system administrators,
+    especially with developer background, is *premature debugging*, which I define
+    as spending resources (even if it is just your mental resources and not company
+    money) on the fix without first implementing a quick and dirty workaround.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the easiest ways to work around a new problem is to roll back your software
+    to a previous, working version. Organizations that have a good discipline of change
+    control may even choose to roll back on any failure whether it is caused internally
+    or externally. The hardest part is usually on the application server side of things
+    and you, as being responsible for the stability of the service, may require your
+    development team to implement comprehensive rolling back capabilities. There are
+    several things that you may do yourself on the Nginx level though.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keeping Nginx configuration under source control
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Nginx configuration files are all plain text written in a simple line and block-oriented
+    language. This combination is as perfect for diffing and merging as any "real
+    source code document." So please, do invest into setting up a source code repository
+    for your Nginx configuration. It absolutely does not matter if you choose the
+    good old *Subversion* or the modern workhorse *Git* or even the squeaky in the
+    joints but still functional *CVS*. Any of those will save your sanity many times
+    in comparison with a system without any source control system. The next step from
+    having just a central repo is automating the whole deployment. That bit is a little
+    out of the scope of this book, but inquisitive readers should definitely get interested
+    in modern automation tools, such as *Chef*, *RX* or *Ansible*, once they have
+    more than five servers in their zone of responsibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having access to all the previous versions of your config files alone is a wonderful
+    thing that will greatly ease the rolling back process. Any sane source control
+    system allows you to tag specific revisions, to check out based on timestamp or
+    to create moving branches. A very quick way to enhance a working server with this
+    source control magic is a tool named **etckeepe** **r** (see [https://github.com/joeyh/etckeeper](https://github.com/joeyh/etckeeper)).
+    It will automatically record all the changes you make to `/etc` and therefore
+    allow you to jump to the past in case of trouble. It will also regularly mail
+    the diffs to the administrator of the server. It may seem a little bit too automatic
+    for a server, but it is a good start.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is a simple command that you may issue in an etckeeper-controlled `/etc`
+    folder to quickly revert some changes in `/etc/nginx`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Keeping a case journal
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A highly recommended piece of best practice when investigating a website malfunction
+    is to keep a log or journal of ideas to implement afterwards. This will leave
+    you with a list of things to require from yourself and your colleagues in the
+    development and management departments to prevent any new cases of this particular
+    problem. This is why we will mark each step with things to write down into such
+    a journal. You should dump any crazy or trivial ideas into this journal so that
+    you could free your mind for the urgent task at hand. Even if you reject most
+    of the ideas afterwards, keeping this journal will help you during the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, without further ado, let's start.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, what we have is a just vague complaint about a website you are responsible
+    for. Someone said that it was not working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performing the simplest test
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Load the page yourself. This is not the most effective step, but you will do
+    that anyway, won't you? It is a natural reflex—the important part is not to come
+    to any premature conclusions. If it does not load, you should start with checking
+    your internet connection. See the later text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the page works for you, you will feel a false relief. Actually, your problem
+    potentially just got harder. The website works for some people (in this case,
+    it works for you) but may not work for everyone. See the *HTTP response traffic*
+    section here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the way, you may sometimes have the answer right here. For example, you will
+    immediately see expired SSL certificates. See also *Certificate test*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performing the Internet connection test
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Check that your own internet connection is okay by trying to load a reference
+    web page, for example, [https://www.google.com](https://www.google.com).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Why is this a separate test at all? Shouldn''t we also talk about electricity
+    or clean air then? Two reasons: if you are a small company in a rented office
+    space even in the most advanced countries of the world, chances are that you will
+    get two–three incidents of ISP failure a year. Also, we need a smooth transition
+    to talk about backup connection kits for sysadmins.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Have a permanent indication of your own connection to the Internet
+    working. Curiously, many people use the Dropbox icon in the tray for that. While
+    this is a cute lifehack, please implement something more professional, office-wide
+    and/or for your workstation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You need to have a backup Internet connection for the rare case of your main
+    connection failure. Nowadays, it is usually a mobile phone with a tethering setup.
+    Fire it up and redo the tests. It is surprisingly unpopular to have a backup connection
+    ready, and we would like to say a few words about it. Traditionally, backups are
+    storage. Your office administrators will mirror the disks; you yourself have a
+    loyal trusted Time Machine setup at home for your kids' photographs and documents.
+    But in this day and age, with all applications moved or moving to the cloud, storage
+    backup systems lose their importance. You won't built anything remotely comparable
+    with what Dropbox has (with the help of Amazon Web Services) yourself. Scale effects
+    buy additional redundancy and talent. But at the same time, the importance of
+    your connection rises.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A modern Chromebook is a fast and cheap workhorse machine right until the WiFi
+    vanishes because the access point power supply brick got scorched or something.
+    Modern IT people feel less pressure with the storage backup and should use the
+    freed resources to ensure connection backups instead. Think about your options
+    and invest in an alternative way to bring back your office online maybe even with
+    less bandwidth. You will be happy when this system helps you. And think of it
+    exactly as you did about your storage backups; these are risk aversion systems.
+    They are not required to ever be used, not even once to still be considered a
+    successful investment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: 1) Implement backup uplink for your office. 2) Equip all your system
+    administrators (for example, yourself) with remote administration kits. The recommended
+    way is to provide them with separate devices (either wireless 3G/LTE dongles or
+    smartphones with preconfigured tethering) and prepaid data plans. Do not rely
+    on their main phones because those tend to have problems with charge and traffic
+    during the most important moments, whereas a separate company-provided device
+    may be required to be fully charged by rules when the person is on duty.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the general HTTP response traffic
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Look at your general HTTP monitoring graph or at least `tail -f` the access
+    log. This is the most informative way of knowing what the effects of the incident
+    are, if they exist. You have to have the infrastructure in place, and we will
+    explain a way of establishing one in [Chapter 6](ch06.html "Chapter 6. Monitoring
+    Nginx"), *Monitoring Nginx*. The general HTTP graph will contain a chart of how
+    many HTTP response codes your site generated each minute. You are most interested
+    in the level of 200 responses. There are several possibilities, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The number of 200 responses dropped to zero or you cannot reach your monitoring.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The number of 200 responses dropped to a lower level but above zero. Both of
+    these indicate ongoing damage to business with a high level of probability. We
+    will discuss them properly later (see the *No traffic* and *Lower traffic* cases)
+    right after we deal with the more easy case.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You have roughly the same level of 200 responses as you do usually at this time
+    this day of the week.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is a good place to be. Your website is likely serving your visitors in
+    the same way it did. This is the time when you have to involve people from development
+    because right now, these are the ways that the website may still not do what is
+    expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Implement this type of general HTTP monitoring—an area chart of four
+    colors for 200, 3xx, 4xx, and 5xx HTTP responses as per the Nginx access logs
+    with 1-minute granularity and a number of alert thresholds.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detecting a lying application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The application behind Nginx does not actually work but still generates responses
+    with HTTP 200 Ok code. This is a major crime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Good websites never show internal error messages to users. There is no need
+    to scare people with unnecessary details, and this would never even be discussed
+    if sometimes websites would not go too far by hiding HTTP response codes too.
+    There is nothing to stop anyone from responding with 200 Ok in all cases and indicating
+    error condition only in the content part of the response. This way is "machine-unreadable"
+    for many practical purposes. All the bots and crawlers will not consider such
+    an error to be an error. Your monitoring software will also need special processing
+    to distinguish these cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'See examples for the famous **404 Not Found** error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unfortunately, this situation means that you still have not found the problem,
+    you only have found that you lack an easy way to find it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Create issues in your bug tracker for all cases of not reporting errors
+    with an HTTP response code. Developers should fix those.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The developers should be working shoulder to shoulder with you now. Although
+    they are scouting the inner workings of their application code, which is happily
+    generating error messages by the numbers without a single 4xx/5xx HTTP response
+    code, you could provide some help by searching for the URLs that started to emit
+    a wildly different amount of traffic. Do you remember the script that we wrote
+    together in the Logging Chapter? If you have response size in your logs, with
+    some modifications, it will find lines that contain a number too far away from
+    the average.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: The top class of monitoring systems applies the theory of disorder
+    detection.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are ways to automatically trigger events on sudden unexpected changes
+    in a random process (and a stream of numbers that you monitor is such a process).
+    Another keyword for you to search for is "anomaly detection." All the systems
+    that we have met were proprietary, developed in-house to the needs of very large
+    Internet companies. There are some commercial offerings in this space, for example,
+    Splunk. You might actually have a go at this type of monitoring without returning
+    to school for another degree by monitoring the first derivative of the 200 HTTP
+    response number and triggering events on a level of the derivative that is beyond
+    a certain threshold. Because the first derivative is an indicator of change, high
+    values will correspond to sharp spikes up or down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working around an integration failure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Your website implements part of its functionality by transparently integrating
+    another service, which is having an incident.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a situation when someone else entirely is at fault. Examples of such
+    configuration include using external commenting systems, advertisement placement
+    systems, statistics and/or tracking software. Your job here is to try switching
+    off unessential external components. Because this will require removing pieces
+    of application code (even if it is a simple HTML block in a number of static pages),
+    we cannot provide you with any specific details. You also should thoroughly document
+    which services are blocking your operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: 1) Implement monitoring of external services. 2) Invent a plan of
+    graceful degradation and implement it. 3) Require asynchronous client-side inclusions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graceful degradation is an interesting concept of having a special mode of operation
+    for the times when an unessential part of your website (external or not) does
+    not work. For many businesses going into full read-only mode may be graceful enough.
+    Not being able to place an order is certainly much more desirable for an electronic
+    bookstore than not responding at all and thus losing credibility in the eyes of
+    all search engines, which will happily ditch your sites from their search results
+    immediately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Planning for graceful degradation should start early in the design process.
+    That is a topic for a whole separate book or two, of course. At these stages,
+    you should at the very least regularly annoy development about it and do as much
+    as possible yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some other examples of degradation that may be implemented as extreme measures
+    to live through some rough periods are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Removing a full-text search functionality for a while. This is usually a CPU-intensive
+    and disk-intensive operation used by a single-digit percentage of your visitors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hiding social functions such as commenting and sharing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Shouldn't we strive to build a system that does not need chopping one of its
+    legs off from time to time? Of course we should. But costs may be prohibitively
+    high. You cannot plan to work flawlessly under **Distributed Denial of Service**
+    attack from a malicious competitor if you are a start-up. This would just cost
+    you too much.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx has several tricks up its sleeve to work around external failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The try_files directive
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'This directive provides a way to quickly serve a local file instead of performing
+    an upstream request. It is important enough to be presented here. The general
+    format is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Almost always, `try_files` is used inside a location block that forms a context
+    specifying which requests should be processed from local files. The idea may be
+    illustrated by this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: What we have here is a separate system that uses some buzzword-compliant recommendation
+    generation technology to provide your website visitors with some personalized
+    product offers. These tend to be fragile, and `try_files` protects us by specifying
+    a fallback static HTML file. The order of processing might confuse some people.
+    First, the static files are tried from left to right. Once an existing file is
+    found, it is used to form the response and the remaining files and named URI block
+    are not used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Normally, those static files do not exist on the filesystem at all. They get
+    created by the monitoring system (or people) in case of emergency. After you or
+    your colleagues carefully raise the heavy external component from the dead, you
+    remove the static file and Nginx starts to issue actual queries to the upstream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up automatic removal from upstream
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Another mechanism provided by Nginx that may help you in these situations is
+    the glorious upstream module. This is a whole subsystem that augments the venerable
+    `proxy_pass` directive with a lot of failover options. The idea is that instead
+    of good old URLs pointing to external sources of data to use to generate responses
+    for client requests, you point to a composite object configured via `upstream`
+    block directive. This block is useful together with its contents only, so let
+    me start with an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then later on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Upstreams defined with the `upstream` directives may be used in all the following
+    five client (request-making) modules of Nginx: `proxy`, `fastcgi`, `uwsgi`, `scgi`,
+    and `memcached`. They all share similar-looking directives to set up external
+    resources to use while serving requests from actual clients. The main directive
+    is always `*_pass`, and it is exactly what we use for the example.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What this block does is combine a group of servers into an object with some
+    embedded group behavior. First, there is rotation. When a `*_pass` directive is
+    used to process a request by passing to such an upstream object, the actual server
+    is chosen from all the configured alternatives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The algorithm to choose the server is not random. The servers are sequenced
+    in a round-robin fashion. You may also provide relative weights of each server
+    inside one group. For simplicity, it is convenient to think that the choice is
+    random. In the long run, the probability of each variant for weighted round robin
+    will be roughly equal to the corresponding probability of the same variant for
+    the weighted random distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The interesting bit of logic that upstream contains is removing failed servers
+    from the pool of available choices. This logic is controlled by a number of parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is a number of failed attempts needed for this particular server to
+    become "failed" and be removed from rotation. These failures must happen during
+    a fixed period of time specified in the next parameter. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This variable is used for two distinct purposes. First, it specifies the
+    length of the period to count failed attempts. Second, it is also used actively
+    as a time for which the failed server stays failed without reconsideration. One
+    might have some problems with reusing the same value, but things are how they
+    are. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| This is a binary or Boolean parameter. When it exists, the marked server
+    is only chosen when all the other, non-backup servers are marked as failed. |'
+  prefs: []
+  type: TYPE_TB
+- en: You probably already know the way to use the described upstream functionality
+    to implement failover for external services that you invoke on the server side.
+    The example on the previous page demonstrates exactly that. The named location
+    `@recommender_engine` is an HTTP proxy tunneling the requests to a group of three
+    servers, two of which look very similar and probably are just copies of each other
+    for the sake of balancing. The third one is a local server listening on a UNIX
+    domain socket. This might be a simpler application not providing any actual recommendation
+    and not having any buzzwords inside, just serving some static data. You might
+    even proxy to the very same instance of Nginx you are writing the configuration
+    file for!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring the good old SSI
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: '**Server-Side Includes** (**SSI**) is an old technology of very simple dynamic
+    generation of HTTP responses totally inside the web server software, Nginx in
+    your case. Nginx SSI is a descendant of the old Apache SSI with some useful features.
+    SSI syntax and the mode of operation are well documented at [http://nginx.org/en/docs/http/ngx_http_ssi_module.html](http://nginx.org/en/docs/http/ngx_http_ssi_module.html).
+    In short, it is a way to paste pieces of data into your HTTP responses from inside
+    Nginx in a fast, efficient, and controllable manner. You may use it instead of
+    implementing this functionality in your application code with some HTTP client
+    library. Nginx will asynchronously fetch a URL with all the proper timeouts and
+    gracefully fail to a default block if the remote side is slow or dead.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Asynchronous inclusion** is a pretty standard modern way of embedding active
+    resources (read: scripts) in a web page in a way that allows browser to never
+    block waiting for these scripts to be fetched and executed. It is a job of a frontend
+    engineer to make sure that anything included is working asynchronously. You may
+    be of help by providing "annoyance" and also a testing stand where the entire
+    Internet is blackholed except your site. By the word blackholing here, I mean
+    a specific method of dropping packets in the firewall that will make connections
+    not be refused but hang and wait for timeout on the client side.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There were several incidents when a popular Internet counter failure slowed
+    down a significant number of independent websites. There is no excuse to include
+    counters synchronously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both the cases of a *Lying application* and *Integration failure* will also
+    eventually lead to lower levels of 200 responses because people will stop using
+    a website that technically works but does not serve their needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Implement proper escalation procedures. At all times, you should know
+    whom to call if one of the hosts mentioned in one of your upstream blocks inside
+    the Nginx configuration is misbehaving.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Planning for more complete monitoring
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Many big modern websites consist of not only hundreds of hosts but hundreds
+    of clusters of hosts. Each of those clusters performs a specific role in the whole
+    grand scheme of things, whereas individual servers serve the requests providing
+    load balancing and high availability. The role of the entry point to such a cluster
+    is often delegated to a couple of Nginx boxes with a hardware-based load balancer
+    in front of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each of those may fail. To work around a part of your own externally facing
+    infrastructure failure, you first find it by looking manually at a waterfall of
+    the page load provided by a modern browser and then either switching the blocking
+    part off or quickly fixing it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Establish a process where you never open a group of web servers to
+    the outside without having a general HTTP monitoring of the type described above
+    for those particular servers. Also, consider all unmonitored servers as "critical"
+    bugs requiring fixing right after all the "blocking" problems go away and before
+    anything else.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processing a situation of no traffic
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You probably don't serve your users at all. This is the worst scenario for your
+    business. All your efforts should be *not* on fixing the problem but on working
+    around it. You will debug and fix the problem the right way later, but now you
+    need to throw everything at bringing the service back up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One very useful practice in such a situation is to put one of the malfunctioning
+    servers *on ice*, that is, removing it from production but leaving it alone for
+    the sake of preserving the erroneous state intact. A full disk, a busy waiting
+    process hogging the CPU—let the machine keep doing that until you have enough
+    time for actual thorough debugging. It is only natural to try cleaning up right
+    away, but you may destroy the vital evidence by removing a single core dump or
+    a seemingly archived log. We know that it would be hard to be vaguer than that,
+    but the specifics require knowing your exact configuration and the details of
+    the trouble you are facing. Sometimes, it is enough to remove an IP address from
+    an upstream block in `nginx.conf`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Returning to our example with a heavy backend machine-learning cluster:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Removing `machine-learning1` from the block and leaving it alone will make further
+    investigations possible after you bring the second host up and start serving users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, you check the connectivity to the actual Nginx servers. You run a `ping`
+    command, leave it in the background for a minute to see the packet loss, and immediately
+    try connecting to the `80` port via a Telnet program. If you see `ping` bailing
+    out with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '... you have likely found the problem.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your domain expired. This is the most stupid problem to have. People get fired
+    for that. But this still happens a lot which is insane. One of the popular scenarios
+    for smaller shops is when the owner of the business wants to keep ultimate control
+    of the property in their own hands and keeps the credentials to the domain registrar
+    to themselves but does not have time and resources to actually react to all those
+    renewal reminder e-mails. This sounds unprofessional, but it happens frequently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently, you have to demand those credentials or demand that they log in and
+    immediately pay the registrar to keep the domains delegated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Have separate monitoring for all the domains your business uses. There
+    are online tools that will check the expiration regularly; you will find them
+    in abundance. There are also plugins for popular monitoring packages such as Nagios.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Processing a situation of no traffic](img/B04329_03_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Other bad signs are: `ping` is hanging, and packet loss is way above zero.
+    This is the time you call your hosting provider support while simultaneously trying
+    to ping from another location. You should have a server or two in a completely
+    different data center from your main operation, so you just `ssh` to one of them
+    and ping your website from there.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is a case of some severe packet loss happening between me and Twitter''s
+    `t.co` service. Most of the time, it is a sign of problems on your side, not theirs.
+    But rare things happen, and you should be ready for that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Processing a situation of no traffic](img/B04329_03_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: If `ping` cannot reach your server from there either, start rebooting your servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should have a way to reboot an otherwise unreachable server; every modern
+    hosting provider has it, whether in the form of a simple menu item **Reboot**,
+    such as in Amazon EC2 or a whole **Intelligent Platform Management Interface**
+    (**IPMI**) console access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Processing a situation of no traffic](img/B04329_03_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Reboot** helps surprisingly often. It may also destroy evidence (for example,
+    if you have a "run-away" process hung on a rare bug that will be killed on reboot),
+    but being online is still more valuable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you cannot reboot or it didn't help, you should be talking to your hosting
+    provider already. They may have some kind of connectivity trouble. Otherwise,
+    you might be a victim of DDoS, and your hoster has already initiated its anti-DDoS
+    measures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Make sure that you have a quick way to reboot any of your servers
+    remotely. Gone are the days when such a request required an engineer to go looking
+    for your hardware in the racks. What is important is having the startup sequences
+    right. Usually, Nginx boxes are stateless (or have only discardable state like
+    cache) and come back themselves, but please test them often. It is sometimes too
+    easy to make a live configuration change without saving it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You haven''t yet found your problem if the server is reachable and your `telnet`
+    to the `80` port shows the following output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Processing a situation of no traffic](img/B04329_03_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Nginx is working, but because it is your application that is usually behind
+    Nginx that carries the logic of the business, your website is useless. This is
+    where you switch hats; now you need to bring up the upstream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several ways in which Nginx connects to the upstream application.
+    It may be a rather simple HTTP proxy. This is what historically is called the
+    "reverse proxy" or "web accelerator" mode. It may also use FastCGI or other technology
+    stack-specific protocols, such as WSGI or PSGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The HTTP mode is easier to debug, and you should recommend it to your developers
+    although in the end it is their decision which interface to use. Nginx equally
+    supports all of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finding a problem in your application code is also beyond the scope of our
+    book. You may have a database failure or an actual software bug. What you may
+    do now, besides engaging developers, is provide your visitors with a nice humble
+    static page explaining that you have temporary technical problems. A simple way
+    to redirect all requests to a single location is this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will return a specially crafted HTTP response to all requests. The response
+    will have `302` status code (which is the closest to "temporary redirect") and
+    a Location: header with the value you provide.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If telnet gives you
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: or hangs on the phase "Trying 392.1.2.3..." then read on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) Make sure that you have a way to check connectivity from an external location.
+    2) Probably move to another hosting provider. 3) Plan a meeting about having a
+    failover scenario for network failure; yes, you can spread out to another data
+    center, but this is a very interesting topic reaching way beyond of the scope
+    of this book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are now on one of those steps where hopes are high. Nginx rarely crashes,
+    but no response on the `80` port may be a sign of a crash. Try logging in to the
+    server with `ssh`. If you fail for whatever reason, reboot your servers and start
+    from there. See information about rebooting the earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you are done with it, immediately restart Nginx. The exact commands will
+    depend on the type of OS you use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On FreeBSD, this is as simple as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'On Debian-based Linux distributions, it is either:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '...for Debian 8.0 and higher or:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Restarting a daemon serving network requests is an important operation. Although
+    this particular failure usually means that it does not serve anything right now,
+    we would like to use the occasion to describe how Nginx authors solved the problem
+    of restarts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Restarting Nginx properly
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There are several modes of restart operation that Nginx implements and the administrator
+    is able to control which method is used by sending different signals to the Nginx
+    master process. Remember that you send signals with the `kill` command. Nginx
+    operates as a flock of processes, and the ones that are processing the requests
+    are the worker processes. We will delve deeper into this in the next chapter.
+    You almost never need to signal the worker processes. Instead, you send signals
+    to the master process, which in turn organizes the shutdown and restart of all
+    the worker processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These are the signals that initiate different restart modes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Signal | Mode |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| HUP | This is the hangup signal. After receiving this signal, Nginx will
+    perform the so-called graceful restart, that is, it will restart without any downtime.
+    There won''t be a single HTTP request that went unserved or interrupted. The idea
+    behind this mode is to start new worker processes for new requests while waiting
+    for the old workers to finish processing of older requests and then remove them.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| USR2 | This custom user signal allows you to completely change the binary
+    of Nginx. This means full restart including even the master processes. There would
+    be a moment when two masters are running with one of them "handing the job over"
+    to the other. This mode is needed when you built a newer Nginx with some patches.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: After a restart, you may have two basic outcomes. First, you see that Nginx
+    has successfully restarted. Check that connections to the port `80` can be opened.
+    You may have just fixed the problem. If not, your Nginx may have crashed again.
+    Your next steps involve the careful reading of the error logs of Nginx itself
+    and also system logs of the operating system (usually, `/var/log/messages`). This
+    is probably the most unpleasant moment in the whole investigation process. We
+    have to leave this entirely to you unfortunately. We are in the realm of debugging
+    a crash of a very stable piece of software, which means that you have some very
+    unusual, unexpected situation that requires a custom solution. See the [Chapter
+    2](ch02.html "Chapter 2. Searching for Problems in Log Files"), *Logging in to
+    Nginx* for more insights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do you remember rolling back? Try to roll back the entire configuration of the
+    server. Try downgrading software and kernel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Implement high-availability measures on the level before Nginx. This
+    is a step deeper into network configuration, but you will need this sooner or
+    later. Read about carp, Cisco IP balancing or maybe switch to a cloud provider
+    such as Amazon and use their own solutions. You need a way to switch a misbehaving
+    Nginx instance off while replacing it with a working clone on the same IP address.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Second, you may see an error message about a problem during the start process.
+    If Nginx does not start, it will always report the reason for that—be it a simple
+    error in configuration files or something more serious. This happens very often,
+    which is surprising. An overconfident young sysadmin makes a change to `nginx.conf`
+    and then neither commits it to a VCS, nor even restarts Nginx. After a while when
+    you need to make a restart, you see this screenful of terror:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: I specifically collected the message from a modern systemd-enabled machine to
+    make it a little more confusing. You will deploy on a systemd-based distribution
+    with high probability sooner or later. Please see the highlighted line for the
+    actual reason. Nginx is wonderful in many ways, and reporting its start errors
+    is definitely one of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Investigating lower than usual traffic
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This case seems to be easier on the business and it might be, but it is actually
+    much worse for you because you don't know what is still working and what is not.
+    Maybe you have an electronic bookstore and all your **Order now** clicks are failing.
+    Everything else works, but you earn only on successful orders. Unfortunately,
+    this is the hardest case of all. On the other side, these are rare.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A common (human) error is letting your HTTPS certificates expire. The parts
+    of your website that are not behind HTTPS will continue to work. Moreover, each
+    browser allows a user to override the expiration warning and go on with the business.
+    Because of this, you will see a number of successful responses in your monitoring
+    and logs, but it will be significantly lower than your usual levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Issuing new certificates is easy. You may also try switching https off for a
+    short while in a desperate attempt to serve some more people while you are waiting
+    for your new certificates. We cannot recommend that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Journal: Monitor certificate expiration. This is very easy and will save you
+    from a very unprofessional mishap.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the more interesting reasons that you may see lower traffic is performance
+    problems, and we have a whole chapter devoted to performance coming next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter outlined a simple process of several steps that allows you to work
+    around many classes of website failures. You might be an experienced system administrator
+    and still benefit from the information because it allows a systematic approach.
+    It may be a seed of your own checklist for example. Anyway, Nginx is a beautiful
+    tightly focused piece of software with an unusually low failure rate. We hope
+    that this chapter and the whole book help you achieve your goals of stability
+    with Nginx. The next chapter focuses on the performance of Nginx.
+  prefs: []
+  type: TYPE_NORMAL

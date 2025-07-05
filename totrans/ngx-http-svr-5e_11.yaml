@@ -1,0 +1,477 @@
+- en: '11'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Troubleshooting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Even if you read every single word of this book with the utmost attention, you
+    will not unfortunately be sheltered from all kinds of issues, ranging from simple
+    configuration errors to the occasional unexpected behavior of one module or another.
+    To help you with that, in this chapter, we will attempt to provide solutions for
+    some of the common problems encountered by administrators who are just getting
+    started with NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A basic guide containing general tips on NGINX troubleshooting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to solve some of the most common install issues
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dealing with `403 Forbidden` and `400 Bad Request` HTTP errors and more
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why your configuration does not appear to apply correctly
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A few words about the `if` block behavior
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Looking at some general tips on NGINX troubleshooting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we begin, whenever you run into some kind of problem with NGINX, you
+    should make sure to follow the recommendations given in the following sections,
+    as they are generally a good source of solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking access permissions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A lot of errors that NGINX administrators are faced with are caused by invalid
+    access permissions. On two separate occasions, you have the option to specify
+    a user and group for the NGINX worker processes to run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When configuring the build with the `configure` command, you are allowed to
+    specify a user and group that will be used by default (refer to [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the configuration file, the `user` directive allows you to specify a user
+    and group. This directive overrides the value that you may have defined during
+    the `configure` step.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If NGINX is supposed to access files that do not have the correct permissions,
+    in other words, that cannot be read (and by extension, cannot be written for directories
+    that hold temporary files, for example) by the specified user and group, NGINX
+    will not be able to serve files correctly. Additionally, should your web application
+    encounter an error related to file- or directory-access permissions, the user
+    and group under which your FastCGI or other backend runs should also be investigated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing your configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A common mistake is often made by administrators showing a little too much
+    self-confidence: after having modified the configuration file (often without a
+    backup), they reload NGINX to apply the new configuration. If the configuration
+    file contains syntax or semantic errors, the application will refuse to reload.
+    Even worse, if NGINX is stopped (for example, after a complete server reboot)
+    it will refuse to start at all. In either of those cases, remember to follow these
+    recommendations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Always keep a backup of your working configuration files in case something goes
+    wrong
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Before reloading or restarting NGINX, test your configuration with a simple
+    command, `nginx -t`, to test your current configuration files, or run `nginx -t
+    -``c /path/to/config/file.conf`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reload your server instead of restarting it, preferring `systemctl reload nginx`
+    over `systemctl restart nginx` (and `nginx -s reload` instead of `nginx -s stop
+    && nginx`), as it will keep existing connections alive, and thus won’t interrupt
+    ongoing file downloads
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Have you reloaded the service?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You would be surprised to learn how often this happens: the most complicated
+    situations have the simplest solutions. Before tearing your hair out, before rushing
+    to the forums or IRC asking for help, start with the most simple of verifications.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You just spent two hours creating your virtual host configuration. You’ve saved
+    the files properly and have fired up your web browser to check the results. But
+    did you remember that one additional step? NGINX, unlike Apache, does not support
+    on-the-fly configuration changes in `.htaccess` files or similar. So take a moment
+    to make sure you have reloaded NGINX with `systemctl reload nginx` or `/usr/local/nginx/sbin/nginx
+    -s reload`, without forgetting to test your configuration beforehand!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking logs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There is usually no need to look for the answer to your problems on the internet.
+    Chances are, the answer is already given to you by NGINX in the log files. There
+    are two variations of log files you may want to check. First, check the access
+    logs. These contain information about requests themselves: the request method
+    and URI, the HTTP response code issued by NGINX, and more, depending on the log
+    format you defined:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 11.1: An extract of the Nginx error log for troubleshooting and debugging
+    purposes](img/B21787_11_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 11.1: An extract of the Nginx error log for troubleshooting and debugging
+    purposes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: More importantly, for troubleshooting, the error log is a goldmine of information.
+    Depending on the level you defined (see the `error_log` and `debug_connection`
+    directives for more details), NGINX will provide details on its inner functioning.
+    For example, you will be able to see the request URI translated to the actual
+    filesystem path. This can be a great help for debugging rewrite rules. The error
+    log should be located in the `/logs/` directory of your NGINX setup, by default
+    `/usr/local/nginx/logs` or `/var/log/nginx`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we learned how to troubleshoot NGINX running errors. Moving
+    forward, we’ll explore the use of external tools to streamline the aggregation
+    of NGINX errors for more efficient troubleshooting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing a log parser
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While NGINX has great logs, at some of the higher levels of logging, they can
+    also be quite exhaustive in the amount of information they log. A good way to
+    not miss information and get a high-level overview of what is going on with NGINX
+    is to install a log parser that can aggregate information and display it in a
+    more approachable format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: One open source tool we can use for this is called **GoAccess**. More info can
+    be found on its website at [https://goaccess.io/](https://goaccess.io/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The good thing about GoAccess, aside from being free and open source, is that
+    it can be accessed through both the Terminal and your browser. Therefore, it can
+    function as both a monitoring tool that you run in your Terminal and as a reporting
+    tool that generates a kind of dashboard for your stats:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 11.2: GoAccess analyzing and organizing Nginx logs for a clear view](img/B21787_11_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 11.2: GoAccess analyzing and organizing Nginx logs for a clear view'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get started and install GoAccess, you can either check your distribution
+    package manager (whether with `apt`, `dnf` or else) or download and compile it
+    manually:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once installed, using it is very straightforward; you can get a Terminal view
+    by running the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, the `COMBINED` log format refers to the default log format of NGINX,
+    but it is also compatible with Apache HTTPd logs. If you want to get an HTML report
+    that you can view in a browser, or perhaps email to someone for reporting, then
+    run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: A neat feature of GoAccess is that it can also provide a real-time auto-updating
+    HTML page by using the `--real-time-html` flag. Enabling this will add some WebSocket
+    code to the report that will fetch the latest stats continuously. Create a location
+    block for your report and point it to your `report.html` to have a report always
+    available online.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve covered how to handle NGINX log errors. Up next, we’ll dive into the challenges
+    of compiling and installing NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Troubleshooting install issues
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There are typically four sources of errors when attempting to install NGINX
+    or to run it for the first time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of the prerequisites are missing or an invalid path to the source was specified.
+    More details about prerequisites can be found in [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: After having installed NGINX correctly, you cannot use the SSL-related directives
+    to host a secure website. Have you made sure to include the SSL module correctly
+    during the `configure` step? More details are in [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'NGINX refuses to start and outputs a message similar to `[emerg] bind() to
+    0.0.0.0:80 failed (98: Address already in use)`. This error signifies that another
+    application is utilizing the network port `80`. This could either mean that another
+    web server, such as Apache, is already running on the machine, or that you don’t
+    have the proper permissions to open a server socket on this port. This can happen
+    if you are running NGINX from an underprivileged system account.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'NGINX refuses to start and outputs a message similar to `[emerg] 3629#0: open()
+    "/path/to/logs/access.log" failed (2: No such file or directory)`. In this case,
+    one of the files that NGINX tries to open, such as a log file, cannot be accessed.
+    This could be caused by invalid access permissions or by an invalid directory
+    path (for example, when specifying log files to be stored in a directory that
+    does not exist on the system). After addressing NGINX’s compilation challenges,
+    we’ll explore location block and error nuances. Though NGINX functions, we’ll
+    learn to adjust these settings to meet our expectations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the 403 forbidden custom error page
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you decide to use `allow` and `deny` directives to allow or deny access,
+    respectively, to a resource on your server, clients who are being denied access
+    will usually fall back on a `403 Forbidden` error page. Imagine you have carefully
+    set up a custom, user-friendly 403 error page for your clients to understand why
+    they are denied access. Unfortunately, you cannot get that custom page to work,
+    and clients still get the default NGINX 403 error page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The problem is simple: NGINX also denies access to your custom 403 error page!
+    In such a case, you need to override the access rules in a `location` block specifically
+    matching your page. You can use the following code to allow access to your custom
+    403 error page only:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you are going to have more than just one error page, you could specify a
+    `location` block matching all error page filenames:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: All your visitors are now allowed to view your custom error pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring 400 Bad Request
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Occasionally, you may run into a recurring issue with some of your websites:
+    NGINX returns `400 Bad Request` error pages to random visitors, and this only
+    stops happening when visitors clear their cache and cookies. The error is caused
+    by an overly large header field sent by the client. Most of the time, this is
+    when cookie data exceeds a certain size. In order to prevent further trouble,
+    you can simply increase the value of the `large_client_header_buffers` directive
+    in order to allow a larger cookie data size:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In addition to adjusting the `large_client_header_buffers` for resolving 400
+    Bad Request errors, it’s also worth examining directives such as `proxy_buffers`,
+    `proxy_buffer_size`, and `proxy_busy_buffers_size`. Modifying these settings can
+    further mitigate error 400 by optimizing how NGINX handles incoming data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at truncated or invalid FastCGI responses
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When setting up an NGINX frontend for a website that heavily relies on **AJAX**
+    (short for **Asynchronous JavaScript and XML**), along with a FastCGI backend
+    such as PHP, you may run into different sorts of problems. If your server returns
+    truncated AJAX responses, invalid JSON values, or even empty responses, you may
+    want to check your configuration for the following elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have you set up a writable directory for FastCGI temporary files? Make sure
+    to do so via the `fastcgi_temp_path` directive.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If `fastcgi_buffering` is set to `off`, all FastCGI responses are forwarded
+    to the client synchronously, in chunks of a certain size (determined by `fastcgi_buffer_size`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In some cases, increasing the size and number of buffers allocated to storing
+    FastCGI responses prevents responses from getting truncated. For example, use
+    `fastcgi_buffers 256 8k;` for 256 buffers of 8 kilobytes each.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring location block priorities
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This problem frequently occurs when using multiple location blocks in the same
+    server block: configuration does not apply as you thought it would.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, suppose that you want to define a behavior to be applied to
+    all image files that are requested by clients:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Later on, you decide to enable automatic indexing of the `/images/` directory.
+    Therefore, you decide to create a new `location` block, matching all requests
+    starting with `/images/`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this configuration, when a client requests to download `/images/square.gif`,
+    NGINX will apply the second location’s block only. Why not the first one? The
+    reason is that `location` blocks are processed in a specific order. For more information
+    about `location` block priorities, refer to the *Location block* section in [*Chapter
+    3*](B21787_03.xhtml#_idTextAnchor179).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at if block issues
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In some situations, if not most, you should avoid using `if` blocks. There are
+    two main issues that occur, regardless of the NGINX build you are using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inefficient statements
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are some cases where `if` is used inappropriately, in a way that risks
+    saturating your storage device with useless checks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With such a configuration, every single request received by NGINX will trigger
+    a complete verification of the directory tree for the requested filename, thus
+    requiring multiple storage disk access system calls. If you test `/usr/local/nginx/html/hello.html`,
+    NGINX will check `/`, `/usr`, `/usr/local`, `/usr/local/nginx`, and so on. In
+    any case, you should avoid resorting to such a statement, for example, by filtering
+    the file type beforehand (which could be done by making such a check only if the
+    requested file matches specific extensions):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unexpected behavior
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The `if` block should ideally be employed in simple situations, as its behavior
+    might be surprising in some cases. Apart from the fact that `if` statements cannot
+    be nested, the following situations may present issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, the first `if` block is ignored and only the second one is processed.
+    However, if you insert a *Rewrite module* directive in the first block, such as
+    `rewrite`, `break`, or `return`, the first block will be processed and the second
+    one will be ignored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are many other cases where the use of `if` causes problems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having `try_files` and `if` statements in the same location block is not recommended,
+    as the `try_files` directive will, in most cases, be ignored.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some directives are theoretically allowed within the `if` block, but can create
+    serious issues; for instance, `proxy_pass` and `fastcgi_pass`. You should keep
+    those within `location` blocks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You should avoid using `if` blocks within a `location` block that captures regular
+    expression patterns from within its modifier.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These issues originate from the fact that while the NGINX configuration is written
+    in what appears to be a declarative language, directives from the Rewrite module,
+    such as `if`, `rewrite`, `return`, or `break`, make it look like event-based programming.
+    In general, you should try to avoid using directives from other modules within
+    `if` blocks as much as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Most of the problems you can run into will occur during the early configuration
+    stages while you test your server before production. These problems are usually
+    easier to deal with because you are mentally prepared for the challenge, and more
+    importantly, because NGINX points out syntax or configuration errors on startup.
+    It is, on the other hand, much more difficult to identify the cause of malfunctions
+    while your websites are actually in production. But once again, NGINX saves the
+    day: if you properly configure log files (both access and error logs) and adopt
+    the habit of reading them regularly, you will find that problem-solving is made
+    easy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This concludes our journey with NGINX, throughout which we have walked through
+    a large number of subjects, from the basic mechanisms of the HTTP server to web
+    application deployment and troubleshooting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to know more about NGINX, we invite you to dive into the vibrant
+    NGINX community, a collaborative hub teeming with expertise and innovative ideas.
+    Whether seeking advice for your projects or offering your own insights, the community
+    is an invaluable resource for broadening your understanding and refining your
+    skills. Engage in discussions, share solutions, and connect with fellow enthusiasts
+    to further your journey with NGINX.
+  prefs: []
+  type: TYPE_NORMAL

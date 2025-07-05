@@ -1,0 +1,1359 @@
+- en: Chapter 4. Installing Third-party Modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter we will explore the installation of third-party modules. Third-party
+    modules are developed by a vast variety of developers around the world and are
+    hosted on various open source repositories such as GitHub and SourceForge. Some
+    of these modules are well tested while others are not quite ready for production.
+    These modules are not officially supported by Nginx developers and might have
+    issues across different Nginx versions. In this chapter, we will talk about some
+    of the most well-known Nginx modules. A bigger list of available options can be
+    browsed on the Nginx website at [http://wiki.nginx.org/3rdPartyModules](http://wiki.nginx.org/3rdPartyModules).
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the configuration directives that we have discussed so far, and the ones
+    that we will discuss in this and the remaining chapters, are specified in the
+    `nginx.conf` file. The default location of the `nginx.conf` file is `/usr/local/conf/`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling third-party modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'None of the third-party modules that we will be covering in this chapter are
+    distributed with the source code. You will have to download the source code and
+    compile it by specifying its location while compiling Nginx. You can do that by
+    specifying the `--add-module` parameters while running `configure`. For example,
+    if you downloaded the module''s source code present in `/opt/downloads`, you can
+    compile it in the Nginx binary with the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Some of these modules may have additional dependencies, which you will have
+    to resolve. Please refer to the documentation of the module you are trying to
+    install, to make sure you understand the consequences and dependencies of the
+    module you are about to compile.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Communicating with PostgreSQL (ngx_postgres)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Nginx PostgreSQL module is currently hosted at [http://labs.frickle.com/nginx_ngx_postgres/](http://labs.frickle.com/nginx_ngx_postgres/)
+    and maintained by Frickle Labs. It is an upstream module that allows direct communication
+    with the PostgreSQL database. The output of this module is in a custom binary
+    format named **Resty DBD Stream** (**RDS**).This module is useful if you want
+    to directly connect Nginx to a PostgreSQL database. There can be several use-cases
+    of why you would want to do that. You might want to serve pages by directly querying
+    results from a table. You might also want to log things in a database or check
+    certain conditions by querying a database table. Or you might want to authenticate
+    a user from an upstream PostgreSQL database. For all such situations and more,
+    the `ngx_postgres` module will be useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An example configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Explaining directives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Some important directives of the `ngx_postgres` module are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: postgres_server
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `postgres_server` directive sets the details of the database server. You
+    can specify the hostname or IP address along with a port, username, and password.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An example configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: postgres_keepalive
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `postgres_keepalive` directive is used to configure `keepalive` parameters.
+    The syntax is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, the `max` parameter determines the maximum number of `keepalive` connections.
+    The `mode` parameter has two possible values, `multi` and `single`. The `single`
+    mode means that the connection pool will not differentiate between multiple `postgres_server`
+    definitions in the current block and will apply to all of them, that is, you have
+    one pool for all the `postgres_server` definitions. In the `multi` mode, the pool
+    will re-use connections that have identical server hostnames and ports. The default
+    value is `single`. The `overflow` option specifies what to do when the connection
+    pool is already full and a new database connection is required. Either `reject`
+    or `ignore` can be specified. In case of `reject`, it will reject the current
+    request and return the **503 Service Unavailable** error page. On using `ignore`,
+    this module will create a new database connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: postgres_pass
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `postgres_pass` directive holds the name of the upstream block that contains
+    the PostgreSQL connection's configurations. It can also contain variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: postgres_query
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `postgres_query` directive is used to specify a PostgreSQL query. If an
+    HTTP method such as `GET`, `POST`, `PUT`, or `DELETE` is specified, the query
+    is used only for the specified methods; otherwise, it will run for all the methods.
+    A query can contain variables and you can specify multiple query directives in
+    one location. An example configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: postgres_rewrite
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `postgres_rewrite` directive should be used to send a specific response
+    code when a condition is met. The condition can be one of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`no_changes`: This is the condition when no rows are affected by the query'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`changes`: This is the condition when at least one row is affected by the query'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no_rows`: This is the condition when no rows are returned in the result set'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rows`: This is the condition when at least one row is returned in the result
+    set'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If you want to send the original response body to the client, prefix the code
+    with `=` as shown in the following example configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: postgres_output
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `postgres_output` directive determines the output type of the response.
+    The possible values are `rds`, `text`, `binary`, `value`, and `none`. The `none`
+    value is used when you don't want any output. `value` is used when you want a
+    single value as an output in the text format. All response types set the appropriate
+    HTTP header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: postgres_set
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `postgres_set` directive is used to set a variable from a single value
+    from the result set. You can specify the row and column to pick the value from.
+    An example configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you set this directive to `required`, the module will generate a `500 internal
+    server` error if the value to be set is null or out of range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: postgres_escape
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `postgres_escape` directive will escape, quote a value in the `$unquoted`
+    variable, and store the result in the `$escaped` variable, which can be safely
+    used in SQL queries. An example configuration is given as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: postgres_connect_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `postgres_connect_timeout` directive sets a timeout value for connecting
+    to the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: postgres_result_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `postgres_result_timeout` directive sets a timeout value for receiving results
+    from the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Communicating with MySQL and drizzle (drizzle-nginx)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `drizzle-nginx` module is an upstream module to communicate with a MySQL
+    or drizzle server. Drizzle is a fork of MySQL, which is optimized for multicore
+    processing and scalability. This module essentially integrates `libdrizzle` into
+    an Nginx module. Like the Nginx PostgreSQL module, this module does not create
+    human-readable text output, but rather a Resty DB format, which is a custom binary
+    format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can download the source code for this module from the GitHub repository
+    at [https://github.com/chaoslawful/drizzle-nginx-module](https://github.com/chaoslawful/drizzle-nginx-module).
+    Please note that you will need to install drizzle and libdrizzle in order to be
+    able to successfully compile this module. You can download drizzle from launchpad
+    at [https://launchpad.net/drizzle](https://launchpad.net/drizzle).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is useful if you want to directly connect Nginx with a MySQL database.
+    There can be several use-cases of why you would want to do that. You might want
+    to serve pages by directly querying results from a table. You might also want
+    to log things in a database or check certain conditions by querying a database
+    table. Or else, you might want to authenticate a user from an upstream MySQL database.
+    For all such situations and more, this module will be useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explaining directives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The most important directives from the `drizzle-nginx` module are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: drizzle_server
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We use the `drizzle_server` directive to specify the drizzle server''s name
+    in the form of an IP address or a domain name, and optionally a port. The default
+    port number is `3306`. You can also specify a username and a password. The following
+    options are supported by this directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`user=`: This option defines the database username for login'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`password=`: This option defines the database password, optionally enclosed
+    in quotes, for special characters as shown in the following example configuration:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '`dbname=`: This option defines the database to be used for the default connection'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`protocol=`: This option defines the target database type, `drizzle`, or `mysql`
+    (the default value is `drizzle`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`charset=`: This option is used to explicitly specify the character set for
+    the MySQL connections as shown in the following example configuration:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: drizzle_keepalive
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `drizzle_keepalive` directive is used to maintain a `keepalive` pool for
+    the target database. The following options are supported by this directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`max=`: This option is set to `0` by default, which means that the `keepalive`
+    connection pooling is disabled. In order to enable it, you must set this value
+    to a value greater than 0.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`mode=`: The possible values for this parameter are `multi` and `single`. The
+    `single` mode means that the connection pool will not differentiate between multiple
+    `drizzle_server` definitions in the current block, and the pool will apply to
+    all of them, that is, you have one pool for all the `drizzle_server` definitions.
+    In the `multi` mode, the pool will re-use connections that have identical server
+    host names and ports. The default value is `single`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`overflow=`: This option specifies what to do when the connection pool is already
+    full while a new database connection is required. Either `reject` or `ignore`
+    can be specified. In case of `reject`, it will reject the current request and
+    return the **503 Service Unavailable** error page. For `ignore`, this module will
+    create a new database connection.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: drizzle_query
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `drizzle_query` directive defines the SQL query to be run on the database's
+    backend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You are allowed to use Nginx variables in place of queries, but you must be
+    careful with SQL injection attacks. You are, therefore, advised to properly sanitize
+    and quote your SQL queries. An example configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: drizzle_pass
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Using the `drizzle_pass` directive, you can pass the current location to another
+    defined MySQL or drizzle-upstream block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can use the Nginx variables as values to perform dynamic passing. An example
+    configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: drizzle_connect_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `drizzle_connect_timeout` directive specifies the timeout value for connecting
+    to the remote server. The value can be an integer with an optional time unit,
+    such as s (second), ms (millisecond), or m (minute). The default time unit is
+    s and the default value is `60 s`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: drizzle_send_query_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `drizzle_send_query_timeout` directive specifies the timeout value for sending
+    a SQL query to a remote server. The value can be an integer with an optional time
+    unit, such as s (second), ms (millisecond), or m (minute). The default time unit
+    is s and the default value is `60 s`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: drizzle_recv_cols_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `drizzle_recv_cols_timeout` directive specifies the timeout value for receiving
+    the columns' metadata of the result set to a remote server. The value can be an
+    integer with an optional time unit, such as s (second), ms (millisecond), or m
+    (minute). The default time unit is s and the default value is `60 s`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: drizzle_recv_rows_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `drizzle_recv_rows_timeout` directive specifies the timeout value for receiving
+    the rows' data of the result set (if any) to a remote server. The value can be
+    an integer with an optional time unit, such as s (second), ms (millisecond), or
+    m (minute). The default time unit is `s` and the default value is `60 s`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: drizzle_buffer_size
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `drizzle_buffer_size` directive specifies the buffer size for server outputs.
+    The default value of this directive depends on the OS page size which would be
+    4K/8K normally. Larger buffer sizes can result in lower network overheads. However,
+    you have to find the correct value for your workload by experimenting with this
+    number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: drizzle_module_header
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `drizzle_module_header` directive controls whether to output the drizzle
+    header in the response or not. By default, the sending of the header is enabled.
+    This directive can be configured with the following script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Digest Authentication (ngx_http_auth_digest)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In today's world, HTTP basic authentication is too basic and doesn't provide
+    adequate security required by the modern web servers. The reason is that usernames
+    and passwords are sent in clear text unless you use HTTPS. The `ngx_http_auth_digest`
+    module can be used to protect your resources using the HTTP Digest Authentication
+    based on RFC 2617.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The digest authentication module works, and is considered quite stable. However,
+    it is perhaps not tested enough for the real world, so make sure it works in your
+    situation. As this module deals with security, it is always a good idea to test
+    the software thoroughly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can download the source code at [https://github.com/samizdatco/nginx-http-auth-digest](https://github.com/samizdatco/nginx-http-auth-digest).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can password-protect a directory tree by adding the following code lines
+    into a server section in your Nginx configuration file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Currently, the digest authentication module works with a file generated through
+    the `htdigest` script. The `htdigest` script can be found in your Apache installation
+    or source code. There is also an `htdigest.py` script in this module's source
+    code, which will help you generate a compatible file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explaining directives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Some of the most important directives of `ngx_http_auth_digest` are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: auth_digest
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `auth_digest` directive can be defined in the contexts of the server and
+    location. This parameter defines the realm name for authentication. This name
+    should match the name used in creating the `htdigest` file. To selectively disable
+    authentication, set `auth_digest` to `off`. The default value for this directive
+    is `off`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auth_digest_user_file
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `auth_digest_user_file` directive can be defined in the contexts of the
+    server and location. This directive is used to specify the name of the password
+    file. The password file should be created by the Apache htdigest command (or the
+    included `htdigest.py` script).
+  prefs: []
+  type: TYPE_NORMAL
+- en: auth_digest_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `auth_digest_timeout` directive can be defined in the contexts of the server
+    and location. This timeout value defines the expiry time of the challenge sent
+    to the client. If the user does not provide the response within this time, the
+    challenge is considered stale, and a new challenge is sent to the client when
+    a resource is requested again or the response comes from the client. The default
+    timeout value is `60 s`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auth_digest_expires
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `auth_digest_expires` directive can be defined in the contexts of the server
+    and location. This parameter is used to define the expiry time of the nonce value.
+    Once a client successfully authenticates, the nonce value is cached and subsequent
+    requests use the cached value. This parameter defines the duration for which a
+    client can continue to use the nonce value. The default digest expiry value is
+    `10 s`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auth_digest_replays
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `auth_digest_replays` directive can be defined in the contexts of the server
+    and location. The validity of a cached nonce can also be specified in terms of
+    the number of requests instead of time, by using this directive. Having a high
+    value will increase your shared memory requirements. The default value is 20 replays
+    per nonce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auth_digest_shm_size
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `auth_digest_shm_size` directive can only be defined in the server's context.
+    This directive specifies the fixed size memory cache used to store information
+    about the active authenticated requests. Once this cache is full, no further authentication
+    will be possible until the active sessions expire. The default size is about 4
+    MB. The default value allows around 82,000 non-replay requests every 70 seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An example configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Speeding up web pages (ngx_pagespeed)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `ngx_pagespeed` module optimizes the web pages and associated resources
+    to reduce latency and bandwidth. It is capable of rewriting HTML pages and automatically
+    eliminates deficiencies that reduce the performance of your website or web pages.
+    This module is written by Google and is similar to Apache's `mod_pagespeed` module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This module reduces the page''s load time by automatically applying web performance
+    best practices to pages and associated assets (CSS, JavaScript, and images). It
+    can perform the following types of optimizations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image optimization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: CSS and JavaScript optimization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Resource inlining
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: HTML rewriting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cache lifetime extension
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In order to enable the module, you have to put p`agespeed On` in the server
+    or the HTTP block. In addition, you should define the `FileCache` location and
+    specify which rewrite filters you would like to enable. The following is an example
+    configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `FileCachePath` parameter provides the location where rewritten files are
+    cached, and should be a valid path. The `EnableFilters` parameter defines which
+    optimizations will be enabled for the specific location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring handlers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When the `ngx_pagespeed` module is configured and enabled, a default handler
+    is automatically created, but there are additional handlers in order to monitor
+    the module''s activity in more details, which are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Statistics handler**: This handler shows the statistics related to page or
+    resource optimizations, including which pages have been optimized so far, as well
+    as various latency and cache-effectiveness metrics. You can also view the summary
+    of the current configuration that is active at the moment.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Messages handler**: If you have enabled and specified a size for the `MessageBufferSize`
+    parameter, this handler will contain a server-wide history of recent logging output
+    from `pagespeed`, including messages that are omitted from the server''s logfile
+    based on its log level.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Console handler**: This handler shows graphs of issue metrics over time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Beacon handler**: This handler can be used by the `add_instrumentation` filter
+    to report the loading time of pages for your sites, which you can then view via
+    the statistics page.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following is an example configuration from the module''s documentation
+    page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In order to check if the module is processing your pages or not, you can check
+    the source of a page, which you should be able to see at the `X-Page-Speed` header
+    through the following code lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can find a complete list of pagespeed filters in the online documentation
+    available at [https://developers.google.com/speed/pagespeed/module/using](https://developers.google.com/speed/pagespeed/module/using).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lua scripting (ngx_lua)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you want the ability to write scripts in your Nginx configuration file,
+    then utilizing the power of Lua by using the `ngx_lua` module can be a great move.
+    This is a very powerful module with a large number of uses, and provides you with
+    a full programming capability inside the Nginx configuration. It has the following
+    advantages and features:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will allow you to perform complicated processing on the incoming request
+    before it's executed, or change the response afterwards
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can add new headers or remove the existing ones
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can perform redirects and routing based on complicated program-like logic
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can create a sophisticated logging framework entirely based on Lua scripts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can either block or allow IP addresses
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can build your own authentication or preprocessing layer on top, without
+    having to write your own C modules and recompiling the Nginx code
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lua is a lightweight, embeddable scripting language, which makes it very suitable
+    for scripting in the configuration file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module allows you to run the Lua code during different phases in the Nginx
+    request handling. Before we look at more details of Lua scripting, it is worth
+    looking at the different phases of Nginx request handling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each request handled by Nginx goes through the following phases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Sl. No. | Nginx request-handling phase | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1 | server selection | A server block is selected based on the request. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2 | post read | This phase is executed after a request is read. This allows
+    you to perform actions on the request before it is processed. For example, `HttpRealIpModule`
+    can use this phase to add IP addresses in the request headers. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 3 | server rewrite | During this phase, URL rewriting can take place. You
+    can select the configuration based on variable values. The `HttpRewrite` module
+    allows you to do so. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 4 | location selection | During this phase, a location configuration block
+    is selected or matched based on the requested URL. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 5 | location rewrite | This phase allows you to do rewrites within a selected
+    location-configuration block. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 6 | preaccess | This phase allows you to carry out certain filters, that
+    is, limit the number of requests per session. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 7 | access | This phase runs authentications, such as `auth_basic` or `auth_digest`.
+    You can also allow or deny requests based on criteria, such as IP addresses. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 8 | try files | The core module''s `try_files` directive is executed in this
+    phase. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 9 | content | The actual content generation takes place in this phase. All
+    upstream modules are executed in this phase. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 10 | log | During this phase, information is logged in the logfiles. Modules
+    such as `access_log` operate within this phase. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 11 | post action | During this phase, the `post_action` directive of the
+    core module is executed, which allows you to send subrequests to a location or
+    upstream when a request is finished, for example, logging competed requests in
+    a remote MySQL database. |'
+  prefs: []
+  type: TYPE_TB
+- en: The `nginx_lua` module embeds Lua via the standard Lua interpreter or LuaJIT
+    into Nginx. Please note that you need to install Lua or LuaJIT before you can
+    use this module. This module also has a dependency on another Nginx module called
+    `ngx_devel_kit`. It facilitates the development of new Nginx modules. We will
+    have a detailed look at this module in this chapter as well as in [Chapter 5](ch05.html
+    "Chapter 5. Creating Your Own Module"), *Creating Your Own Module*, where we will
+    learn to write our own Nginx module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the Lua API for Nginx, you can communicate with upstream servers in a
+    non-blocking manner in your Lua script. The Lua VM is shared across all the requests
+    handled by a single Nginx worker process to minimize memory usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is possible to use a number of upstream Nginx modules with the `nginx_lua`
+    module. These modules are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`lua-resty-memcached`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`lua-resty-mysql`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`lua-resty-redis`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`lua-resty-dns`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`lua-resty-upload`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_memc`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_postgres`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_redis2`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_redis`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_proxy`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_fastcgi`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'An example configuration of the `ngx_lua` module is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Explaining directives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Some of the most important directives of `ngx_lua` are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: lua_package_path
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `lua_package_path` directive is used to specify the path of the Lua scripts.
+    This value is used by the directives such as `set_by_lua` and `content_by_lua`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can use the special notation $prefix or ${prefix} in the search path string
+    to indicate the path of the server prefix usually determined by the `-p PATH`
+    command-line option while starting the Nginx server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The default value is taken from the `LUA_PATH` environment variable. If this
+    variable is not defined, then the default search path is used to locate Lua scripts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: set_by_lua or set_by_lua_file
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `set_by_lua` or `set_by_lua_file` directives are used to execute a small
+    embedded and blocked Lua script provided as a string. This script can take two
+    parameters as an input and return the result through a `return` variable. The
+    Nginx event loop is blocked when this code gets executed. You should, therefore,
+    not use this directive to execute long-running codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that the following API functions are currently disabled within this context.
+    This directive can only write out a value to a single Nginx variable at a time,
+    as shown in the following code snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This directive can be freely mixed with all directives of the `HttpRewriteModule`,
+    `HttpSetMiscModule`, and `HttpArrayVarModule` modules. All these directives will
+    be executed in the same order as they appear in the configuration file. An example
+    configuration is given as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can freely use the `$` sign inside the Lua scripts provided in this directive
+    as the Nginx variable interpolation is disabled. This directive requires the `ngx_devel_kit`
+    module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `set_by_lua_file` directive is similar to the `set_by_lua` directive. The
+    only difference is that the Lua script here is provided in a file. This file can
+    also contain Lua or LuaJIT bytecode instead of a text script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a relative path such as `path/file.lua` is given, it will be turned into
+    an absolute path relative to the server prefix path determined by the `-p PATH`
+    command-line option while starting the Nginx server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By default, the Lua code cache is turned on. This means that the script file
+    is loaded the first time. If you make changes, Nginx configuration will be reloaded.
+    If you are in a development cycle, the code cache can be turned off by using the
+    `lua_code_cache_off` parameter in the configuration file. The following is an
+    example configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: content_by_lua or content_by_lua_file
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `content_by_lua` or `content_by_lua_file` directives are used to specify
+    a Lua script to execute for every request during the content phase. You can use
+    API calls in this script, and the script is executed in an independent global
+    sandbox.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since this directive is a content handler, do not use it and the other content
+    handler directives at the same location. For example, this directive and the `proxy_pass`
+    directive should not be used at the same location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `content_by_lua_file` directive is equivalent to `content_by_lua`, except
+    that in this directive you have to provide the path to a Lua script file instead
+    of writing inline codes. The code in this file is loaded only once if the code
+    cache is turned on, and the relative paths are resolved to absolute paths using
+    the server prefix. An example configuration is shown as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: rewrite_by_lua or rewrite_by_lua_file
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `rewrite_by_lua` or `rewrite_by_lua_file` directive executes the Lua code
+    during the rewrite phase. The Lua code can use API calls and is run in a spawned
+    global sandbox.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that this handler always runs after the standard HTTP rewrite. So, the
+    following piece of code will not work as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is because the `if` condition runs before `rewrite_by_lua` even if it is
+    placed after `rewrite_by_lua` in the configuration script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The correct way of doing this by using Nginx API calls is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `rewrite_by_lua` code will always run at the end of the rewrite-request-processing
+    phase unless `rewrite_by_lua_no_postpone` is turned `on`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `rewrite_by_lua_file` directive also runs in the rewrite phase after the
+    standard HTTP rewrite. However, the code is executed from a Lua script file or
+    a bytecode file as shown in the following configuration script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: access_by_lua or access_by_lua_file
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `access_by_lua` or `access_by_lua_file` directive executes the Lua code
+    during the access phase. This means that the code in this directive will run once
+    per request, and no subrequest will be able to trigger the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Lua code is run after the standard `HttpAccessModule`. Therefore, if you
+    have any blacklisted IPs, they will be denied before this code is executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can use these directives to implement more complex access mechanisms, that
+    is, the ones that communicate with upstream servers, such as a database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us now have a look at a sample ngx_lua configuration to understand the
+    usage of access_by_lua:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding example configuration, the Lua code will run the configuration
+    for a defined location called `ldap_auth`, which will authenticate the user against
+    an LDAP server, and based on a return value, the request either exits with a proper
+    error code (403) or returns normally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `access_by_lua` directive allows you to run a Lua script or bytecode using
+    a file. You need to specify the path of the script file in the directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx variables can be used in the file to provide flexibility. This, however,
+    carries some risks, and is not ordinarily recommended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relative file paths are converted to absolute paths using the server prefix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is recommended that you turn on the code cache in the production environment,
+    so that the Lua code is loaded only once. This can provide performance benefits.
+    However, in a development environment, you should not enable the code cache in
+    order to avoid reloading the server every time there is a code change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `ngx_lua` module provides complete scripting capabilities while offering
+    very high performance levels. This is especially true if you use the Just In Time
+    (**JIT**)compilation using LuaJIT. This allows you a very wide range of use-cases
+    where this module can be useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reverse IP lookup using the GeoIP module (ngx_http_geoip_module)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `ngx_http_geoip_module` does a reverse lookup on the IP of the client using
+    the MaxMind IP database. It resolves the IP address to the place of origin and
+    sets a number for the variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not built by default; it should be enabled with the `--with-http_geoip_module`
+    configuration parameter. As already mentioned, this module has dependency on the
+    MaxMind GeoIP library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You need an account with MaxMind and will also need to download several database
+    files that map IP addresses to countries, cities, and even organizations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One of the key applications, in addition to providing you with more information
+    about the clients, can also be against DDOS attacks. Using the information looked
+    up by this module, you can block or allow traffic coming from countries, cities,
+    regions, and so on. This is a bit crude, but it works. You can use this module
+    as a complement to `HttpLimitReqModule` and `HttpLimitZoneModule`. An example
+    configuration is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Explaining directives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The following is a list of directives you can use for configuring this module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: geoip_country
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `geoip_country` directive allows you to specify the name and path of the
+    database file that contains the IP for a country''s lookup information. The following
+    variables are available (as well as set by this module) while using this database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$geoip_country_code`: This is a two-letter country code, for example, DE or
+    US. These codes correspond to ISO 3166-1 alpha-2 standard.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_country_code3`: This is a three-letter country code, for example, DEU
+    or USA. These codes correspond to ISO 3166-1 alpha-3 standard.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_country_name`: This gives the complete country name, for example, Russian
+    Federation or United States.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: geoip_city
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `geoip_city` directive allows you to set the name and path of a database
+    file to lookup the city''s and region''s information based on the client''s IP
+    address. The following variables are available and set as well while using this
+    database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$geoip_area_code`: This gives the telephone area code (US only) associated
+    with the client''s IP address. This field in the MaxMind database has been depreciated,
+    so you might not get any information or get outdated information.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city_continent_code`: This is a two-letter continent code, for example,
+    EU or AS.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city_country_code`: This is a two-letter country code, for example,
+    DE or US. These codes correspond to ISO 3166-1 alpha-2 standard.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city_country_code3`: This is a three-letter country code, for example,
+    DEU or USA. These codes correspond to ISO 3166-1 alpha-3 standard.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city_country_name`: This gives the country name, for example, Russian
+    Federation or United States.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_dma_code`: This gives the DMA region code in the US (also known as
+    metro code), which can be found at [https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions](https://developers.google.com/adwords/api/docs/appendix/cities-DMAregions).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_latitude`: This gives the latitudinal value of the city.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_longitude`: This gives the longitudinal value of the city.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_region`: This is a two-symbol country region code (region, territory,
+    state, province, federal land, and the like), for example, 48 or DC.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_region_name`: This gives the country''s region name (region, territory,
+    state, province, federal land, and the like), for example, Bavaria or District
+    of Columbia.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_city`: This gives the full city name, for example, Munich or London.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$geoip_postal_code`: This gives the postal code information if available.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: geoip_org
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `geoip_org` directive allows you to specify the name and path of the database
+    file to resolve the IP address to an organization. This can be a company name
+    or an institution. Normally, this kind of information is available through the
+    `whois` databases. The following variable is available and set as well while using
+    this option:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$geoip_org`: This contains the organization''s name, for example, Facebook,
+    Inc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: geoip_proxy
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `geoip_proxy` directive allows you to specify the IP addresses or CIDR of
+    the proxy servers that you "trust". If the client IP address matches this trusted
+    address, the IP address sent in the HTTP header `X-Forwarded-For` is used to do
+    the IP lookup. The `X-Forwarded-For` header is a standard header that is sent
+    by proxy servers to reveal the real IP address of the client. If the proxy server
+    does not choose to do so, it is essentially an anonymizer. The correctness of
+    the IP sent in this header is purely up to the proxy server; therefore, if you
+    trust a specific proxy server to send correct information, you can use this directive
+    to enable lookup on the IP address sent in the `X-Forwarded-For` header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: geoip_proxy_recursive
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `geoip_proxy_recursive` directive allows you to enable recursive IP lookup.
+    If recursive lookup is enabled, the last untrusted address sent in the `X-Forwarded-For`
+    header will be used for the IP lookup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If Nginx is working behind a proxy, you can also use `HttpRealIpModule`. This
+    module allows you to change the client's IP address to a value from the request
+    header (for example, `X-Real-IP` or `X-Forwarded-For`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doing healthchecks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here we will learn about various modules to keep a track of the healthy upstreams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ngx_http_healthcheck_module
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If your Nginx server works with a lot of upstream servers for providing various
+    services and content, keeping track of which upstream servers are still healthy
+    and working is very important, especially if they are third-party or external
+    servers. This module allows you to keep track of healthy backends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is how it works. When an upstream server responds with a 200+ status code,
+    and the response optionally comes back with a body, it is marked as good; otherwise,
+    it is marked as bad. This module also has an HTTP healthcheck page where you can
+    see the current status of the backends. This is quite similar to the `haproxy`
+    or `varnish` healthchecks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This module inserts a healthcheck event into Nginx''s event tree. When that
+    triggers, it starts a peer connection with the backend and sends as well as receives
+    data. When the heathcheck is over or gets timed out, it updates the health of
+    the backend in a shared memory area. The following is an example configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Explaining directives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Some of the most important directives of the `ngx_http_healthcheck_module`
+    are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: healthcheck_enabled
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `healthcheck_enabled` module's context is upstream and enables health checking
+    on the upstream servers defined in the specific upstream block. This, in the preceding
+    example, would be `server1` and `server2`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: healthcheck_delay
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: For each upstream server, the `healthcheck_delay` directive defines the delay
+    between two healthchecks. The default value is `1000 ms`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: healthcheck_timeout
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `healthcheck_timeout` directive defines the timeout value for the healthcheck
+    operation. If the healthcheck operation is taking too long because the backend
+    is slow in responding, the process will stop after the timeout has elapsed. The
+    default value is `2000 ms`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: healthcheck_failcount
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `healthcheck_failcount` directive gives the number of good or bad healthchecks
+    in a row it takes to switch the current health status (good to bad or bad to good).
+    The default value is `2`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: healthcheck_send
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The `healthcheck_send` directive is a required directive that allows you to
+    decide what to send to do a healthcheck. This can be a simple HTTP `GET` command
+    or something more complex. Each argument is appended by `\r\n` and the entire
+    block is suffixed with another `\r\n`. The following is an example configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that you probably want to end your healthcheck with some directive that
+    closes the connection, for example, `Connection: close`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: healthcheck_expected
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `healthcheck_expected` directive allows you to specify what to expect in
+    return from the upstream server as a response to mark it as healthy. Any other
+    response or no response will mark the host as down. This refers to the response
+    in the HTTP body and not the headers. If this directive is missing, a simple response
+    code of 200 will be enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: healthcheck_buffer
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `healthcheck_buffer` directive gives the size of the buffer where the response
+    from the backend will be temporarily stored for checking. Make sure you allocate
+    enough memory not only for the body but also for the headers that you expect to
+    receive back in response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Load balancing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There are a number of third-party Nginx modules available, which allow you to
+    distribute load among upstream servers based on a hashing mechanism or on a least-busy
+    basis. There are various hashing mechanisms available for load balancing, some
+    of which are available via third-party modules. Here, we will just take a brief
+    look at some of the options available to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consistent hashing
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `ngx_http_upstream_consistent_hash` module allows you to load balance using
+    a consistent hash ring. Consistent hashing is a special hashing algorithm that
+    is quite good when you have to rehash frequently because a new machine or server
+    is added or removed from the pool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is compatible with the `php-memcached` module, and you can store
+    values in the `memcached` cluster that this module can read from. You can find
+    more details about this module at [http://wiki.nginx.org/HttpUpstreamConsistentHash](http://wiki.nginx.org/HttpUpstreamConsistentHash).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is another similar module that uses the Ketama consistent hashing library
+    to compute a hash on a configuration variable, that is, Request URI. Check out
+    more information about this at [http://wiki.nginx.org/HttpUpstreamKetamaCHashModule](http://wiki.nginx.org/HttpUpstreamKetamaCHashModule).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Least busy
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The `ngx_http_upstream_fair_module` module allows you to do load balancing based
+    on which upstream is least busy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module also provides a status page where you can view the current status
+    of load balancing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module uses **Weighted Least-Connection Round Robin** (**WLC-RR**) with
+    a number of possible variations. More information on this module is available
+    at [http://wiki.nginx.org/HttpUpstreamFairModule](http://wiki.nginx.org/HttpUpstreamFairModule).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuration variable hashing
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Configuration variable hashing is probably the most random hashing you can do.
+    You can choose to do a hash on one of the available variables, that is, `$request_uri`
+    or HTTP headers or a combination of both. This module uses CRC-32 to compute the
+    hash on a specified variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More information on this is available at [http://wiki.nginx.org/HttpUpstreamRequestHashModule](http://wiki.nginx.org/HttpUpstreamRequestHashModule).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we looked at various useful third-party Nginx modules that
+    are not distributed with the source code by default. There are many more useful
+    modules available that you can find on GitHub. Please do pay attention to the
+    fact that the module is stable enough to be used in the production environment.
+    Always do some testing first and then carefully move the modules in the production
+    environments. The Nginx community will take no responsibility for any problems
+    that you may encounter as a result of using these modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will discuss developing our own Nginx module, which
+    will be the first step into the world of custom module development.
+  prefs: []
+  type: TYPE_NORMAL

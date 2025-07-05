@@ -1,0 +1,1125 @@
+- en: Chapter 8. Improving Performance and SEO Using Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up TCP options correctly for optimizing performance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reducing the keep-alives to free up Nginx workers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using Memcached as the cache backend
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configuring the right event model and file limits
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting max-age expiry headers for client-side caching
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocking scrapers, bots, and spiders to save bandwidth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Redirection of www to non-www domain for SEO
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Removing all white space from response
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up server status for monitoring
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up Munin for 24x7 Nginx monitoring
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling gzip pre-compression
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Preventing hotlinking using Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using embedded Perl to minify JavaScript files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using embedded Perl to minify CSS files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using embedded Perl to serve sitemaps (SEO)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up Boost module on Drupal with Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up streaming for Flash files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Utilizing the 1x1 gif serving module to do offline processing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter is all about how you can make your site load faster and possibly
+    get more traffic on your site. We will cover the basics of optimizing your Nginx
+    setup and some SEO tricks. These techniques will not only be useful for your SEO,
+    but also for the overall health of your site and applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up TCP options correctly for optimizing performance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx allows some easy ways to tweak TCP options which will be based upon your
+    server operating system that will allow faster loading of your sites. We will
+    have a look at the possible options and their impact.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following configuration will optimize your setup for Linux:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We use the following directives, and in the following table we can see what
+    they are actually utilized for:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Directive | Usage |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tcp_nodelay` | This directive allows or forbids the use of the socket option
+    `TCP_NODELAY`.By definition, `TCP_NODELAY` is for a specific purpose; to disable
+    the Nagle buffering algorithm. It should only be set for applications that send
+    frequent small bursts of information without getting an immediate response; where
+    timely delivery of data is required (the canonical example is mouse movements).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `tcp_nopush` | This directive permits or forbids the use of the socket options
+    `TCP_NOPUSH` on FreeBSD or `TCP_CORK` on Linux. This option is only available
+    when using sendfile.Setting this option causes Nginx to attempt to send it''s
+    HTTP response headers in one packet on Linux and FreeBSD 4.xOn Linux, Nginx can
+    use the `TCP_CORK` socket option. From the tcp(7) manual:`TCP_CORK`If set, don''t
+    send out partial frames. All queued partial frames are sent when the option is
+    cleared again. This is useful for prepending headers before calling sendfile(2),
+    or for throughput optimization. As currently implemented, there is a 200 millisecond
+    ceiling on the time for which output is corked by `TCP_CORK`. If this ceiling
+    is reached, then queued data is automatically transmitted. This option can be
+    combined with `TCP_NODELAY` only since Linux 2.5.71\. This option should not be
+    used in code intended to be portable.On FreeBSD Nginx can use the `TCP_NOPUSH`
+    socket option, which enables T/TCP transactions. This does much the same as the
+    above, but is known to be slow and somewhat buggy on many versions of FreeBSD.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Reducing the keep-alives to free up Nginx workers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Are you starting to feel that a lot of your Nginx seems to be tied up without
+    actually having a lot of traffic on you site? This simple tweak will let you efficiently
+    utilize your Nginx setup when you feel that your users are spending a lot of time
+    on a particular page before moving to the next page on your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This is, again, a fairly simple change in the configuration file as shown in
+    the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This simple directive actually sets the value of the time the connection with
+    the client is kept alive after a request. For example, in the preceding setting
+    the connection will wait for three seconds after serving a client request waiting
+    for the next request from them (and in the process ignoring other clients).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea is finding the right amount of time after which if you close the connection,
+    Nginx does not end up ignoring many requests unnecessarily. This will improve
+    the efficiency of how connections are managed by Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Memcached as the cache backend
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Over the last couple of years, Memcached has been one of the most utilized caching
+    layers used by nearly every large portal. It is interesting to notice how every
+    platform has evolved to support this as a default caching mechanism. Nginx is
+    not far behind and can utilize all the power of Memcached as a caching backend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The Memcached module is by default compiled into Nginx. In this we will assume
+    that a local Memcached instance is running on the 11211 port. The following configuration
+    will allow you to run a simple caching setup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a fairly simple setup, where the complete site is cached in Memcached.
+    The idea is that when Nginx is queried for a given URL, it is checked if Nginx
+    has the corresponding page in memory or not. If it has, then it is served directly
+    from there. Otherwise, we call the dynamic backend of the site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The catch, however, is that you will need to save the outputs of the pages in
+    memory for Nginx to be able to query it from Memcached. The following diagram
+    is an example of how this works in practice with a framework such as Django (Python).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965OS_08_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Configuring the right event model and file limits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx is an event-driven web server and it always tries to use the underlying
+    event model in the parent operating system to efficiently function. We will see
+    the various choices on offer depending on the operating systems we operate in.
+    In addition to that we will also have a look at how to modify the limits on file
+    descriptor in the configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This simple set of changes within the configuration is all that is needed to
+    make changes in the event model and file limits. You will, however, need to also
+    modify `sysctl.conf` on Linux and its equivalent on other operating systems to
+    enhance the underlying file limits in place or the following setting will be ignored:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this current setup, we have set a fairly high limit on the number of open
+    file descriptors that a worker process can have. We have also gone ahead and explicitly
+    selected the select event model which comes built in by default in Nginx. You
+    can also choose the poll event model or an alternative based upon the operating
+    system you are on. The following table outlines the various options one has in
+    selecting the event models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Select method | Operating system | Notes |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `select` | All | Standard method compiled in by default |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `poll` | All | Standard method compiled in by default |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `kqueue` | FreeBSD 4.1+, OpenBSD 2.9+, NetBSD 2.0 and MacOS X | With dual-processor
+    machines running MacOS X using kqueue can lead to kernel panic |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `epoll` | Linux 2.6+ | In some distributions, like SuSE 8.2, there are patches
+    for supporting epoll by kernel version 2.4 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `rtsig` | Linux 2.2.19+ | By default no more than 1024 POSIX realtime (queued)
+    signals can be outstanding in the entire system |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `/dev/poll` | Solaris 7 11/99+, HP/UX 11.22+ (eventport), IRIX 6.5.15+ and
+    Tru64 UNIX 5.1A+ |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `eventport` | Solaris 10 | To avoid kernel panic, it is necessary to install
+    this security patch |'
+  prefs: []
+  type: TYPE_TB
+- en: Setting max-age expiry headers for client-side caching
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a reverse proxy setup, one of the most crucial tasks of a frontend web server
+    like Nginx is to serve the static files. This is one of the most effective optimizations
+    in the arsenal of a web administrator. In this, we set the client side cache expiry
+    on static files to a significantly high value far in the future. This ensures
+    that if the site is frequently used by the user, the static files like the images,
+    CSS, and JavaScript files are not downloaded once again. This leads to a significantly
+    better interaction with the site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you tend to use development plugins such as Firebug (which you can check
+    out at [http://getfirebug.com)](http://getfirebug.com)), they show you the headers
+    of the files downloaded when you load a page, as shown in the following screenshot.
+    This shows an example of the CSS files downloaded on the Yahoo! site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting max-age expiry headers for client-side caching](img/4965_08_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This is a simple configuration change that needs to be made to the location
+    directive that serves the static files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a fairly simple directive where if the file is a static file like a
+    CSS, JS, or any image file, we simply send the file back with the `Expires` header
+    set far in the future. This will ensure that the file stays in the cache of the
+    client browser and is not reloaded unnecessarily when the user comes back to the
+    same page in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Static files like these do not change on most sites, while the HTML which defines
+    the structure of the content may be very much dynamic. This also prevents significant
+    unnecessary bandwidth usage for the site owners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You must keep in mind that a lot of time you will need to modify static files,
+    so in those cases you will need to append a random/different query string variable
+    to force the client to download the fresh version of the static file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blocking scrapers, bots, and spiders to save bandwidth
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you have ever gone through your access log you will see a whole load of rather
+    weird looking User-Agents visiting your site. Except for the larger search engines
+    such as Google, Microsoft Bing, and Yahoo! every other bot is pretty much unnecessary
+    in the larger scheme of the global SEO scenario today. In this recipe we will
+    end up blocking out a whole lot of other content leechers and in the process save
+    you valuable bandwidth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will also block a whole load of commenting bots that end up pushing ugly
+    and unnecessary comments to screw up your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will need to add the following in the location directive to keep away a
+    fairly large list of scrapers, bots, and spiders. We will start with a smaller
+    set of user agents to block, and can add others once we are sure of how it works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This set of rules effectively look at the HTTP user agent and compare it to
+    a list "of know rouge" user agent list and reject the request by redirecting them
+    to the `robots.txt` file. This also ensures that you are never wasting computation
+    time and bandwidth on bots which can be utilized in providing a better quality
+    of service for your users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By stopping spam comments on your site, you are also effectively ensuring that
+    your SEO does not get affected by pornographic or explicit content injected by
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redirection of www to non-www domain for SEO
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most people do not realize that [www.example1.com](http://www.example1.com)
+    is not the same as `example1.com` for the search engines. Technically, they are
+    completely separate entities. All search engines have algorithms to detect copied
+    content to rank out the people who plagiarize content. In such a situation it
+    is imperative that people actually use either [www.example1.com](http://www.example1.com)
+    or [example1.com](http://example1.com) as the operative domain name for their
+    site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The verdict on what is better depends on the use case; the puritans argue that
+    www version represents the correct sub-domain for all the Internet users. It can
+    be argued that in an age where we use acronyms for nearly every word, the extra
+    characters are unnecessary and may even affect your site's popularity. In this
+    recipe, we will stick with non-www as the primary domain and force all www pages
+    to redirect to the non-www pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will insert the following configuration in the http directive to redirect
+    all `http://example1.com` requests to `http://www.example1.com:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a simple rewrite rule for all www based requests, where they are redirected
+    to the non-www URL. This makes sure that there is only one version of a page visible
+    on the Internet for the search engines to crawl.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Removing all white space from response
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This may sound a bit absurd, but white spaces form a major chunk of the files
+    being transferred on a site. It can be said that if you are using GZIP compression
+    then it is not an issue, but if you are looking at getting the most out of your
+    setup then every little thing matters. This recipe will help you strip out all
+    the unnecessary white space without wasting precious development time doing the
+    same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This simple directive will allow you to strip the HTML served of white spaces.
+    You will first need to install the `mod_strip` module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will first need to download the module and untar it:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'We then compile into Nginx the module, using the following configure statement:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'We then put the following directive in the location part of the site that we
+    want to strip spaces for:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is an extremely fast module and it efficiently removes all whitespaces
+    (spaces, tabs, and newlines) from the HTML served by Nginx. This in combination
+    with the GZIP compression provides quite a drastic improvement in page loading
+    times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up server status for monitoring
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Sometimes in an active production environment, it is not possible to process
+    logs to see web server statistics on the fly. In such situations, Nginx provides
+    you with a simple server status page. This page will give you enough information
+    to understand the current load on the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This module does not come compiled in by default, so we will initially compile
+    in the module and then configure the server status stub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to recompile Nginx and add the following flag to the configure
+    option:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Then we will go ahead and use the configuration to add a new status end-point:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This simple configuration will create a page [http://www.example1.com/nginx_status](http://www.example1.com/nginx_status),
+    which will give you statistics on how much load is there on your web server. The
+    following is an example of what you may get to see on the page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also set up access control for this page by looking at the *Setting
+    up HTTP auth for access control* recipe in [Chapter 5](ch05.html "Chapter 5. Let''s
+    be Secure: Security Modules"), *Let''s Be Secure: Security Modules* which will
+    let you set up HTTP authentication.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The following table explains the meaning of the server status output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Statistic | Meaning |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Active connections | Number of open connections to the backend |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Server accepts handled requests | Nginx accepted 16630948 connections, went
+    ahead and handled 16630948 connections and served 31070465 requests |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Reading | The number of requests Nginx is reading |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Writing | The requests that are being processed or being written back to
+    the clients |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Waiting | Connections that are kept alive with the clients (KeepAlives) |'
+  prefs: []
+  type: TYPE_TB
+- en: Setting up Munin for 24x7 Nginx monitoring
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In a production level environment where you may have multiple servers running,
+    it becomes necessary to have top level monitoring tools such as Munin. The tools
+    let you collate information and figure out load levels on the fly thus keeping
+    you in the loop 24 hours, seven days a week. This recipe aims at being useful
+    for the new Nginx user as well as highly experienced system administrators. The
+    following screenshot is a sample of the kind of visualizations Munin generates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up Munin for 24x7 Nginx monitoring](img/4965_08_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are two parts to this recipe; the first is in setting up Nginx with the
+    server stub module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to recompile Nginx and add the following flag to the configure
+    option:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Then we will go ahead and use the configuration to add a new status end-point:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now we will go ahead and install the Munin plugins. Do note that we are assuming
+    that you have already set up Munin on your system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will first download the plugins:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now we will link the plugins to the correct directories:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Add the Nginx server stub URL to the Munin configuration (/etc/munin/plugin-conf.d/munin-node).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Restart the munin-node:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now you should be able to view something like the following screenshot on your
+    Munin installation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How to do it...](img/4965_08_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This two part setup first installs the server status stub module for Nginx which
+    is used by Munin to keep track of the server loads. In the second part, we install
+    the various Munin plugins that are needed to effectively monitor Nginx. Munin
+    will keep polling the server status and parse it to gather the relevant information
+    to generate the graphs. These simple visualizations can help the system administrator
+    optimize the system further and potentially plan future hardware needs based on
+    projections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enabling GZIP pre-compression
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have had a look at how GZIP compression can lower the site's loading time
+    drastically. We can further extend that thinking by pre-compressing the static
+    sites that we want to serve and effectively reduce the computation power we waste
+    to compress the file each and every time. This recipe will automagically help
+    you serve a pre-compressed gzipped version of your static file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will need to carry out the following steps to enable gzip pre-compression
+    module and use it effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to recompile Nginx and add the following flag to the configure
+    option:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now, you will need to compress the various static files (using the gzip command
+    line utility, if on UNIX) that you have so that Nginx can serve those pre-compressed
+    ones whenever possible. Make sure that the compressed files are placed in the
+    same directory as the original files.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Make the following changes to the Nginx configuration file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When this module is turned on, Nginx will always look for a pre-compressed file
+    whenever a file is being served from the disk. The idea is to simply avoid spending
+    more CPU time compressing the content every time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preventing hotlinking using Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A lot of multimedia driven sites have the problem of people linking and embedding
+    their content without their explicit permission. This not only leads to copyright
+    issues at times, but also ends up in lost bandwidth for the site minus the traffic.
+    This is clearly not a good scenario for any site. This recipe helps you prevent
+    this situation on your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This simple rule will stop other sites from linking to your content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The idea behind this is to set a list of correct referrer values which are
+    permissible. The rest are rejected. In case there is no match with this list the
+    variable, `$invalid_referer` is set to 1\. The lists of parameters in the `valid_referers`
+    mean the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| parameter | Meaning |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| None | This value implies that it is a match when the "refers" line is not
+    a part of the request header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| blocked | This means masked refer headers by firewall. For example "Referer
+    : XXXXXX". |'
+  prefs: []
+  type: TYPE_TB
+- en: Do note that this method is not an absolute fix for hot-linking as it is fairly
+    easy to spoof the header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using embedded Perl to minify JavaScript files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe will have a look at how to get embedded Perl working in Nginx and
+    use it to minify JavaScript files. The basic concept of minifying JavaScript files
+    is to reduce the size of the file by removing unnecessary whitespaces and shortening
+    variable names. Of course, any compression of the JavaScript file should not be
+    affecting the actual functionality of the site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will start by installing the embedded Perl module and then go ahead and configure
+    the setup to minify the JavaScript files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to recompile Nginx and add the following flag to the configure
+    option:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will need to add the following into your Nginx configuration to get started
+    with using embedded Perl. This assumes that you have installed the JavaScript
+    minifier library from CPAN:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: You will then need to create the Minify handler which will reside in the `Minify.pm`
+    file. This is the actual function that will minify the JavaScript code and cache,
+    and serve the generated file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now you can simply go ahead and restart Nginx. You will begin to notice minified
+    JavaScript files appearing in your `/tmp` directory.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a fairly interesting and simple setup, where we basically use embedded
+    Perl as a way of minifying the JavaScript files and caching them. The Perl script
+    is intelligent in the way that it ensures that the minifying happens only once
+    initially, and then after every request the file is served from the hard drive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A comparison of the various Yahoo UI JavaScript files when minified can be
+    seen in the following screenshot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965_08_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: There's more...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This same approach can be used to do a whole lot of other utility activities
+    inside the web server. We will have a look at how to minify CSS in the next recipe
+    using a very similar approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using embedded Perl to minify CSS files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will have a look at how we can minify CSS files using embedded Perl within
+    Nginx. This simple recipe will ensure that you do not waste time thinking about
+    such optimizations when deploying a production site. Minifying CSS can result
+    in significantly smaller asset files which need to be downloaded by the end user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will start by installing the embedded Perl module and then going ahead to
+    configure the setup to minify the JavaScript files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to recompile Nginx and add the following flag to the configure
+    option:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will need to add the following into your Nginx configuration to get started
+    with using embedded Perl. This assumes that you have installed the CSS minifier
+    library from CPAN:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will then need to create the Minify handler, which will reside in the `Minify.pm`
+    file. This is the actual function that will minify the code and cache, and serve
+    the generated CSS file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now you can simply go ahead and restart Nginx. You will start to notice minified
+    CSS files appearing in your `/tmp` directory.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this recipe, we first ensure that you install the embedded Perl module. Then
+    we configure Nginx to run a piece of Perl code when a CSS file is queried for.
+    The Perl script effectively minifies the CSS file on the first call made, and
+    it serves the minified file from the caching location for subsequent calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using embedded Perl to serve sitemaps (SEO)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Since the advent of search engines, SEO has played a crucial role in the Internet
+    economy. Businesses want to attract more visitors to their sites, thus creating
+    more awareness and opportunities to sell their products/services. One of the most
+    basic concepts that have served as standard for search engines when they index
+    a site for information is the sitemap. A sitemap is nothing but a directory of
+    all the potential links on the site. It also assigns weights to how often a particular
+    page changes, ensuring that a search engine can come back and look at the page
+    at regular intervals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will look at how to take your sitemaps and serve them correctly using Nginx.
+    You can then use these sitemaps on the various webmaster tools provided by Google,
+    Bing, and other search engines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Using embedded Perl to serve sitemaps (SEO)](img/4965OS_08_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this recipe we will first set up a sitemap generator and then integrate it
+    with our Nginx setup to generate and serve sitemaps correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this we will assume that you are able to set up the python sitemap generator:
+    ([http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html](http://sitemap-generators.googlecode.com/svn/trunk/docs/en/sitemap-generator.html)).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'You can now go ahead and put the following configuration into your Nginx setup
+    to enable the sitemap generation:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Now we need to place the Perl handler, which will allow you to serve the generated
+    sitemaps:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Now all you need is to restart Nginx and visit [http://www.example1.com/sitemap.xml](http://www.example1.com/sitemap.xml).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a fairly interesting setup that basically sets up the Google sitemap
+    generator and then utilizes it when the sitemap is queried for by the search engines.
+    The Perl code is fairly simple as it is only called when the sitemap is not found.
+    It basically makes a call to the python code, which will generate the sitemap
+    and go ahead and serve the files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Boost module on Drupal with Nginx
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Drupal is one of the leading open source CMS applications out there. It has
+    proved to be extremely capable in handling a variation of content driven portals
+    out on the Internet today and will continue to be a dominant player in this market.
+    As with any high performance platform, a particular module called Boost has emerged
+    as a strong tool in the hands of system administrators who want to scale up and
+    optimize their Drupal setup. In this recipe, we will look at how we can take a
+    Drupal setup which has Boost, and use Nginx's strength of serving static files
+    for a fairly significant optimization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up Boost module on Drupal with Nginx](img/4965OS_08_07.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is assumed that you have already installed and configured Boost for Drupal.
+    It is a fairly simple and well-documented setup which can be found online ([http://drupal.org/project/boost](http://drupal.org/project/boost)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that you have already installed Boost and Nginx is running as your frontend
+    web server and using PHP-FCGI, you will need to place the following configuration
+    in your Nginx sites-enabled directory:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: All you need to do now is restart Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This particular configuration can be looked at in the following steps. First,
+    when the request comes in, the Boost physical cache it is checked. If it is found
+    in the cache, it is served back to the client. If not, it basically rewrites the
+    clean URL into the Drupal `index.php` argument form and makes the PHP call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a highly optimized setup, as it ensures that you serve the static files
+    using Nginx whenever possible. As generating similar pages consistently is clearly
+    a waste of precious server resources, this will let you focus on optimizing more
+    frontend aspects of your web application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up streaming for Flash files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Video has become quite the dominant format on the net. It is also fair to say
+    that Flash has been the driving force behind this over the last couple of years.
+    YouTube ([http://youtube.com](http://youtube.com)) is a good example of FLV streaming
+    video sites. In this recipe, we will look at how simple it is to set up Flash
+    video streaming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Setting up streaming for Flash files](img/4965_08_08.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this simple recipe, you will initially need to re-compile Nginx with the
+    FLV module and then configure the directories that will serve the FLV files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need to recompile Nginx and add the following flag to the configure
+    option:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'You will then need to add the following configuration to the directory location
+    where you are streaming it from:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: You will then need to restart Nginx.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a fairly simple setup where you will not need to do a lot to get FLV
+    streaming working in no time. This module allows you to seek within FLV files
+    using time-based offsets. This means that the user is able to start the video
+    from somewhere in the middle and perform other similar video timeline operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Utilizing the 1x1 GIF serving module to do offline processing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Sometimes we encounter situations where the backend processing takes a bit more
+    time than necessary and the client has to unnecessarily wait for a response. This
+    recipe looks into a way of making a non-block call to a URL, potentially allowing
+    you to send a response back to the user's browser that much faster, and yet ensuring
+    that the background processing occurs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also used for delivering an empty GIF which can be used for spacing in
+    table-based HTML design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'All you need to implement a simple example is to use the following configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a simple example where a 1x1 GIF is returned immediately when someone
+    visits the site [http://www.example1.com](http://www.example1.com). That, in turn,
+    actually fires up a POST call on [http://www.example1.com/post](http://www.example1.com/post),
+    which is an internal only call. This web server call will perform whatever background
+    activity is required, while the client would have already received his 200OK response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How it works...](img/4965OS_08_09.jpg)'
+  prefs: []
+  type: TYPE_IMG

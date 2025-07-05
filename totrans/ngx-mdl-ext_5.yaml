@@ -1,0 +1,752 @@
+- en: Chapter 5. Creating Your Own Module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx allows you to extend functionality by writing new modules in plain C.
+    This chapter gives a brief introduction to creating your own modules. It is a
+    quick reference to the module system in Nginx, and the internal architecture of
+    Nginx, which makes extension possible. It introduces different categories of modules
+    and add-ons you can create at a high level. This chapter will also contain a quick
+    introduction of NDK, a special module in Nginx used as a basis of other modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The topics covered are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concept of module chaining and delegation in Nginx
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Handler modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Filter modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Load balancer modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Nginx Development Toolkit** (**NDK**): The NDK is an Nginx module that is
+    designed to extend the core functionality of the excellent Nginx web server, in
+    a way that can be used as a basis of other Nginx modules'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sample source code of a custom Nginx module
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At the end of this chapter, the advanced users will have an idea about internal
+    Nginx architecture, and what is the basis of creating your own third-party module.
+    Readers should be able to know how to use NDK; the source code will help them
+    see a very simple self-written module in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nginx module delegation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nginx has a very modular architecture. All major operations that Nginx performs
+    are carried out by modules. All Nginx modules are built in at compile time and
+    are not loaded dynamically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Module delegation can also be called **module chaining**. The core pretty much
+    does the basic stuff related to setting up the connection and taking care of things
+    related to the protocol. It then sets up a chain of modules to execute, each taking
+    care of a certain phase or stage of request processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The module-based noncentralized architecture makes it possible for advanced
+    users to develop a module that does something they want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following are the different types of Nginx modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Handlers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There is a handler for each defined location in the configuration file. When
+    the server starts up, handlers are attached or bound to a location. Ideally there
+    should only be one handler to a location; if there are more than one defined in
+    the configuration file, only one of them will be valid (typically the last one).
+    Handlers end in the following three ways: successfully when all is good, fail
+    when there is an error, or they will not process the request and will let the
+    default handler process it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Load balancers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The load balancer or upstream module forwards your requests to one of the many
+    configured backends or upstreams. Nginx, by default, has two load-balancing modules
+    built in: **Round Robin** and the **IP Hash** method (look at `ngx_http_upstream_module`).
+    There are other third-party modules available that allow you to do load balancing
+    based on various hashing mechanisms, for example, Consistent Hashing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After a handler produces a response, the filters are executed. Filters do the
+    postprocessing on the handler's response. One example can be that you need to
+    compress the response, or add certain headers to it. Multiple filters can associate
+    with each location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Order of execution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The order of execution of Nginx filters is determined when they are compiled.
+    You can see the order of the execution after compiling the code in `ngx_modules.c`.
+    This file is generated on the fly by the `modules` script, which is found at `nginx/auto/`.
+    This script makes sure that it maintains the correct order of the module and filter
+    execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The built-in modules do need a specific order, for example, a gzip filter should
+    run after the header and body filters have been executed. The new custom modules
+    are generally executed in the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filters do not execute in a fully blocked manner, rather the output of the filters
+    is streamed through the chain of filters. By default, one filter processes some
+    data and passes it on to the next module and so on. The amount of data processed
+    at a time is usually a multiple of the page size. Different modules, for example,
+    gzip, allow you to adjust this value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The extended "Hello world" module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we will proceed towards creating a simple Nginx module. This module will
+    print a configurable text in your browser whenever you enter a specific location.
+    This is a very simple module and the idea is to just introduce the core concepts
+    of how to create an Nginx module. This is based on and is an enhanced version
+    of the simple Hello world module found at [http://blog.zhuzhaoyuan.com/2009/08/creating-a-hello-world-nginx-module/](http://blog.zhuzhaoyuan.com/2009/08/creating-a-hello-world-nginx-module/).
+    This module is an example of a handler module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing and compiling a module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The first thing you have to do is to obviously create a folder for your new
+    module. Create it anywhere other than the Nginx source tree. You should create
+    the following two files to start with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`config`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_http_hello_module.c`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The contents of the `config` file will depend on what kind of module you are
+    writing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this simple module, it will look like the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The file is quite self-explanatory. In the second line we are adding the module
+    to a list of HTTP modules. Depending on which module type you are writing, you
+    will need to add it to a different list. You can see the full list in the `modules`
+    script found at `nginx/auto/`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before compiling, the module needs to be explicitly specified using the `configure`
+    script as in the following code. The `add-module` list should contain a list of
+    all third-party modules you want to include in the compilation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This has to be followed by `make` and `make install` as usual.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The "Hello world" source code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The following code is from `ngx_http_hello_module.c:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A sample configuration for this extended `hello world` module could look as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Components of the Nginx module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are many components on an Nginx module depending on the type of the module.
+    We will now discuss those parts that are common to almost all the modules. The
+    intention is to present to you a reference in an easy to understand way so that
+    you can be ready to write your own module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Module configuration structures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Modules can define one configuration for each of the configuration file''s
+    configuration contexts—there is an individual structure for the main, server,
+    and location contexts. It is OK for most modules to simply have a location structure.
+    These structures should be named as `convention ngx_http_<module name>_(main|srv|loc)_conf_t`.
+    The following is the code snippet from the sample module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The members of this structure should use Nginx's special data types (`ngx_uint_t`,
+    `ngx_flag_t`, and `ngx_str_t`), which are simply aliases for basic/primitive types.
+    You can look into `core/nginx_config.h` in the source tree for the data type definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There should be as many members of this structure as the module directives.
+    In the preceding example our module only has one directive, so we can already
+    tell that this module will support a single directive/option at the location level,
+    which will populate the member `name` of this structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As it must be obvious by now, that the elements in the configuration structure
+    are filled by module directives defined in the configuration file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Module directives
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'After you have defined the place where the value of the module directives will
+    be stored, it is time to define the name of the module directives and what kind
+    and type of arguments they will accept. A module''s directives are defined in
+    a static array of the `ngx_command_t type` structure. Looking at the example code
+    we previously wrote, the following is what the directives structure looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The preceding structure may look a little bit complicated. However, we will
+    now look at each one of those to understand them a little better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first argument defines the name of the directive. This is of type `ngx_str`
+    and is instantiated with the directive name, for example, `ngx_str("hello")`.
+    An `ngx_str_t` data type is a struct type with data and length elements. Nginx
+    uses this data structure for all the strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second argument defines the type of the directive, and what kind of arguments
+    it accepts. The acceptable values for these parameters should be bitwise ordered
+    with each other. The possibilities are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Please see the full details in `ngx_conf_file.h` found in the `core` folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The maximum number of arguments that a directive can take is eight (0-7) as
+    defined in `core/ngx_conf_file.h`, as shown in the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding example, we only use a single element in the array, as we are
+    providing values for a single `ngx_command_t` structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The third argument is a function pointer. This is a setup function that takes
+    the value provided for the directive in the configuration file and stores it in
+    the appropriate element of the structure. This function can take the following
+    three arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pointer to `ngx_conf_t` (`main`, `srv`, or `loc`) structure, which contains
+    the values of the directive in the configuration file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pointer to the target `ngx_command_t` structure where the value will be stored
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pointer to the module's custom configuration structure (can be `NULL`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Nginx provides a number of functions that can be used to set the values for
+    the built-in data types. These functions include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_flag_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_str_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_str_array_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_keyval_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_num_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_size_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_off_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_msec_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_sec_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_bufs_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_enum_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_bitmask_slot`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Some of these are described as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_flag_slot`: This translates on or off to 1 or 0'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_str_slot`: This saves a string as `ngx_str_t`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_num_slot`: This parses a number and saves it to an integer'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ngx_conf_set_size_slot`: This parses a data size (5k, 2m, and so on) and saves
+    it to `size_t`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Module authors can also pass the pointer to their own function here, if the
+    built-in functions are not sufficient for their purpose, for example, if the string
+    needs to be interpreted in a certain way instead of just being stored as it is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to specify where these built-in (or custom) functions will store the
+    directive values, you have to specify `conf` and `offset` as the next two arguments.
+    `conf` specifies the type of the structure where the value will be stored (`main`,
+    `srv`, `loc`) and `offset` specifies which part of this configuration structure
+    to store it in. The following is the `offset` of the element in the structure,
+    that is, `offsetof(ngx_http_hello_loc_conf_t, name)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last element is often `NULL`, and at the moment we can choose to ignore
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last element of the command array is `ngx_null_command`, which indicates
+    the termination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The module context
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The third structure in an Nginx module that needs to be defined is a static
+    `ngx_http_module_t` structure, which just has the function pointers for creating
+    the `main`, `srv`, and `loc` configurations, and merging them together. Its name
+    is `ngx_http_<module name>_module_ctx`. The function references that you can provide
+    are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre configuration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Post configuration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating the main `conf`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Initializing the main `conf`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating the server `conf`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Merging it with the main `conf`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating the location `conf`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Merging it with the server `conf`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'These take different arguments depending on what they''re doing. The following
+    is the structure definition, taken from `http/ngx_http_config.h`, so you can see
+    the different function signatures of the callbacks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can set functions you don't need to `NULL`, and Nginx will accept it, and
+    do the right thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The create functions such as create main `conf`, create server `conf`, and create
+    location `conf` normally just allocate memory for the structures (such as `malloc()`)
+    and initialize the elements as default values. The functions such as initialize
+    main `conf`, and merge with main `conf` provide the opportunity to override the
+    default values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During merging, the module authors can look for duplicate definitions of elements
+    and throw errors if there is a problem with directives provided by configuration
+    authors in the configuration file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most module authors just use the last two elements as such: a function to allocate
+    memory for `ngx_loc_conf` (`main` , `srv`, or `loc`) configuration, and a function
+    to set defaults and merge this configuration into a merged location configuration
+    (called `ngx_http_<module name >_merge_loc_conf`).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is an example module context structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can have a closer look now at these functions, which set up the location
+    based on configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: create_loc_conf
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The following is what a basic `create_loc_conf` function looks like. It takes
+    a directive structure (`ngx_conf_t`) and returns a module configuration structure
+    that is newly allocated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Nginx memory allocation takes care of freeing the memory if you use the
+    built-ins `ngx_palloc` (a malloc wrapper) or `ngx_pcalloc` (a calloc wrapper).
+  prefs: []
+  type: TYPE_NORMAL
+- en: merge_loc_conf
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The sample module we created does not contain a merge location `conf` function.
+    However, we can look at the following sample code just to explain some basic concepts.
+    You generally need a merge function if a directive can be defined multiple times.
+    It is your job to define a merge function that can set the appropriate value in
+    case it is defined multiple times or in multiple locations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Nginx provides very useful merging built-in functions for various data types
+    (`ngx_conf_merge_<data type>_value`). These functions take the arguments as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The location's value (can refer to an element in a structure)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The value to use if the first value is not set
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The default value if both first and second values are not set
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The first argument stores the result. See `core/ngx_conf_file.h` for a full
+    list of available merge functions. The following is an extract from the file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see these functions are defined as macros, and they are expanded
+    and placed inline in the code during compilation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another thing to learn is how to log errors. The function outputs to the log
+    file using the `ngx_conf_log_error` function—where you specify a log level—and
+    returns `NGX_CONF_ERROR`, which stops server startup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several log levels defined in Nginx. These are defined in `ngx_log.h`.
+    The following is an extract from the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The module definition
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The next structure a new module should define is the module definition structure
+    or the `ngx_module_t` structure. The variable is called `ngx_http_<module name>_module`.
+    This structure binds together the structures we have been defining until now.
+    You have to provide the pointers to the context and directives structures, as
+    well as the remaining callbacks (exit thread, exit process, and so on). The module
+    definition can act like a key to look up data associated with a particular module.
+    The module definition of our custom module looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can see that the macros `NGX_MODULE_V1` and `NGX_MODULE_V1_PADDING` provide
+    the values for the structure elements before and after the highlighted section
+    in the preceding code. This is a detail we don''t need to get into at the moment.
+    For now, look at the following example on how to use them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see from the comments in the preceding code what each argument means.
+    The first and last elements are the masks that hide the additional structure elements
+    mainly because we don't need them, and they are place holders for the future.
+    We also provide a module type, which in this case is HTTP. Most of the user-defined
+    custom modules will be of this type. You can define other types such as CORE,
+    MAIL, EVENT and so on; however, they are mostly not used as add-on module types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The handler function
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The final piece of the puzzle after all the preparation work and configuration
+    structures is the actual handler function which does all the work. The handler
+    function for our sample module is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are a few things to learn in the code. As explained earlier, this module
+    basically prints whatever you had provided in the configuration. For example,
+    according to the following configuration, this module will make sure that it prints
+    **Hello World** whenever you open `http://localhost:8080`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: This method receives the HTTP request as an argument. If your module only responds
+    to a certain type of HTTP requests, you can check by looking at the HTTP request
+    structure. For example, our module only responds to HTTP `GET` and `HEAD` requests
+    as checked by this chunk of code; otherwise it returns "error code 405 (not allowed)".
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All the HTTP error codes are defined in `ngx_http_request.h` as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we discard the request body as in this module we don't need it. In several
+    modules, one will write a body that will be important, however, right now we don't
+    care about it. By discarding the request body, Nginx will not read the request
+    body fully for processing and will not allocate memory for it internally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next we set some HTTP headers in our response. All headers you can set in the
+    response can be accessed through the `headers_out` member of the HTTP request
+    structure. The `headers_out` structure allows you to set a number of outgoing
+    headers. The extract from `ngx_http_request.h` is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next important step in our module is allocating memory for the response
+    buffer. This memory should be allocated using Nginx's own APIs as mentioned in
+    earlier chapters (since it also automatically takes care of freeing it). This
+    can be done because the memory is allocated from a local memory pool, so that
+    all memory allocations are tracked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The response is created in a linked list or *chain* of buffers, each of which
+    is of the size of `ngx_buf_s`. This allows Nginx to process the response in a
+    parallel way. If there are other handlers or filters that need to postprocess
+    the response, they can start their work as soon as the first buffer in the chain
+    is ready, while you are filling up the second buffer. This allows Nginx to keep
+    operating in a parallel fashion without waiting for any module to completely finish
+    processing first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you are finished with creating the response in the last buffer, you should
+    set `b->last_buf = 1`. This, as it is obvious from the name, will tell Nginx that
+    this is the last response buffer from your module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the response processing was successful, you would want to set the status
+    of the response header to `HTTP_OK`. This is done by `r->headers_out.status =
+    NGX_HTTP_OK`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will then need to initiate the chain of header filters by calling `ngx_http_send_header`.
+    This will indicate to Nginx that processing of the output headers has finished,
+    and now Nginx can pass them to a chain of filters, which might want to do further
+    postprocessing to the headers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final step is returning from the function by calling `ngx_http_output_filter`.
+    This will initiate the process of the HTTP body filter chain. That is, Nginx or
+    custom filter modules that might have been installed to do postprocessing on the
+    HTTP response body you have just created in the buffer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The summary of creating the Nginx custom module can be as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a module configuration that is structured either for location , main,
+    or server; each with a specific naming convention (see `ngx_http_hello_loc_conf_t`).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The allowed directives of the module are in a static array of `typengx_command_t`
+    (see `ngx_http_hello_commands`). This will also have the function's pointers that
+    will have the code to validate the value of each directive as well as initialize
+    the handler.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Create a module context struct such as `ngx_http_<module name>_module_ctx` of
+    type `ngx_http_module_t` which has a bunch of hooks for setting up configuration.
+    Here you can have the post configuration hook, for example, to set up the main
+    handler of your module (see `ngx_http_hello_module_ctx`).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Then we do the module definition, which is also a struct of type `ngx_module_t`
+    and contains references to the module context and module commands that you created
+    in the previous steps (see `ngx_http_hello_module`).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create the main module handler function that processes the HTTP request. This
+    function also outputs the response headers and body in a series of fixed size
+    buffers.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Nginx Development Toolkit (NDK)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NDK is an Nginx module that makes it easier for the module developers to develop
+    Nginx modules. As you have seen in this chapter so far, there are certain generic
+    tasks that are repetitive as you are developing modules. NDK provides you with
+    some built-in macros and functions that will reduce the amount of code you will
+    have to write to develop a module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to use NDK, you will have to add it as a module just like any other
+    module. If you wish to use the macros and functions provided by this module, you
+    will have to include the `ndk.h` file in your module source as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NDK provides useful utilities such as `conf` set functions for complex types
+    such as paths and regular expressions, utility methods for NULL checking, returning
+    values, and setting data to zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NDK also includes an **Auto Lib Core** that allows the developers and users
+    to include external libraries in Nginx in a consistent, cross-platform manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see more details and documentation at [https://github.com/simpl/ngx_devel_kit](https://github.com/simpl/ngx_devel_kit).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter we have learned the process of creating a simple Nginx handler
+    module. We also looked at which basic structures a new module should define, and
+    how to link them to each other. Finally, we looked at a small handler function
+    that does a basic task, but provides you the basis of writing a much more complicated
+    module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are an Nginx module developer, you must extensively browse other modules
+    and Nginx source code, which will help you learn how to do different things within
+    your code and which API to use in general.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will also find Nginx Development Kit at [https://github.com/simpl/ngx_devel_kit](https://github.com/simpl/ngx_devel_kit).
+    This will provide you additional `conf_set` functions for regexes, complex/script
+    values, paths, and macros to simplify tasks such as checking for NULL values when
+    doing `ngx_array_push` and much more, which will simplify your life while writing
+    custom Nginx modules.
+  prefs: []
+  type: TYPE_NORMAL

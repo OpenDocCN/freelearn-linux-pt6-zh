@@ -1,0 +1,684 @@
+- en: Reverse Proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following recipes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring NGINX as a simple reverse proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Content caching with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Monitoring cache status
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Microcaching
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serving from cache when your backend is down
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SSL termination proxy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Rate limiting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the most powerful features of NGINX is its ability to act as a reverse
+    proxy. As opposed to a forward proxy, which sits between the client and the internet,
+    a reverse proxy sits between a server and the internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s a visual representation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/4848ed4f-ec12-4425-92da-4c6ca9e05f76.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A reverse proxy can provide a multitude of features. It can load balance requests,
+    cache content, rate limit, provide an interface to a **Web Application Firewall**
+    (**WAF**), and lots more. Basically, you can greatly increase the number of features
+    available to your system by running it through an advanced reverse proxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring NGINX as a simple reverse proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this recipe, we'll look at the basic configuration of a simple reverse proxy
+    scenario. If you've read the first few chapters, then this is how NGINX was configured
+    in front of PHP-FPM and similar anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before you can configure NGINX, you'll first need to ensure your application
+    is listening on a different port than port `80`, and ideally on the `loopback`
+    interface, to ensure it's properly protected from direct access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here''s our `server` block directive to proxy all requests through to port
+    `8000` on the localhost:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For all requests, the `location` block directive is set to proxy all connections
+    to a specified address (`127.0.0.1:8000` in this instance). With the basic settings,
+    NGINX doesn't manipulate any of the data, nor does it cache or load balance. Testing
+    with a basic proxy method is always a good step before moving to a complicated
+    configuration to ensure that your application or program will work as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get around the fact that you don't want private information cached (and therefore
+    potential information leakage), NGINX will check for both cookies and cache headers.
+    For example, when you log in to a WordPress system, this login will return a `Set-Cookie`
+    header and NGINX will therefore exclude this from being cached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'One thing to note when using a reverse proxy is that the headers back to your
+    application will be based on the IP of the proxy. There are two choices here.
+    The first is to use the logs from NGINX as the authoritative for reporting purposes.
+    The second is to manipulate the headers so that we pass the correct IP through
+    to the application. Here''s what our updated block directive looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `X-Forwarded-For` header shows the full chain of servers which have proxied
+    the packet, which could be multiple forward proxies. This is why we also have
+    `X-Real-IP`, so that we ensure we have the real IP address of the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To ensure that the upstream hostname is sent through, we set the `Host` header
+    field. This allows the upstream server to be name-based and can allow multiple
+    hosts (that is, multiple websites) to be proxied under one configuration or one
+    server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Official NGINX proxy help: [http://nginx.org/en/docs/http/ngx_http_proxy_module.html](http://nginx.org/en/docs/http/ngx_http_proxy_module.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The NGINX proxy guide: [https://www.nginx.com/resources/admin-guide/reverse-proxy/](https://www.nginx.com/resources/admin-guide/reverse-proxy/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Content caching with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In addition to simply proxying the data through, we can use NGINX to cache the
+    proxied content. By doing this, we can reduce the amount of calls to your backend
+    service, assuming that the calls are able to be cached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As the caching is part of the standard NGINX platform, no additional prerequisites
+    are required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In order to enable the cache, first we need to define where to store the cached
+    files. This needs to be set outside the `server` block directive and is best stored
+    in the main `nginx.conf` file. Here''s the directive required:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Make sure you create the directory and that NGINX has write access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we can create a block directive to use this cache:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Firstly, the first parameter to the `proxy_cache_path` directive is the location
+    of the cache files. You can choose any directory which makes sense to your server
+    structure, but ensure that the NGINX user on your server has write access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `levels` parameter specifies how the cache is written to the system. In
+    our recipe, we have specified `1:2`. This means that the files are stored in a
+    two-level hierarchy. The reason this is configurable is due to potential slowdowns
+    when there are thousands of files within a single directory. Having two levels
+    is a good way to ensure this never becomes an issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third parameter, `keys_zone`, sets aside memory to store metadata about
+    the cached content. Rather than a potentially expensive (system resource wise)
+    call to see whether the file exists or not, NGINX will map the file and use in-memory
+    metadata for tracking. In our recipe, we have allocated 2 MB and this should be
+    sufficient for up to 16,000 records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While writing the cache to disk may seem counter-intuitive from a performance
+    perspective, you need to take into account that the Linux kernel will cache file
+    access to memory. With enough free memory, the file will be read once and then
+    each subsequent calls will be direct from RAM. While this may take more memory
+    than a standard configuration, a typical website can be as little as 64 MB in
+    total, which is trivial by modern standards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having the cache disk-based means that it's also persistent between reboots
+    or restarts of NGINX. One of the biggest issues with the cold start of a server
+    is the load on the system until it has had a chance to warm the cache. If you
+    need to ensure that the loading of any cache file from disk is as fast as possible,
+    I'd recommend ensuring that the cache is stored on a high-speed **Solid State
+    Drive** (**SSD**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: "The NGINX caching guide: [https://www.nginx.com/blog/nginx-caching-guide/\uFEFF\
+    ](https://www.nginx.com/blog/nginx-caching-guide/)"
+  prefs: []
+  type: TYPE_NORMAL
+- en: Monitoring cache status
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When developing complex sites or rapidly changing content, one key aspect is
+    to monitor where the content was served from. Essentially, we need to know whether
+    we hit the cache or whether it was a miss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This helps us ensure that, if there are issues, or on seeing incorrect content,
+    we know where to look. It can also be used to ensure the caching is working on
+    pages where it's expected and being bypassed for areas where it shouldn't be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As the caching is part of the standard NGINX platform, no additional prerequisites
+    are required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'One of the easiest ways is to simply add an additional header. To do this,
+    we add the additional directive to our existing proxy configuration within the
+    `location` block directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'NGINX internally tracks the status of the request (`$upstream_cache_status`),
+    so by exposing it as a header, we can now see it from the client side. If we use
+    Google DevTools or a utility such as `httpstat` to see the headers, you should
+    see an output like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can see by the `X-Cache-Status` header that the request was a hit, meaning
+    it was served from the cache not the backend. Other than the basic hit and miss,
+    there are also a number of other statuses which could be returned:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Status** | **Meaning** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `HIT` | The request was a hit and therefore served from cache |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `MISS` | The request wasn''t found in cache and therefore had to be requested
+    from the backend server |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `BYPASS` | The request was served from the backend server, as NGINX was explicitly
+    told to bypass the cache for the request |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `EXPIRED` | The request had expired in cache, so NGINX had to get a new copy
+    from the backend server |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `STALE` | NGINX couldn''t talk to the backend server, but instead has been
+    told to serve stale content |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `UPDATING` | NGINX is currently awaiting an updated copy from the backend
+    server, but has also been told to serve stale content in the interim |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `REVALUATED` | This relies on the use of `proxy_cache_revalidate` being enabled
+    and checks the cache control headers from the backend server to determine if the
+    content has expired |'
+  prefs: []
+  type: TYPE_TB
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'NGINX HTTP upstream variables: [http://nginx.org/en/docs/http/ngx_http_upstream_module.html#variables](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#variables)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The `httpstat` utility: [https://github.com/reorx/httpstat](https://github.com/reorx/httpstat)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Microcaching
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Caching is a great way to speed up performance, but some situations mean that
+    you will be either continually invalidating the content (which means you'll need
+    more server resources) or serving stale content. Neither scenario is ideal, but
+    there's an easy way to get a good compromise between performance and functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With microcaching, you can set the timeout to be as low as one second. While
+    this may not sound like a lot, if you're running a popular site, then trying to
+    dynamically serve 50+ requests per second can easily bring your server to its
+    knees. Instead, microcaching will ensure that the majority of your requests (that
+    is, 49 out of the 50) are served direct from cache, yet will only be 1 second
+    old.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As the caching is part of the standard NGINX platform, no additional prerequisites
+    are required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To take advantage of microcaching, we expand on our previous recipe to reduce
+    the timeout of the cache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: When you first look at it, 1 second timeouts seem like they won't provide any
+    help. For a busy site, the reduction of requests which have to hit the backend
+    server can be significantly dropped. It also means that your burst ability is
+    greatly increased, allowing your site to handle a spike in traffic without issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As shown in the following diagram, the higher the **Requests Per Second** (**RPS**)
+    the greater the advantage microcaching will provide:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/80d07109-3a18-4ff1-9454-a70063ed70d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We set the `proxy_cache_valid` directive to cache the `200` responses and set
+    them to be valid for 1 second (`1s`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The validation value can be as low as your minimum content refresh. If you need
+    changes to be live instantly, a 1 second timeout for the validation can be used.
+    If you have less frequent changes, then setting 10-20 seconds can also be acceptable
+    for many sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP response codes of `200` represent an OK response, meaning it was a successful
+    response from the server. We could also cache `404` requests (Not Found) as well,
+    especially knowing that some of these can be quite resource intensive if they
+    involve database searches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serving from cache when your backend is down
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While we don't want to see a scenario where your backend server is down, expecting
+    to maintain 100 percent uptime simply isn't realistic. Whether it's unexpected
+    or planned upgrades, having the ability to still serve content is a great feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With NGINX, we can tell it to serve stale cache data when it can't reach your
+    backend server. Having a page which is slightly out-of-date is (in most scenarios)
+    a far better outcome than sending the client a `502` HTTP error (Bad Gateway).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As the caching is part of the standard NGINX platform, no additional prerequisites
+    are required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Building on our previous recipes, we take the existing proxy setup and add
+    an additional directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the `proxy_cache_use_stale` directive, we specify which cases should use
+    a stale copy of the cache. For this recipe, we've specified that when we have
+    an error, timeout, `500` (Internal Server Error), `502` (Bad Gateway), `503` (Service
+    Unavailable), and `504` (Gateway Timeout) errors from the backend server that
+    the stale copy can be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If any of these scenarios trigger, we take the less abrupt option of serving
+    the content. Especially, if you've got short cache times (such as microcaching),
+    the users of the site won't even notice the difference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One thing you don't want to do is queue thousands of requests as your backend
+    system comes online. With a busy site, it's easy to overwhelm your system the
+    moment it becomes available again. Especially since a big update or restart usually
+    means local object caches within the backend are also cold, care needs to be taken
+    when bringing it back online.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One great feature NGINX has is to lock the cache to ensure only one request
+    per unique key is sent through. Here''s an updated configuration to use this lock:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `proxy_cache_lock` directive ensures that only one request (if there's a
+    cache `MISS`) is sent through to the backend/upstream server. All other requests
+    are either served from the cache (and stale if using this recipe) until the timeout
+    directive (`proxy_cache_lock_timeout`) is triggered, and if the cache status is
+    still a `MISS`, then it will try again. The timeout value needs to be sufficient
+    to allow the backend to be ready to serve pages; for some .NET-based or Java systems,
+    this could be as high as 120 seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This combination greatly lowers the peak impact on the backend after a cold
+    start and helps to avoid overwhelming the system. By ensuring only one request
+    per URI can be directed at the backend, we help ensure it has time to properly
+    process requests as the cache warms again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The proxy module: [http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_use_stale](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_use_stale)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The cache lock documentation: [http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SSL termination proxy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'One of the first use cases that I tried NGINX out for was simply as an SSL
+    termination proxy. If you have an application which can''t directly produce HTTPS
+    (encrypted) output, you can use NGINX as a proxy to do this. Content is served
+    from your backend in plain text, then the connection between NGINX and the browser
+    is encrypted. To help explain, here''s a diagram covering the scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/57ae3cf9-82dc-4504-a75b-f546c45e6088.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The advantage is that you also get to make use of all the other NGINX feature
+    sets too, especially when it comes to caching. In fact, if you've used the Cloudflare
+    service to achieve a similar outcome, then you may be surprised to know that it's
+    NGINX-based as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe involves the use of SSL certificates. If you haven't currently generated
+    any for your deployment, see [Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml),
+    *All About SSLs*, for hints and tips.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Similar to some of our previous recipes, we use NGINX to combine the SSL encryption
+    side and the proxy components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following are some useful tips you should keep in mind:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing to note is that most SSL certificates are only valid for a single
+    domain, unless they're a wildcard or **Subject Alternative Name** (**SAN**). If
+    you're intending to use NGINX as an SSL terminator to multiple hosts, you'll need
+    to have a `server` block or a SAN certificate mapped for each host.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Be careful with internal redirects within your application, especially if you
+    tell it to enforce HTTPS. When using NGINX for SSL termination, this needs to
+    be done at the NGINX level to avoid redirect loops.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The NGINX SSL termination guide: [https://www.nginx.com/resources/admin-guide/nginx-ssl-termination/](https://www.nginx.com/resources/admin-guide/nginx-ssl-termination/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rate limiting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you have an application or site where there's a login or you want to ensure
+    fair use between different clients, rate limiting can help to help protect your
+    system from being overloaded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By limiting the number of requests (done per IP with NGINX), we lower the peak
+    resource usage of the system, as well as limit the effectiveness of attacks which
+    are attempting to brute force your authentication system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Follow these steps for rate limiting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Firstly, we need to define a shared memory space to use for tracking the IP
+    addresses. This needs to be added in the main configuration file, outside the
+    standard `server` block directive. Here''s our code:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, within the `server` block, you can set which location you wish to limit.
+    Here''s what our `server` block directive looks like:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can run Apache Benchmark (a simple web benchmarking tool) under a few different
+    scenarios to test the effectiveness. The first is to use a single connection and
+    make 200 requests:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This gives us the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: As the results show, we didn't receive any errors and averaged 9.98 requests
+    per second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the next test, we''ll increase the number of concurrent requests to `4`
+    at a time:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This gives us the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Even with the increased request rate, we still received responses at a rate
+    of 10 requests per second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are a number of aspects to this recipe to consider. The first is the `limit_req_zone`
+    directive within the main NGINX configuration file. We can create multiple zones
+    for tracking and base them on different tracking parameters. In our recipe, we
+    used `$binary_remote_addr` to track the remote IP address. The second parameter
+    is then the name of the zone and the memory to allocate. We called the `basiclimit`
+    zone and allocated 10 MB to it, which is sufficient to track up to 160,000 IP
+    addresses. The third parameter is the rate, which we set to 10 requests per second
+    (`10r/s`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need to have different rate limits for different sections (for example,
+    a lower rate limit for an admin login area), you can define multiple zones with
+    different names.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To utilize the zone, we then added it to one of the existing location directives
+    using `limit_req`. For our recipe, we specified the zone we created (`basiclimit`)
+    and also gave it a burst ability of `5`. This burst allows for a small buffer
+    over the specified limit before errors are returned and helps to smooth out responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The soft delay is a nice way to handle rate limiting in a way which is the
+    least disruptive to most users. However, if you''re running an API-based service
+    and want to ensure the requesting application is notified of any request which
+    hits the limit, you can add the `nodelay` parameter to the `limit_req` directive.
+    Consider this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Instead of seeing the connections queued, they''re immediately returned with
+    a 503 (Service Unavailable) HTTP error. If we rerun the same initial Apache Benchmark
+    call (even with a single connection), we now see this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not all our requests returned with a status of `200`, and instead any requests
+    over the limit immediately received a `503`. This is why our benchmark only shows
+    46 successful requests per second, as 152 of these were `503` errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The NGINX `ngx_http_limit_req_module`: [http://nginx.org/en/docs/http/ngx_http_limit_req_module.html](http://nginx.org/en/docs/http/ngx_http_limit_req_module.html)'
+  prefs: []
+  type: TYPE_NORMAL

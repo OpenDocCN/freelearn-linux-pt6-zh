@@ -1,0 +1,1223 @@
+- en: Chapter 7. NGINX for the Developer
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Throughout the book so far, we have seen how to configure NGINX for a number
+    of different scenarios. What we have not yet done is look at the possibilities
+    that NGINX offers the application developer. There are a number of ways that NGINX
+    can be integrated directly into your application. We will explore those possibilities
+    in the following sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching integration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Changing content on-the-fly
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using Server Side Includes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Decision-making in NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating a secure link
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Generating images
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tracking website visitors
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Preventing inadvertent code execution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Caching integration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX is superb at serving static content. It is designed to support over 100,000
+    simultaneous connections while using only minimal system resources. Integrating
+    a dynamic web application into such a well-architected server may mean a performance
+    hit for the server. We may not be able to support as many simultaneous connections,
+    but that does not mean that we cannot still give our users a snappy web experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching was introduced in [Chapter 5](ch05.html "Chapter 5. Reverse Proxy Advanced
+    Topics"), *Reverse Proxy Advanced Topics*. In this section, we will take an in-depth
+    view of integrating NGINX's caching mechanisms into a web application. Your web
+    application may already cache to a certain extent. Perhaps it writes pre-rendered
+    pages into a database so that an expensive rendering task does not have to be
+    repeated at each page view. Or, even better, your application may write prerendered
+    pages into the filesystem, so that they can simply be served by NGINX's stellar
+    static file performance. No matter the caching mechanism your application already
+    has (even if it has none), NGINX offers a way to integrate it into the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No application caching
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When your application does no caching at all, NGINX can still help speed up
+    your users' response times. Both the `proxy` and the `fastcgi` modules are able
+    to make use of this caching feature. You will therefore either be using the `proxy_cache_*`
+    or the `fastcgi_cache_*` directives to configure caching for your application.
+    The `proxy_cache_*` directives were described in the *Caching* section in [Chapter
+    5](ch05.html "Chapter 5. Reverse Proxy Advanced Topics"), *Reverse Proxy Advanced
+    Topics*; the `fastcgi_cache_*` directives summarized in [Chapter 6](ch06.html
+    "Chapter 6. The NGINX HTTP Server"), *The NGINX HTTP Server*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here we will describe how to extend your application to instruct NGINX how to
+    cache individual pages. This is done by using headers sent to NGINX. You can use
+    either the standard `Expires` and `Cache-Control` headers or the special `X-Accel-Expires`
+    header, which NGINX interprets for caching and does not pass on to the client.
+    This header allows the application to completely control how long NGINX caches
+    a file. This makes it very easy to expire normally long-lived objects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's say that you have a news application that's suffering from slow page load
+    times. This can happen for different reasons, but after analysis, you have determined
+    that each page is rendered in real time from the content stored in a database.
+    When a user visits the site, this causes a new database connection to be opened,
+    multiple SQL queries to be made, and the result to be parsed, before a fully-rendered
+    page can be delivered to that user. Due to multiple connections in the application's
+    backend system, the architecture cannot easily be restructured to make use of
+    a more reasonable rendering strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given these restrictions, you decide on the following caching strategy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The front page is to be cached for 1 minute, as this contains links to articles
+    and the list is frequently updated
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each article will be cached for 1 day because once written they don't change,
+    but we don't want the cache to be filled with older entries that need to be removed
+    due to lack of space
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Any image will be cached for as long as possible, due to the images also being
+    stored in the database, making it a truly expensive operation to retrieve them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We will configure NGINX to support this strategy as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: That takes care of our requirements. We have now activated caching for a legacy
+    application that has no caching support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching in the database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If your application currently caches prerendered pages in a database, it should
+    be possible without too much additional effort to place those pages into a memcached
+    instance instead. NGINX is capable of answering requests directly from what is
+    stored in memcached. The logic is shown in the following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Caching in the database](img/7447OS_07_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The interface is very simple, allowing it to be as flexible as possible. NGINX
+    looks up a key in the store. If it is found, the value is returned to the client.
+    Constructing the proper key is a configuration task, which we will discuss next.
+    Storing the value at that key is outside the scope of what NGINX was designed
+    to do. That job belongs to the application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Determining which key to use is a fairly simple task. For resources that are
+    not personalized, the best key to use is the URI itself. This is set in the `$memcached_key`
+    variable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If your application reads request arguments to construct a page, then the `$memcached_key`
+    should include these as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the key is not present, NGINX will need a means of requesting the page from
+    the application. Hopefully, the application will then write the key/value pair
+    into memcached so that the next request can be directly served from memory. NGINX
+    will report a "Not Found" error if the key couldn''t be found in memcached, so
+    the best way to then pass the request to the application is to use the `error_page`
+    directive and a `location` to handle the request. We should also include the error
+    codes for a "Bad Gateway" error and a "Gateway Timeout" error, in case memcached
+    does not respond to our key lookup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember that by using the equals sign (`=`) in the arguments to `error_page`,
+    NGINX will substitute in the return code from the last argument. This enables
+    us to turn an error condition into a normal response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following table describes the directives available with the `memcached`
+    module, which is compiled into an `nginx` binary by default:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Memcached module directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_buffer_size` | The size of the buffer for the response from memcached.
+    This response is then sent synchronously to the client. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_connect_timeout` | The maximum length of time NGINX will wait
+    for its connection to be accepted when making a request to a memcached server.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_next_upstream` | The conditions under which a request will be
+    passed to the next memcached server, as specified by one or more of the following
+    parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`error`: An error occurred when communicating with the memcached server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`timeout`: A timeout was reached when communicating with the memcached server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`invalid_response`: The memcached server returned an empty or otherwise invalid
+    response'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`not_found`: The key was not found on this memcached instance'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`off`: Disables passing a request to the next memcached server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `memcached_pass` | Specifies the name or address of a memcached server and
+    its port. May also be a `server` group, as declared in an `upstream` context.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_read_timeout` | Specifies the length of time that needs to elapse
+    between two successive read operations from a memcached server before the connection
+    is closed. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_send_timeout` | The length of time that needs to elapse between
+    two successive write operations to a memcached server before the connection is
+    closed. |'
+  prefs: []
+  type: TYPE_TB
+- en: Caching in the filesystem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Suppose your application writes prerendered pages as files. You know how long
+    each file should be valid. You can configure NGINX to deliver certain headers
+    with each file that instruct the client, and any proxy in between, how long the
+    file should be cached. In this way, you have enabled a local cache for your users
+    without having to change a single line of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can do this by setting the `Expires` and `Cache-Control` headers. These
+    are standard HTTP headers understood by clients and HTTP proxies alike. No change
+    is required in your application; you merely need to set these headers in the NGINX
+    configuration block for the corresponding locations. NGINX makes it convenient
+    by providing the `expires` and `add_header` directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Header modifying directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `add_header` | Adds fields to a header present in the responses with HTTP
+    codes 200, 204, 206, 301, 302, 303, 304, or 307. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `expires` | Adds or modifies the `Expires` and `Cache-Control` headers. The
+    parameters can be an optional `modified` parameter, followed by `time`, or one
+    of `epoch`, `max`, or `off`. If `time` alone is present, the `Expires` header
+    will be set to the current time plus the time specified in the `time` parameter.
+    `Cache-Control` will be set to `max-age=t`, where `t` is the time specified as
+    an argument, in seconds. If the `modified` parameter precedes a `time` value,
+    the `Expires` header is set to the file''s modification time plus the time specified
+    in the `time` parameter. If the `time` contains an `@`, the time specified will
+    be interpreted as the time of day; for example, `@12h` is 12 noon. `epoch` is
+    defined to be the exact date and time `Thu, 01 Jan 1970 00:00:01 GMT`. `max` sets
+    `Expires` to `Thu, 31 Dec 2037 23:55:55 GMT` and `Cache-Control` to 10 years.
+    Any negative time will set `Cache-Control` to `no-cache`. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Knowing what you do about the files your application generates, you can set
+    these headers appropriately. Let''s take an example application where the main
+    page should be cached for 5 minutes, all JavaScript and CSS files for 24 hours,
+    each HTML page for 3 days, and each image for as long as possible:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To see how this configuration sets the headers, let''s take a look at what
+    each location looks like in the browser. Each modern browser has a tool either
+    built-in or available as a plug-in that enables you to view the headers of both
+    the request and the response. The following series of screenshots show how Chrome
+    displays the response headers for these locations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The main page** (`index.html`): The `Expires` header is set to 5 minutes
+    later than the `Date` header. The `Cache-Control` header has a `max-age` parameter
+    set to 300 seconds.![Table: Header modifying directives](img/7447OS_07_02.jpg)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A CSS file**: The `Expires` header is set to 24 hours later than the `Date`
+    header. The `Cache-Control` header has a `max-age` parameter of 86400 seconds.![Table:
+    Header modifying directives](img/7447OS_07_03.jpg)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**An HTML file**: The `Expires` header is set to 3 days later than the `Date`
+    header. The `Cache-Control` header has a `max-age` parameter set to 259200 seconds.![Table:
+    Header modifying directives](img/7447OS_07_04.jpg)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**An image**: The `Expires` header is set to `Thu, 31 Dec 2037 23:55:55 GMT`.
+    The `Cache-Control` header has a `max-age` parameter set to 315360000 seconds.![Table:
+    Header modifying directives](img/7447OS_07_05.jpg)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Just by setting the one directive, `expires`, in the appropriate location, we
+    can ensure that our prerendered files are cached locally for as long as they should
+    be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Changing content on-the-fly
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Sometimes it may be helpful post-process what comes from your application.
+    Maybe you would like to add a string at a certain point in your page to show which
+    frontend server delivered that page to the client. Or maybe you would like to
+    perform a transformation on the rendered HTML page. NGINX provides three modules
+    that could be useful here: the `addition` module, the `sub` module, and the `xslt`
+    module.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The addition module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `addition` module works as a filter to add text before and/or after a response.
+    It is not compiled by default, so if you want to make use of this feature, you
+    must enable it at configure time by adding `--with-http_addition_module`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This filter works by referencing a subrequest, which is then either appended
+    to a request, or placed at the beginning of one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `addition` module directives are summarized in the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP addition module directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `add_before_body` | Adds the result of processing a subrequest before the
+    response body. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `add_after_body` | Adds the result of processing a subrequest after the response
+    body. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `addition_types` | Lists the MIME types of a response in addition to `text/html`,
+    in which an addition will be made. It may be `*` to enable all MIME types. |'
+  prefs: []
+  type: TYPE_TB
+- en: The sub module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `sub` module works as a filter to replace (substitute) one text for another.
+    It is not compiled by default, so if you want to make use of this feature, you
+    must enable it at configure time by adding `--with-http_sub_module`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is fairly easy to work with. You use the `sub_filter` directive to specify
+    a string to be replaced and its replacement, and the filter makes a case-insensitive
+    match for your string, and substitutes in the replacement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding example, we added a new meta tag to the header of the page
+    as it passed through NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It''s also possible to make the match more than once. To do this, you set the
+    `sub_filter_once` directive to `off`. This can be useful to replace all relative
+    links in a page with absolute ones, for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: If there are any spaces or embedded quotes in the string to be matched, they
+    must be enclosed in quotes in order for NGINX to recognize them as the first parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX will automatically use the `sub_filter` directive on any HTML file. If
+    you want to use substitution on other types of files, such as JavaScript or CSS,
+    just add the corresponding MIME type to the `sub_filter_types` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Since `text/html` is the default value, this type doesn't need to be added—it
+    won't be overwritten by adding additional MIME types to be transformed. This principle
+    applies to all MIME type specification directives in NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following table summarizes these directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP sub module directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sub_filter` | Sets the string to be matched without regards to case and
+    the string to be substituted into that match. The substitution string may contain
+    variables. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sub_filter_once` | Setting to `off` will cause the match in `sub_filter`
+    to be made as many times as the string is found. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `sub_filter_types` | Lists the MIME types of a response in addition to `text/html`
+    in which a substitution will be made. It may be `*` to enable all MIME types.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: The xslt module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `xslt` module works as a filter to transform XML using XSLT stylesheets.
+    It is not compiled by default, so if you would like to make use of it, you will
+    need to install the `libxml2` and `libxslt` libraries and enable compilation of
+    the module by passing `--with-http_xslt_module` to NGINX's configure script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use the `xslt` module, you define a DTD in which the character entities
+    are declared. You then specify one or more XSLT stylesheets and their corresponding
+    parameters to process the XML document:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The directives included in the `xslt` module are summarized in the following
+    table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: HTTP XSLT module directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xml_entities` | The path to the DTD that declares the character entities
+    referenced in the XML to be processed. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_param` | Parameters passed to the stylesheets, whose values are XPath
+    expressions. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_string_param` | Parameters passed to the stylesheets, whose values
+    are strings. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_stylesheet` | The path to an XSLT stylesheet used to transform an XML
+    response. Parameters may be passed as a series of key/value pairs. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_types` | Lists the MIME types of a response in addition to `text/xml`
+    in which a substitution will be made. It may be `*` to enable all MIME types.
+    If the transformation results in an HTML response, the MIME type will be changed
+    to `text/html`. |'
+  prefs: []
+  type: TYPE_TB
+- en: Using Server Side Includes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The `ssi` module is also a filter, and one of NGINX''s most flexible. It enables
+    the use of Server Side Includes for processing logic embedded in a webpage. It
+    supports a series of commands that are controlled by the following directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Server Side Includes directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi` | Enables the processing of SSI files. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi_silent_errors` | Suppresses the error message normally output when an
+    error occurs during SSI processing. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssi_types` | Lists the MIME types of a response in addition to `text/html`
+    in which SSI commands are processed. It may be `*` to enable all MIME types. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The Server Side Includes commands supported by NGINX are shown in the following
+    table. They all follow the following pattern:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Table: Server Side Includes commands'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Command | Argument | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `block` |   | Defines a section that can be referenced in the `include` command.
+    Ends with `<!--# endblock -->`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `name` | Name of the block. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `config` |   | Sets global parameters used during SSI processing. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `errmsg` | Configures the string used as the error message if something
+    goes wrong during SSI processing. The default is `[an error occurred while processing
+    the directive]`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `timefmt` | A string passed to `strftime()` to format a timestamp used
+    in other commands. The default is `%A, %d-%b-%Y %H:%M:%S %Z`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `echo` |   | Writes out the value of a variable. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `var` | The name of the variable whose value is written out. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `encoding` | The encoding method used for the variable. The value it
+    can take is one of `none`, `url`, and `entity`. The default is `entity`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `default` | A value to write out if the variable is undefined. If unset,
+    `none` is the default. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `if` |   | Evaluates a condition. If true, the block enclosed will be included.
+    The sequence `if`, `elsif`, `else`, and `endif` is supported one level deep. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `expr` | The expression to be evaluated for truth:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: variable existence (expr="$var")
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: text comparison (`expr="$var = text"` or `expr="$var != text"`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: regular expression match (`expr="$var = /regexp/"` or `expr="$var != /regexp/"`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `include` |   | Writes the result of a subrequest. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `file` | The name of a file to `include`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `virtual` | The URI of a subrequest to include. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `stub` | The block to be included instead of an empty body, or if there
+    was an error in processing. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `wait` | If there are multiple `include` commands on the same page, they
+    will be processed serially if this parameter is present. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `set` | If the subrequest made in virtual is to a `proxy_pass` or `memcached_pass`
+    location, the result can be stored in the variable named as the argument to `set`.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `set` |   | Creates a variable and sets the value to it. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `var` | The name of the variable to be set. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | `value` | The value of the variable to set. |'
+  prefs: []
+  type: TYPE_TB
+- en: An SSI file is nothing more than an HTML file with these commands embedded within
+    comments. That way, if `ssi` isn't enabled for a particular location that contains
+    such a file, the HTML portion will still render, albeit incompletely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is an example of an SSI file which uses calls to a subrequest
+    to render the header, footer, and menu of a page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `stub` is used to render some default content in case of an error in processing
+    the subrequest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If these primitives don't offer enough flexibility in processing logic, you
+    can use the embedded `perl` module to solve just about any other processing or
+    configuration need you may have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decision-making in NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You may find yourself trying to bend NGINX's configuration directives in ways
+    that they were not meant to be used. This is frequently seen in configurations
+    where there are a lot of `if` checks to try to emulate some sort of logic chain.
+    A better option would be to use NGINX's embedded `perl` module. With this module,
+    you will be able to use the flexibility of Perl to achieve your configuration
+    goals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `perl` module is not built by default, so it needs to be enabled with the
+    `--with-http_perl_module` configure switch. Ensure as well that your Perl was
+    built with `-Dusemultiplicity=yes` (or `-Dusethreads=yes`) and `-Dusemymalloc=no`.
+    NGINX configuration reloads will cause the `perl` module to leak memory over time,
+    so this last parameter is included to help mitigate that problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After having built an `nginx` with embedded Perl, the following directives
+    are available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Perl module directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directives | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl` | Activates a Perl handler for this location. The argument is the
+    name of the handler or a string describing a full subroutine. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl_modules` | Specifies an additional search path for Perl modules. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl_require` | Indicates a Perl module that will be loaded at each NGINX
+    reconfiguration. May be specified multiple times for separate modules. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `perl_set` | Installs a Perl handler to set the value of a variable. The
+    argument is the name of the handler or a string describing a full subroutine.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 'When writing Perl scripts to be used in an NGINX configuration, you have use
+    of the $r object, representing the request. The methods on this object are as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$r->args`: The request arguments.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->filename`: The name of the file referenced by the URI.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->has_request_body(handler)`: If there is a request body, the handler will
+    be called.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->allow_ranges`: Enables the use of byte ranges in a response.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->discard_request_body`: Discards the body of the request.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->header_in(header)`: The value of the specified request header.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->header_only`: Instructs NGINX to return only the header to the client.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->header_out(header, value)`: Sets the specified response header to this
+    value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->internal_redirect(uri)`: Makes an internal redirect to the specified URI
+    once the Perl handler has completed execution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->print(text)`: Prints the specified text out to the client.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->request_body`: The body of the request, if it fits in memory.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->request_body_file`: The body of the request, if written out to a temporary
+    file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->request_method`: The HTTP method of the request.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->remote_addr`: The client''s IP address.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->flush`: Immediately send data to the client.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->sendfile(name[, offset[, length]])`: Sends the specified file to the client,
+    with an optional offset and length, once the Perl handler has completed execution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->send_http_header([type])`: Sends the response headers to the client, with
+    an optional content type.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->status(code)`: Sets the HTTP status of the response.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->sleep(milliseconds, handler)`: Sets a timer to execute the handler after
+    having waited the specified number of milliseconds. NGINX will continue processing
+    other requests while the timer is running.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->unescape(text)`: Decodes URI-encoded text.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->uri`: The URI in the request.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$r->variable(name[, value])`: Either returns a named, request-local variable
+    or sets one to the specified value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The `perl` module may also be used within Server Side Includes. An SSI command
+    using Perl has the following format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's take a look at an example of using the `perl` module. Our goal is to pass
+    requests to a different upstream server, as determined by the first letter of
+    the request URI. We could implement this as a series of locations in NGINX, but
+    it will be more concise expressed as a Perl handler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first step is to define the processing actions in a Perl handler:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we set up NGINX to use this module to do the mapping:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we pass the request along to the correct upstream server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have seen a very simple example of implementing some configuration logic
+    in a Perl handler. Just about any kind of special requirement can be done in a
+    similar way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Request processing in a Perl handler should be as well-defined as possible.
+    Whenever NGINX has to wait on a Perl handler finishing, the whole worker responsible
+    for handling that request will block. So, any I/O or DNS-related tasks should
+    be done outside of a Perl handler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a secure link
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You may have cause to protect certain content on your site, but do not want
+    to integrate full user authentication to allow access to that content. One way
+    of enabling this is to use NGINX's `secure_link` module. By passing configure
+    the `--with-http_secure_link` switch at compile time, you get access to the `secure_link_secret`
+    directive, and its corresponding variable `$secure_link`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `secure_link` module works by computing the MD5 hash of a link concatenated
+    with a secret word. If the hash matches that found in the URI, then the `$secure_link`
+    variable is set to the portion of the URI after the hash. If there is no match,
+    then `$secure_link` is set to the empty string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One possible scenario is to generate a page of download links using a secret
+    word. This word is then placed in the NGINX configuration to enable access to
+    these links. The word and page are replaced periodically to prevent saved links
+    from being called again at a later time. The following example illustrates this
+    scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first decide on a secret word `supersecret`. Then, we generate the MD5 hash
+    of the links we want to enable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we can create the HTML for our links:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These will only be valid if we use the same `secure_link_secret` directive
+    in our configuration that we used to generate these hashes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To ensure that links without a hash will not work, we can add an additional
+    link to our HTML:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Calling this link reports a "403 Forbidden" error, as it should.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The technique for generating a `secure_link` module described before is just
+    one possible way of solving this type of problem. NGINX itself even offers an
+    alternative way described at [http://wiki.nginx.org/HttpSecureLinkModule](http://wiki.nginx.org/HttpSecureLinkModule).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating images
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Instead of writing an image manipulation module for your application, you can
+    configure NGINX to handle some simple transformations. If your image-manipulation
+    needs are as simple as rotating an image, resizing it, or cropping it, NGINX is
+    capable of doing this for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make use of this functionality, you need to have installed the `libgd` library,
+    and enabled the `image_filter` module at compile-time (`--with-http_image_filter_module`).
+    If that is the case, you now have use of the directives in the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The GD library (`libgd`) is an image generation library written in C. It is
+    often used in combination with a programming language such as PHP or Perl to generate
+    images for websites. NGINX's `image_filter` module uses `libgd` to provide the
+    capability of creating a simple image resizing proxy, which we discuss in the
+    following example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Image filter directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `empty_gif` | Causes a 1x1 pixel transparent GIF to be emitted for that `location`.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter` | Transforms an image according to one of the following parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Turns off image transformation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`test`: Ensures that responses are either GIF, JPEG, or PNG images. If not,
+    an error 415 (Unsupported Media Type) is returned.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`size`: Emits information about an image in JSON format.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rotate`: Rotates an image counter-clockwise by either 90, 180, or 270 degrees.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`resize`: Reduces an image proportionally by the width and height given. One
+    dimension may be "`-`" in order to reduce by only the other dimension. If combined
+    with `rotate`, rotation happens after reduction. An error will result in returning
+    415 (Unsupported Media Type).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`crop`: Reduces an image by the size of the largest side, as specified by the
+    width and height given. Any extraneous space along the other edges will be cut.
+    One dimension may be "`-`" in order to reduce by only the other dimension. If
+    combined with `rotate`, rotation happens before reduction. An error will result
+    in returning 415 (Unsupported Media Type).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `image_filter_buffer` | The size of the buffer used to process images. If
+    more memory is needed, the server will return a 415 error (Unsupported Media Type).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_jpeg_quality` | The quality of the resulting JPEG image, after
+    processing. Not recommended to exceed 95. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_sharpen` | Increases the sharpness of a processed image by
+    this percentage. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_transparency` | Disables preserving transparency of transformed
+    GIF and PNG images. The default `on` preserves transparency. |'
+  prefs: []
+  type: TYPE_TB
+- en: Note that the `empty_gif` directive is not part of the `image_filter` module,
+    but is included in a default installation of NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using these directives, we can construct an image resizing module as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: This little snippet will first try to serve an image as requested in the URI.
+    If it cannot find an appropriately-named image, it will then move on to the `/resize`
+    location. The `/resize` location is defined as a regular expression so that we
+    can capture the size we'd like the image to be. Note that we use named capture
+    groups to create meaningful variable names. We then pass these on to the `/resizer`
+    location so that we have the name of the original file as the URI and the width
+    and height as named arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now combine this with NGINX''s `proxy_store` or `proxy_cache` capability
+    to save the resized images so that another request for the same URI won''t need
+    to hit the `image_filter` module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As you can see in the table of directives for the `image_filter` module, any
+    error returned by this module has the code 415\. We can catch this error to replace
+    it with an empty GIF, so that the end user will still get an image instead of
+    an error message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `size` parameter to `image_filter` deserves special mention. When this
+    parameter is configured for a location, information about the image is delivered
+    instead of the image itself. This could be useful in your application for discovering
+    metadata about an image before calling a resize or crop URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is a JSON object such as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tracking website visitors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A fairly unobtrusive way to track unique website visitors is to use the `userid`
+    module. This module sets cookies that are used to identify unique clients. The
+    value of these cookies is referenced by the `$uid_set` variable. When that same
+    user returns to the site and the cookie is still valid, the value is available
+    in the `$uid_got` variable. An example of how to use these is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These directives are summarized in the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: UserID module directives'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid` | Activates the module according to the following parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`: Sets Version 2 cookies and logs those received'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`v1`: Sets Version 1 cookies and logs those received'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`log`: Disables setting of cookies, but enables logging them'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`off`: Disables both the setting of cookies and the logging of them'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `userid_domain` | Configures a domain to be set in the cookie. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_expires` | Sets the age of the cookie. If the keyword `max` is used,
+    this translates to `31 Dec 2037 23:55:55 GMT`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_name` | Sets the name of the cookie (default is `uid`). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_p3p` | Configures the P3P header; for sites which declare their privacy
+    policy using the **Platform for Privacy Preferences Project**''s protocol. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_path` | Defines the path set in the cookie. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_service` | Identity of the service that set the cookie. For example,
+    the default value for Version 2 cookies is the IP address of the server that set
+    the cookie. |'
+  prefs: []
+  type: TYPE_TB
+- en: Preventing inadvertent code execution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When trying to construct a configuration that does what you expect it to do,
+    you may inadvertently enable something that you did not expect. Take the following
+    configuration block, for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we seem to be passing all requests for PHP files to the FastCGI server
+    responsible for processing them. This would be OK if PHP only processed the file
+    it was given, but due to differences in how PHP is compiled and configured this
+    may not always be the case. This can become a problem if user uploads are made
+    into the same directory structure that PHP files are in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Users may be prevented from uploading files with a `.php` extension, but are
+    allowed to upload `.jpg`, `.png`, and `.gif` files. A malicious user could upload
+    an image file with the embedded PHP code, and cause the FastCGI server to execute
+    this code by passing a URI with the uploaded filename in it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To prevent this from happening, either set the PHP parameter `cgi.fix_pathinfo`
+    to `0` or use something similar to the following in your NGINX configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have used `try_files` to ensure that the file actually exists before passing
+    the request on to the FastCGI server for PHP processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Keep in mind that you should evaluate your configuration to see if it matches
+    your goals. If you have only a few files, you would be better served by explicitly
+    specifying which PHP files may be executed instead of the regular expression `location`
+    and corresponding `try_files`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX provides a number of ways to support developers wishing to integrate a
+    high-performance web server into their application. We looked at various possibilities
+    of integrating both legacy and new applications. Caching plays a key role in the
+    modern web application. NGINX offers both passive and active ways of using caching
+    to help deliver a web page more quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also explored how NGINX can help manipulate a response by adding or replacing
+    text. Server Side Includes are also possible with NGINX. We saw a way of integrating
+    these commands into normal text. We then examined the powerful embedded Perl capabilities
+    in NGINX. Image transformation is also possible using just core NGINX. We examined
+    how to set a unique cookie to track website visitors. We wound up the chapter
+    with a word of caution about how to prevent code from inadvertently being executed.
+    On the whole, there are quite a few tools at the developer's disposal when working
+    with NGINX as a web server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will explore troubleshooting techniques to try to get
+    at the root of the problem when something doesn't work as expected.
+  prefs: []
+  type: TYPE_NORMAL

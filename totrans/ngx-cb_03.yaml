@@ -1,0 +1,633 @@
+- en: Common Frameworks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following recipes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Django with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up NGINX with Express
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running Ruby on Rails with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy Flask with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Laravel via NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Meteor applications with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: High speed Beego with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The boom of web-based services and websites beyond just static content has spawned
+    a number of web frameworks to tackle some of these more complex scenarios. Some
+    have started from the newspaper world, where there are very tight deadlines, while
+    others have focused on performance as their reasoning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we'll go through the configurations of NGINX to work with each
+    of these various frameworks in order to have an easy-to-follow configuration.
+    Like the previous chapter, I won't be going through the steps of setting up the
+    frameworks themselves, but focusing on the NGINX side only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's get started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Django with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Django rose to fame when a small US newspaper firm open sourced their application
+    back in 2005\. From there, Django has grown into the most widely used Python-based
+    web framework. Still used by companies such as Instagram and Pinterest, the relevancy
+    of Django is still as strong as ever.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/b05a4bbe-e64f-4ff8-91f2-feb7f627a843.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Django interfaces to NGINX through a **Web Server Gateway Interface** (**WSGI**).
+    For Django, one of the most commonly used WSGI interfaces is uWSGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you haven''t installed uWSGI yet, the best way is to install the latest
+    version via `pip`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We're going to simply use a base install of the latest version of Django, which
+    at the time of writing this book was 1.10.5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/7dbf0e50-5724-429d-97e1-80bf19330b0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We''ll now configure uWSGI to point to our Django project, which for this example
+    I have located at `/var/www/djangodemo`. Here''s the `uwsgi.ini` file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: For this example, we're also using TCP sockets rather than Unix sockets. Although
+    they're slightly more efficient, having a proper socket makes it much easier for
+    the initial testing phase. If you're hitting limitations (many thousands of concurrent
+    connections), then I'd suggest that you use Unix sockets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now for the NGINX configuration, we''ll use a separate configuration file (`/etc/nginx/conf.d/django.conf`)
+    to keep things neat and tidy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works....
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The first configuration item we tweak is the `favicon`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: There's a very famous story of Instagram's first deployment (where they had
+    10,000 users in the first day) and the load that a missing `favicon` generated
+    (since Django had to produce the `404` error) caused significant scaling issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we serve any of the uploaded and static media directly via NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: These directories are mapped via the `STATIC_ROOT` and `MEDIA_ROOT` configuration
+    lines within the `settings.py` file for Django. NGINX is very efficient at serving
+    static media, so serving it directly produces as little overhead as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We then map app''s all other URL calls via the `uwsgi` protocol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The uWSGI project has a native protocol (called `uwsgi` and in lower case),
+    which is built into NGINX by default. It's a binary protocol designed to be highly
+    efficient and scalable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For more information on the issues and best practices refer to the following
+    link:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html](http://uwsgi-docs.readthedocs.org/en/latest/ThingsToKnow.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up NGINX with Express
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Rather than being overly opinionated, Express is a very minimalistic and flexible
+    framework suited for web and mobile application deployments based on Node.js.
+    It's also one of the most popular bases for some of the more complex and feature-packed
+    Node.js frameworks too, which is why it makes a great learning block for Node.js
+    web deployments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/28fda183-a79d-4c1c-8458-30922fd16c1f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Express is so minimalistic that it doesn''t come with any boilerplate code
+    to get you started. There are a number of generators out there which can set up
+    a structure for you, however, I''m going to stick to a simple web page and a WebSocket
+    for testing. Here''s my Express file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we have a very simple Express application, we''ll place NGINX in front
+    of it. Although Node.js is extremely fast, NGINX is not only faster but offers
+    far more configurability. Even with WebSockets, we''re still able to proxy this
+    through NGINX. Let''s take a look at the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works....
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There's only one main block directive to get our simple test working, with a
+    few key areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The proxy will forward the connection back to our Express-driven test application,
+    which we configured to listen on port `3000` of the localhost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: By default, proxied connections back to the Node.js application will be HTTP/1.0
+    only. Setting this to HTTP/1.1 allows the use of keep-alive, which means the connection
+    between NGINX and the application remains open rather than establishing a new
+    connection every time. On a heavily loaded system, this is much more efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The WebSocket protocol uses the `Upgrade` and `Connection` headers as part of
+    the handshake process. We need to set this at the NGINX level in order to allow
+    the handshake process to work as expected. As it's compatible with HTTP/1.1, it
+    won't interfere with the standard connections either.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For more information on WebSocket and the HTTP/1.1 Upgrade header refer to
+    following links:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://www.nginx.com/blog/websocket-nginx/](https://www.nginx.com/blog/websocket-nginx/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header](https://en.wikipedia.org/wiki/HTTP/1.1_Upgrade_header)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running Ruby on Rails with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Ruby on Rails is a full web application framework, based on the Ruby programming
+    language. As with a more traditional framework such as Django, Rails is based
+    around a standard **Model View Controller** (**MVC**) pattern. This makes it well
+    suited to rapid development which is also highly performant and feature packed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/f38f4bba-dfa4-4c24-b829-ecd87bc45f92.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although there are a number of different application servers for Rails, one
+    of the more popular is Passenger. With the highest performance and great documentation,
+    Passenger's popularity is well deserved. This recipe has been tested with Ruby
+    2.3, Rails 4.2, and Passenger 5.0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can install Passenger via `gem`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: To integrate with NGINX, this requires a special module to be enabled. We'll
+    compile NGINX from scratch as per our installation in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml),
+    *Let's Get Started* and compile Passenger support as a static module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure you have the mainline repository from [nginx.org](http://nginx.org)
+    installed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For a Debian- / Ubuntu-based system, you''ll need to create the build environment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, in the NGINX source directory, edit the `debian/rules` file to add:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can confirm the `passenger` directory with the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To make the package name unique, you can edit the changelog and add additional
+    lines to the changelog. Consider this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can now compile the package with the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will take a few minutes to complete. Once we have the updated package,
+    we can now install it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Passenger comes with a basic tool to help create your NGINX configuration for
+    you. To use it, run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: I have simplified the generated configuration, simply because many of the directives
+    were setting it to the defaults anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the main NGINX configuration (generally, `/etc/nginx/nginx.conf`), we need
+    to add the following within the `http` directive block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We then add a server configuration specific to our demo site, for example,
+    `/etc/nginx/conf.d/rails.conf`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are a number of directives which aren't seen elsewhere because this recipe
+    uses a specific Passenger module. In the core NGINX configuration file, we set
+    the generic Passenger variables to use the correct Ruby version as well as the
+    user which will run the Passenger server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our `server` block directive, we point Passenger to our demo Rails instance
+    and enable Passenger for the server instance. There's also a basic *assets* location
+    block directive, so that NGINX will process the static media natively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we call `passenger_pre_start` to automatically start the Passenger application
+    server when NGINX starts. This saves you having to start it separately, as is
+    the case for most other application servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For more information on the configuration and optimization of Passenger server,
+    refer to following link:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://www.phusionpassenger.com/library/config/nginx/reference/](https://www.phusionpassenger.com/library/config/nginx/reference/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Easy Flask with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As one of the more popular Python frameworks, Flask is an extremely lightweight
+    yet powerful system for web applications. Seen as more of a *micro* framework,
+    a functional Flask application can be as simple as 20 lines of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/7a9cb2e8-ffe7-4c9d-81d1-8c65d70a3c5b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This recipe is based on a very simple, single file Flask application. To show
+    the simplicity, here''s the example (`demoapp.py`) we''ll use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Like the Django recipe, we''re going to use uWSGI for the application server
+    in this scenario as well. If you haven''t installed uWSGI yet, the best way is
+    to install the latest version via `pip`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'First up, we set up our `uwsgi.ini` file, which should be located in the root
+    of your Flask application. Here''s the file:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: For this demo, we have a single Flask file located in `/var/www/flaskdemo/demoapp.py`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can quickly launch your uWSGI service by running the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We now need to configure the NGINX `server` block directive and again I''ve
+    included this in a separate file `(/etc/nginx/conf.d/flask.conf`):'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Flask applications are so simple that they don't come with all of the boilerplate
+    WSGI configurations such as Django and other frameworks. The good news is that
+    the flexibility of uWSGI means it's very easy to configure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order for uWSGI to know what file to call, which we do via the `module` configuration
+    entry, set it to `demoapp`. Those familiar with Python will know that this translates
+    into loading `demoapp.py`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, the `callable` configuration specifies the default WSGI callable name,
+    which in our `demoapp.py` is set to `application`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we have a very simple NGINX `server` block directive. This simply pushes
+    all calls to our Flask application using the uWSGI socket.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Laravel via NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Inspired by the CodeIgniter framework, Laravel is a modern PHP framework based
+    on the MVC pattern. Focusing on elegant code and modular packaging, Laravel is
+    an increasingly popular choice for PHP developers who want to develop custom web
+    applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this recipe, we'll go through the code required to publish your Laravel application
+    using NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/5e3477ad-8fe3-4ff8-a7f5-528ee0684c9d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe assumes you already have a working Laravel installation as well
+    as a working PHP-FPM installation. The following configuration has been tested
+    with Laravel 5.2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As Laravel is PHP based, we'll be using PHP-FPM to compile the PHP code and
+    present to NGINX. If this is new to you, it's worth reading through [Chapter 2](a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml),
+    *Common PHP Scenarios* which covers some of the other PHP scenarios and the PHP-FPM
+    configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get going, we''ll create a separate virtual configuration file for Laravel:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Laravel stores the files accessible by PHP-FPM and NGINX in the public folder,
+    not the root of the Laravel project. Make sure you point the root to the correct
+    directory, otherwise you could expose your configuration files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We set a `location` block (`location ~ \.php$`) so that only PHP files are compiled
+    by our PHP-FPM configuration. This means that all other files (for example, CSS
+    stylesheets) are served directly by NGINX for the greatest efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Official Laravel site: [https://laravel.com/](https://laravel.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Meteor applications with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Meteor is a full-stack, JavaScript driven framework designed to rapidly build
+    cross-platform applications. It is integrated with the in-house designed **Distributed
+    Data Protocol** (**DDP**) and allows for seamless data synchronization to clients;
+    it also includes an inbuilt MongoDB data store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/625b7381-309d-4fb3-aec7-be9c0e0780b2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe is based on Meteor 1.3 using a basic application with the Blaze
+    templating engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As Meteor has an inbuilt server, we need to ensure this is running first:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will start the Meteor proxy, start MongoDB, and then build the application.
+    By default, it'll listen on port `3000` of your localhost. For a production system,
+    you'll want to implement a proper init script to start this when the server boots.
+    Third-party packages such as Meteor-Up can make this easy to do.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Like the previous recipes, we''re using a separate NGINX server configuration
+    file, for example, `/etc/nginx/conf.d/meteor.conf`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like the Express example, we use a proxy to the application and then set the
+    headers (`Connection` / `Upgrade`) to ensure WebSockets are passed through correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: High speed Beego with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although Go is a relatively new programming language, its popularity has been
+    rapidly increasing as the demand for higher performance and greater scalability
+    increases. Go is derived from Google's desire to scale rapidly, yet safely, and
+    already has a number of web frameworks available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most popular frameworks is Beego, an easy to use MVC-based web framework
+    with integrated REST and code hot compile. By harnessing the performance of Go,
+    Beego can outperform other frameworks (using a different programming language)
+    by more than ten times in many instances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/be8527ad-8631-413e-8e1b-883eb4079a79.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this recipe we're going to use the example `todo` code. This is available
+    at [https://github.com/beego/samples/tree/master/todo](https://github.com/beego/samples/tree/master/todo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It''s important to build this rather than just using `go run`, otherwise you''ll
+    have issues. Consider the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We''ll create a separate NGINX configuration file with the `server` block in
+    it, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: By default, a Beego application will listen on the localhost to port `8080`.
+    We simply proxy all connections though. Like the Express recipe, we also set the
+    proxy headers to allow WebSockets to pass through as well.
+  prefs: []
+  type: TYPE_NORMAL

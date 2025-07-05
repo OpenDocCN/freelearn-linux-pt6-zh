@@ -1,0 +1,2791 @@
+- en: '4'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Exploring Module Configuration in NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The true power of NGINX lies within its modules. The entire application is built
+    on a modular system, and each module can be enabled or disabled at compile time.
+    Some bring up simple functionalities, such as the autoindex module, which generates
+    a listing of the files in a directory. Some will transform your perception of
+    a web server (such as the Rewrite module). Apart from the NGINX modules that already
+    exist, developers can also create their own modules to suit their needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quick overview of the third-party module system can be found at the end of
+    this chapter. Please note that third-party modules are maintained by the community,
+    and there is no guarantee that these modules will be compatible with your version
+    of NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Rewrite module, which does more than just rewrite URIs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Additional modules enabled in the default NGINX build
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optional modules that must be enabled at compile time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A quick note on third-party modules
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring the Rewrite module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This module, in particular, brings much more functionality to NGINX than a simple
+    set of directives. It defines a whole new level of request processing that will
+    be explained throughout this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initially, the purpose of this module (as the name suggests) is to perform URL
+    rewriting. This mechanism allows you to get rid of ugly URLs containing multiple
+    parameters—for instance, [http://example.com/article.php?id=1234&comment=32—such](http://example.com/article.php?id=1234&comment=32-such)
+    URLs being particularly uninformative and meaningless for a regular visitor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, links to your website will contain useful information that indicates
+    the nature of the page you are about to visit. The URL given in the example becomes
+    [http://website.com/article-1234-32-US-economy-strengthens.html](http://website.com/article-1234-32-US-economy-strengthens.html).
+    This solution is not only more interesting for your visitors but also for search
+    engines. URL rewriting is a key element of **search engine** **optimization**
+    (**SEO**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The principle behind this mechanism is simple: it consists of rewriting the
+    URI of the client request after it is received, before serving the file. Once
+    rewritten, the URI is matched against `location` blocks in order to find the configuration
+    that should be applied to the request. The technique is further detailed in the
+    coming sections.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reminder of regular expressions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First and foremost, this module requires a certain understanding of regular
+    expressions, also known as `rewrite` directive, which accepts a pattern followed
+    by the replacement URI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is a vast topic; entire books are dedicated to explaining the ins and outs.
+    However, the simplified approach that we are about to examine should be more than
+    sufficient to make the most of the mechanism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Purpose
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The first question we must answer is: What is the purpose of regular expressions?
+    To put it simply, the main purpose is to verify that a string of characters matches
+    a given pattern. The pattern is written in a particular language that allows for
+    defining extremely complex and accurate rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **String** | **Pattern** | **Does** **it match?** | **Explanation** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `hello` | `^``hello$` | Yes | The string begins with the `h` character (`^h`),
+    followed by `e`, `l`, `l`, and then finishes with `o` (`o$`). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `hell` | `^``hello$` | No | The string begins with the `h` character (`^h`),
+    followed by `e`, `l`, `l`, but does not finish with `o`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `Hello` | `^``hello$` | Depends | If the engine performing the match is case-sensitive,
+    the string doesn’t match the pattern. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.1: A list of patterns with explanations'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This concept becomes a lot more interesting when complex patterns are employed,
+    such as one that validates an email address: `^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`.
+    Validating a well-formed email address programmatically would require a great
+    deal of code, while all of the work can be done with a single regular expression
+    pattern matching.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PCRE syntax
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The syntax that NGINX employs originates from the **Perl Compatible Regular
+    Expressions** (**PCRE**) library, which (if you remember [*Chapter 2*](B21787_02.xhtml#_idTextAnchor121))
+    is a prerequisite for making your own build unless you disable modules that make
+    use of it. It’s the most commonly used form of regular expression, and nearly
+    everything you learn here remains valid for other language variations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In its simplest form, a pattern is composed of one character—for example, `x`.
+    We can match strings against this pattern. Does `example` match the `x` pattern?
+    Yes, `example` contains the `x` character. It can be more than one specific character;
+    the `[a-z]` pattern matches any character between `a` and `z`, or even a combination
+    of letters and digits: `[a-z0-9]`. In consequence, the `hell[a-z0-9]` pattern
+    validates the following strings: `hello` and `hell4`, but not `hell` or `hell!`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You probably noticed that we employed the `[` and `]` characters. These are
+    called `\` (backslash):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Metacharacter** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^`Beginning | The entity after this character must be found at the beginning:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `^h`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello`, `h`, `hh` (anything beginning with *h*)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `character`, `ssh`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `$`End | The entity before this character must be found at the end:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `e$`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `sample`, `e`, `file` (anything ending with *e*)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `extra`, `shell`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `.` (dot)Any | Matches any character:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `hell.`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello`, `hellx`, `hell5`, and `hell!`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hell`, `helo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `[ ]`Set | Matches any character within the specified set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Syntax: `[a-z]` for a range, `[abcd]` for a set, and `[a-z0-9]` for two ranges.
+    Note that if you want to include the `-` character in a range, you need to insert
+    it right after `[` or just before `]`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example pattern: `hell[a-y123-]`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello`, `hell1`, `hell2`, `hell3`, and `hell-`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hellz`, `hell4`, `heloo`, and `he-llo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `[^ ]`Negate set | Matches any character that is not within the specified
+    set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `hell[^a-np-z0-9]`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello`, and `hell!`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hella`, `hell5`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `&#124;`Alternation | Matches the entity placed either before or after `&#124;`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `hello&#124;welcome`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello`, `welcome`, `helloes`, and `awelcome`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hell`, `ellow`, `owelcom`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `( )`Grouping | Groups a set of entities, often to be used in conjunction
+    with `&#124;`. Also **captures** the matched entities; captures are detailed further
+    on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `^(``hello&#124;hi) there$`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello there`, `hi there`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hey there`, `ahoy there`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `\`Escape | Allows you to escape special characters:Example pattern: `Hello\`Matching
+    strings: `Hello.`, `Hello. How are you?`, `Hi! Hello...`Non-matching strings:
+    `Hello`, `Hello!how` `are you?` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.2: A list of metacharacters and their roles'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantifiers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'So far, you are able to express simple patterns with a limited number of characters.
+    Quantifiers allow you to extend the number of accepted entities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Quantifier** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `*`0 or more times | The entity preceding `*` must be found 0 or more times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `he*llo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hllo`, `hello`, `heeeello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hallo`, `ello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `+`1 or more times | The entity preceding `+` must be found 1 or more times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `he+llo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello`, `heeeello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hllo`, `helo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `?`0 or 1 times | The entity preceding `?` must be found 0 or 1 times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `he?llo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `hello`, `hllo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `heello`, `heeeello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `{``x}``x` times | The entity preceding `{x}` must be found `x` times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `he{3}llo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `heeello`, `oh` `heeello there!`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hello`, `heello`, `heeeello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `{``x,}`At least `x` times | The entity preceding `{x,}` must be found at
+    least `x` times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `he{3,}llo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `heeello`, `heeeeeeello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hllo`, `hello`, `hello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `{``x,y}``x` to `y` times | The entity preceding `{x,y}` must be found between
+    `x` and `y` times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example pattern: `he{2,4}llo`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Matching strings: `heello`, `heeello`, `heeeello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Non-matching strings: `hello`, `heeeeello`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table 4.3: A list of quantifiers and their roles'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As you probably noticed, the `{` and `}` characters in the regular expressions
+    conflict with the block delimiter of the NGINX configuration file syntax language.
+    If you want to write a regular expression pattern that includes *curly brackets*,
+    you need to place the pattern between quotes (single or double quotes):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Captures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: One last feature of the regular expression mechanism is the ability to capture
+    sub-expressions. Whatever text is placed between parentheses (`( )`) is captured
+    and can be used after the matching process. The captured characters become available
+    under the form of variables called `$N`, where `N` is a numeric index, in order
+    of capture. Alternatively, you can attribute an arbitrary name to each of your
+    captures (see the following example). Variables generated through the captures
+    can be inserted within directive values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are a couple of examples to illustrate the principle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Pattern** | **Example of a** **matching string** | **Captured** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^(``hello&#124;hi) (sir&#124;mister)$` | `hello sir` | `$1 =` `hello``$2
+    =` `sir` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^(``hello (sir))$` | `hello sir` | `$1 =` `hello sir``$2 =` `sir` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^(.*)$` | `nginx rocks` | `$1 =` `nginx rocks` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `^(.{``1,3})([0-9]{1,4})([?!]{1,2})$` | `abc1234!?` | `$1 =` `abc``$2 =`
+    `1234``$3 = !?` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Named captures are also supported through the following syntax:`?<``name>`Example:
+    `^/(?<folder>[^/]+)/(?<file>.*)$` | `/``admin/doc` | `$folder =` `admin``$file
+    =` `doc` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.4: A list of patterns and expressions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When you use a regular expression in NGINX—for example, in the context of a
+    `location` block—the buffers that you capture can be employed in later directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the preceding example, the `location` block will match the request URI against
+    a regular expression. A few URIs that would apply here are `/downloads/file.txt`,
+    `/files/archive.zip`, or even `/files/docs/report.doc`. Two parts are captured:
+    `$1` will contain either `downloads` or `files`, and `$2` will contain whatever
+    comes after `/downloads/` or `/files/`. Note that the `add_header` directive (syntax:
+    `add_header header_name header_value`; see the *HTTP headers* section) is employed
+    here to append arbitrary headers to the client response, for the sole purpose
+    of demonstration.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internal requests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'NGINX differentiates external and internal requests. External requests originate
+    directly from the client; the URI is then matched against possible `location`
+    blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: A client request to [http://website.com/document.html](http://website.com/document.html)
+    would directly fall into the preceding `location` block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Opposite to this, internal requests are triggered by NGINX via specific directives.
+    Among the directives offered by the default NGINX modules, there are several directives
+    capable of producing internal requests: `error_page`, `index`, `rewrite`, `try_files`,
+    `add_before_body`, and `add_after_body` (from the addition module), the `include`
+    **Server-Side Includes** (**SSI**) command, and more.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two different types of internal requests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`location` block and become eligible for different settings. The most common
+    case of internal redirects is when using the `rewrite` directive, which allows
+    you to rewrite the request URI.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`add_after_body` directive allows you to specify a URI that will be processed
+    after the original one, the resulting content being appended to the body of the
+    original request. The SSI module also makes use of sub-requests to insert content
+    with the `include` SSI command.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: error_page
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Detailed in the module directives of the NGINX HTTP core module, `error_page`
+    allows you to define the server behavior when a specific error code occurs. The
+    simplest form is to affect a URI to an error code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: When a client attempts to access a URI that triggers one of these errors (such
+    as loading a document or file that does not exist on the server, resulting in
+    a `404` error), NGINX is supposed to serve the page associated with the error
+    code. In fact, it does not just send the client the error page; it actually initiates
+    a completely new request, based on the new URI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consequently, you can end up falling back on a different configuration, as
+    in the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: When a client attempts to load a document that does not exist, they will initially
+    receive a `404` error. We employed the `error_page` directive to specify that
+    `404` errors should create an internal redirect to `/errors/404.html`. As a result,
+    a new request is generated by NGINX, with the `/errors/404.html` URI. This URI
+    falls under the location `/errors/` block, so the corresponding configuration
+    applies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logs can prove to be particularly useful when working with redirects and URL
+    rewrites. Be aware that information on internal redirects will show up in the
+    logs only if you set the `error_log` directive to `debug`. You can also get it
+    to show up at the `notice` level, under the condition that you specify `rewrite_log
+    on;` wherever you need it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A raw but trimmed excerpt from the debug log summarizes the mechanism:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the use of the `internal` directive in the `location` block forbids
+    clients from accessing the `/errors/` directory. This location can thus only be
+    accessed through an internal redirect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The mechanism is the same for the `index` directive (detailed further on in
+    the *Index* section). If no file path is provided in the client request, NGINX
+    will attempt to serve the specified index page by triggering an internal redirect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rewrite
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While the previous `error_page` directive is not actually part of the Rewrite
+    module, detailing its functionality provides a solid introduction to the way NGINX
+    handles client requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Similar to how the `error_page` directive redirects to another location, rewriting
+    the URI with the `rewrite` directive generates an internal redirect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: A client query to `http://website.com/documents/file.txt` initially matches
+    the second `location` block (`location /documents/`). However, the block contains
+    a rewrite instruction that transforms the URI from `/documents/file.txt` to `/storage/file.txt`.
+    The URI transformation reinitializes the process; the new URI is matched against
+    the `location` blocks. This time, the first `location` block (`location /storage/`)
+    matches the URI (`/storage/file.txt`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, a quick peek at the debug log details the mechanism:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Infinite loops
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'With all of the different syntaxes and directives, you could easily get confused.
+    Worse, you might get NGINX confused. This happens, for instance, when your rewrite
+    rules are redundant and cause internal redirects to *loop infinitely*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: You thought you were doing well, but this configuration actually triggers an
+    internal redirect of `/documents/anything` to `/documents/2018//documents/anything`.
+    Moreover, since the location patterns are re-evaluated after an internal redirect,
+    `/documents/2018//documents/anything` becomes `/documents/2018//documents/2018//documents/anything`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the corresponding excerpt from the debug log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: You are probably wondering if this goes on indefinitely; the answer is *no*.
+    The amount of cycles is restricted to *10*. You are only allowed 10 internal redirects.
+    For anything past this limit, NGINX will produce a `500 Internal Server` `Error`
+    message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is possible to prevent infinite loops for cases such as this where you might
+    want to update the internal path over time. Simply use the `break` flag on the
+    rewrite, as documented later, and NGINX will not do an internal redirect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditional structure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The Rewrite module introduces a new set of directives and blocks, among which
+    is the `if` conditional structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This offers the possibility to apply a configuration according to the specified
+    condition. If the condition is `true`, the configuration is applied; otherwise,
+    it isn’t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following table describes the various syntaxes accepted when forming a
+    condition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Operator** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| None | The condition is `true` if the specified variable or data is not equal
+    to an empty string or a string starting with the character `0`:`if ($``string)
+    {``[...]``}` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `=`, `!=` | The condition is `true` if the argument preceding the `=` symbol
+    is equal to the argument following it. The following example can be read as, “*If
+    the request method is equal to* `POST`*, then apply* *the configuration*”:`if
+    ($request_method =` `POST) {``[...]``}`The `!=` operator does the opposite: “*If
+    the request method is not equal to* `GET`*, then apply* *the configuration*”:`if
+    ($request_method !=` `GET) {``[...]``}` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `~`, `~*`, `!~`, `!~*` | The condition is `true` if the argument preceding
+    the `~` symbol matches the regular expression pattern placed after it:`if ($request_filename
+    ~ "\.``txt$") {``[...]``}``~` is case-sensitive, and `~*` is case-insensitive.
+    Use the `!` symbol to negate the matching:`if ($request_filename !~* "\.``php$")
+    {``[...]``}`You can insert capture buffers in the regular expression:`if ($uri
+    ~ "^/search/(.*)$") {``set $``query $1;``rewrite ^` `http://google.com/search?q=$query;``}`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `-``f`, `!-f` | Tests the existence of the specified file:`if (-f $``request_filename)
+    {``[...] # if the` `file exists``}`Use `!-f` to test the non-existence of the
+    file:`if (!-f $``request_filename) {``[...] # if the file does` `not exist``}`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `-``d`, `!-d` | Similar to the `-f` operator, for testing the existence of
+    a directory. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `-``e`, `!-e` | Similar to the `-f` operator, for testing the existence of
+    a file, directory, or symbolic link. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `-``x`, `!-x` | Similar to the `-f` operator, for testing whether a file
+    exists and is executable. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.5: A list of syntaxes for conditions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As of version 1.13.8, there are no `else` or `else if`-like instructions. However,
+    other directives allowing you to control the configuration flow sequencing are
+    available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You might wonder: *What are the advantages of using a* `location` *block over
+    an* `if` *block?* Indeed, in the following example, both seem to have the same
+    effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: As a matter of fact, the main difference lies within the directives that can
+    be employed within either block. Some can be inserted in an `if` block and some
+    can’t; on the contrary, almost all directives are authorized within a `location`
+    block, as you probably noticed in the directive listings so far. In general, it’s
+    best to only insert directives from the Rewrite module within an `if` block, as
+    other directives were not originally intended for such usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The Rewrite module provides you with a set of directives that do more than
+    just rewrite a URI. The following table describes these directives, along with
+    the context in which they can be employed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `rewrite``Context: server,` `location, if` | As discussed previously, the
+    `rewrite` directive allows you to rewrite the URI of the current request, thus
+    resetting the treatment of the said request.Syntax: `rewrite regexp` `replacement
+    [flag];`Where `regexp` is the regular expression, the URI should match in order
+    for the replacement to apply. |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  | The flag may take one of the following values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`last`: The current rewrite rule should be the last to be applied. After its
+    application, the new URI is processed by NGINX, and a `location` block is searched
+    for. However, further rewrite instructions will be disregarded.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`break`: The current rewrite rule is applied, but NGINX does not initiate a
+    new request for the modified URI (does not restart the search for matching `location`
+    blocks). All further `rewrite` directives are ignored.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`redirect`: Returns a `302 Moved Temporarily` HTTP response, with the replacement
+    URI set as the value of the `location` header.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '`permanent`: Returns a `301 Moved Permanently` HTTP response, with the replacement
+    URI set as the value of the `location` header.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you specify a URI beginning with `http://` as the replacement URI, NGINX
+    will automatically use the `redirect` flag.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that the request URI processed by the directive is a relative URI; it does
+    not contain the hostname and protocol. For a request such as `http://website.com/documents/page.html`,
+    the request URI is `/documents/page.html`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If decoded, this URI corresponding to a request, such as `http://website.com/my%20page.html`,
+    would be `/my page.html` (in the encoded URI, `%20` indicates a whitespace character).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Does not contain arguments; for a request such as `http://website.com/page.php?id=1&p=2`,
+    the URI would be `/page.php`. When rewriting the URI, you don’t need to consider
+    including arguments in the replacement URI; NGINX does it for you. If you want
+    NGINX to not include arguments after the rewritten URI, you must insert a `?`
+    character at the end of the replacement URI: `rewrite ^/``search/(.*)$ /search.php?q=$1?`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Examples:`rewrite ^/``search/(.*)$ /search.php?q=$1;``rewrite ^/``search/(.*)$
+    /search.php?q=$1?;``rewrite ^` `http://website.com;``rewrite ^` `http://website.com
+    permanent;` |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `break`Context: `server`, `location`, `if` | The `break` directive is used
+    to prevent further `rewrite` directives. Past this point, the URI is fixed and
+    cannot be altered.Example:`if (-f $``uri) {``break; # break if the` `file exists``}``if
+    ($uri ~ ^/``search/(.*)$) {``set $``query $1;``rewrite ^ /``search.php?q=$query?;``}`This
+    example rewrites `/search/anything`-like queries to `/search.php?q=anything`.
+    However, if the requested file exists (such as `/search/index.html`), the `break`
+    instruction prevents NGINX from rewriting the URI. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `return`Context: `server`, `location`, `if` | Interrupts the processing of
+    the request and returns the specified HTTP status code or specified text.Syntax:
+    `return code &#124;` `text;`Here, the code is one of the following status codes:
+    `204`, `308`, `400`, `402` to `406`, `408`, `410`, `411`, `413`, `416`, and `500`
+    to `504`. In addition, you may use the `444` NGINX-specific code in order to return
+    an `HTTP 200 OK` status code with no further response header or body. Alternatively,
+    you may also specify a raw text value that will be returned to the user as a response
+    body. This comes in handy when testing whether your request URIs fall within particular
+    `location` blocks.Example:`if ($uri ~ ^/``admin/) {``return 403;``# the instruction
+    below is` `NOT executed``# as Nginx already completed` `the request``rewrite ^`
+    `http://website.com;``}` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `set`Context: `server`, `location`, `if` | Initializes or redefines a variable.
+    Note that some variables cannot be redefined; for example, you are not allowed
+    to alter `$uri`.Syntax: `set $``variable value;`Examples:`set $var1 "some` `text";``if
+    ($var1 ~ ^(.*) (.*)$) {``set $var2 $1$2; #``concatenation``rewrite ^` `http://website.com/$var2;``}`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `uninitialized_variable_warn`Context: `http`, `server`, `location`, `if`
+    | If set to `on`, NGINX will issue log messages when the configuration employs
+    a variable that has not yet been initialized.Syntax: `on` or `off`Example:`uninitialized_variable_warn
+    on;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `rewrite_log`Context: `http`, `server`, `location`, `if` | If `rewrite_log`
+    is set to `on`, NGINX will issue log messages for every operation performed by
+    the rewrite engine at the `notice` error level (see the `error_log` directive).Syntax:
+    `on` or `off`Default value: `off`Example:`rewrite_log off;` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.6: A list of directives used to rewrite URIs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Common rewrite rules
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here is a set of rewrite rules that satisfy basic needs for dynamic websites
+    that wish to beautify their page links, thanks to the URL rewriting mechanism.
+    You will obviously need to adjust these rules according to your particular situation,
+    as every website is different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performing a search
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This rewrite rule is intended for search queries. Search keywords are included
+    in the URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http://website.com/search/some-search-keywords`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http://website.com/search.php?q=some-search-keywords`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rewrite ^/``search/(.*)$ /search.php?q=$1?;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: User profile page
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Most dynamic websites that allow visitors to register offer a profile view
+    page. URLs of this form can be employed, containing both the user ID and the username:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http://website.com/user/31/James`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http://website.com/user.php?id=31&name=James`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rewrite ^/``user/([0-9]+)/(.+)$ /user.php?id=$1&name=$2?;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Multiple parameters
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Some websites may use different syntaxes for the argument string—for example,
+    by separating non-named arguments with slashes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http://website.com/index.php/param1/param2/param3`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http://website.com/index.php?p1=param1&p2=param2&p3=param3`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rewrite ^/``index.php/(.*)/(.*)/(.*)$ /index.php?p1=$1&p2=$2&p3=$3?;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wikipedia-like
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Many websites have now adopted the URL style introduced by *Wikipedia*, including
+    a prefix folder followed by an article name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http:// website.com/wiki/Some_keyword`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Rewritten URI**: http://website.com/wiki/index.php?title=Some_keyword'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rewrite ^/``wiki/(.*)$ /wiki/index.php?title=$1?;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: News website article
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This URL structure is often employed by news websites, as URLs contain indications
+    of articles’ contents. It is formed of an article identifier, followed by a slash,
+    then a list of keywords. The keywords can usually be ignored and not included
+    in the rewritten URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http://website.com/33526/us-economy-strengthens`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http://website.com/article.php?id=33526`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rewrite ^/([``0-9]+)/.*$ /article.php?id=$1?;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Discussion board
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Modern bulletin boards now use *pretty URLs*, for the most part. This example
+    shows how to create a *topic view* URL with two parameters: the topic identifier
+    and the starting post. Once again, keywords are ignored:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http://website.com/topic-1234-50-some-keywords.html`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http://website.com/viewtopic.php?topic=1234&start=50`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rewrite ^/``topic-([0-9]+)-([0-9]+)-(.*)\.html$ /viewtopic.php?topic=$1&start=$2?;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The first half of this chapter covered one of the most important NGINX modules—namely,
+    the Rewrite module. There are a lot more modules that will greatly enrich the
+    functionality of the web server; they are regrouped by theme in the following
+    section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at some additional modules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Among the modules described in this section, some are included in the default
+    NGINX build, but some are not. This implies that unless you specifically configured
+    your NGINX build to include these modules (as described in [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014)),
+    they will not be available to you. But remember that rebuilding NGINX to include
+    additional modules is a relatively quick and easy process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Website access and logging
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following set of modules allows you to configure how visitors access your
+    website and the way your server logs requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Index
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Index module provides a simple directive named `index` that lets you define
+    the page that NGINX will serve by default if no filename is specified in the client
+    request (in other words, it defines the website `index` page). You may specify
+    multiple filenames; the first file to be found will be served. If none of the
+    specified files are found, NGINX will either attempt to generate an automatic
+    index of the files, if the `autoindex` directive is enabled (check the HTTP `autoindex`
+    module) or return a `403 Forbidden` error page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optionally, you may insert an absolute filename (such as `/page.html`), but
+    only as the last argument of the directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index file1 [``file2...] [absolute_file];`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index.html`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This directive is valid in the following contexts: `http`, `server`, and `location`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Autoindex
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If NGINX cannot provide an index page for the requested directory, the default
+    behavior is to return a `403 Forbidden HTTP` error page. With the following set
+    of directives, you enable an automatic listing of the files that are present in
+    the requested directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 4.1: A screenshot showing the autoindex module listing the content
+    of a directory](img/B21787_04_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4.1: A screenshot showing the autoindex module listing the content of
+    a directory'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Three columns of information appear for each file: the filename, the file date
+    and time, and the file size in bytes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `Autoindex`Context: `http`, `server`, `location` | Enables or disables automatic
+    directory listing for directories missing an `index` page.Syntax: `on` or `off`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `autoindex_exact_size`Context: `http`, `server`, `location` | If set to `on`,
+    this directive ensures that the listing displays file sizes in bytes. Otherwise,
+    another unit is employed, such as KB, MB, or GB.Syntax: `on` or `off`Default value:
+    `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `autoindex_localtime`Context: `http`, `server`, `location` | By default,
+    this directive is set to `off`, so the date and time of files in the listing appear
+    as GMT time. Set it to `on` to make use of the local server time.Syntax: `on`
+    or `off`Default value: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `autoindex_format`Context: `http`, `server`, `location` | NGINX offers to
+    serve the directory index in different formats: HTML, XML, JSON, or JSONP (by
+    default, HTML is used).Syntax: `autoindex_format html &#124; xml &#124; json &#124;`
+    `jsonp;`If you set the directive value to `jsonp`, NGINX will insert the value
+    of the `callback` query argument as JSONP callback. For example, your script should
+    call this URI: `/folder/?callback=MyCallbackName`. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.7: A list of directives for the autoindex module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Random index
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This module enables a simple directive, `random_index`, which can be used within
+    a `location` block in order for NGINX to return an `index` page selected randomly
+    among the files of the specified directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Syntax: `on` or `off`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This module controls the behavior of NGINX regarding access logs. It is a key
+    module for system administrators, as it allows analyzing the runtime behavior
+    of web applications. It is composed of three essential directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `access_log`Context: `http`, `server`, `location`, `if` (in location), `limit_except`
+    | This parameter defines the access log file path and the format of entries in
+    the access log by selecting a template name or disables access logging.Syntax:
+    `access_log path [format [buffer=size]] &#124;` `off;`Some remarks concerning
+    the directive syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use `access_log off` to disable access logging at the current level
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The format argument corresponds to a template declared with the `log_format`
+    directive
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the format argument is not specified, the default format is employed (combined)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You may use variables in the file path
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `log_format`Context: `http`, `server`, `location` | Defines a template to
+    be utilized by the `access_log` directive, describing contents that should be
+    included in an entry of the access log.Syntax: `log_format template_name [``escape=default&#124;json]
+    format_string;`The default template is called `combined` and matches the following
+    example:`log_format combined ''$remote_addr - $remote_user [$time_local] ''"$``request"
+    $status``$``body_bytes_sent ''"$http_referer"``"$``http_user_agent"'';``#` `Other
+    example``log_format simple ''$``remote_addr $request'';` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `open_log_file_cache`Context: `http`, `server`, `location` | Configures the
+    cache for log file descriptors. Please refer to the `open_file_cache` directive
+    of the HTTP core module for additional information.Syntax: `open_log_file_cache
+    max=N [inactive=time] [min_uses=N] [valid=time] &#124;` `off;`The arguments are
+    similar to the `open_file_cache` directive and other related directives, the difference
+    being that this applies to access log files only. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.8: A list of directives for the Log module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Log module also enables several new variables, though they are only accessible
+    when writing log entries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$connection`: The connection number'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$pipe`: The variable is set to `p` if the request was pipelined'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$time_local`: Local time (at the time of writing the log entry)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$msec`: Local time (at the time of writing the log entry) to the microsecond'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$request_time`: Total length of the request processing, in milliseconds'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$status`: Response status code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$bytes_sent`: Total number of bytes sent to the client'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$body_bytes_sent`: Number of bytes sent to the client for the response body'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$apache_bytes_sent`: Similar to `$body_bytes`, which corresponds to the `%B`
+    parameter of Apache’s `mod_log_config`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$request_length`: Length of the request body'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Limits and restrictions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following modules allow you to regulate access to the documents of your
+    websites, require users to authenticate, match a set of rules, or simply restrict
+    access to certain visitors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: auth_basic module
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `auth_basic` module enables the basic authentication functionality. With
+    the two directives that it brings forth, you can make it so that a specific location
+    of your website (or your server) is restricted to users who authenticate with
+    a username and password:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first directive, `auth_basic`, can be set to either `off` or a text message,
+    usually referred to as *authentication challenge* or *authentication realm*. This
+    message is displayed by web browsers in a username/password box when a client
+    attempts to access the protected resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second one, `auth_basic_user_file`, defines the path of the password file
+    relative to the directory of the configuration file. A password file is formed
+    of lines respecting the `username:[{SCHEME}]password[:comment]` syntax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`username`: A plain text username.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`{SCHEME}`: Optionally, the password hashing method. There are currently three
+    supported schemes: `{PLAIN}` for plain-text passwords, `{SHA}` for SHA-1 hashing,
+    and `{SSHA}` for salted SHA-1 hashing.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Important note
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please note that `PLAIN` and `SHA`, while still supported, are insecure methods.
+    We recommend you use `SSHA` for salting passwords.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`password`: The password.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`comment`: A plain-text comment for your own use.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you fail to specify a scheme, the password will need to be encrypted with
+    the `crypt(3)` function—for example, with the help of the `htpasswd` command-line
+    utility from Apache packages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Access
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Two important directives are brought up by this module: `allow` and `deny`.
+    They let you allow or deny access to a resource for a specific IP address or IP
+    address range.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Both directives have the same syntax: `allow IP` | `CIDR` | `unix:` | `all`,
+    where `IP` is an IP address, `CIDR` is an IP address range (`unix:` represents
+    all Unix domain sockets, and `all` specifies that the directive applies to all
+    clients:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Important note
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that rules are processed from the top down: if your first instruction
+    is `deny all`, all possible `allow` exceptions that you place afterward will have
+    no effect. The opposite is also true; if you start with `allow all`, all possible
+    `deny` directives that you place afterward will have no effect, as you already
+    allowed all IP addresses.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limit connections
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The mechanism induced by this module is a little more complex than regular ones.
+    It allows you to define the maximum amount of simultaneous connections to the
+    server for a specific *zone*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first step is to define the zone using the `limit_conn_zone` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The directive syntax is `limit_conn_zone $``variable zone=name:size;`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$variable` is the variable that will be used to differentiate one client from
+    another, typically `$binary_remote_addr`, the IP address of the client in binary
+    format (more efficient than ASCII)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`name` is an arbitrary name given to the zone'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`size` is the maximum size you allocate to the table storing session states'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following example defines zones based on the client IP addresses (incoming
+    connections):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that you have defined a zone, you may limit connections using `limit_conn`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When applied to the previous example, it becomes the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: As a result, requests that share the same `$binary_remote_addr` IP address are
+    subject to the connection limit (one simultaneous connection). If the limit is
+    reached, all additional concurrent requests will be answered with a `503 Service
+    Unavailable` HTTP response. This response code can be overridden if you specify
+    another code via the `limit_conn_status` directive. If you wish to log client
+    requests that are affected by the limits you have set, enable the `limit_conn_log_level`
+    directive and specify the log level (`info` | `notice` | `warn` | `error`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limit request
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In a similar fashion, the Limit request module allows you to limit the amount
+    of requests for a defined zone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Defining the zone is done via the `limit_req_zone` directive; its syntax differs
+    from the Limit zone equivalent directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The directive parameters are identical, except for the trailing `rate` parameter,
+    expressed in `limit_req` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `burst` parameter defines the maximum possible bursts of requests. When
+    the amount of requests received from a client exceeds the limit defined in the
+    zone, responses are delayed in a manner that respects the rate that you defined.
+    To a certain extent, only a maximum of `burst` requests will be accepted simultaneously.
+    Past this limit, NGINX returns a `503 Service Unavailable` HTTP error response.
+    This response code can be overridden if you specify another code via the `limit_req_status`
+    directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you wish to log client requests that are affected by the limits you have
+    set, enable the `limit_req_log_level` directive and specify the log level (`info`
+    | `notice` | `warn` | `error`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Auth request
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `auth_request` module was implemented in recent versions of NGINX and allows
+    you to allow or deny access to a resource based on the result of a sub-request.
+    NGINX calls the URI that you specify via the `auth_request` directive: if the
+    sub-request returns a `2xx` response code (such as `HTTP/200 OK`), access is allowed.
+    If the sub-request returns a `401` or `403` status code, access is denied, and
+    NGINX forwards the response code to the client. Should the backend return any
+    other response code, NGINX will consider it to be an error and deny access to
+    the resource:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Additionally, the module offers a second directive, called `auth_request_set`,
+    allowing you to set a variable after the sub-request is executed. You can insert
+    variables that originate from the sub-request upstream (`$upstream_http_*`), such
+    as `$upstream_http_server` or other HTTP headers, from the server response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Content and encoding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following set of modules provides functionalities that have an effect on
+    the contents served to the client, either by modifying the way the response is
+    encoded, by affecting the headers, or by generating a response from scratch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Empty GIF
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The purpose of this module is to provide a directive that serves a 1x1 transparent
+    GIF image from the memory. Such files are sometimes used by web designers to tweak
+    the appearance of their websites. With this directive, you get an empty GIF straight
+    from the memory, instead of reading and processing an actual GIF file from the
+    storage space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To utilize this feature, simply insert the `empty_gif` directive in the location
+    of your choice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: MP4
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'MP4 is a module that enables a simple functionality that becomes useful when
+    serving MP4 video files. It parses a special argument of the request, `start`,
+    which indicates the offset of the section the client wishes to download or pseudo-stream.
+    The video file must thus be accessed with the following URI: `video.mp4?start=XXX`.
+    This parameter is prepared automatically by mainstream video players, such as
+    JW Player.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To utilize this feature, simply insert the `.mp4` directive in the location
+    of your choice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Be aware that if NGINX fails to seek the requested position within the video
+    file, the request will result in a `500 Internal Server Error` HTTP response.
+    JW Player sometimes misinterprets this error and simply displays a `Video not
+    found` error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP headers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Three directives are introduced by this module that will affect the header of
+    the response sent to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, `add_header name value [always]` lets you add a new line in the response
+    headers, respecting the following syntax: `Name: value`. The line is added only
+    for responses of the following codes: `200`, `201`, `204`, `301`, `302`, or `304`.
+    You may insert variables in the `value` argument. If you specify `always` at the
+    end of the directive value, the header will always be added, regardless of the
+    response code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, the `add_trailer name value [always]` directive allows you to
+    add a header to the end of the response if the response code is one of `200`,
+    `201`, `204`, `206`, `301`, `302`, `303`, `307`, or `308`. This directive can
+    be specified multiple times to add multiple headers. The `always` flag works similarly
+    to the `add_header` version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, the `expires` directive allows you to control the value of the `Expires`
+    and `Cache-Control` HTTP headers sent to the client, affecting requests of the
+    same code, as listed earlier. It accepts a single value among the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Does not modify either header.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`expires 24h` will return an expiry date set to 24 hours from now.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`epoch`: The expiration date of the file is set to January 1, 1970\. The `Cache-Control`
+    header is set to `no-cache`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`max`: The expiration date of the file is set to December 31, 2037\. The `Cache-Control`
+    header is set to 10 years.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Addition
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Addition module allows you to (through simple directives) add content before
+    or after the body of the HTTP response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The two main directives are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`add_before_body file_uri;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`add_after_body file_uri;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As stated previously, NGINX triggers a sub-request for fetching the specified
+    URI. Additionally, you can define the types of files to which content is appended
+    in case your `location` block pattern is not specific enough (default: `text/html`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Substitution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Along the lines of the previous module, the Substitution module allows you
+    to search and replace text directly from the response body:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Two additional directives provide more flexibility:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sub_filter_once` (`on` or `off`, default `on`): Only replaces the text once,
+    and stops after the first occurrence.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sub_filter_types` (default `text/html`): Affects additional MIME types that
+    will be eligible for text replacement. The `*` wildcard is allowed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Gzip filter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This module allows you to compress the response body with the Gzip algorithm
+    before sending it to the client. To enable Gzip compression, use the `gzip` directive
+    (`on` or `off`) at the `http`, `server`, `location`, and even the `if` level (though
+    that is not recommended). The following directives will help you to further configure
+    the filter options:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_buffers`Context: `http`, `server`, `location` | Defines the amount
+    and size of buffers to be used for storing the compressed response.Syntax: `gzip_buffers`
+    `amount size;`Default: `gzip_buffers 4 4k` (or `8k`, depending on the OS) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_comp_level`Context: `http`, `server`, `location` | Defines the compression
+    level of the algorithm. The specified value ranges from `1` (low compression,
+    faster for the CPU) to `9` (high compression, slower).Syntax: Numeric valueDefault:
+    `1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_disable`Context: `http`, `server`, `location` | Disables Gzip compression
+    for requests where the `User-Agent` HTTP header matches the specified regular
+    expression.Syntax: Regular expressionDefault: None |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_http_version`Context: `http`, `server`, `location` | Enables Gzip compression
+    for the specified protocol version.Syntax: `1.0` or `1.1`Default: `1.1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_min_length`Context: `http`, `server`, `location` | If the response
+    body length is inferior to the specified value, it is not compressed.Syntax: Numeric
+    value (size)Default: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_proxied`Context: `http`, `server`, `location` | Enables or disables
+    Gzip compression for the body of responses received from a proxy (see reverse-proxying
+    mechanisms in later chapters).The directive accepts the following parameters;
+    some can be combined:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off/any`: Disables or enables compression for all requests'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`expired`: Enables compression if the `Expires` header prevents caching'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no-cache/no-store/private`: Enables compression if the `Cache-Control` header
+    is set to `no-cache`, `no-store`, or `private`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no_last_modified`: Enables compression in case the `Last-Modified` header
+    is not set'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no_etag`: Enables compression in case the `ETag` header is not set'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`auth`: Enables compression in case an `Authorization` header is set'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `gzip_types`Context: `http`, `server`, `location` | Enables compression for
+    types other than the default `text/html` MIME type.Syntax:`gzip_types` `mime_type1
+    [mime_type2...];``gzip_types *;`Default: `text/html` (cannot be disabled) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_vary`Context: `http`, `server`, `location` | Adds the `Vary: Accept-Encoding`
+    HTTP header to the response.Syntax: `on` or `off`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_window`Context: `http`, `server`, `location` | Sets the size of the
+    window buffer (`windowBits` argument) for Gzipping operations. This directive
+    value is used for calls to functions from the Zlib library.Syntax: Numeric value
+    (size)Default: `MAX_WBITS` constant from the Zlib library |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_hash`Context: `http`, `server`, `location` | Sets the amount of memory
+    that should be allocated for the internal compression state (`memLevel` argument).
+    This directive value is used for calls to functions from the Zlib library.Syntax:
+    Numeric value (size)Default: `MAX_MEM_LEVEL` constant from the Zlib prerequisite
+    library |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `postpone_gzipping`Context: `http`, `server`, `location` | Defines a minimum
+    data threshold to be reached before starting the Gzip compression.Syntax: Size
+    (numeric value)Default: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_no_buffer`Context: `http`, `server`, `location` | By default, NGINX
+    waits until at least one buffer (defined by `gzip_buffers`) is filled with data
+    before sending a response to the client. Enabling this directive disables buffering.Syntax:
+    `on` or `off`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.9: A list of directives for the Gzip module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gzip static
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This module adds a simple functionality to the Gzip filter mechanism. When its
+    `gzip_static` directive (`on`, `off`, or `always`) is enabled, NGINX will automatically
+    look for a `.gz` file corresponding to the requested document before serving it.
+    This allows NGINX to send pre-compressed documents instead of compressing documents
+    on the fly at each request. Specifying `always` will force NGINX to serve the
+    `gzip` version regardless of whether the client accepts `gzip` encoding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a client requests `/documents/page.html`, NGINX checks for the existence
+    of a `/documents/page.html.gz` file. If the `.gz` file is found, it is served
+    to the client. Note that NGINX does not generate `.gz` files itself, even after
+    serving the requested files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gunzip filter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With the Gunzip filter module, you can decompress a Gzip-compressed response
+    sent from a backend in order to serve it *raw* to the client—for example, in case
+    the client browser is not able to process gzipped files (Microsoft Internet Explorer
+    6). Simply insert `gunzip on;` in a `location` block to employ this module. You
+    can also set the buffer amount and size with `gunzip_buffers amount size;`, where
+    `amount` is the amount of buffers to allocate and `size` is the size of each allocated
+    buffer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Charset filter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'With the Charset filter module, you can control the character set of the response
+    body more accurately. Not only are you able to specify the value of the `charset`
+    argument of the `Content-Type` HTTP header (such as `Content-Type: text/html;
+    charset=utf-8`), but NGINX can also re-encode data to a specified encoding method
+    automatically:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `charset`Context: `http`, `server`, `location`, `if` | This directive adds
+    the specified encoding to the `Content-Type` header of the response. If the specified
+    encoding differs from the `source_charset` one, NGINX re-encodes the document.Syntax:
+    `charset encoding &#124;` `off;`Default: `off`Example: `charset utf-8;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `source_charset`Context: `http`, `server`, `location`, `if` | Defines the
+    initial encoding of the response; if the value specified in the `charset` directive
+    differs, NGINX re-encodes the document.Syntax: `source_charset encoding;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `override_charset`Context: `http`, `server`, `location`, `if` | When NGINX
+    receives a response from the proxy or FastCGI gateway, this directive defines
+    whether or not the character encoding should be checked and potentially overridden.Syntax:
+    `on` or `off`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `charset_types`Context: `http`, `server`, `location` | Defines the MIME types
+    that are eligible for re-encoding.Syntax:`charset_types` `mime_type1 [mime_type2...];``charset_types
+    * ;`Default: `text/html`, `text/xml`, `text/plain`, `text/vnd.wap.wml`, `application/x-javascript`,
+    and `application/rss+xml` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `charset_map`Context: `http` | Lets you define character re-encoding tables.
+    Each line of the table contains two hexadecimal codes to be exchanged. You will
+    find re-encoding tables for the `koi8-r` character set in the default NGINX configuration
+    folder (`koi-win` and `koi-utf`).Syntax: `charset_map src_encoding dest_encoding
+    { ... }` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.10: A list of directives for the Charset filter module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memcached
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Memcached is a daemon application that can be connected via sockets. Its main
+    purpose, as the name suggests, is to provide an efficient distributed key/value
+    memory caching system. The NGINX Memcached module provides directives, allowing
+    you to configure access to the Memcached daemon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_pass`Context: `location`, `if` | Defines the hostname and port
+    of the Memcached daemon.Syntax: `memcached_pass hostname:port;`Example: `memcached_pass
+    localhost:11211;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_bind`Context: `http`, `server`, `location` | Forces NGINX to use
+    the specified local IP address for connecting to the Memcached server. This can
+    come in handy if your server has multiple network cards connected to different
+    networks.Syntax: `memcached_bind IP_address;`Example: `memcached_bind 192.168.1.2;`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_connect_timeout`Context: `http`, `server`, `location` | Defines
+    the connection timeout in milliseconds (default: `60000`)Example: `memcached_connect_timeout
+    5000;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_send_timeout`Context: `http`, `server`, `location` | Defines the
+    data writing operations timeout in milliseconds (default: `60000`)Example: `memcached_send_timeout
+    5,000;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_read_timeout`Context: `http`, `server`, `location` | Defines the
+    data reading operations timeout in milliseconds (default: `60000`)Example: `memcached_read_timeout
+    5,000;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_buffer_size`Context: `http`, `server`, `location` | Defines the
+    size of the read and write buffer in bytes (default: page size)Example: `memcached_buffer_size
+    8k;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_next_upstream`Context: `http`, `server`, `location` | When the
+    `memcached_pass` directive is connected to an upstream block (see the Upstream
+    module), this directive defines the conditions that should be matched in order
+    to skip to the next upstream server.Syntax: Values selected among `error timeout`,
+    `invalid_response`, `not_found`, or `off`Default: `error timeout`Example: `memcached_next_upstream
+    off;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memcached_gzip_flag`Context: `http`, `server`, `location` | Checks for the
+    presence of the specified flag in the `memcached` server response. If the flag
+    is present, NGINX sets the `Content-encoding` header to `gzip` to indicate that
+    it will be serving gzipped content.Syntax: Numeric flagDefault: (none)Example:
+    `memcached_gzip_flag 1;` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.11: A list of directives for the Memcached module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, you will need to define a `$memcached_key` variable that defines
+    the key of the element that you are placing or fetching from the cache. You may,
+    for instance, use `set $memcached_key $uri` or `set $``memcached_key $uri?$args`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that the NGINX Memcached module is only able to retrieve data from the
+    cache; it does not store the results of requests. Storing data in the cache should
+    be done by a server-side script. You just need to make sure to employ the same
+    key naming scheme in both your server-side scripts and the NGINX configuration.
+    As an example, we could decide to use `memcached` to retrieve data from the cache
+    before passing the request to a proxy, if the requested URI is not found (see
+    [*Chapter 6*](B21787_06.xhtml#_idTextAnchor621), for more details about the Proxy
+    module):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Image filter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This module provides image processing functionalities through the **GD Graphics
+    Library** (also known as **gdlib**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Make sure to employ the following directives on a `location` block that filters
+    image files only, such as `location ~* \.(png|jpg|gif|webp)$ { ... }`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter`Context: `location` | Lets you apply a transformation on the
+    image before sending it to the client. There are five options available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Turns off previously set `image_filter`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`test`: Makes sure that the requested document is an image file; returns a
+    `415 Unsupported Media Type` HTTP error if the test fails.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`size`: Composes a simple JSON response indicating information about the image,
+    such as the size and type (for example; `{ "img": { "width":50, "height":50, "type":"png"}}`).
+    If the file is invalid, a simple `{}` instance is returned.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`resize width height`: Resizes the image to the specified dimensions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`crop width height`: Selects a portion of the image of the specified dimensions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rotate 90` &#124; `180` &#124; `270`: Rotates the image by the specified angle
+    (in degrees).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Example: `image_filter resize` `200 100;` |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `image_filter_buffer`Context: `http`, `server`, `location` | Defines the
+    maximum file size for images to be processed.Default: `image_filter_buffer 1m;`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_jpeg_quality`Context: `http`, `server`, `location` | Defines
+    the quality of output JPEG images.Default: `image_filter_jpeg_quality 75;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_webp_quality`Context: `http`, `server`, `location` | Defines
+    the quality of output `webp` images.Default: `image_filter_webp_quality 80;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_transparency`Context: `http`, `server`, `location` | By default,
+    PNG and GIF images keep their existing transparency during operations you perform
+    using the Image filter module. If you set this directive to `off`, all existing
+    transparency will be lost, but the image quality will be improved.Syntax: `on`
+    or `off`Default: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_sharpen`Context: `http`, `server`, `location` | Sharpens the
+    image by a specified percentage (value may exceed 100).Syntax: Numeric valueDefault:
+    `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `image_filter_interlace`Context: `http`, `server`, `location` | Enables interlacing
+    of the output image. If the output image is a JPG file, the image is generated
+    in *progressive* *JPEG* format.Syntax: `on` or `off`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.12: A list of directives for the Image filter module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: When it comes to JPG images, NGINX automatically strips off metadata (such as
+    **EXIF**) if it occupies more than five percent of the total space of the file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: XSLT
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The NGINX XSLT module allows you to apply an **Extensible Stylesheet Language
+    Transformations** (**XSLT**) transform on an XML file or response received from
+    a backend server (proxy, FastCGI, and so on) before serving the client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xml_entities`Context: `http`, `server`, `location` | Specifies the **document
+    type definition** (**DTD**) file containing symbolic element definitions.Syntax:
+    File pathExample: `xml_entities xml/entities.dtd;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_stylesheet`Context: `location` | Specifies the XSLT template file path
+    with its parameters. Variables may be inserted in the parameters.Syntax: `xslt_stylesheet
+    template [``param1] [param2...];`Example: `xslt_stylesheet` `xml/sch.xslt param=value;`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_types`Context: `http`, `server`, `location` | Defines additional MIME
+    types to which transforms may apply, other than `text/xml`.Syntax: MIME typeExample:`xslt_types`
+    `text/xml text/plain;``xslt_types *;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `xslt_paramxslt_string_param`Context: `http`, `server`, `location` | Both
+    directives allow defining parameters for XSLT stylesheets. The difference lies
+    in the way the specified value is interpreted: using `xslt_param`, XPath expressions
+    in the value are processed; `xslt_string_param` should be used for plain character
+    strings.Syntax: `xslt_param` `key value;` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.13: A list of directives for the XSLT module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: About your visitors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following set of modules provides extra functionality that will help you
+    find out more information about visitors, such as by parsing client request headers
+    for browser name and version, assigning an identifier to requests presenting similarities,
+    and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Browser
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The Browser module parses the `User-Agent` HTTP header of the client request
+    in order to establish values for variables that can be employed later in the configuration.
+    The three variables produced are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$modern_browser`: If the client browser is identified as being a modern web
+    browser, the variable takes the value defined by the `modern_browser_value` directive'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ancient_browser`: If the client browser is identified as being an old web
+    browser, the variable takes the value defined by `ancient_browser_value`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$msie`: This variable is set to `1` if the client is using a Microsoft Internet
+    Explorer browser'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To help NGINX recognize web browsers, distinguishing the old from the modern,
+    you need to insert multiple occurrences of the `ancient_browser` and `modern_browser`
+    directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this example, if the `User-Agent` HTTP header contains Opera 10.0, the
+    client browser is considered modern.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Just as with the Browser module, the Map module allows you to create maps of
+    values, depending on a variable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `map` directive can only be inserted within the `http` block. Following
+    this example, `$variable` may have three different values. If `$uri` was set to
+    `/page.html`, the `$variable` value is now defined as `0`; if `$uri` was set to
+    `/contact.html`, `$variable` is now `1`; if `$uri` was set to `/index.html`, the
+    `$variable` value now equals `2`. For all other cases (`default`), `$variable`
+    is set to `0`. The last instruction rewrites the URL accordingly. Apart from `default`,
+    the `map` directive accepts another special keyword: `hostnames`. It allows you
+    to match hostnames using wildcards such as `*.domain.com`. Finally, it’s possible
+    to mark a map as `volatile`, which makes the map non-cacheable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Two additional directives allow you to tweak the way NGINX manages the mechanism
+    in memory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`map_hash_max_size`: Sets the maximum size of the hash table holding a map'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`map_hash_bucket_size`: The maximum size of an entry in the map'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Regular expressions may also be used in patterns if you prefix them with `~`
+    (case-sensitive) or `~*` (case-insensitive):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Geo
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The purpose of this module is to provide functionality that is quite similar
+    to the `map` directive, affecting a variable based on client data (in this case,
+    the IP address). The syntax is slightly different, in the extent that you are
+    allowed to specify IPv4 and IPv6 address ranges (in CIDR format):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that the preceding block is being presented to you just for the sake of
+    the example and does not actually detect UK and French visitors; you’ll want to
+    use the GeoIP module if you wish to achieve proper geographical location detection.
+    In this block, you may insert a number of directives that are specific to this
+    module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`delete`: Allows you to remove the specified subnetwork from the mapping.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`default`: The default value given to `$variable` in case the user’s IP address
+    does not match any of the specified IP ranges.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`include`: Allows you to include an external file.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy`: Defines a subnet of trusted addresses. If the user IP address is among
+    those trusted, the value of the `X-Forwarded-For` header is used as the IP address
+    instead of the socket IP address.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`proxy_recursive`: If enabled, this will look for the value of the `X-Forwarded-For`
+    header, even if the client IP address is not trusted.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ranges`: If you insert this directive as the first line of your `geo` block,
+    it allows you to specify IP ranges instead of CIDR masks. The following syntax
+    is thus permitted: `127.0.0.1-127.0.0.255 LOCAL;`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GeoIP
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Although the name suggests some similarities with the previous one, this optional
+    module provides accurate geographical information about your visitors by making
+    use of *MaxMind* ([https://www.maxmind.com/en/home](https://www.maxmind.com/en/home))
+    GeoIP binary databases. You need to download the database files from the *MaxMind*
+    website and place them in your NGINX directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, all you have to do is specify the database path with either directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The first directive enables several variables: `$geoip_country_code` (two-letter
+    country code), `$geoip_country_code3` (three-letter country code), and `$geoip_country_name`
+    (full country name). The second directive includes the same variables but provides
+    additional information: `$geoip_region`, `$geoip_city`, `$geoip_postal_code`,
+    `$geoip_city_continent_code`, `$geoip_latitude`, `$geoip_longitude`, `$geoip_dma_code`,
+    `$geoip_area_code`, and `$geoip_region_name`. The third directive offers information
+    about the organization or ISP that owns the specified IP address, by filling up
+    the `$``geoip_org` variable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need the variables to be encoded in UTF-8, simply add the `utf8` keyword
+    at the end of the `geoip_` directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: UserID filter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This module assigns an identifier to clients by issuing cookies. The identifier
+    can be accessed from the `$uid_got` and `$uid_set` variables further in the configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid`Context: `http`, `server`, `location` | Enables or disables issuing
+    and logging of cookies.The directive accepts four possible values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`on`: Enables v2 cookies and logs them'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`v1`: Enables v1 cookies and logs them'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`log`: Does not send cookie data but logs incoming cookies'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`off`: Does not send cookie data'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Default value: `userid off;` |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `userid_service`Context: `http`, `server`, `location` | Defines the IP address
+    of the server issuing the cookie.Syntax: `userid_service ip;`Default: IP address
+    of the server |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_name`Context: `http`, `server`, `location` | Defines the name assigned
+    to the cookie.Syntax: `userid_name name;`Default value: The user identifier |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_domain`Context: `http`, `server`, `location` | Defines the domain
+    assigned to the cookie.Syntax: `userid_domain domain;`Default value: None (the
+    domain part is not sent) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_path`Context: `http`, `server`, `location` | Defines the path part
+    of the cookie.Syntax: `userid_path path;`Default value: `/` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_expires`Context: `http`, `server`, `location` | Defines the cookie
+    expiration date.Syntax: `userid_expires date &#124;` `max;`Default value: No expiration
+    date |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `userid_p3p`Context: `http`, `server`, `location` | Assigns a value to the
+    **Platform for Privacy Preferences Project** (**P3P**) header sent with the cookie.Syntax:
+    `userid_p3p data;`Default value: None |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.14: A list of directives for the userid cookie identifier module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Referer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A simple directive is introduced by this module: `valid_referers`. Its purpose
+    is to check the `Referer` HTTP header from the client request and to possibly
+    deny access based on the value. If the referrer is considered invalid, `$invalid_referer`
+    is set to `1`. In the list of valid referrers, you may employ three kinds of values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**None**: The absence of a referrer is considered to be a valid referrer'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`XXXXX`) is also considered valid'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A server name**: The specified server name is considered to be a valid referrer'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Following the definition of the `$invalid_referer` variable, you may, for example,
+    return an error code if the referrer was found invalid:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Be aware that spoofing the `Referer` HTTP header is a very simple process, so
+    checking the referer of client requests should not be used as a security measure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two more directives are offered by this module, `referer_hash_bucket_size` and
+    `referer_hash_max_size`, respectively allowing you to define the bucket size and
+    maximum size of valid referrers’ hash tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Real IP
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This module provides one simple feature: it replaces the client IP address
+    with the one specified in the `X-Real-IP` HTTP header for clients that visit your
+    website behind a proxy or for retrieving IP addresses from the proper header if
+    NGINX is used as a backend server (it essentially has the same effect as Apache’s
+    `mod_rpaf` if you have experience with Apache). To enable this feature, you need
+    to insert the `real_ip_header` directive that defines the HTTP header to be exploited:
+    either `X-Real-IP` or `X-Forwarded-For`. The second step is to define trusted
+    IP addresses; in other words, the clients that are allowed to make use of those
+    headers. This can be done thanks to the `set_real_ip_from` directive, which accepts
+    both IP addresses and CIDR address ranges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `set_real_ip_from`Context: `http`, `server`, `location` | Sets the trusted
+    addresses that will trigger the real IP header replacement. Set this to the IP
+    of the trusted reverse proxy (or proxies) in front of NGINX.This directive can
+    be specified multiple times, and hostnames are allowed.The special value of `unix:`
+    sets all Unix sockets as trusted.Syntax: `set_real_ip_from address &#124; CIDR
+    &#124;` `unix:;`Default: None |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `real_ip_header`Context: `http`, `server`, `location` | Sets the header field
+    that will be used as a replacement for the IP address.The `proxy_protocol` special
+    value changes the IP to the one from the Proxy protocol.Syntax: `real_ip_header
+    field &#124; X-Real-Ip &#124; X-Forwarded-For &#124;` `proxy_protocol;`Default:
+    `X-Real-Ip` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `real_ip_recursive`Context: `http`, `server`, `location` | If set to `on`,
+    the replacement IP will be set to the last non-trusted IP in the `real_ip_header`
+    field. If set to `off`, will be replaced with the last IP in the `real_ip_header`
+    field, whether trusted or not.Syntax: `on` or `off`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.15: A list of directives for the real_ip module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SSL and security
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: NGINX provides secure HTTP functionalities through the SSL module, but also
+    offers an extra module, called **Secure Link**, that helps you protect your website
+    and visitors in a totally different way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SSL
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The SSL module enables HTTPS support, HTTP over SSL/TLS in particular. It gives
+    you the possibility to serve secure websites by providing a certificate, a certificate
+    key, and other parameters, defined with the following directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl`Context: `http`, `server` | Enables HTTPS for the specified server.
+    This directive is the equivalent of `listen 443 ssl` or `listen port ssl`, more
+    generally.Syntax: `on` or `off`Default: `ssl off;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate`Context: `http`, `server` | Sets the path of the **Privacy
+    Enhanced Mail** (**PEM**) certificate. This directive can be specified multiple
+    times to load certificates of different types.Syntax: File path |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_certificate_key`Context: `http`, `server` | Sets the path of the PEM
+    secret key file.This directive can be specified multiple times to load certificates
+    of different types.Syntax: File path |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_client_certificate`Context: `http`, `server` | Sets the path of the
+    client PEM certificate.Syntax: File path |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_crl`Context: `http`, `server` | Orders NGINX to load a **Certificate
+    Revocation List** (**CRL**) file, which allows checking the revocation status
+    of certificates when using TLS mutual authentication. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_dhparam`Context: `http`, `server` | Sets the path of the **Diffie-Hellman**
+    parameters file.Syntax: File path |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_protocols`Context: `http`, `server` | Specifies the protocol that should
+    be employed.Syntax: `ssl_protocols [SSLv2] [SSLv3] [TLSv1] [TLSv1.1] [``TLSv1.2]
+    [TLSv1.3];`Default: `ssl_protocols TLSv1 TLSv1.1` `TLSv1.2 TLSv1.3;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_ciphers`Context: `http`, `server` | Specifies the ciphers that should
+    be employed. A list of available ciphers can be obtained by running the following
+    command from the shell: `openssl ciphers`.Syntax: `ssl_ciphers cipher1[:cipher2...];`*Recommended*:
+    Please visit [ssl-config.mozilla.org](http://ssl-config.mozilla.org) for the default
+    ciphers to use. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_prefer_server_ciphers`Context: `http`, `server` | Specifies whether
+    server ciphers should be preferred over client ciphers.Syntax: `on` or `off`Default:
+    `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_verify_client`Context: `http`, `server` | Enables verifying certificates
+    transmitted by the client and sets the result in `$ssl_client_verify`. The `optional_no_ca`
+    value verifies the certificate if there is one, but does not require it to be
+    signed by a trusted **certificate authority** (**CA**) certificate.Syntax: `on
+    &#124; off &#124; optional &#124;` `optional_no_ca`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_verify_depth`Context: `http`, `server` | Specifies the verification
+    depth of the client certificate chain.Syntax: Numeric valueDefault: `1` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_cache`Context: `http`, `server` | Configures the cache for SSL
+    sessions.Syntax: `off`, `none`, `builtin:size`, or `shared:name:size`Default:
+    `off` (disables SSL sessions) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_timeout`Context: `http`, `server` | When SSL sessions are enabled,
+    this directive defines the timeout for using session data.Syntax: Time valueDefault:
+    5 minutes |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_password_phrase`Context: `http`, `server` | Specifies a file containing
+    passphrases for secret keys. Each passphrase is specified on a separate line;
+    they are tried one after the other when loading a certificate key.Syntax: FilenameDefault:
+    (none) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_buffer_size`Context: `http`, `server` | Specifies buffer size when serving
+    requests over SSL.Syntax: Size valueDefault: `16k` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_tickets`Context: `http`, `server` | Enables TLS session tickets,
+    allowing for the client to reconnect faster, skipping renegotiation.Syntax: `on`
+    or `off`Default: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_session_ticket_key`Context: `http`, `server` | Sets the path of the
+    key file used to encrypt and decrypt TLS session tickets. By default, a random
+    value is generated.Syntax: FilenameDefault: (none) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ssl_trusted_certificate`Context: `http`, `server` | Sets the path of a trusted
+    certificate file (PEM format), used to validate the authenticity of client certificates,
+    as well as stapling of **Online Certificate Status Protocol** (**OCSP**) responses.
+    More about SSL stapling can be found in the next section.Syntax: FilenameDefault:
+    (none) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 4.16: A list of directives for the SSL module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additionally, the following variables are made available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$ssl_cipher`: Indicates the cipher used for the current request'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_ciphers`: Returns a list of client-supported ciphers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_curves`: Returns a list of client-supported curves for Elliptic Curves/EC/ECDH'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_client_serial`: Indicates the serial number of the client certificate'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_client_s_dn` and `$ssl_client_i_dn`: Indicates the value of the subject
+    and issuer **Distinguished Name** (**DN**) of the client certificate'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_protocol`: Indicates the protocol at use for the current request'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_client_cert` and `$ssl_client_raw_cert`: Returns client certificate data,
+    which is raw data for the second variable'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_client_verify`: Set to `SUCCESS` if the client certificate was successfully
+    verified'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_session_id`: Allows you to retrieve the ID of an SSL session'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$ssl_client_escaped_cert`: Returns the client certificate in PEM format'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up an SSL certificate
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Although the SSL module offers a lot of possibilities, in most cases, only
+    a couple of directives are actually useful for setting up a secure website. This
+    guide will help you configure NGINX to use an SSL certificate for your website
+    (in the example, your website is identified by `secure.website.com`). Before doing
+    so, ensure that you already have the following elements at your disposal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A `.key` file generated with the following command: `openssl genrsa -out secure.website.com.key
+    2048` (other encryption levels work too)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A `.csr` file generated with the following command: `openssl req -new -key
+    secure.website.com.key -``out secure.website.com.csr`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Your website certificate file, as issued by the CA; for example, `secure.website.com.crt`
+    (in order to obtain a certificate from the CA, you will need to provide your `.``csr`
+    file)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The CA certificate file as issued by the CA (for example, `gd_bundle.crt`, if
+    you purchased your certificate from [https://godaddy.com/](https://godaddy.com/))
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The first step is to merge your website certificate and the CA certificate
+    together with the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You are then ready to configure NGINX to serve secure content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: SSL stapling
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'SSL stapling, also called OCSP stapling, is a technique that allows clients
+    to easily connect and resume sessions to an SSL/TLS server without having to contact
+    the CA, thus reducing SSL negotiation times. In normal OCSP transactions, the
+    client contacts the CA to check the revocation status of the server’s certificate.
+    In the case of high-traffic websites, this can cause huge stress on CA servers.
+    An intermediary solution was designed: stapling. The OCSP record is obtained from
+    the CA by your server itself periodically and **stapled** to exchanges with the
+    client. The OCSP record is cached by your server for a period of up to 48 hours
+    in order to limit communications with the CA.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Enabling SSL stapling should thus speed up communications between your visitors
+    and your server. Achieving this in NGINX is relatively simple—all you really need
+    is to insert three directives in your `server` block and obtain a fully trusted
+    certificate chain file (containing both the root and intermediate certificates)
+    from your CA:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ssl_stapling on`: Enables SSL stapling within the `server` block'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_stapling_verify on`: Enables verification of OCSP responses by the server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_trusted_certificate filename`: Here, `filename` is the path of your full
+    trusted certificate file (extension should be `.pem`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Two optional directives also exist, allowing you to modify the behavior of
+    this module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ssl_stapling_file filename`: Here, `filename` is the path of a cached OCSP
+    record, overriding the record provided by the OCSP responder specified in the
+    certificate file'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ssl_stapling_responder url`: Here, `url` is the URL of your CA’s OCSP responder,
+    overriding the URL specified in the certificate file'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you are having issues connecting to the OCSP responder, make sure your NGINX
+    configuration contains a valid DNS resolver using the `resolver` directive (a
+    local DNS responder might help too).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other miscellaneous and optional modules
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The remaining two modules (which all need to be enabled at compile time) are
+    optional and provide additional advanced functionalities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stub status
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The `stub_status` directive in a `location` block. All requests matching the
+    `location` block will produce a status page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module is not included in the default NGINX build. Make sure to protect
+    this page as it should not be used in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example result produced by NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s interesting to note that there are several server monitoring solutions,
+    such as *netdata*, that offer NGINX support through the Stub status page by calling
+    it at regular intervals and parsing the statistics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Degradation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The HTTP Degradation module configures your server to return an error page
+    when your server runs low on memory. It works by defining a memory amount that
+    is to be considered low, and then specifying locations for which you wish to enable
+    a degradation check:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Integrating a third-party module into your NGINX build
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The NGINX community has been growing larger over the past few years, and many
+    additional modules have been written by third-party developers. These can be downloaded
+    from the official wiki website at [https://www.nginx.com/resources/wiki/modules/](https://www.nginx.com/resources/wiki/modules/).
+    However, we advise you to be careful when integrating these third-party modules
+    as they do not come with security support or assurances from the NGINX development
+    team, potentially introducing security vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The currently available modules offer a wide range of new possibilities, among
+    which are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An *Access Key* module to protect your documents in a similar fashion to Secure
+    Link, by Mykola Grechukh
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A *Fancy Indexes* module that improves the automatic directory listings generated
+    by NGINX, by Adrian Perez de Castro
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The *Headers More* module that improves flexibility with HTTP headers, by Yichun
+    Zhang (`agentzh`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many more features for various parts of the web server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To integrate a third-party module into your NGINX build, you need to follow
+    these three simple steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download the `.tar.gz` archive associated with the module you wish to download.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Extract the archive with the following command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Configure your NGINX build with the following command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Once you have finished building and installing the application, the module is
+    available just like a regular NGINX module, with its directives and variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you are interested in writing NGINX modules yourself, Evan Miller published
+    an excellent walkthrough: *Emiller’s Guide to Nginx Module Development*. The complete
+    guide may be consulted from his personal website at [https://www.evanmiller.org/](https://www.evanmiller.org/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Throughout this chapter, we have been discovering modules that help you improve
+    or fine-tune the configuration of your web server. NGINX fiercely stands up to
+    other concurrent web servers in terms of functionality, and its approach to virtual
+    hosts and the way they are configured will probably convince many administrators
+    to make the switch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Three additional modules were left out, though. Firstly, the FastCGI module
+    will be approached in the next chapter, as it will allow us to configure a gateway
+    to applications such as PHP or Python. Secondly, the Proxy module that lets us
+    design complex setups will be described in [*Chapter 6*](B21787_06.xhtml#_idTextAnchor621).
+    Finally, the Upstream module is tied to both, so it will be detailed in parallel.
+  prefs: []
+  type: TYPE_NORMAL

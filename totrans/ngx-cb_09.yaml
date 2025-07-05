@@ -1,0 +1,697 @@
+- en: Advanced Features
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following recipes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authentication with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: WebDAV with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bandwidth management with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Connection limiting with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Header modification with NGINX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you've read this cookbook up until this chapter, you'll know that NGINX is
+    a very flexible and powerful platform. Even with what we covered so far, you'll
+    know that there are a number of additional modules and extra flexibility we can
+    use to enhance your current configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of these recipes may be required especially once you start to scale, since
+    servers are a finite resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authentication with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While many CMSes and advanced web applications have their own authentication
+    systems, we can use NGINX to provide a second layer. This can be used to provide
+    multifactor authentication and also to limit brute force attempts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternatively, if you have a very basic application or a system, such as Elasticsearch,
+    without any authentication, NGINX is a natural fit to provide for this role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This recipe assumes that you have an existing web application. This could be
+    as simple as static pages or a full CMS such as WordPress.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We'll also need to install Apache utilities (not the full web server), which
+    is generally packaged as `apache2-utils` on Debian/Ubuntu-based systems and `httpd-tools`
+    on CentOS/RedHat-based distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In order to provide basic authentication, we first need to create a password
+    file. We can do this with the `htpasswd` utility, which is part of the Apache
+    tools. It's important that we don't store this file in a publicly accessible directory,
+    otherwise your usernames and passwords will be compromised.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s how to create the password file and add the `siteadmin` username to
+    it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `htpasswd` utility will then prompt you for a password. While we could specify
+    this via the command line, it would also mean that your password is logged in
+    plain text within your bash history. Ensuring that the password is entered via
+    `stdin` reduces the risks of compromise if your log files are exposed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we can add additional users to the password file (if they''re required).
+    If I want to add one login per user, I can specify it as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will again prompt for the password (and the confirmation password). You
+    can repeat this for as many users as required. Once we have the password file,
+    we can now set the authentication within our NGINX `server` block directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you're not using this on an SSL encrypted site, the credentials will be transmitted
+    in plain text. Ensure that you protect your site if you want the username and
+    password to remain secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When you visit the site (in this instance, `http://secure.nginxcookbook.com`),
+    you''ll see one of the following popups. For Firefox, it should look similar to
+    the following screenshot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/6d000565-63df-4559-80f3-8bbc5ebc9701.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Safari users will also see a similar dialog box, requesting login details:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/05510e2a-a6da-4998-81a7-0cdca8f64617.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And finally, Chrome will also prompt you with a dialog like the following screenshot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/0e687c8c-f6fb-4997-9169-2a8bb9bec5cc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If you enter one of the usernames and passwords set in the previous step, you'll
+    then be able to browse the website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If we take a look at the `.htpasswd` file we created, it should look something
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/8ac3d774-7156-47eb-b456-cab9bc1aad03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This file contains the username, the algorithm used (`$apr1` denotes a specific
+    Apache MD5 implementation), the salt, and then the password. While some may be
+    worried at the use of MD5, the `htpasswd` application iterates the password for
+    1,000 times to limit brute force attempts. This, combined with salting (the addition
+    of random data) ensures that the password is very hard to brute force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will then define two extra directives within our `location` block directive
+    to enable the basic authentication. The `auth_basic` directive enables authentication
+    and the `"Restricted Area"` string is used as a message by some browsers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will then ask the authentication module to use the file we created (`/var/www/private/.htpasswd`)
+    with the `auth_basic_user_file` directive. Again, as a reminder, make sure that
+    this isn't in a location that can be publicly accessible from your website. Because
+    we have set the location `root` directive to `/var/www/html`, and the password
+    file within `/var/www/private`, it cannot be directly accessed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If we want to simply lock down a specific location, we can do this as well.
+    Consider this example where we take the `server` block directive from the *Configuring
+    NGINX for WordPress* recipe in [Chapter 2](a67496fb-4a37-473f-a2a1-8baa751a598c.xhtml),
+    *Common PHP Scenarios* and add additional authentication to the `wp-admin` directory
+    and `wp-login.php` location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The configuration matches any request starting with (as denoted by the `^` symbol)
+    either `/wp-login.php` or (`|`) `/wp-admin/` and adds basic authentication. All
+    other pages on the site don't contain any extra authentication and therefore load
+    normally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also add a nested PHP `location` block, as NGINX won't process the declaration
+    outside of the current `location` block. For neatness, you could also define this
+    in a separate file once and then include it at each required location. This way,
+    if you ever need to make changes, then it's only in one location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The NGINX basic authentication module can be found at [http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the `htpasswd` program, refer to [https://httpd.apache.org/docs/2.4/programs/htpasswd.html](https://httpd.apache.org/docs/2.4/programs/htpasswd.html)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: WebDAV with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Web Distributed Authoring and Versioning** (**WebDAV**) is an extension to
+    the standard HTTP protocol that allows remote authoring commands, such as the
+    ability to lock, upload, delete, and create content.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This content can be in the form of documents, images, objects, and more. While
+    its popularity has declined with the rapid update of full CMSes and cloud storage
+    platforms such as Dropbox, WebDAV still remains a very simple option to implement
+    solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The standard NGINX installation only includes basic WebDAV support; however,
+    we can extend it to provide the full functionality by compiling a custom module.
+    At the time of writing, the extended module hadn't been converted into a dynamic
+    module, so we need to recompile all of NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Firstly, we will download the source for NGINX and prepare it for compilation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we will download a copy of the extension so that it can be included in
+    the source build:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To include the extra module, we modify the `nginx.spec` file to compile the
+    additional module to add the additional build requirements, copy the source code,
+    and then modify the configure line. To add the extra library for the build process,
+    we append the following line after `zlib-devel` and `pcre-devel`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the source to be included in the source RPM, we then specify the extra
+    directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we ensure that it''s compiled in by appending the following to the
+    `BASE_CONFIGURE_ARGS` definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: A patch file is available in the official code repository for the book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With the build configuration updated, we can now recompile NGINX with our extra
+    module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will generate the source RPM, and then the compiled binary RPM, ready
+    for installation. We can now install the RPM using `yum`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you need to perform the same for a Debian or Ubuntu distribution, refer to
+    the *Compiling from scratch section* covered in the *Quick installation guide*
+    recipe in [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)*, Let's Get
+    Started.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To confirm that the updated packages are available, we can run `nginx -V` (note
+    the capital `V`) to show the modules that NGINX was compiled with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/d6b472f2-4bc9-4abf-bd79-edd73b50f4d5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If you see `nginx-dav-ext-module` in the list, the extra module is available
+    and we're ready to proceed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here''s the `server` block directive for our WebDAV configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To ensure that any files transmitted remain secure, we set up NGINX using `HTTPS`
+    (which is covered in [Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml),
+    *All About SSL**s*) so that all data is encrypted in transit. We also use the
+    basic authentication we went through in the previous recipe, so that the files
+    are also secured by a username and password.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `root` directive then sets where the files are stored, in this case, `/var/www/webdav`.
+    At this stage of the configuration, it's exactly like any other static file serving.
+    With the `autoindex` directive explicitly set to `on`, this automatically generates
+    an index of the files so that they can be easily browsed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To allow larger file uploads, `client_max_body_size` is set to `4g`. If you
+    need to upload files larger than 4 GB, you need to increase this value. Then,
+    `client_body_temp_path` defines where the temporary files will be located while
+    they're uploading. For this recipe, we'll set this to `/tmp`, so that any file
+    will be temporarily uploaded to this location and then moved into the root location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, `dav_methods` is set to allow the `PUT`, `DELETE`, `MKCOL`, `COPY`, and
+    `MOVE` methods, which is all of the available methods. This gives complete control
+    to the WebDAV client to upload, create, delete, and move files as they need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the extra module we compiled, `dav_ext_methods` adds two additional extensions.
+    The `PROPFIND` extension adds the ability to return file and directory properties
+    in XML, which is used by a number of clients to list the files. The `OPTIONS`
+    extension returns a list of available commands to indicate what permissions are
+    available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we set `create_full_put_path` to `on`, which means that we can create
+    files within subdirectories as well. The default for WebDAV is to only allow existing
+    subdirectories, which makes it difficult to move existing data structures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The NGINX WebDAV module is available at [http://nginx.org/en/docs/http/ngx_http_dav_module.html](http://nginx.org/en/docs/http/ngx_http_dav_module.html)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can visit WebDAV's official site at [http://www.webdav.org/](http://www.webdav.org/)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bandwidth management with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you're serving large binary files (such as video files), it's important to
+    ensure that you fairly distribute your available bandwidth among your users. At
+    the same time, you must ensure that this distribution doesn't impact performance
+    nor inconvenience users by setting restrictions that are too high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The modules required are built into the NGINX core, so no upgrades or external
+    modules are required. In this recipe, we'll serve static files, but they can be
+    easily incorporated into your existing site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Limiting bandwidth must be done within a `location` directive. It''s important
+    to ensure that, if you have multiple `location` block directives which you want
+    to limit, you need to adjust each of these. Here''s our basic code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `limit_rate` directive sets the rate at which each connection can download.
+    This rate is set in bytes per second, not bits per second. Most internet connections
+    are normally represented in bits per second; so, to convert, you will need to
+    divide by eight to set. Our recipe has a limit of 5 **Megabytes per second** (**MBps**),
+    so when it comes to bandwidth in bits, we'll see 40 **Megabits per Second** (**Mbps**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can test this limit using `wget`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With our limit in place, the result is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/ac998d9e-4ef6-4707-bdc1-b3147ee8dab7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: While the rate will fluctuate slightly, we can see that the overall average
+    was 4.94 MBps, which matches our specified rate of 5 MBps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Another trick we can do is to allow for an initial burst once the download
+    starts. This is very helpful if you''re streaming movie files, as it allows the
+    initial buffer to be filled quickly and therefore allows movies to start playing
+    as quick as possible. To add this, we can update our `location` block directive
+    with one additional line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The additional `limit_rate_after` directive allows the download to run at full
+    speed for the first 20 megabytes (`20m`), and then rate limit after this value.
+    Many online streaming services have this implementation in place, not just to
+    balance between the rapid start of the streaming but also to ensure that the bandwidth
+    is fairly shared among its users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The NGINX `limit_rate` documentation can be found at [http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate](http://nginx.org/en/docs/http/ngx_http_core_module.html#limit_rate)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connection limiting with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In addition to limiting bandwidth to ensure fair and equitable access among
+    all users, NGINX is able to place limits on the number of connections. Back in
+    [Chapter 7](bc04362e-995f-4550-92b7-183754306d34.xhtml), *Reverse Proxy*, we covered
+    how to rate limit connections. While they may sound the same, connection limiting
+    is slightly different and has different use cases. Connection limiting is used
+    where you have long running tasks, such as downloads. The previous recipe covering
+    bandwidth limiting only applies per connection, not per IP. We can however combine
+    the two to ensure that each IP address can't exceed the specified bandwidth limit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like the bandwidth limiting, connection limiting is built into the core of NGINX;
+    so no further modules are required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To provide connection limiting, we first need to define a shared memory space
+    to use for tracking. This needs to be done outside of the `server` directive and
+    generally placed in the main NGINX configuration file (`nginx.conf`). Here''s
+    our directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we incorporate this into our `server` block directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can confirm this by downloading a large file via the browser and then opening
+    another tab. If you navigate to any other page from the same site, you should
+    see the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/d19c68ad-67f6-4e97-8173-17059bfac2d5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Until the first request is completed, all subsequent attempts will display a
+    `503` error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it works...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We create a shared memory space with the `limit_conn_zone` directive so that
+    the connections can be tracked. We use `$binary_remote_addr` to track the remote
+    (client) IP address and then name our zone `conlimitzone`. Finally, we allocate
+    10 MB by appending the zone name with `:10m`. This is the total space allocation,
+    which is enough to track up to 160,000 concurrent IP addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our `server` block directive, we then use our zone by setting `limit_conn`
+    to the zone name `conlimitzone`. This limit is then set to a total of `1` connection,
+    which ensures that each unique IP address is only allowed to make a single connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we use `limit_rate` (as shown in our previous recipe) to limit the
+    bandwidth per connection. As we have set the connection limit to `1`, this means
+    that each user can only download one file at a time with a total bandwidth of
+    5 MBps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There's more...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Tracking connections via the client IP address isn't the only way we can limit
+    connections. We can also set a limit for the server as a whole, which can be handy
+    for preventing the server from being overloaded. Especially, where the system
+    is behind a reverse proxy, this can be a simple yet effective way of ensuring
+    that your website or application remains responsive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To track for the server as a whole, we again first set the shared memory zone:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we set our `server` directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this configuration, our server is limited to `500` concurrent connections.
+    If there are more connections attempted, a 503 error will be returned to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The NGINX `limit_conn` module documentation can be found at [http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html](http://nginx.org/en/docs/http/ngx_http_limit_conn_module.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Header modification with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With more complexities in your system, sometimes some additional debug or information
+    sent in the HTTP headers can be invaluable. The HTTP headers can have a specific
+    meaning that tells the browser to treat a response a certain way or they could
+    simply be to provide extra information, which can be used to trace specific issues
+    from your website or applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting ready
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The ability to modify the headers is already inbuilt into the NGINX core, but
+    to use the latest features, you'll need version 1.10.0 or higher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do it...
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are a number of different ways that we can modify the headers to suit
+    different requirements. While the process remains the same for each, specific
+    examples of where headers are commonly modified are detailed in the following
+    examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching static content
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For sites where the static media files (such as CSS, JS, and images) have a
+    version number in their filename, we can easily cache the files with a long expiry
+    without causing any issues. This means that, unless a user clears their cache,
+    they will have a copy of this file to speed up page reloads. To set the caching,
+    we will use a `location` block directive (within your main `server` block directive)
+    to add the additional headers. Here''s the code required:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To see the headers, we can use Chrome **Developer Tools** (**DevTools**) or
+    a command-line tool such as cURL. If you want to run this via cURL, here''s how
+    to do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will just display the headers from the server response, which will give
+    us an output similar to the following screenshot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/9dfc5c55-3e85-49a9-9685-dc76d124362d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: From the cURL output, we can see that the headers (`Expires`, `Pragma`, and
+    `Cache-Control`) have been set correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Removing server name and version
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'By default, NGINX will set a `Server` response header, which will contain the
+    product name and version number. While it''s mostly a minor thing, some see this
+    as a leakage of information which gives hackers a potential starting point to
+    look for attack vectors. We can remove this version number to remove the version
+    data from the header. Here''s how to do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `server_tokens` directive is set to `on` by default, so we set it to `off`
+    in order to disable the version number. This also removes the version number from
+    the error pages (such as the 404 error page) as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need to completely remove the `server` header, you'll either need a third-party
+    module or the Plus (paid) edition of NGINX, which allows you to override it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extra debug headers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'While you may not have looked closely, many of the top websites add additional
+    header information to assist with debugging. Facebook adds an `x-fb-debug` header,
+    Twitter has an `x-transaction` header, and sites such as [https://www.wired.com/](https://www.wired.com/)
+    insert the `x-served-by` headers to help trace what proxies your request has passed
+    through. This information doesn''t have any impact on the end user; however, the
+    information is invaluable when trying to diagnose hard-to-diagnose cases. While
+    much of the low-level debug information can only be produced within your application
+    code, at a higher level, you can easily incorporate a few helpful headers. Here''s
+    an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These simply need to be inserted into your existing `server` block directive,
+    and they will generate an output like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/f66c1733-8e10-4b21-902a-710d4160f543.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If you have a meaningful server name (which could include location, variant,
+    cloud provider, or anything similar), adding the `$hostname` server (which we
+    set as the `X-Host` header) allows you to trace requests down to the exact system
+    causing the issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `$request_id` command generates a 16-byte unique identifier, which can provide
+    easy tracing back to a custom log file format (refer to [Chapter 5](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml),
+    *Logging*, for more information). This gives us an exact string to match, which
+    is much more effective than trying to search log files for a date range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we log the TCP **Round Trip Time** (**RTT**) as `X-TCP-RTT`, which gives
+    us an indication of the network performance between the server and the client.
+    The RTT is measured in microseconds (not milliseconds) and is based on the underlying
+    operating system's `TCP_INFO` data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By default, these additional headers will only be inserted for 20x and 30x responses.
+    If you want them inserted into your error pages (such as a 404), you need to append
+    `always` to the end of the `add_header` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See also
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: "The NGINX headers module can be found at [http://nginx.org/en/docs/http/ngx_http_headers_module.html\uFEFF\
+    ](http://nginx.org/en/docs/http/ngx_http_headers_module.html)"
+  prefs: []
+  type: TYPE_NORMAL

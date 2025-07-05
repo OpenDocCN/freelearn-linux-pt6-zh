@@ -1,0 +1,938 @@
+- en: '5'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: PHP and Python with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The 2000s have been the decade of server-side technologies. Over the past 15
+    years or so, an overwhelming majority of websites have migrated from simple static
+    HTML content to highly and fully dynamic pages, taking the web to an entirely
+    new level in terms of interaction with visitors. Software solutions emerged quickly,
+    including open source ones, and some became mature enough to process high-traffic
+    websites. In this chapter, we will study the ability of NGINX to interact with
+    these applications. We have selected two for different reasons. The first one
+    is obviously PHP. As of June 2015, *W3Techs* (a website specializing in web technology
+    surveys) reveals that PHP empowers over 80% of websites designed with a server-side
+    language. The second language in our selection is Python, due to the way it is
+    installed and configured to work with NGINX. The mechanism we will discover effortlessly
+    applies to other applications, such as Perl or **Ruby on** **Rails** (**RoR**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction to **Fast Common Gateway Interface** (**FastCGI**) technologies
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up NGINX with PHP and **PHP FastCGI Process** **Manager** (**PHP-FPM**)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up NGINX with Python and Django
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction to FastCGI technologies
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we begin, you should know that (as the name suggests) **FastCGI** is
+    actually a variation of **Common Gateway Interface** (**CGI**). Therefore, explaining
+    CGI first is in order. The improvements introduced by FastCGI are detailed in
+    the following sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the CGI mechanism
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The original purpose of a web server was merely to respond to requests from
+    clients by serving files located on a storage device. The client sends a request
+    to download a file, and the server processes the request and sends the appropriate
+    response: **200 OK** if the file can be served normally, 404 if the file was not
+    found, and other variants, as illustrated in the following diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 5.1: A diagram depicting standard HTTP requests](img/B21787_05_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5.1: A diagram depicting standard HTTP requests'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This mechanism has been in use since the beginning of the World Wide Web, and
+    it still is. However, as stated before, static websites are being progressively
+    abandoned at the expense of dynamic ones that contain scripts processed by applications
+    such as PHP and Python, among others. The web-serving mechanism thus evolved into
+    the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 5.2: A diagram depicting standard HTTP requests with Nginx and CGI
+    processing](img/B21787_05_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5.2: A diagram depicting standard HTTP requests with Nginx and CGI processing'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a client attempts to visit a dynamic page, the web server receives the
+    request and forwards it to a third-party application. The application processes
+    the script independently and returns the produced response to the web server,
+    which then forwards the response back to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order for the web server to communicate with that application, the CGI protocol
+    was invented in the early 1990s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CGI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The following is stated in *RFC 3875 (CGI protocol v1.1)*, designed by the
+    **Internet** **Society** (**ISOC**):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The CGI allows an HTTP server and a CGI script to share responsibility for
+    responding to client requests. [...]. The server is responsible for managing connection,
+    data transfer, transport, and network issues related to the client request, whereas
+    the CGI script handles the application issues such as data access and* *document
+    processing.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CGI is the protocol that describes the way information is exchanged between
+    the web server (NGINX) and the gateway application (PHP, Python, and so on). In
+    practice, when the web server receives a request that should be forwarded to the
+    gateway application, it simply executes the command corresponding to the desired
+    application; for example, `/usr/bin/php`. Details about the client request (such
+    as the `User-Agent` header and other request information) are passed either as
+    command-line arguments or in environment variables, while actual data from `POST`
+    or `PUT` requests is transmitted through the standard input. The invoked application
+    then writes the processed document contents to the standard output, which is recaptured
+    by the web server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While this technology seems simple and efficient enough at first sight, it
+    comes with a few major drawbacks, which are discussed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A unique process is spawned for each request. Memory and other context information
+    are lost from one request to another.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Starting up a process can be resource-consuming for the system. Massive numbers
+    of simultaneous requests (each spawning a process) could quickly clutter a server.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Designing an architecture where the web server and the gateway application are
+    located on different computers seems difficult, if not impossible.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FastCGI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The issues mentioned in the *CGI* section render the CGI protocol relatively
+    inefficient for servers that are subject to heavy load. The will to find solutions
+    led the open market in the mid-90s to develop an evolution of CGI: FastCGI. It
+    has become a major standard over the past 15 years, and most web servers now offer
+    the functionality, even proprietary server software such as Microsoft **Internet
+    Information** **Services** (**IIS**).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Although the purpose remains the same, FastCGI offers significant improvements
+    over CGI with the establishment of the following principles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of spawning a new process for each request, FastCGI employs persistent
+    processes that come with the ability to handle multiple requests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The web server and the gateway application communicate with the use of sockets
+    such as TCP or Unix local IPC sockets. Consequently, the web server and backend
+    processes may be located on two different computers on a network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The web server forwards the client request to the gateway and receives a response
+    within a single connection. Additional requests may also follow without needing
+    to create additional connections. Note that on most web servers, including NGINX
+    and Apache, the implementation of FastCGI does not (or at least not fully) support
+    *multiplexing*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since FastCGI is a socket-based protocol, it can be implemented on any platform
+    with any programming language.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Throughout this chapter, we will be setting up PHP and Python via FastCGI. Additionally,
+    you will find the mechanism to be relatively similar in the case of other applications,
+    such as Perl or RoR.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing a FastCGI-powered architecture is actually not as complex as one might
+    imagine. As long as you have the web server and the backend application running,
+    the only difficulty that remains is to establish a connection between both parties.
+    The first step in that perspective is to configure the way NGINX will communicate
+    with the FastCGI application. FastCGI compatibility with NGINX is introduced by
+    the FastCGI module, which is included in default NGINX builds (including those
+    that are installed via software repositories). This section details the directives
+    that are made available by the module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: uWSGI and SCGI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before reading the rest of the chapter, you should know that NGINX offers two
+    other CGI-derived module implementations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `uWSGI` module allows NGINX to communicate with applications through the
+    `uwsgi` protocol, itself derived from the `uwsgi` protocol is the unoriginally
+    named uWSGI server. Its latest documentation can be found at [http://uwsgi-docs.readthedocs.io/en/latest/](http://uwsgi-docs.readthedocs.io/en/latest/).
+    This module will prove useful to Python adepts, seeing as the uWSGI project was
+    designed mainly for Python applications.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**SCGI**, which stands for **Simple Common Gateway Interface**, is a variant
+    of the CGI protocol, much like FastCGI. Younger than FastCGI since its specification
+    was first published in 2006, SCGI was designed to be easier to implement and as
+    its name suggests: simple. It is not related to a particular programming language.
+    SCGI interfaces and modules can be found in a variety of software projects such
+    as Apache, IIS, Java, Cherokee, and a lot more.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There are no major differences in the way NGINX handles the FastCGI, uWSGI,
+    and SCGI protocols: each of these has its respective module, containing similarly
+    named directives. The following table lists a couple of directives from the FastCGI
+    module, which are detailed in the following sections, and their uWSGI and SCGI
+    equivalents:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **FastCGI module** | **uWSGI equivalent** | **SCGI equivalent** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_pass` | `uwsgi_pass` | `scgi_pass` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_cache` | `uwsgi_cache` | `scgi_cache` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_temp_path` | `uwsgi_temp_path` | `scgi_temp_path` |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 5.1: FastCGI, uWSGI, and SCGI equivalent directives'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Directive names and syntaxes are identical. In addition, the NGINX development
+    team has been maintaining all three modules in parallel. New directives or directive
+    updates are always applied to all of them. As such, the following sections will
+    document NGINX’s implementation of the FastCGI protocol (since it is the most
+    widely used), but they also apply to uWSGI and SCGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Main directives
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The FastCGI, uWSGI, and SCGI modules are included in the default NGINX build.
+    You do not need to enable them manually at compile time. The directives listed
+    in the following table allow you to configure the way NGINX *passes* requests
+    to the FastCGI/uWSGI/SCGI application. Note that you will find `fastcgi_params`,
+    `uwsgi_params`, and `scgi_params` files in the NGINX configuration folder; these
+    define directive values that are valid for most situations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Directive** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_pass`Context: `location`, `if` | This directive specifies that the
+    request should be passed to the FastCGI server, by indicating its location:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For TCP sockets, the syntax is `fastcgi_pass hostname:port;`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For Unix domain sockets, the syntax is `fastcgi_pass unix:/path/to/fastcgi.socket;`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You may also refer to upstream blocks (read the following sections for more
+    information): `fastcgi_pass myblock;`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Examples:`fastcgi_pass` `localhost:9000;``fastcgi_pass` `127.0.0.1:9000;``fastcgi_pass`
+    `unix:/tmp/fastcgi.socket;``# Using an` `upstream block``upstream fastcgi {``server`
+    `127.0.0.1:9000;``server` `127.0.0.1:9001;``}``location ~* \.``php$ {``fastcgi_pass`
+    `fastcgi;``}` |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `fastcgi_param`Context: http, `server`, `location` | This directive allows
+    you to configure the request passed to FastCGI. Two parameters are strictly required
+    for all FastCGI requests: `SCRIPT_FILENAME` and `QUERY_STRING`.Examples:`fastcgi_param`
+    `SCRIPT_FILENAME /home/website.com/www$fastcgi_script_name;``fastcgi_param` `QUERY_STRING
+    $query_string;`As for `POST` requests, additional parameters are required: `REQUEST_METHOD`,
+    `CONTENT_TYPE`, and `CONTENT_LENGTH`.Examples:`fastcgi_param` `REQUEST_METHOD
+    $request_method;``fastcgi_param` `CONTENT_TYPE $content_type;``fastcgi_param`
+    `CONTENT_LENGTH $content_length;`The `fastcgi_params` file that you will find
+    in the NGINX configuration folder already includes all of the necessary parameter
+    definitions, except for `SCRIPT_FILENAME`, which you need to specify for each
+    of your FastCGI configurations.If the parameter name begins with `HTTP_`, it will
+    override potentially existing HTTP headers of the client request.You may optionally
+    specify the `if_not_empty` keyword, forcing NGINX to transmit the parameter only
+    if the specified value is not empty.Syntax: `fastcgi_param PARAM` `value [if_not_empty];`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_bind`Context: `http`, `server`, `location` | This directive binds
+    the socket to a local IP address, allowing you to specify the network interface
+    you want to use for FastCGI communications.Syntax: `fastcgi_bind IP_address[:port]
+    [transparent] &#124;` `off;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_pass_header`Context: `http`, `server`, `location` | This directive
+    specifies additional headers that should be passed to the FastCGI server.Syntax:
+    `fastcgi_pass_header headername;`Example:`fastcgi_pass_header Authorization;`
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_hide_header`Context: `http`, `server`, `location` | This directive
+    specifies headers that should be hidden from the FastCGI server (headers that
+    NGINX does not forward).Syntax: `fastcgi_hide_header headername;`Example:`fastcgi_hide_header
+    X-Forwarded-For;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_index`Context: `http`, `server`, `location` | The FastCGI server
+    does not support automatic directory indexes. If the requested URI ends with `/`,
+    NGINX appends the `fastcgi_index` value.Syntax: `fastcgi_index filename;`Example:`fastcgi_index
+    index.php;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_ignore_client_abort`Context: `http`, `server`, `location` | This
+    directive lets you define what happens if the client aborts their request to the
+    web server. If the directive is turned on, NGINX ignores the abort request and
+    finishes processing the request. If it’s turned off, NGINX does not ignore the
+    abort request. It interrupts the request treatment and aborts related communication
+    with the FastCGI server.Syntax: `on` or `off`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_intercept_errors`Context: `http`, `server`, `location` | This directive
+    defines whether or not NGINX should process errors returned by the gateway or
+    directly return error pages to the client. Error processing is done via the `error_page`
+    directive of NGINX.Syntax: `on` or `off`Default: `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_read_timeout`Context: `http`, `server`, `location` | This directive
+    defines the timeout for the response from the FastCGI application. If NGINX does
+    not receive the response after this period, a `504 Gateway Timeout` HTTP error
+    is returned.Syntax: Numeric value (in seconds)Default: `60` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_connect_timeout`Context: `http`, `server`, `location` | This directive
+    defines the backend server connection timeout. This is different than the read/send
+    timeout. If NGINX is already connected to the backend server, the `fastcgi_connect_timeout`
+    directive is not applicable.Syntax: Time value (in seconds)Default: `60` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_send_timeout`Context: `http`, `server`, `location` | This is the
+    timeout for sending data to the backend server. The timeout isn’t applied to the
+    entire response delay but rather between two write operations.Syntax: Time value
+    (in seconds)Default value: `60` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_split_path_info`Context: `location` | A directive particularly useful
+    for URLs of the following form: `http://website.com/page.php/param1/param2/`The
+    directive splits the path information according to the specified regular expression:`fastcgi_split_path_info
+    ^(.+\.php)(.*)$;`This affects two variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`$fastcgi_script_name`: The filename of the actual script to be executed; for
+    example; `page.php`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`$fastcgi_path_info`: The part of the URL that is after the script name; for
+    example, `/param1/param2/`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'These can be employed in further parameter definitions:`fastcgi_param` `SCRIPT_FILENAME
+    /home/website.com/www$fastcgi_script_name;``fastcgi_param` `PATH_INFO $fastcgi_path_info;`Syntax:
+    Regular expression |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `fastcgi_store`Context: `http`, `server`, `location` | This directive enables
+    a simple *cache store* where responses from the FastCGI application are stored
+    as files on the storage device. When the same URI is requested again, the document
+    is directly served from the cache store instead of forwarding the request to the
+    FastCGI application.This directive enables or disables the cache store.Syntax:
+    `on` or `off` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_store_access`Context: `http`, `server`, `location` | This directive
+    defines access permissions applied to the files created in the context of the
+    cache store.Syntax: `fastcgi_store_access [user:r&#124;w&#124;rw][group:r&#124;w&#124;rw][all:r&#124;w&#124;rw];`Default:
+    `fastcgi_store_access user:rw;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_temp_path`Context: `http`, `server`, `location` | This directive
+    sets the path of temporary and cache store files.Syntax: File pathExample: `fastcgi_temp_path
+    /tmp/nginx_fastcgi;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_max_temp_file_size`Context: `http`, `server`, `location` | Set this
+    directive to `0` to disable the use of temporary files for FastCGI requests or
+    to specify a maximum file size.Default value: 1 GBSyntax: Size valueExample: `fastcgi_max_temp_file_size
+    5m;` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_temp_file_write_size`Context: `http`, `server`, `location` | This
+    directive sets the write buffer size when saving temporary files to the storage
+    device.Syntax: Size valueDefault value: `2 *` `proxy_buffer_size` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_send_lowat`Context: `http`, `server`, `location` | This option allows
+    you to make use of the `SO_SNDLOWAT` flag for TCP sockets under FreeBSD only.
+    This value defines the minimum number of bytes in the buffer for output operations.Syntax:
+    Numeric value (size)Default value: `0` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_pass_request_body``fastcgi_pass_request_headers`Context: `http`,
+    `server`, `location` | These directives define whether or not, respectively, the
+    request body and extra request headers should be passed on to the *backend* server.Syntax:
+    `on` or `off`Default: `on` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_ignore_headers`Context: `http`, `server`, `location` | This directive
+    prevents NGINX from processing one or more of the following headers from the backend
+    server response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`X-Accel-Redirect`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`X-Accel-Expires`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Expires`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Cache-Control`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`X-Accel-Limit-Rate`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`X-Accel-Buffering`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`X-Accel-Charset`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Syntax: `fastcgi_ignore_headers` `header1 [header2...];` |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `fastcgi_next_upstream`Context: `http`, `server`, `location` | When `fastcgi_pass`
+    is connected to an upstream block, this directive defines cases where requests
+    should be abandoned and resent to the next upstream server of the block. The directive
+    accepts a combination of values among the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`error`: An error occurred while communicating or attempting to communicate
+    with the server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`timeout`: A timeout occurred during transfers or connection attempts'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`invalid_header`: The backend server returned an empty or invalid response'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`http_500`, `http_503`, `http_403`, `http_404`, `http_429`: If such HTTP errors
+    occur, NGINX switches to the next upstream server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`non-idempotent`: Allows retrying non-idempotent requests (`LOCK`, `POST`,
+    `PATCH`)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`off`: Forbids using the next upstream server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Examples:`fastcgi_next_upstream error` `timeout http_504;``fastcgi_next_upstream`
+    `timeout invalid_header;` |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `fastcgi_next_upstream_timeout`Context: `http`, `server`, `location` | Defines
+    the timeout to be used in conjunction with `fastcgi_next_upstream`. Setting this
+    directive to `0` disables it.Syntax: Time value (in seconds) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_next_upstream_tries`Context: `http`, `server`, `location` | Defines
+    the maximum number of upstream servers tried before returning an error message,
+    to be used in conjunction with `fastcgi_next_upstream`.Syntax: Numeric value (default:
+    `0`) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_catch_stderr`Context: `http`, `server`, `location` | This directive
+    allows you to intercept some of the error messages sent to `stderr` (**standard
+    error** stream) and store them in the NGINX error log.Syntax: `fastcgi_catch_stderr
+    filter;`Example: `fastcgi_catch_stderr "PHP` `Fatal error:";` |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_keep_conn`Context: `http`, `server`, `location` | When set to `on`,
+    NGINX will conserve the connection to the FastCGI server, thus reducing overhead.Syntax:
+    `on` or `off` (default: `off`)Note that there is no equivalent directive in the
+    uWSGI and SCGI modules. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_force_ranges`Context: `http`, `server`, `location` | When set to
+    `on`, NGINX will enable byte-range support on responses from the FastCGI backend.Syntax:
+    `on` or `off` (default: `off`) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `fastcgi_limit_rate`Context: `http`, `server`, `location` | Allows you to
+    limit the rate at which NGINX downloads the response from the FastCGI backend.Syntax:
+    Numeric value (bytes per second) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Table 5.2: A list of the main FastCGI directives'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve had a glance at the main FastCGI directives. Let’s dig deeper into FastCGI
+    cache and buffer directives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FastCGI caching and buffering
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once you have correctly configured NGINX to work with your FastCGI application,
+    you may optionally make use of `fastcgi_cache` directives, which will help you
+    improve the overall server performance by setting up a cache system. Additionally,
+    FastCGI buffering allows you to buffer responses from the FastCGI backend instead
+    of synchronously forwarding them to the client. You can get a full list of NGINX
+    FastCGI cache modules on the official [https://nginx.org](https://nginx.org) website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a full NGINX FastCGI cache configuration example, making use of most
+    of the cache-related directives described in the preceding table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since these directives are valid for pretty much any virtual host configuration,
+    you may want to save these in a separate file (`fastcgi_cache`) that you include
+    in the appropriate place:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ve covered most of the directives in the FastCGI module that you might find
+    useful. Now, we are going to apply this knowledge to a real-life use case involving
+    NGINX with PHP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PHP with NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We are now going to configure PHP to work together with NGINX via FastCGI.
+    Why FastCGI in particular, as opposed to the other two alternatives, SCGI and
+    uWSGI? The answer came with the release of PHP version `5.3.3`. As of this version,
+    all releases come with an integrated FastCGI process manager, allowing you to
+    easily connect applications implementing the FastCGI protocol. The only requirement
+    is for your PHP build to have been configured with the `--enable-fpm` argument.
+    If you are unsure whether your current setup includes the necessary components,
+    worry not: a section of this chapter is dedicated to building PHP with everything
+    we need. Alternatively, the `php-fpm` or `php8-fpm` packages can be found in most
+    repositories.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before starting the setup process, it’s important to understand the way PHP
+    will interact with NGINX. We have established that FastCGI is a communication
+    protocol running through sockets, which implies that there is a client and a server.
+    The client is obviously NGINX. As for the server, well, the answer is actually
+    more complicated than just “PHP.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By default, PHP supports the FastCGI protocol. The PHP binary processes scripts
+    and is able to interact with NGINX via sockets. However, we are going to use an
+    additional component to improve the overall process management—PHP-FPM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 5.3: A diagram showing PHP-FPM running PHP in a sandbox](img/B21787_05_3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5.3: A diagram showing PHP-FPM running PHP in a sandbox'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PHP-FPM takes FastCGI support to an entirely new level. Its numerous features
+    are detailed in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PHP-FPM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The process manager, as its name suggests, is a script that manages PHP processes.
+    It awaits and receives instructions from NGINX and runs the requested PHP scripts
+    under the environment that you configure. In practice, PHP-FPM introduces a number
+    of possibilities, such as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automatically *daemonizing* PHP (turning it into a background process)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Executing scripts in a *chrooted* (or sandboxed) environment
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Improved logging, IP address restrictions, pool separation, and much more
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up PHP and PHP-FPM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this section, we will detail the process of downloading and installing PHP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing using a package manager
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At the time of writing these lines, the latest stable version of PHP is 8.3,
+    but versions may differ depending on your distribution and the version of PHP
+    included in the distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For Red Hat-based systems and other systems using `dnf` as the package manager,
+    execute the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For Ubuntu, Debian, and other systems that use `apt`, execute the following
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Post-installation configuration
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Begin by configuring your newly installed PHP; for example, by copying the `php.ini`
+    file of your previous setup over the new one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Due to the way NGINX forwards script files and request information to PHP,
+    a security breach might be caused by the use of the `cgi.fix_pathinfo=1` configuration
+    option. It is highly recommended that you set this option to `0` in your `php.ini`
+    file (it should be `0` by default on most distributions). For more information
+    about this particular security issue, please consult the following article:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://cnedelcu.blogspot.in/2010/05/nginx-php-via-fastcgi-important.html](http://cnedelcu.blogspot.in/2010/05/nginx-php-via-fastcgi-important.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next step is to configure PHP-FPM. Open up the `php-fpm.conf` file. We
+    cannot detail all aspects of the PHP-FPM configuration here (they are largely
+    documented in the configuration file itself anyway), but there are important configuration
+    directives that you shouldn’t miss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Edit the user(s) and group(s) used by worker processes and, optionally, Unix
+    sockets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Address(es) and port(s) on which PHP-FPM will be listening
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Number of simultaneous requests that will be served
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IP address(es) allowed to connect to PHP-FPM
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running and controlling
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Once you have made the appropriate changes to the PHP-FPM configuration file,
+    you may start or restart it with the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The preceding command will restart your `php-fpm` daemon; you can use `start`
+    if your daemon hasn’t been running yet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the current `php-fpm` load and requests live by typing `systemctl
+    status php-fpm`. This command can be very helpful as it will let you know whether
+    your server is saturated or working properly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you have managed to configure and start PHP-FPM correctly, you are ready
+    to tweak your NGINX configuration file to establish a connection between both
+    parties. The following server block is a simple, valid template on which you can
+    base your own website configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After saving the configuration file, reload NGINX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Create a simple script at the root of your website to make sure PHP is being
+    correctly interpreted:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Fire up your favorite web browser and load `http://localhost/` (or your website
+    URL). You should see something similar to the following screenshot, which is the
+    PHP server information page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 5.4: A screenshot of the PHP server information page](img/B21787_05_4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5.4: A screenshot of the PHP server information page'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that you may run into the occasional `403 Forbidden` HTTP error if the
+    file and directory access permissions are not properly configured. If that is
+    the case, make sure that you specify the correct user and group in the `php-fpm.conf`
+    file and that the directory and files are readable by PHP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve learned how to set up NGINX with PHP using the PHP-FPM server. In the
+    next section, we’ll learn how to do the same thing, this time with a Python server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python and NGINX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Python is a popular **object-oriented programming** (**OOP**) language available
+    on many platforms, from Unix-based systems to Windows. It is also available for
+    Java and the Microsoft .NET platform. If you are interested in configuring Python
+    to work with NGINX, it’s likely that you already have a clear idea of what Python
+    does. We are going to use Python as a server-side web programming language, with
+    the help of the Django framework.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Django
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Django is an open source web development framework for Python that aims at
+    making web development simple and easy, as its slogan states:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The web framework for perfectionists* *with deadlines.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: More information is available on the project website at [https://www.djangoproject.com/](https://www.djangoproject.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Among other interesting features, such as a dynamic administrative interface,
+    a caching framework, and unit tests, Django comes with a FastCGI manager. Although
+    the usual way to deploy Django is through WSGI, we’re going to use Django’s FastCGI
+    manager as it’s going to make things much simpler for us from the perspective
+    of running Python scripts through NGINX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Python and Django
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will now install Python and Django on your Linux operating system, along
+    with its prerequisites. The process is relatively smooth and mostly consists of
+    running a couple of commands that rarely cause trouble.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Python should be available on your package manager repositories. To install
+    it, run the following commands. For Red Hat-based systems and other systems using
+    `dnf` as the package manager, use this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For Ubuntu, Debian, and other systems that use `apt`, use this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The package manager will resolve dependencies by itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Django
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In order to install Django, we will use a different approach (although you
+    could skip this entirely and just install it from your usual repositories). We
+    will be downloading the framework with `pip`, a tool that simplifies the installation
+    of Python packages. Therefore, the first step is to install `pip`; for Red Hat-based
+    systems and other systems using `dnf` as the package manager, execute the following
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For Ubuntu, Debian, and other systems that use `apt`, use this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The package manager will resolve dependencies by itself. Once `pip` is installed,
+    run the following command to download and install Django 1.8.2, the latest stable
+    version to date:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, there is one last component required to run the Python FastCGI manager:
+    the `flup` library. This provides the actual FastCGI protocol implementation.
+    For Red Hat-based systems and other systems using `dnf` as the package manager
+    (**Extra Packages for Enterprise Linux** (**EPEL**) repositories must be enabled;
+    otherwise, you will need to build from source), use the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For Ubuntu, Debian, and other systems that use `apt`, use this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Starting the FastCGI process manager
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The process of beginning to build a website with the Django framework is as
+    simple as running the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once that part is done, you will find a `manage.py` Python script that comes
+    with the default project template. Open the newly created `mysite` directory containing
+    `manage.py`, and run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: If everything is correctly configured and the dependencies are properly installed,
+    running this command should produce no output, which is often a good sign. The
+    FastCGI process manager is now running in the background, waiting for connections.
+    You can verify that the application is running with the `ps` command (for example,
+    by executing `ps aux | grep python`). If you don’t see any running process, try
+    changing the previous command slightly by selecting a different port. All we need
+    to do now is to set up the virtual host in the NGINX configuration file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The NGINX configuration is similar to the PHP one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ve now completed covering running NGINX with Python via FastCGI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Whether you use PHP, Python, or any other CGI application, you should now have
+    a clear idea of how to get your scripts processed behind NGINX. There are all
+    sorts of implementations on the web for mainstream programming languages and the
+    FastCGI protocol. Due to its efficiency, it is starting to replace server-integrated
+    solutions such as Apache’s `mod_php` and `mod_wsgi`, among others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will learn how to use NGINX as a frontend for microservices,
+    enabling us to improve the security and speed of web applications by running NGINX
+    in front of them.
+  prefs: []
+  type: TYPE_NORMAL

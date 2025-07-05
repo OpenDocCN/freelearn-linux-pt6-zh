@@ -1,0 +1,459 @@
+- en: '8'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX within a Cloud Infrastructure
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the evolving landscape of web infrastructure, the shift from traditional
+    server configurations to cloud architectures is undeniable. Traditional deployments,
+    where servers were manually configured to host multiple sites or applications,
+    are now giving way to more agile and scalable cloud-based methods. This chapter
+    looks at the practical aspects of adopting a cloud infrastructure, highlighting
+    the resource management efficiencies, enhanced security, and improved management
+    of high traffic demands it offers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we will focus on the role of NGINX within a cloud infrastructure,
+    using Docker as the platform of choice. By integrating NGINX with Docker, we’ll
+    demonstrate how to orchestrate multiple services seamlessly, fostering a resilient
+    and adaptable environment. Whether Docker is a new concept to you or not, rest
+    assured that we’ll guide you through your first Docker experience, with NGINX
+    as a common thread, ensuring a smooth and understandable journey into containerized
+    deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter covers the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding cloud infrastructure
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using Docker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up NGINX inside Docker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up NGINX inside Docker to proxy host applications
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Understanding cloud infrastructure
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Cloud services are an integral part of our online existence. Our mobile applications
+    synchronize seamlessly with their desktop counterparts, and the server once familiar
+    to us has transformed into today’s cloud—a concept that simplifies life for users
+    while making web infrastructure more complex. This digital metamorphosis has revolutionized
+    the way we store and interact with our data, moving us toward an always-connected,
+    cloud-centric reality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The traditional approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To comprehend the intricacies of cloud infrastructure, let’s revisit traditional
+    setups with a modern *cloud* lens. Consider the case of WordPress, the renowned
+    open source platform for website creation, which runs on a web server, a PHP server,
+    and a database server. The classic method is to install each component on a single
+    machine—a simple solution for hosting a solitary blog:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 8.1: A traditional approach to running your web project](img/B21787_08_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 8.1: A traditional approach to running your web project'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, scaling this model reveals its limitations. Various software dependencies
+    may require multiple, sometimes contradictory versions, making coexistence difficult.
+    What’s more, as services expand, managing them on a single server becomes more
+    and more complicated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The cloud approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the pursuit of hosting multiple services on a single server, we often encounter
+    a common problem: **conflicting software dependencies**. Imagine needing to run
+    two applications, one requiring PHP 7.4 and the other PHP 8.3\. Docker addresses
+    this by encapsulating applications in containers, isolated environments that operate
+    independently of the underlying Linux distribution’s software versions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Advantages of using Docker containers include the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Version management**: Docker containers simplify the process of maintaining
+    and changing software versions, making it easy to go back if necessary'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Isolation and efficiency**: Containers isolate applications, which not only
+    improves portability for easier migration but also ensures that the resource consumption
+    of one doesn’t affect the others'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Deployment streamlining**: By overcoming the Docker learning curve, deployment
+    and scaling become easier to manage, offering a degree of flexibility not found
+    in traditional configurations'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s revisit the blog hosting scenario, now using Docker:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 8.2: An example of how it would look running WordPress with Docker](img/B21787_08_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 8.2: An example of how it would look running WordPress with Docker'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The server runs a Linux distribution and, on top of this, two separate containers
+    act as minimal Linux environments, each carrying only what’s needed to run its
+    respective applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The addition of a service such as Nextcloud, which could run PHP 8.3, alongside
+    WordPress on PHP 7.4, demonstrates the ability of Docker:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 8.3: An example of how it would look running multiple containers with
+    Docker](img/B21787_08_3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 8.3: An example of how it would look running multiple containers with
+    Docker'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As shown, this configuration allows many Docker images, each with its own specific
+    software version, to run simultaneously in an isolated environment. If a security
+    problem occurs in one container, its effects are confined, protecting the rest
+    of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter won’t cover advanced topics such as Docker Swarm for **high availability**
+    (**HA**) or Kubernetes for scalability, but these are important areas to explore
+    for the advancement of cloud infrastructure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Docker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous section, we explored the fundamentals of cloud architectures.
+    We’re now going to move on from theory to practice by installing and configuring
+    Docker step by step to launch our first container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Docker** is not just a tool but a paradigm shift—a new era where software
+    can be packaged and isolated, ensuring consistency across environments. By the
+    end of this section, Docker will be more than a concept; it will be an integral
+    part of your toolbox, starting with the deployment of an NGINX container.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Docker
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Fortunately for us, the Docker team has provided a script that simplifies the
+    installation process. This script is compatible with a range of Linux distributions,
+    including **Red Hat Enterprise Linux** (**RHEL**), CentOS, Fedora, Debian, Ubuntu,
+    and their derivatives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To install Docker, you will need to run the script with root privileges. Open
+    your terminal and enter the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this single command, Docker will be installed natively on your system using
+    custom repositories adapted to your Linux distribution’s package manager. This
+    means that updating Docker will be as easy as updating any other package on your
+    system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your first Docker container
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are many ways to operate Docker containers. For instance, you can launch
+    a container using a simple command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This command pulls the NGINX image from Docker Hub and starts a new container
+    in detached mode. However, this container runs with default settings and isn’t
+    yet configured for specific use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To customize the container, you can pass additional parameters. For example,
+    to map the container’s port 80 to the host’s port 80, allowing web traffic to
+    reach the container, you would run the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first command launches the NGINX container with the default configuration.
+    The second command runs the same container, but now it is accessible via the host
+    machine’s port 80\. But what if you require a more advanced and complete configuration?
+    This is where Docker Compose steps in, offering a solution for managing multi-container
+    Docker applications with ease.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the context of this book, the NGINX image serves as an excellent example
+    of Docker’s capabilities as it showcases how containerization simplifies the deployment
+    of services that traditionally require dedicated servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we explore deeper, we’ll see how to tailor an NGINX container to serve static
+    content or act as a reverse proxy, introducing the concept of Docker volumes and
+    how to use them to serve custom configuration files and content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simplifying with Docker Compose
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After running our first Docker container, it became clear that managing a container’s
+    parameters directly from the command line can quickly become cumbersome. **Docker
+    Compose** simplifies this process by allowing us to define and run multi-container
+    Docker applications using a YAML file for configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s create an equivalent setup to the one we ran in the previous section—an
+    NGINX container with port 80 exposed to the host machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Begin by creating a `/root/nginx` directory, and within that directory, save
+    a file named `docker-compose.yml` with the following content:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: A reminder
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the file format is called *YAML*, the extension needs to be `.yml`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this `docker-compose.yml` file, we’ve defined a service named `nginx`, using
+    the official `nginx` image tagged with `latest`, which means it will be updated
+    every time we pull it from Docker Hub. If you wish, you can specify a fixed version,
+    such as `nginx:1.25.4`. More details can be found on the Docker Hub for NGINX
+    page ([https://hub.docker.com/_/nginx/](https://hub.docker.com/_/nginx/)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, with the Docker Compose file saved, run the following command in the same
+    directory:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: root@nginx:~/nginx# docker compose up -d
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: root@nginx:~/nginx# docker compose down
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: With Docker Compose, running NGINX in Docker becomes a matter of defining the
+    desired state in a file, which is easier to manage and read than standalone commands.
+    In the next section, we’ll explore how to further configure NGINX in Docker, tailoring
+    it to our specific needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up NGINX inside Docker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Having become familiar with Docker Compose, we’re set to advance our container
+    usage. In this section, we’ll improve our NGINX container by adding personalized
+    configurations and website content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s begin by revisiting the `docker-compose.yml` file we created earlier.
+    This file already specifies the NGINX service and maps the container’s port 80
+    to port 80 on the host machine, making the web server accessible from the host.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we want our NGINX container to serve our website using the actual configuration
+    files and content from our host machine. To achieve this, we’ll use Docker volumes.
+    Volumes are the preferred mechanism for persisting data generated and used by
+    Docker containers. Here’s how you can modify the `docker-compose.yml` file to
+    mount a volume:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this setup, `./config/nginx.conf` is the path to your custom NGINX configuration
+    file on your host machine. `/etc/nginx/nginx.conf` is the path where the NGINX
+    container expects to find the configuration file. The second volume, `./html`,
+    is the directory on your host machine that contains your website’s content, mounted
+    into `/usr/share/nginx/html/` in the Docker container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach ensures that you can edit your NGINX configuration or website
+    content directly on your host machine, and those changes will be reflected inside
+    the container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A note
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX is preconfigured; therefore, you can skip mounting the `nginx.conf` volume
+    and use the default settings. Do mount the `html` directory as it is where NGINX
+    expects to find web content to serve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integrating PHP with NGINX using Docker Compose
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we progress, our next step is to elevate our NGINX server to handle dynamic
+    content with PHP. This combination is common in the web development world, and
+    Docker Compose makes it easy to implement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ll start by extending our existing `docker-compose.yml` file to include
+    a PHP service, and then we will ensure NGINX can communicate with the PHP service
+    using FastCGI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we need to add a PHP service that runs `php-fpm`). Here’s how the updated
+    `docker-compose.yml` file might look:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: In this setup, the `php` service uses the official PHP image with `php-fpm`.
+    We also mount the `html` directory into the PHP container to ensure it has access
+    to the same web files as NGINX.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Before starting the Docker containers, we need to make sure NGINX and PHP communicate.
+    Let’s edit the `nginx.conf` file to include FastCGI parameters. Here’s an example
+    of `nginx.conf` with included FastCGI parameters:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This configuration instructs NGINX to forward requests for PHP files to the
+    PHP-FPM service running in the `php` container.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Note
+  prefs: []
+  type: TYPE_NORMAL
+- en: NGINX resolves the `php` service name using Docker’s internal DNS to communicate
+    with the `php-fpm` service. If you rename the service in your `docker-compose.yml`
+    file, remember to update the `nginx.conf` file accordingly to match the new service
+    name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this `docker-compose.yml` and `nginx.conf` configuration, you can run
+    `docker compose up`, and NGINX will serve both your static content and your dynamic
+    PHP pages:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: '![Figure 8.4: phpinfo running within Docker](img/B21787_08_4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 8.4: phpinfo running within Docker'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This subsection has guided you through adding a PHP service to your Docker environment
+    and configuring NGINX to process PHP scripts via FastCGI. This configuration mimics
+    a production environment, providing a solid foundation for building and deploying
+    PHP applications with Docker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next section, we’ll explore how to configure a Docker-contained NGINX
+    to proxy applications running directly on the host server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up NGINX inside Docker to proxy host applications
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Fortunately for us, Docker is built with inherent support for container-to-host
+    connections. When setting up NGINX inside a container, a special `host.docker.internal`
+    hostname is used to target the host machine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a sample NGINX proxy configuration for interfacing with a web application
+    hosted on the server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: To ensure NGINX can communicate with the host server’s web application, check
+    that the host’s firewall allows incoming traffic on the specified ports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concluding this section, we’ve successfully bridged the containerized NGINX
+    with host-resident applications, leveraging Docker’s internal networking features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next section, we’ll recap what we learned in this book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we’ve taken our first steps with Docker and Docker Compose,
+    set up an NGINX container, added PHP, and learned to proxy traffic to a web app
+    on the host server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Combined with the knowledge from the previous chapters, the exercises in this
+    chapter have highlighted NGINX’s potential as a key asset in cloud infrastructure,
+    strengthening security and managing traffic efficiently, well suited for SSL handling,
+    load balancing, and content caching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we’ll learn how to deploy and update NGINX with automated
+    tasks using orchestration tools.
+  prefs: []
+  type: TYPE_NORMAL

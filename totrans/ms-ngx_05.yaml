@@ -1,0 +1,1025 @@
+- en: Chapter 5. Reverse Proxy Advanced Topics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As we saw in the previous chapter, a reverse proxy makes connections to upstream
+    servers on behalf of clients. These upstream servers therefore have no direct
+    connection to the client. This is for several different reasons, such as security,
+    scalability, and performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A reverse proxy server aids security because if an attacker were to try to get
+    onto the upstream server directly, he would have to first find a way to get onto
+    the reverse proxy. Connections to the client can be encrypted by running them
+    over HTTPS. These SSL connections may be terminated on the reverse proxy, when
+    the upstream server cannot or should not provide this functionality itself. NGINX
+    can act as an SSL terminator as well as provide additional access lists and restrictions
+    based on various client attributes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scalability can be achieved by utilizing a reverse proxy to make parallel connections
+    to multiple upstream servers, enabling them to act as if they were one. If the
+    application requires more processing power, additional upstream servers can be
+    added to the pool served by a single reverse proxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance of an application may be enhanced through the use of a reverse proxy
+    in several ways. The reverse proxy can cache and compress content before delivering
+    it out to the client. NGINX as a reverse proxy can handle more concurrent client
+    connections than a typical application server. Certain architectures configure
+    NGINX to serve static content from a local disk cache, passing only dynamic requests
+    to the upstream server to handle. Clients can keep their connections to NGINX
+    alive, while NGINX terminates the ones to the upstream servers immediately, thus
+    freeing resources on those upstream servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will discuss these topics, as well as the remaining proxy module directives,
+    in the following sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Security through separation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Isolating application components for scalability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reverse proxy performance tuning
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Security through separation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can achieve a measure of security by separating out the point to which clients
+    connect to an application. This is one of the main reasons for using a reverse
+    proxy in an architecture. The client connects directly only to the machine running
+    the reverse proxy. This machine should therefore be secured well enough that an
+    attacker cannot find a point of entry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Security is such a large topic that we will touch only briefly on the main
+    points to observe:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Set up a firewall in front of the reverse proxy that only allows public access
+    to port 80 (and 443, if HTTPS connections should also be made)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ensure that NGINX is running as an unprivileged user (typically `www`, `webservd`,
+    or `www-data`, depending on the operating system)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Encrypt traffic where you can to prevent eavesdropping
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will spend some time on this last point in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Encrypting traffic with SSL
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: NGINX is often used to terminate SSL connections, either because the upstream
+    server is not capable of using SSL or to offload the processing requirements of
+    SSL connections. This requires that your `nginx` binary was compiled with SSL
+    support (`--with_http_ssl_module`) and that you install an SSL certificate and
+    key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For details about how to generate your own SSL certificate, please see the *Using
+    OpenSSL to generate an SSL certificate* tip in [Chapter 3](ch03.html "Chapter 3. Using
+    the Mail Module"), *Using the Mail Module*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is an example configuration for enabling HTTPS connections to
+    `www.example.com`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the preceding example, we first activate the `ssl` module by using the `ssl`
+    parameter to the `listen` directive. Then, we specify that we wish the server's
+    ciphers to be chosen over the client's list, as we can configure the server to
+    use the ciphers that have proven to be most secure. This prevents clients from
+    negotiating a cipher that has been deprecated. The `ssl_session_cache` directive
+    is set to `shared` so that all worker processes can benefit from the expensive
+    SSL negotiation that has already been done once per client. Multiple virtual servers
+    can use the same `ssl_session_cache` directive if they are all configured with
+    the same name, or if this directive is specified in the `http` context. The second
+    and third parts of the value are the name of the cache and its size, respectively.
+    Then it is just a matter of specifying the certificate and key for this host.
+    Note that the permissions of this key file should be set such that only the master
+    process may read it. We set the header `X-FORWARDED-PROTO` to the value `https`
+    so that the application running on the upstream server can recognize the fact
+    that the original request used HTTPS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '**SSL ciphers**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding ciphers were chosen based on NGINX's default, which excludes those
+    that offer no authentication (`aNULL`) as well as those using MD5\. The RC4 is
+    placed at the beginning so that ciphers not susceptible to the BEAST attack described
+    in CVE-2011-3389 are preferred. The `@STRENGTH` string at the end is present to
+    sort the list of ciphers in order of the encryption algorithm key length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have just encrypted the traffic passing between the client and the reverse
+    proxy. It is also possible to encrypt the traffic between the reverse proxy and
+    the upstream server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is usually only reserved for those architectures in which even the internal
+    network over which such a connection flows is considered insecure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authenticating clients using SSL
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Some applications use information from the SSL certificate the client presents,
+    but this information is not directly available in a reverse proxy architecture.
+    To pass this information along to the application, you can instruct NGINX to set
+    an additional header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `$ssl_client_cert` variable contains the client's SSL certificate, in PEM
+    format. We pass this on to the upstream server in a header of the same name. The
+    application itself is then responsible for using this information in whatever
+    way is appropriate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead of passing the whole client certificate to the upstream server, NGINX
+    can do some work ahead of time to see if the client is even valid. A valid client
+    SSL certificate is one which has been signed by a recognized Certificate Authority,
+    has a validity date in the future, and has not been revoked:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The preceding configuration is constructed out of the following parts to achieve
+    the objective of having NGINX validate client SSL certificates before passing
+    the request on to the upstream server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The argument to the `ssl_client_certificate` directive specifies the path to
+    the PEM-encoded list of root CA certificates that will be considered valid signers
+    of client certificates.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `ssl_crl` argument indicates the path to a certificate revocation list,
+    issued by the Certificate Authority responsible for signing client certificates.
+    This CRL needs to be downloaded separately and periodically refreshed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `ssl_verify_client` directive states that we want NGINX to check the validity
+    of SSL certificates presented by clients.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `ssl_verify_depth` directive is responsible for how many signers will be
+    checked before declaring the certificate invalid. SSL certificates may be signed
+    by one or more intermediate CAs. Either an intermediate CA certificate or the
+    root CA that signed it needs to be in our `ssl_client_certificate` path for NGINX
+    to consider the client certificate valid.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If some sort of error occurred during client certificate validation, NGINX will
+    return the non-standard error code 495\. We have defined an `error_page` that
+    matches this code and redirects the request to a named location, to be handled
+    by a separate proxied server. We also include a check for the value of `$ssl_client_verify`
+    within the `proxy_pass` location, so that an invalid certificate will also return
+    this code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a certificate is not valid, NGINX will return the non-standard error code
+    496, which we capture as well with an `error_page` directive. The `error_page`
+    directive that we define points to a named location, which proxies the request
+    to a separate error handler.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only when the client has presented a valid SSL certificate will NGINX pass the
+    request on to the upstream server, `secured`. By doing so, we have ensured that
+    only authenticated users actually get to place requests to the upstream server.
+    This is an important security feature of a reverse proxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: NGINX from Version 1.3.7 provides the capability to use OCSP responders to verify
+    client SSL certificates. See the `ssl_stapling*` and `ssl_trusted_certificate`
+    directives in [Appendix A](apa.html "Appendix A. Directive Reference"), *Directive
+    Reference*, for a description of how to activate this functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If the application still needs some information present in the certificate,
+    for example, to authorize a user, NGINX can deliver this information in a header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, our application running on the upstream server `secured` can use the value
+    of the `X-HTTP-AUTH` header to authorize the client for access to different areas.
+    The variable `$ssl_client_s_dn` contains the subject `DN` of the client certificate.
+    The application can use this information to match the user against a database
+    or make a look up in a directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blocking traffic based on originating IP address
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As client connections terminate on the reverse proxy, it is possible to limit
+    clients based on IP address. This is useful in cases of abuse where a number of
+    invalid connections originate from a certain set of IP addresses. As in Perl,
+    there is more than one way to do it. We will discuss the `GeoIP` module here as
+    a possible solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Your `nginx` binary will need to have been compiled with the `GeoIP` module
+    activated (`--with-http_geoip_module`) and the MaxMind GeoIP library installed
+    on your system. Specify the location of the precompiled database file with the
+    `geoip_country` directive in the `http` context. This provides the most efficient
+    way to block/allow IP addresses by country code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: If a client's connection comes from an IP address listed in this database, the
+    value of the `$geoip_country_code` variable will be set to the ISO two-letter
+    code for the originating country.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use the data provided by the `GeoIP` module together with the closely-named
+    `geo` module, as well. The `geo` module provides a very basic interface for setting
+    variables based on the IP address of a client connection. It sets up a named context
+    within which the first parameter is the IP address to match and the second is
+    the value that match should obtain. By combining these two modules, we can block
+    IP addresses based on the country of origin, while allowing access from a set
+    of specific IP addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our scenario, we are providing a service to Swiss banks. We want the public
+    parts of the site to be indexed by Google, but are for now still restricting access
+    to Swiss IPs. We also want a local watchdog service to be able to access the site
+    to ensure it is still responding properly. We define a variable `$exclusions`,
+    which will have the value `0` by default. If any of our criteria are matched,
+    the value will be set to `1`, which we will use to control access to the site:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is just one way of solving the problem of blocking access to a site based
+    on the client's IP address. Other solutions involve saving the IP address of the
+    client in a key-value store, updating a counter for each request, and blocking
+    access if there have been too many requests within a certain time period.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Isolating application components for scalability
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Scaling applications can be described by moving in two dimensions, up and out.
+    Scaling up refers to adding more resources to a machine, growing its pool of available
+    resources to meet client demand. Scaling out means adding more machines to a pool
+    of available responders, so that no one machine gets tied up handling the majority
+    of clients. Whether these machines are virtualized instances running in the cloud
+    or physical machines sitting in a datacenter, it is often more cost-effective
+    to scale out rather than up. This is where NGINX fits in handily as a reverse
+    proxy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Due to its very low resource usage, NGINX acts ideally as the broker in a client-application
+    relationship. NGINX handles the connection to the client, able to process multiple
+    requests simultaneously. Depending on the configuration, NGINX will either deliver
+    a file from its local cache or pass the request on to an upstream server for further
+    processing. The upstream server can be any type of server that speaks the HTTP
+    protocol. More client connections can be handled than if an upstream server were
+    to respond directly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Over time, the initial set of upstream servers may need to be expanded. The
+    traffic to the site has increased so much, that the current set can't respond
+    in a timely enough manner. By using NGINX as the reverse proxy, this situation
+    can easily be remedied by adding more upstream servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Isolating application components for scalability](img/7447OS_05_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Adding more upstream servers can be done as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Perhaps the time has come for the application to be rewritten, or to be migrated
+    onto a server with a different application stack. Before moving the whole application
+    over, one server can be brought into the active pool for testing under real load
+    with real clients. This server could be given fewer requests to help minimize
+    any negative reactions should problems arise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Isolating application components for scalability](img/7447OS_05_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This is done with the following configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Alternatively, perhaps it is time for scheduled maintenance on a particular
+    upstream server, so it should not receive any new requests. By marking that server
+    as `down` in the configuration, we can proceed with that maintenance work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Isolating application components for scalability](img/7447OS_05_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The following configuration describes how to mark the server `down`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Unresponsive upstream servers should be handled quickly. Depending on the application,
+    the timeout directives can be set aggressively low:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Be careful, though, that the upstream servers can usually respond within the
+    time set by the timeout, or NGINX may deliver a **504 Gateway Timeout Error**
+    when no upstream servers respond within this time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reverse proxy performance tuning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NGINX can be tuned in a number of ways to get the most out of the application
+    for which it is acting as a reverse proxy. By buffering, caching, and compressing,
+    NGINX can be configured to make the client's experience as snappy as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Buffering
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Buffering can be described with the help of the following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Buffering](img/7447OS_05_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The most important factor to consider performance-wise when proxying is buffering.
+    NGINX, by default, will try to read as much as possible from the upstream server
+    as fast as possible before returning that response to the client. It will buffer
+    the response locally so that it can deliver it to the client all at once. If any
+    part of the request from the client or the response from the upstream server is
+    written out to disk, performance might drop. This is a trade-off between RAM and
+    disk. So it is very important to consider the following directives when configuring
+    NGINX to act as a reverse proxy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Proxy module buffering directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffer_size` | The size of the buffer used for the first part of the
+    response from the upstream server, in which the response headers are found. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffering` | Activates buffering of proxied content; when switched
+    off, responses are sent synchronously to the client as soon as they are received,
+    provided the `proxy_max_temp_file_size` parameter is set to `0`. Setting this
+    to `0` and turning `proxy_buffering` to `on` ensures that there is no disk usage
+    during proxying, while still enabling buffering. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_buffers` | The number and size of buffers used for responses from
+    upstream servers. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_busy_buffers_size` | The total size of buffer space allocated to sending
+    the response to the client while still being read from the upstream server. This
+    is typically set to two `proxy_buffers`. |'
+  prefs: []
+  type: TYPE_TB
+- en: In addition to the preceding directives, the upstream server may influence buffering
+    by setting the `X-Accel-Buffering` header. The default value of this header is
+    `yes`, meaning that responses will be buffered. Setting the value to `no` is useful
+    for Comet and HTTP streaming applications, where it is important to not buffer
+    the response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By measuring the average request and response sizes going through the reverse
+    proxy, the proxy buffer sizes can be tuned optimally. Each buffer directive counts
+    per connection, in addition to an OS-dependent per-connection overhead, so we
+    can calculate how many simultaneous client connections we can support with the
+    amount of memory on a system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The default values for the `proxy_buffers` directive (`8 4k` or `8 8k`, depending
+    on the operating system), enable a large number of simultaneous connections. Let's
+    figure out just how many connections that is. On a typical 1 GB machine, where
+    only NGINX runs, most of the memory can be dedicated to its use. Some will be
+    used by the operating system for the filesystem cache and other needs, so let's
+    be conservative and estimate that NGINX would have up to 768 MB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eight 4 KB buffers is 32,768 bytes (8 * 4 * 1024) per active connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 768 MB we allocated to NGINX is 805,306,368 bytes (768 * 1024 * 1024).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dividing the two, we come up with 805306368 / 32768 = 24576 active connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, NGINX would be able to handle just under 25,000 simultaneous, active connections
+    in its default configuration, assuming that these buffers will be constantly filled.
+    There are a number of other factors that come into play, such as cached content
+    and idle connections, but this gives us a good ballpark estimate to work with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, if we take the following numbers as our average request and response sizes,
+    we see that eight 4 KB buffers just aren't enough to process a typical request.
+    We want NGINX to buffer as much of the response as possible so that the user receives
+    it all at once, provided the user is on a fast link.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Average request size: 800 bytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Average response size: 900 KB'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_IND
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The tuning examples in the rest of this section will use more memory at the
+    expense of concurrent, active connections. They are optimizations, and shouldn't
+    be understood as recommendations for a general configuration. NGINX is already
+    optimally tuned to provide for many, slow clients and a few, fast upstream servers.
+    As the trend in computing is more towards mobile users, the client connection
+    is considerably slower than a broadband user's connection. So, it's important
+    to know your users and how they will be connecting, before embarking on any optimizations.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'We would adjust our buffer sizes accordingly so that the whole response would
+    fit in the buffers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means, of course, that we would be able to handle far fewer concurrent
+    users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thirty 32 KB buffers is 983,040 bytes (30 * 32 * 1024) per connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 768 MB we allocated to NGINX is 805,306,368 bytes (768 * 1024 * 1024).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dividing the two, we come up with 805306368 / 983040 = 819.2 active connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That isn''t too many concurrent connections at all. Let''s adjust the number
+    of buffers down, and ensure that NGINX will start transferring something to the
+    client while the rest of the response is read into the remaining `proxy_buffers`
+    space:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Four 32 KB buffers is 131,072 bytes (4 * 32 * 1024) per connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 768 MB we allocated to NGINX is 805,306,368 bytes (768 * 1024 * 1024).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dividing the two, we come up with 805306368 / 131072 = 6144 active connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a reverse-proxy machine, we may therefore want to scale up by adding more
+    memory (6 GB RAM will yield us approximately 37,000 connections) or scale out
+    by adding more 1 GB machines behind a load balancer, up to the number of concurrent,
+    active users we can expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Caching can be described with the following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Caching](img/7447OS_05_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'NGINX is also capable of caching the response from the upstream server, so
+    that the same request asked again doesn''t have to go back to the upstream server
+    to be served. The preceding figure illustrates this as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1a**: A client makes a request'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**1b**: The request''s cache key is not currently found in the cache, so NGINX
+    requests it from the upstream server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**1c**: The upstream responds and NGINX places the response corresponding to
+    that request''s cache key into the cache'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**1d**: The response is delivered to the client'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**2a**: Another client makes a request that has a matching cache key'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**2b**: NGINX is able to serve the response directly from the cache without
+    needing to first get the response from the upstream server'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Table: Proxy module caching directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache` | Defines a shared memory zone to be used for caching. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_bypass` | One or more string variables, which when non-empty
+    or non-zero, will cause the response to be taken from the upstream server instead
+    of the cache. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_key` | A string used as the key for storing and retrieving cache
+    values. Variables may be used, but care should be taken to avoid caching multiple
+    copies of the same content. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_lock` | Enabling this directive will prevent multiple requests
+    to the upstream server(s) during a cache miss. The requests will wait for the
+    first to return and make an entry into the cache key. This lock is per worker.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_lock_timeout` | The length of time a request will wait for an
+    entry to appear in the cache or for the `proxy_cache_lock` to be released. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_min_uses` | The number of requests for a certain key needed
+    before a response is cached. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_path` | A directory in which to place the cached responses and
+    a shared memory zone (`keys_zone=name:size`) to store active keys and response
+    metadata. Optional parameters are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`levels`: Colon-separated length of subdirectory name at each level (1 or 2),
+    maximum of three levels deep'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`inactive`: The maximum length of time an inactive response stays in the cache
+    before being ejected'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`max_size`: The maximum size of the cache; when the size exceeds this value,
+    a cache manager process removes the least recently used items'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`loader_files`: The maximum number of cached files whose metadata are loaded
+    per iteration of the cache loader process'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`loader_sleep`: The number of milliseconds paused between each iteration of
+    the cache loader process'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`loader_threshold`: The maximum length of time a cache loader iteration may
+    take'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `proxy_cache_use_stale` | The cases under which it is acceptable to serve
+    stale cached data when an error occurs while accessing the upstream server. The
+    `updating` parameter indicates the case when fresh data are being loaded. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `proxy_cache_valid` | Indicates the length of time for which a cached response
+    with response code 200, 301, or 302 is valid. If an optional response code is
+    given before the time parameter, that time is only for that response code. The
+    special parameter `any` indicates that any response code should be cached for
+    that length of time. |'
+  prefs: []
+  type: TYPE_TB
+- en: The following configuration is designed to cache all responses for six hours,
+    up to a total cache size of 1 GB. Any items that stay fresh, that is, are called
+    within the six hour timeout, are valid for up to one day. After this time, the
+    upstream server will be called again to provide the response. If the upstream
+    isn't able to respond due to an error, timeout, invalid header, or if the cached
+    item is being updated, a stale cache element may be used. The shared memory zone,
+    **CACHE**, is defined to be 10 MB large and is referenced within the `location`
+    where the cache keys need to be set and looked-up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using this configuration, NGINX will set up a series of directories under `/var/spool/nginx`
+    that will first differentiate on the last character of the MD5 hash of the URI,
+    followed by the next two characters from the last. For example, the response for
+    "/this-is-a-typical-url" will be stored as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: In addition to the `proxy_cache_valid` directive, a number of headers control
+    how NGINX caches responses. The header values take precedence over the directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `X-Accel-Expires` header can be set by the upstream server to control cache
+    behavior:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An integer value indicates the time in seconds for which a response may be cached
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the value of this header is `0`, caching for that response is disabled completely
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A value beginning with `@` indicates the time in seconds since the epoch. The
+    response is valid only up to this absolute time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `Expires` and `Cache-Control` headers have the same precedence level.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the value of the `Expires` header is in the future, the response will be
+    cached until then.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The `Cache-Control` header can have multiple values:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no-cache`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no-store`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`private`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`max-age`'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The only value for which the response is actually cached is a `max-age`, which
+    is numeric and non-zero, that is, `max-age=x` where `x` > 0.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the `Set-Cookie` header is present, the response is not cached.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This may be overridden, though, by using the `proxy_ignore_headers` directive:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'But if doing so, be sure to make the cookie value part of the `proxy_cache_key`:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Care should be taken when doing this, though, to prevent multiple response
+    bodies from being cached for the same URI. This can happen when public content
+    inadvertently has the `Set-Cookie` header set for it, and this then becomes part
+    of the key used to access this data. Separating public content out to a different
+    location is one way to ensure that the cache is being used effectively. For example,
+    serving images from an `/img` location where a different `proxy_cache_key` is
+    defined:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Storing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Related to the concept of a cache is a **store**. If you are serving large,
+    static files that will never change, that is, there is no reason to expire the
+    entries, then NGINX offers something called a store to help serve these files
+    faster. NGINX will store a local copy of any files that you configure it to fetch.
+    These files will remain on disk and the upstream server will not be asked for
+    them again. If any of these files should change upstream, they need to be deleted
+    by some external process, or NGINX will continue serving them, so for smaller,
+    static files, using the cache is more appropriate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following configuration summarizes the directives used to store these files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this configuration, we define a `server` with a `root` under the same filesystem
+    as the `proxy_temp_path`. The `location` directive `/img` will inherit this `root`,
+    serving files of the same name as the URI path under `/var/www/data`. If a file
+    is not found (error code 404), the named `location` directive `@store` is called
+    to fetch the file from the upstream. The `proxy_store` directive indicates that
+    we want to store files under the inherited `root` with permissions `0644` (the
+    `user:rw` is understood, while `group` or `all` are specified in `proxy_store_access`).
+    That's all it takes for NGINX to store a local copy of static files served by
+    the upstream server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compressing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Compressing can be described with the following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Compressing](img/7447OS_05_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Optimizing for bandwidth can help reduce a response''s transfer time. NGINX
+    has the capability of compressing a response it receives from an upstream server
+    before passing it on to the client. The `gzip` module, enabled by default, is
+    often used on a reverse proxy to compress content where it makes sense. Some file
+    types do not compress well. Some clients do not respond well to compressed content.
+    We can take both cases into account in our configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we've specified that we want files of the preceding MIME types to be compressed
+    at a gzip compression level of 2 if the request has come over at least HTTP/1.0,
+    except if the user agent reports being an older version of Internet Explorer.
+    We've placed this configuration in the `http` context so that it will be valid
+    for all servers we define.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following table lists the directives available with the `gzip` module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table: Gzip module directives'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '| Directive | Explanation |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip` | Enables or disables the compression of responses. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_buffers` | Specifies the number and size of buffers used for compressing
+    a response. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_comp_level` | The gzip compression level (1-9). |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_disable` | A regular expression of `User-Agents` that shouldn''t receive
+    a compressed response. The special value `msie6` is a shortcut for `MSIE [4-6]\.`
+    excluding `MSIE 6.0; ... SV1`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_min_length` | The minimum length of a response before compression is
+    considered, determined by the `Content-Length` header. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_http_version` | The minimum HTTP version of a request before compression
+    is considered. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_proxied` | Enables or disables compression if the request has already
+    come through a proxy. Takes one or more of the following parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`off`: Disables compression'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`expired`: Enables compression if the response should not be cached, as determined
+    by the `Expires` header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no-cache`: Enables compression if the `Cache-Control` header is equal to `no-cache`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no-store`: Enables compression if the `Cache-Control` header is equal to `no-store`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`private`: Enables compression if the `Cache-Control` header is equal to `private`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no_last_modified`: Enables compression if the response doesn''t have a `Last-Modified`
+    header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`no_etag`: Enables compression if the response doesn''t have an `ETag` header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`auth`: Enables compression if the request contains an `Authorization` header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`any`: Enables compression for any response whose request includes the `Via`
+    header'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| `gzip_types` | The MIME types that should be compressed, in addition to the
+    default value `text/html`. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `gzip_vary` | Enables or disables the response header `Vary: Accept-Encoding`
+    if gzip is active. |'
+  prefs: []
+  type: TYPE_TB
+- en: When gzip compression is enabled and you find large files being truncated, the
+    likely culprit is `gzip_buffers`. The default value of `32 4k` or `16 8k` buffers
+    (depending on the platform) leads to a total buffer size of 128 KB. This means
+    that the file NGINX is to compress cannot be larger than 128 KB. If you're using
+    an unzipped large JavaScript library, you may find yourself over this limit. If
+    that is the case, just increase the number of buffers so that the total buffer
+    size is large enough to fit the whole file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: For example, the preceding configuration will enable compression of any file
+    up to 40 * 4 * 1024 = 163840 bytes (or 160 KB) large. We also use the `gzip_min_length`
+    directive to tell NGINX to only compress a file if it is larger than 1 KB. A `gzip_comp_level`
+    of 4 or 5 is usually a good trade-off between speed and compressed file size.
+    Measuring on your hardware is the best way to find the right value for your configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Besides on-the-fly compression of responses, NGINX is capable of delivering
+    precompressed files, using the `gzip_static` module. This module is not compiled
+    by default, but can be enabled with the `--with-http_gzip_static_module` compile-time
+    switch. The module itself has one directive, `gzip_static`, but also uses the
+    following directives of the `gzip` module in order to determine when to check
+    for precompressed files:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`gzip_http_version`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`gzip_proxied`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`gzip_disable`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`gzip_vary`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In the following configuration, we enable delivery of precompressed files if
+    the request contains an `Authorization` header and if the response contains one
+    of the `Expires` or `Cache-Control` headers disabling caching:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have seen in this chapter how NGINX can be used effectively as a reverse
+    proxy. It can act in three roles, either individually or in some combination,
+    which are to enhance security, to enable scalability, and/or to enhance performance.
+    Security is achieved through separation of the application from the end user.
+    NGINX can be combined with multiple upstream servers to achieve scalability. The
+    performance of an application relates directly to how responsive it is to a user's
+    request. We explored different mechanisms to achieve a more responsive application.
+    Faster response times mean happier users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Up next is an exploration of NGINX as an HTTP server. We have so far only discussed
+    how NGINX can act as a reverse proxy, but there is so much more that NGINX is
+    capable of.
+  prefs: []
+  type: TYPE_NORMAL

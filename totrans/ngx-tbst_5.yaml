@@ -1,0 +1,826 @@
+- en: Chapter 5. Troubleshooting Rare Specific Problems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The most interesting problems you may encounter with Nginx or any other piece
+    of complex software (or any other human endeavor, for that matter) are usually
+    firmly situated in the category of "Misc". This dreaded class of troubles contains
+    everything that does not fall into other convenient classes that you as a reader
+    and a professional spent time and efforts in previous chapters. Nginx is known
+    for its stability and robustness, so you might never get a chance to encounter
+    anything we describe here in your professional career. Still, in the spirit of
+    "better safe than sorry", we would highly recommend reading the chapter just in
+    case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter, you will learn about the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Different security warnings that users may encounter on your websites and how
+    to fix them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A couple of reasons why users may see very obsolete versions of web pages that
+    were updated and how to fix such cases
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Several curious configuration problems that will help you better understand
+    the inner workings of Nginx and how to solve them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Anyway, let us start from what we consider more frequent and easier to fix and
+    then move to less obvious and much more obscure issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Security warnings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is a fact that the web is moving to HTTPS. Even 3 – 4 years ago, plain text
+    HTTP was a perfectly normal choice unless you build a bank interface. Today, in
+    the age of global personalization and sophisticated attackers, websites are slowly
+    embracing total encryption. There are a number of reasons for that, and deep discussion
+    is out of the scope of this book. Instead, you are kindly referred to this document
+    [https://www.eff.org/encrypt-the-web-report](https://www.eff.org/encrypt-the-web-report).
+    Basically, in the next 2-3 years, HTTP will become de facto deprecated as an end
+    user protocol and that brings us to a world of problems dealing with the public
+    key infrastructure of HTTPS. HTTPS relies on TLS, which uses X.509 PKI with CAs,
+    CRLs, OSCP, and so on. The abundance of abbreviations in the previous sentence
+    is deliberate; this is a complex topic in itself, which regularly confuses the
+    most experienced specialists. The design of the X.509 key and certificate infrastructure
+    is known to be very complex, but the task it solves is not a simple one either.
+    One of the most interesting recent initiatives to simplify the solution is the
+    project **Let's Encrypt**, which is available at [https://letsencrypt.org](https://letsencrypt.org).
+    They advertise as the free certificate vendor (certification authority, or CA
+    in X.509 lingo), but they also provide a set of protocols, services, and tools
+    which allow painless and transparent certificate management. They are not yet
+    fully operational as of March 2016, so watch that space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up HTTPS on Nginx is a topic thoroughly described in many articles and
+    books around the web, so we won't spend much time on it. You have probably done
+    it several times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are some cases in which your visitors may encounter HTTPS-related security
+    warnings when requesting pages from your website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s say that you have something like this in your website configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: When the X.509 infrastructure was invented in the end of 1980s, one of the tasks
+    it tried to solve was the issue of mutual authentication and trust between parties
+    in a secure communication channel. While encryption does not strictly require
+    this kind of authentication, it is still considered important that your browser
+    trusts the server on the other side of an encrypted HTTPS connection at least
+    in the sense of that server presenting some undeniable proof that it is what it
+    claims to be. The implementation of that proof are the digital certificates that
+    servers present while negotiating the connection, and a number of policies on
+    a client. Amusingly, if you are familiar with other PKI schemes, for example,
+    PGP/GPG, then you probably asked yourself why X.509 requires a separate entity
+    in addition to the obvious key pair (public and private), which is actually required
+    to implement asymmetrical cryptography. Well, the idea is that the certificate
+    is a document from a third party about the server, whereas the keys are technical
+    data used during encryption. The loose PGP analog of the certificate are the signatures
+    from other people your keys may or may not have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Domain name mismatch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The most common certificates HTTPS server use are of **Domain Validation** (**DV**)
+    type, and the most important policy that a client will enforce against a connection
+    to a server with a DV certificate is that the domain name mentioned inside the
+    certificate matches the domain name of the actual TCP connection endpoint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A problem with this policy manifests itself with these nasty scary full-screen
+    errors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Domain name mismatch](img/B04329_05_01.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The earlier-mentioned image is from Chromium, the open browser that is the
+    base for Google Chrome. The next example is from Firefox:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Domain name mismatch](img/B04329_05_02.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The next example is from mobile Safari on iOS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Domain name mismatch](img/B04329_05_03.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The root of this problem lies in the historic convention of having one and only
+    one fully qualified domain name per certificate. If you have aliases (and most
+    websites usually do have at least the common pair—one with "www." and one without
+    "www."), you either have to purchase separate certificates or use extensions to
+    the original X.509\. Fortunately, those extensions are pretty widely supported;
+    the last problems we remember were with default Windows Phone 7 browsers, and
+    if you have significant number of such clients, you probably know what to do and
+    have resources to solve that problem with a dedicated project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The extensions you need are: wildcard certificates and multidomain certificates
+    or SAN certificates. Your HTTPS certificates vendor will have those in store.
+    They are usually a bit more expensive but too useful to ignore. Wildcard certificates
+    allow you to request certificates for domain patterns that look like `*.example.com`,
+    whereas **Subject Alternative Names** (**SANs**) are a way to enumerate the list
+    of domains that this certificate is valid for.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expired certificates
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The next most common error message that you may encounter is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Expired certificates](img/B04329_05_04.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Now we will show Chromium and Microsoft Internet Explorer errors as examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Expired certificates](img/B04329_05_05.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: iOS and Mobile Safari chose the strategy to show one type of HTTPS error message
+    for both of the most common errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The philosophy behind digital certificate expiration is rather simple. Because
+    a certificate is an electronic document asserting someone's identity as verified
+    by a third party (that is your certificates vendor or **Certificate Authority**
+    (**CA**) in X.509 speak) in the absence of said third party, it should have expiration
+    date to ensure regular re-evaluations of that identity. Vendors will go out of
+    their way to remind you about your certificates, but in spite of this, expirations
+    happen a little too often in the wild.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a very embarrassing moment for any system administrator responsible
+    for a web server. Almost as embarrassing as forgetting to renew the domain delegation
+    (this also happens a lot). Most of the monitoring solutions, both standalone and
+    hosted, will have a sensor for that. We even found a specific monitoring tool
+    just for certificate expiration at [https://snitch.io/](https://snitch.io/) although
+    we have not had the chance to use it. One of the most robust tools to ensure that
+    your TLS certificates are renewed on time is, surprisingly, Google Calendar. Acquire
+    the habit of always creating an event with a reminder 4 weeks before the expiration
+    date right after you receive each new certificate file. This will save you, we
+    promise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may ask how a problematic certificate could end up in production. Well,
+    most of the time, production certificates are not used on development and test
+    deployments because of the old convention mentioned earlier—having one domain
+    name per certificate. Because this limit is long obsolete, you may include your
+    test hostnames inside certificates and that will remove one additional difference
+    between your production and test (or stage, depending on your release life cycle)
+    environments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Insecure warnings for valid certificates
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are hundreds of different Certificate Authorities (CAs) now; some of them
+    worked for many years and some are just starting. If you had time to get familiar
+    with X.509 PKI, you will know that clients should have the root certificate for
+    each and every issuer (that is, CA) in their trusted storage. Otherwise, all the
+    server certificates issued by that particular CA will be invalid. In an ideal
+    world, all user computers and mobile devices have a very up-to-date list of trusted
+    root certificates. Unfortunately, an ideal world does not exist, and you may face
+    a real problem when some of the more conservative clients' browsers consider your
+    web servers insecure because they do not yet have the relevant CA root certificate
+    in their trusted storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To work around such problems, your CA may provide you with their own certificate
+    that you should concatenate with your own and present to the clients as a certificate
+    set (or chain). This will work because X.509 supports a certificate chain to verify
+    the endpoint certificate. Your certificate will refer to the CA certificate, which
+    if provided will refer the client further down the chain until one of the referred
+    intermediate CA certificates is found in the trusted root certificate storage
+    of the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The easiest way to do this is with a simple `cat` command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, specify the path to this compound file in your `ssl_certificate` directive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The mixed – content warning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Although the two types of HTTPS problems we demonstrated earlier are true errors
+    and web browsers will actively prevent users from working around them, there are
+    some less critical problems that still may compromise the trust of your clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most massive and, at the same time, elusive warnings is the so-called
+    "Mixed content" warning. The idea is that any HTTPS page should never embed HTTP
+    objects because the overall security level of the page is the level of its least
+    secure component. If you have even one image object that was fetched via plaintext
+    HTTP, then it may compromise the whole page and even the whole application at
+    times. All modern browsers give warnings about this situation although the actual
+    interface implementation may vary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These are some examples. The first one is from a desktop version of Firefox:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The mixed – content warning](img/B04329_05_06.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The second example is from a desktop version of Chromium:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The mixed – content warning](img/B04329_05_07.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Also, modern browsers make a distinction between active and passive content,
+    the former including scripts, active objects, such as Flash, style sheets, and
+    whole external documents as IFrames. Active mixed content is usually blocked outright,
+    whereas passive mixed content only issues warnings. There is a recommendation
+    from W3C about "Mixed content" that contains all the best practices and recommendations
+    about handling the issue. You may well use it as a guide about what to expect.
+    Refer to [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Linking insecurely to your own content is an obvious error on the side of the
+    developers. They should never ever use direct absolute links with the `http:`
+    scheme anymore. Fixing this may be quite easy using a couple of global full-text
+    searches through all the documents and templates. Just ensure that all your secondary
+    hosts are reachable via HTTPS and change `http://` in links to either `https://`
+    or just `//` if you feel like saving a few bytes per link by using a clever trick
+    of schemeless (or schemaless) URLs. A URL without a scheme looks like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The idea exploits a rarely used but required by all standards feature of relative
+    URL resolution. This is also the reason for the second name: protocol-relative.
+    URLs with two slashes will inherit the scheme from the base document. Refer to
+    RFC3986 [http://tools.ietf.org/html/rfc3986#section-4.2](http://tools.ietf.org/html/rfc3986#section-4.2)
+    for more information.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It will be more secure and practical in the long run to just ensure HTTPS availability
+    and always use `https://` instead of `//`. It is completely safe and does not
+    decrease (already absent) security of your documents retrieved via insecure HTTP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a workaround solution (that may become semi-permanent), you may use the
+    power of Nginx to help your developers change all links to internal resources
+    using on-the-fly substitution. Nginx source contains a special module named `ngx_http_sub_module`,
+    which is not usually built by default although it depends on the author of the
+    Nginx package in your distribution. To check whether it is available, run this
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you see `1`, then your Nginx is linked with `sub_module`. Otherwise, you
+    need to compile it using `--with-http_sub_module` parameter to `configure`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the example that you will need to modify for your own situation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The second line with `sub_filter_types` directive is only needed if your CSS
+    files contain absolute URLs of images. It is as dirty a hack as many `sub_module`
+    applications are, but it may solve at least some of the immediate problems you
+    have. Remember to include all your assets hosts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two main sources of insecure external content your website may contain.
+    The first includes external trackers, advertisement networks, commenting systems,
+    and the like. In 2016, all of these have the support for HTTPS websites. The only
+    reason they may the mixed content warnings is incorrect embedding code (for example,
+    very old).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other source of insecure objects is **User-generated Content** (**UGC**).
+    If your website has a way for users to post some data that may be displayed in
+    the context of your pages afterwards, then you might have this problem. Examples
+    include commenting systems, blogs, forums, messaging, and so on. This is not as
+    rare as it might seem at first thought.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to find the culprits of the mixed content violation is using the browser
+    console. Recent browsers display warnings about which objects are insecure. There
+    are also tools for crawling websites and identifying insecure embeds, but these
+    may not be relied upon, especially if you have a complex website that may not
+    be easily crawled. Refer to, for example, [https://www.whynopadlock.com/](https://www.whynopadlock.com/)
+    or [https://www.jitbit.com/sslcheck/](https://www.jitbit.com/sslcheck/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The mixed – content warning](img/B04329_05_08.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Mozilla provides a good page on Mixed Content too. You are very welcome to consult
+    it at [https://developer.mozilla.org/en-US/docs/Security/MixedContent](https://developer.mozilla.org/en-US/docs/Security/MixedContent).
+  prefs: []
+  type: TYPE_NORMAL
+- en: While fixing the embedding code of external components is rather straightforward,
+    dealing with UGC content is much harder. Suppose that you have a way for your
+    users to specify their image avatars by entering URLs pointing to those images.
+    You cannot just change the URL from `http:` to `https:` because this may just
+    break the link. You cannot be sure that all those far-away hosts support and will
+    always support HTTPS. The only way to provide such a service for your own users
+    is to serve all that remote content yourself by proxying it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an important hack that involves some of the less popular Nginx magic
+    and requires collaboration with your developer team, but in the end, you will
+    have a very efficient proxy for the external content. Brace yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a secure proxy for the external content
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Here is an example of a simple but relatively secure proxy for external images.
+    It may be extended to other types of content with ease.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The relevant part of Nginx configuration looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It uses several Nginx modules to implement resources that look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`https://proxy.example.com/insecure/5f814704a38d9bc1915fd19fa0c7a00a/images.external.com/image.gif`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prefix "insecure" may also look like "secure" and encodes the protocol part
+    of the original URL. When requested, this URL will either generate the response
+    from a local cache or request an external image via HTTP, cache it locally, and
+    send to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first named location block provides a fallback, that is, an empty `1 x 1`
+    image that we will serve on all invalid requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second big location block anchored at `/` is the main configuration. Since
+    we have a dedicated hostname for the proxy, we work right from the root. First,
+    there are declarations of caching and secure link parameters. After checking the
+    validity of the request by using a condition on `$secure_link` variable, we compute
+    the original, source URL schema or protocol. We use `/secure/` as the prefix for
+    HTTPS, and any other prefix will mean simple insecure HTTP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A couple of `image_filter_*` directives configure the image filter to only ever
+    check the first 10 megabytes. Proxy timeouts provide us with reasonably robust
+    HTTP client. We do not want to hang endlessly on very slow (or maliciously slow)
+    servers while also processing those servers that are not as fast as everyone hopes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The interesting parts of the configuration are the secure link and image filter
+    functionality that employ `ngx_http_secure_link` and `ngx_http_image_filter` modules,
+    respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The image filter module is the simpler of the two. It runs several heuristic
+    checks against the contents of an image file to ensure that it is indeed a GIF,
+    PNG, or JPEG image. This protects from several of the older browser security bugs
+    that could be exploited with specially crafted responses masquerading as images.
+    See [http://nginx.org/en/docs/http/ngx_http_image_filter_module.html](http://nginx.org/en/docs/http/ngx_http_image_filter_module.html)
+    for more information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The secure link module checks the cryptographic signature in the URL. The idea
+    is that without the signature, you will create an HTTP proxy open to the whole
+    world, which is a helpful resource for malicious actors of all kinds. The signature
+    should be generated on the application side by your development team. The algorithm
+    is described in the module documentation at [http://nginx.org/en/docs/http/ngx_http_secure_link_module.html](http://nginx.org/en/docs/http/ngx_http_secure_link_module.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This module has a second, even more secure mode of operation that will also
+    check the signature for expiration. We recommend that you implement that one too,
+    see the documentation for details. The example mentioned earlier uses the easiest
+    possible mode for the sake of brevity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This proxy is not a final solution that we usually install in production but
+    a simple version. For example, it does not properly process redirected images.
+    As you may see from the last lines, many HTTP response codes including those 3xx
+    that are responsible for redirects are considered errors and get redirected to
+    an empty GIF. A solution for that is a good exercise in the Nginx configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solving problems with cache
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We spent a lot of time on providing good caching, that is, saving intermediate
+    results and serving saved copies instead of recalculating from scratch for the
+    same requests. This works perfectly only in a perfect world (for example, a pure
+    functional world where functions and, by extension, GET/HEAD HTTP requests do
+    not have side effects). In the real world, two equal requests may sometimes lead
+    to different responses. There are two basic reasons for it: the earlier-mentioned
+    side effects, which change the state despite the perceived idempotence of GET/HEAD,
+    or flawed equality relationship between requests. A good example of this is ignoring
+    wall time when the response depends on it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Such problems usually manifest themselves as complaints about seeing stale versions
+    of some pages on your website or seeing pages that belong to other users. Although
+    you can tolerate the first type to some extent (for example, as a compromise for
+    performance), the second type is a major offense and a blocker for the operation
+    of your business.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The hunt for the misbehaving caches is a process that involves the same two
+    sides that we discussed in the previous chapter. The caching may happen both inside
+    Nginx as the effect of the caching upstream directives and on the side that is
+    closer to the client—either the very browser that initiated the request or one
+    of the intermediate caching proxies. The effect of the client-side caches is usually
+    smaller these days, so it is safer to start switching it off first. You need to
+    have this directive in all scopes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any negative value will work. This instructs Nginx to emit `Cache-Control:
+    no-cache` HTTP response header alongside the content. It will effectively break
+    client-side caching with a couple of caveats. First, we do not have direct control
+    of those caches, of course, and they are free to comply with the standards of
+    the modern web at will. For example, they may be configured to ignore `no-cache`
+    in an ill-advised attempt to save on traffic. The authors personally debugged
+    a couple of cases of such overzealous frugality, and it was a nightmare. And,
+    second, even fully compliant caches may lag because to receive the `no-cache`
+    instruction they need to reach the origin server while actively trying to avoid
+    that, which is the whole point of caching.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second step in this troubleshooting process is switching off the caching
+    inside Nginx upstream caches. As was explained in the previous chapter, each Nginx
+    upstream has a family of directives that configure caching for this particular
+    upstream connection. The main switch for the whole mechanism is the `*_cache`
+    directive. In the case of `ngx_fastcgi` upstream, the directive looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, the `zone` is an identifier of the so-called cache zone, which is basically
+    a collection of caching configuration or caching profile. To switch caching off,
+    you will use the fixed zone name `off`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It will take immediate effect (the common cycle of `nginx -t` and then `sudo
+    service nginx reload`, or analog for your distribution should be second nature
+    by this time), but it may also devastate your actual application upstream by significantly
+    increasing the incoming request rate. Be aware of that. You may take smaller steps
+    in troubleshooting the cache by using the `*_cache_bypass` or `*_cache_valid`
+    directives in a smart way. The first one provides a way to skip caching some of
+    the responses altogether, and the second is a quick-and-dirty way to limit the
+    age of the entries in the cache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `*_cache_valid` directive does not override the expiration parameters set
+    via HTTP response headers from the upstream application. So for it to be effective,
+    you will also need to remove those headers with a `*_ignore_headers` directive
+    first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, the asterisk here means the actual upstream type; in the case of FastCGI
+    upstream you will use `fastcgi_cache_valid` and `fastcgi_ignore_headers` directives.
+    The simple example will look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It will force caching all the responses for 1 minute. Unfortunately, it will
+    also cache the responses that the upstream does not intend to be cached because
+    Nginx will also ignore `Cache-Control: no-cache` in this configuration. Be careful
+    not to leave your troubleshooting session in production.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obsolete pages and VirtualBox
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There is one other possible problem that manifests itself as users (or, more
+    frequently, developers) seeing old versions of web pages in HTTP responses. There
+    is a bug in VirtualBox virtualization software, which is very popular as a development
+    virtualization solution (for example, with Vagrant or, more lately, Otto). VirtualBox
+    is also sometimes used as a production virtualization technology. It has a feature
+    named "shared folders", which allows it to have a copy of the host machine folder
+    inside one of the guest machines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The bug is in the handling of the `sendfile()` Linux kernel syscall inside VirtualBox.
+    This syscall directly copies a file to a TCP socket, avoiding extra unneeded memory
+    copies and providing all possible optimizations for this rather specific but very
+    popular special case. You can imagine how well this case suits many Nginx workloads.
+    Even if it is not just serving local static files, Nginx cache may use `sendfile()`
+    very efficiently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The support for `sendfile()` is conditional and may be switched off using this
+    directive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is highly recommended if you run Nginx inside VirtualBox and serve files
+    from a shared folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apache migration problems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the Apache features that Nginx chose not to replicate is the support
+    for the so-called `.htaccess` files. Those files were invented as a way to easily
+    configure access control for individual virtual hosts in a virtual hosting environment
+    where clients are only able to see their own subfolders via the magic of `chroot`
+    (often called from ftpd). The implementation is rather simple; this is an autoincluded
+    piece of configuration that Apache constantly monitors for changes. Not every
+    possible Apache configuration directive is allowed in `.htaccess` (but many of
+    them are, essentially, all that do not require a restart).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This feature was (ab)used as a convenient way to distribute the relevant web
+    server configuration inside the source code for a website or a web application.
+    Although the idea is still relevant, the Apache implementation with a silent change
+    monitoring and transparent reconfiguration is not considered well designed. So,
+    instead of the proper `.htaccess` support, Nginx suggests to explicitly include
+    site-specific configuration files and then reload the configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your website source directory contains some `.htaccess` files, chances are
+    that you will need to manually convert the directives into either a section inside
+    the main `nginx.conf` or a separate file, which is to be included from `nginx.conf`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One particular case is the proliferation of Apache `mod_rewrite` directives
+    inside the `.htaccess` files. This will give you a hard time in the general case
+    because Nginx uses a very different language for the URL rewriting functionality.
+    One especially difficult case is the web apps that modify their own rewrite rules
+    in `.htaccess` as part of their normal workload. Unfortunately, you have to either
+    run an instance of Apache for them or order the rewrite of the relevant parts
+    of their code altogether.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an example of some old Apache rewrite rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The idea here was to break the so-called hotlinking – a practice when images
+    were directly embedded in external documents, and this web host sent the bytes
+    without getting any real users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The same logic could be implemented for Nginx using these directives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Although Nginx actually contains a special module for referrer checking, it
+    will do the same job in a much more elegant way. Refer to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The logic of long chains of the Apache `mod_rewrite` rules poorly translates
+    into Nginx. You should rethink the tasks and try to implement the solutions using
+    more elegant ways that Nginx provides, such as `try_files` or special modules.
+    See also [http://nginx.org/en/docs/http/converting_rewrite_rules.html](http://nginx.org/en/docs/http/converting_rewrite_rules.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several tools to help convert static sets of the Apache `mod_rewrite`
+    directives into the Nginx syntax. In our practice, they are all only partially
+    useful and always require human fixes in the end. You may look at [http://winginx.com/en/htaccess](http://winginx.com/en/htaccess).
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the way, this tool does not handle the earlier-mentioned example with the
+    HTTP Referrer properly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solving problems with WebSockets
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**WebSockets** are a modern protocol that allows a web application to have
+    persistent, duplex, long-living connections to servers, similar to real TCP connections
+    (and they are, under the hood, pretty normal TCP connections).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: WebSockets use the special URL scheme `ws://` (or `wss://` for secure), and
+    you will see that in your browser error console if you try to run a WebSocket-opening
+    web application from an Nginx-powered server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The philosophy behind WebSockets directly conflicts with the buffered-reverse
+    proxy idea that is the foundation of Nginx as a web accelerator. See the previous
+    chapter for the comprehensive introduction into what makes Nginx fast. Fortunately,
+    modern Nginx is so much more than just a simple reverse proxy. It has so much
+    to offer that even without the buffering and cheap connection pools, it is too
+    valuable to ditch because of WebSockets. And since version 1.3.13, which was released
+    almost 3 years ago, in early 2013, Nginx has had special support to create long-living
+    tunnels between the client and the server, which was specifically introduced to
+    support WebSockets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To enable upgrading a normal HTTP connection to a WebSocket, you have to do
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should appreciate how the support was introduced without a single new directive.
+    The configuration language is already rich enough for this. The magic happens
+    due to the `Upgrade:` header sent by the client and the `101 Switching Protocols`
+    HTTP response code from the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One very important parameter is the timeout specified with the `proxy_read_timeout
+    method`. The default value of 1 minute might not be sufficient for your (and most
+    other) WebSocket use cases. The whole idea of direct long-living connections between
+    the app in the browser and the server may be defeated by a short proxy timeout.
+    It is perfectly normal for a WebSocket connection to be idle for long periods
+    of time, and this is the reason for the increased timeout value. The other solution
+    is implementing some sort of heartbeats or pings between the sides of the connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Showing a file upload progress bar
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Uploading files from the web browser to the server is a rather common feature
+    of modern web applications. Any number of CMS or publishing systems allows users
+    to upload images to include these with their textual content, as shown in the
+    following image:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Showing a file upload progress bar](img/B04329_05_09.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Here is an example of a web upload in progress. The basic idea behind one of
+    the algorithms to implement the progress bar is to initiate a POST request in
+    an IFrame and then poll some well-known URL for the progress counter. Modern browsers
+    allow us to get the progress information right on the client's side; this is a
+    part of XMLHttpRequest Level 2 and was standardized about 3 years ago. There are
+    a lot of older web applications that still rely on the older methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The described method only works if your client-side posts to your server-side
+    with the same speed that the user actually sees in their interface. The problem
+    is Nginx that buffers the long POST and then quickly and efficiently pushes it
+    to the server-side code. The progress-poller process will not be able to get any
+    progress until the very last moment when suddenly the entirety of the upload process
+    happens in an instant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several solutions to it. A dirty workaround is to process the uploads
+    that you want to show progress for outside of Nginx. That is, have a backend server
+    that is directly connected to the Internet, POST all your files to it, and get
+    your progress from it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A much better solution is to spend some resources and reimplement the progress
+    bar part of the interface to use progress events available in modern browsers.
+    The JavaScript (with jQuery + jQuery Form plugin) code will look as simple as
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A somewhat strange, middle-ground solution would be to use the `nginx_uploadprogress`
+    module, which provides its own progress reporting endpoint. The example configuration
+    will look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The client side will have to mark all the POSTs to the `/` location with a special
+    header or GET parameter `X-Progress-ID`, which may also be used to get the progress
+    of that particular upload via the `/progress` resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solving the problem of an idle upstream
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We devoted a great deal of content to the concept of upstreams. Just to remind
+    you, upstreams are entities that generate HTTP responses that Nginx sends to the
+    clients. Usually, an upstream contains several (or at least one) servers speaking
+    one of the supported protocols, such as FastCGI or plain HTTP. Nginx uses sophisticated
+    client code to very efficiently proxy the communication between the clients and
+    the upstream in a transparent way by also optimizing the number of idle connections
+    and wasted memory. There are a number of algorithms that Nginx uses to balance
+    the client load on all the members of an upstream block, and one of those algorithms
+    is known to bite the unsuspecting web administrators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The configuration under discussion looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first line sets up the handling of some location or the whole server by
+    proxying everything to a named upstream. The mentioned upstream is configured
+    in the block later. It consists of three servers and a special directive `ip_hash`,
+    which turns on an algorithm to use when choosing one of the three servers that
+    will actually process each incoming request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The default algorithm is the so-called weighted round-robin. In our simple configuration
+    without any weights, the round-robin would choose the servers one after the other
+    in that order and rewind back to the first after the last. It is an efficient
+    and simple algorithm that will surely balance the load in a good fashion. One
+    significant disadvantage of it is that the requests from the same client may end
+    up being processed on different upstream servers, which sometimes is not good,
+    for example, because of the caching in RAM on the individual upstream servers.
+    The directive `ip_hash` will turn the round-robin off, and instead, servers will
+    be chosen based on a hash value computed from the IP address of the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the consequences is that the same client will always talk to the same
+    server (unless that server is down, in which case the hash value will point to
+    another server trying to minimize the effect on the rest of the servers in the
+    upstream). The other consequence is that your client load will be distributed
+    between servers only as evenly as your client IP addresses. Usually, when you
+    have enough load to justify proper upstream blocks with many servers, your client
+    IP pool will already be big and diverse enough. Sometimes there is another proxy
+    in front of Nginx, and all your incoming requests look like they come from a very
+    limited set of addresses. In this case, you have a subtle and hard-to-debug problem,
+    which may or may not lead to a disaster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are lucky, you will note that the load on your upstream servers is very
+    uneven. For example, if one of those three servers is completely idle although
+    there are no problems with it, and it happily responds to direct requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quick and dirty workaround here is to remove the `ip_hash` directive. The
+    proper solution will require you to employ the `ngx_http_realip` module and provide
+    better data for the IP-hashing algorithm. The idea is to save the real client
+    IP address to a special HTTP request header on the proxy that is located in front
+    of the Nginx and then take it from there instead of the real endpoint address
+    of incoming TCP connections. This module may not be compiled in your version of
+    Nginx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also other consistent hashing strategies that you might consider.
+    Refer to the full documentation for hashing at [http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#hash).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we have provided you with a number of seemingly unconnected
+    cases that you may or may not have the luck to face for real. We have quickly
+    recapped on the most popular troubles with SSL/TLS certificates that webmasters
+    encounter starting from the most embarrassing expiration to building a whole caching
+    proxy for external insecure content. We have also described a number of cases
+    with caching, URL rewriting rules migration, file-upload progress interfaces,
+    and concluded with the mystery of an idle upstream. The next chapter is devoted
+    to building a proper monitoring system for your Nginx-powered servers. We will
+    move from solving problems to actively preventing them.
+  prefs: []
+  type: TYPE_NORMAL
