@@ -1,64 +1,94 @@
 - en: Chapter 10. Some More Third-party Modules
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第10章：更多第三方模块
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将覆盖：
 - en: Configuring a fair load balancing
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置公平负载均衡
 - en: Setting up health checks for backend servers
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为后端服务器设置健康检查
 - en: Tracking and reporting file upload progress
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 跟踪和报告文件上传进度
 - en: Generating circles for round edges using Nginx
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Nginx 生成圆角的圆形图形
 - en: Running Python using Phusion Passenger
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Phusion Passenger 运行 Python
 - en: Generating graphs directly from RRDtool in Nginx
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 直接从 RRDtool 在 Nginx 中生成图表
 - en: Using Google performance tools
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Google 性能工具
 - en: Serving content directly from GridFS
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 直接从 GridFS 提供内容
 - en: Configuring Basic HTTP auth using PAM
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 PAM 配置基本 HTTP 身份验证
 - en: Configuring Basic HTTP auth using Kerberos
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Kerberos 配置基本 HTTP 身份验证
 - en: Introduction
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: This chapter looks at various web situations such as load balancing, server
     health checks, and more which will be very useful in a production environment.
     These simple recipes will be highly applicable in enterprise scenarios where you
     may need to have analytics, external authentication schemes, and many other situations.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将讨论各种 Web 场景，如负载均衡、服务器健康检查等，这些内容在生产环境中非常有用。这些简单的配置将在企业场景中高度适用，特别是在你可能需要分析、外部身份验证方案以及许多其他情况时。
 - en: Configuring a fair load balancing
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置公平负载均衡
 - en: Nginx by default uses a round robin mechanism to proxy requests to its backend
     servers. Most of the time this is sufficient, as the machines on the backend are
     usually of the same build and configuration, but in many cases it necessary to
@@ -67,713 +97,1076 @@
     plugin comes in. It enables the system administrator to configure fair scheduling
     and allows the backend machines to be of dissimilar performance, and yet the whole
     system will perform optimally.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 默认使用循环负载机制将请求代理到其后端服务器。大多数时候，这已经足够，因为后端的机器通常具有相同的构建和配置，但在许多情况下，必须实现公平的负载。此负载平衡会考虑机器的现有负载，在代理请求之前评估负载。这就是
+    Nginx 公平调度插件的作用。它使系统管理员能够配置公平调度，并允许后端机器具有不同的性能，从而使整个系统能够最佳运行。
 - en: '![Configuring a fair load balancing](img/4965OS_10_01.jpg)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![配置公平负载均衡](img/4965OS_10_01.jpg)'
 - en: How to do it…
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作…
 - en: We will first download the plugin, install it, and then configure it in the
     steps described ahead.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先下载插件，安装它，然后按照接下来的步骤进行配置。
 - en: 'We will first install the fair scheduling module:'
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装公平调度模块：
 - en: '[PRE0]'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'We will then put the following in our Nginx configuration:'
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，我们将在 Nginx 配置中添加以下内容：
 - en: '[PRE1]'
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Now, we need to restart Nginx to see the changes:'
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，我们需要重新启动 Nginx 以查看更改：
 - en: '[PRE2]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: How it works…
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: This module lets you configure a weighted least connection round robin mechanism,
     which keeps track of the real-time load on each individual backend server to make
     a decision on whom to proxy it to.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块让你配置加权最少连接轮询机制，实时跟踪每台后端服务器的负载，并根据负载决定将请求代理到哪个服务器。
 - en: The module also allows you to track the load on each server by visiting a web
     page; this can be easily integrated into your web infrastructure monitoring systems.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块还允许你通过访问网页来跟踪每台服务器的负载；这可以轻松地集成到你的 Web 基础设施监控系统中。
 - en: There's more…
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多…
 - en: 'We can also configure the module to handle the following scheduling cases:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以配置该模块来处理以下调度情况：
 - en: '| Modes | Description |'
+  id: totrans-30
   prefs: []
   type: TYPE_TB
+  zh: '| 模式 | 描述 |'
 - en: '| --- | --- |'
+  id: totrans-31
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| Default | This lets us configure the simple weighted least-connection round
     robin, which basically means you give the request to the server with the least
     active connections in a round-robin fashion. This is the default mode explained
     in the preceding example. |'
+  id: totrans-32
   prefs: []
   type: TYPE_TB
+  zh: '| 默认 | 这让我们配置简单的加权最少连接循环负载均衡，基本上意味着你将请求分配给连接最少的服务器，并以轮询方式进行分配。这是前述示例中解释的默认模式。
+    |'
 - en: '| no_rr | This disables round robin, which would be applicable in cases where
     we may be spawning multiple backends depending on your load. It will ensure that
     Nginx uses as many backends as it needs. |'
+  id: totrans-33
   prefs: []
   type: TYPE_TB
+  zh: '| no_rr | 这禁用循环负载均衡，适用于在根据负载可能需要启动多个后端的情况。它将确保 Nginx 使用所需的所有后端。 |'
 - en: '| weight_mode=idle no_rr | This mode attempts to balance the load between the
     minimum pool of backend servers. It can help us identify the actual number of
     backend servers. |'
+  id: totrans-34
   prefs: []
   type: TYPE_TB
+  zh: '| weight_mode=idle no_rr | 此模式尝试在最小的后端服务器池之间平衡负载。它有助于我们确定实际的后端服务器数量。 |'
 - en: '| weight_mode=peak | In this mode, Nginx will not send requests to the backend
     beyond a certain limit. If all the backends are full the client will receive a
     502 error. |'
+  id: totrans-35
   prefs: []
   type: TYPE_TB
+  zh: '| weight_mode=peak | 在此模式下，Nginx 不会将请求发送到超出一定限制的后端。如果所有后端都满了，客户端将收到 502 错误。
+    |'
 - en: 'The following diagram shows a scenario how servers respond when they are busy:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下图表显示了服务器在繁忙时如何响应：
 - en: '![There''s more…](img/4965OS_10_02.jpg)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![还有更多…](img/4965OS_10_02.jpg)'
 - en: See also
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 另请参见
 - en: '[Chapter 7](ch07.html "Chapter 7. Nginx as a Reverse Proxy"), *Setup load balancing
     with reverse proxy*'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第7章](ch07.html "第7章。Nginx作为反向代理"), *使用反向代理设置负载均衡*'
 - en: Setting up health checks for backend servers
+  id: totrans-40
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置后端服务器的健康检查
 - en: One of the most important aspects of running a fairly large Internet site is
     the ability to understand the health of your machines. In huge server farms, it
     is not physically possible to inspect the health of the machines one by one, or
     for that matter to detect which backend server is down.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行相当大的互联网站的最重要方面之一是能够了解机器的健康状况。在庞大的服务器群中，不可能逐个检查机器的健康状况，或者说检测哪个后端服务器已宕机。
 - en: To solve this problem, Nginx has a neat module which will let you run a regular
     check on all the backend servers and mark them as bad when they do not behave
     accordingly. Marking them as bad ensures that the end client's request never gets
     sent to the backend server with issues by Nginx. There are very little performance
     overheads as Nginx maintains all the health check numbers in memory.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 为解决这个问题，Nginx 有一个很好的模块，它可以让您定期检查所有后端服务器，并在它们的行为不符合预期时将它们标记为不良。标记为不良确保 Nginx
+    不会将端用户的请求发送到存在问题的后端服务器。由于 Nginx 在内存中维护所有健康检查数字，性能开销非常小。
 - en: '![Setting up health checks for backend servers](img/4965OS_10_03.jpg)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![设置后端服务器的健康检查](img/4965OS_10_03.jpg)'
 - en: How to do it…
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做…
 - en: 'We will first install the Nginx backend health module:'
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们首先要安装 Nginx 后端健康模块：
 - en: '[PRE3]'
+  id: totrans-46
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'We will then put the following in the configuration files:'
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们将以下内容放入配置文件中：
 - en: '[PRE4]'
+  id: totrans-48
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Now, restart Nginx to see the changes.
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，重新启动 Nginx 以查看更改。
 - en: '[PRE5]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: How it works…
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: This module makes a query to the backend servers every minute and then updates
     the status of every backend server. This was achieved with the `healthcheck_enabled`
     and `healthcheck_delay` directives.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 此模块每分钟向后端服务器发送查询，然后更新每个后端服务器的状态。这是通过`healthcheck_enabled`和`healthcheck_delay`指令实现的。
 - en: We have enabled the health check status page as well, so we can check out the
     status of the backend server by visiting [http://www.example1.com/backend_status](http://www.example1.com/backend_status).
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还启用了健康检查状态页面，因此我们可以通过访问[http://www.example1.com/backend_status](http://www.example1.com/backend_status)来检查后端服务器的状态。
 - en: '![How it works…](img/4965_10_04.jpg)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![它的工作原理…](img/4965_10_04.jpg)'
 - en: Tracking and reporting file upload progress
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 跟踪和报告文件上传进度
 - en: File uploading is one of the most common activities on a website. It is achieved
     by making a multi-part POST submission, which does not allow you to track the
     progress of the file upload. So if your user is uploading a fairly large file,
     he expects to be notified about the speed of upload and the time it will take.
     To ensure that the user is aware, there is a module that helps us track how far
     the file has been uploaded to the server.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 文件上传是网站上最常见的活动之一。它通过进行多部分 POST 提交来实现，不允许您跟踪文件上传的进度。因此，如果用户正在上传相当大的文件，他希望能得知上传的速度和需要的时间。为确保用户知晓情况，有一个模块可以帮助我们跟踪文件上传到服务器的进度。
 - en: '![Tracking and reporting file upload progress](img/4965_10_05b.jpg)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![跟踪和报告文件上传进度](img/4965_10_05b.jpg)'
 - en: How to do it…
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做…
 - en: We will first install the plugin, and then see how to configure it in the following
     steps.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先要安装插件，然后看看如何在接下来的步骤中配置它。
 - en: 'We will first install the Nginx file upload progress module:'
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们首先要安装 Nginx 文件上传进度模块：
 - en: '[PRE6]'
+  id: totrans-61
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'We will use the following in our Nginx configuration:'
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将在我们的 Nginx 配置中使用以下内容：
 - en: '[PRE7]'
+  id: totrans-63
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'A restart of Nginx will apply those changes:'
+  id: totrans-64
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重新启动 Nginx 将应用这些更改：
 - en: '[PRE8]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: How it works…
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: This configuration basically sets up a 1MB cache to keep track of the uploaded
     file status. Every file uploaded should be assigned a tracking ID, using which
     one can query `http://www.example1.com/progress` to find out how much of the file
     has uploaded till now. It can return a lot of formats based on how we have configured
     the module output; in this example it will output JSON by default.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个配置基本上设置了一个 1MB 的缓存来跟踪上传文件的状态。每个上传的文件都应该分配一个跟踪 ID，通过它可以查询 `http://www.example1.com/progress`
+    来了解文件的上传进度。根据我们配置的模块输出格式，它可以返回多种格式；在这个示例中，默认输出为 JSON。
 - en: It is important to note that to track the file progress we will need to append
     an X-Progress-ID, which will uniquely identify the file being uploaded.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要注意的是，为了跟踪文件进度，我们需要附加一个 X-Progress-ID，它将唯一标识正在上传的文件。
 - en: Generating circles for round edges using Nginx
+  id: totrans-69
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Nginx 生成圆角边缘的圆圈
 - en: The latest in Internet aesthetics are rounded edges, and clearly Nginx is not
     going to be left behind. This recipe has a look at an interesting module that
     allows you to generate dynamic circles, which we can easily utilize for creating
     round edge styles. This is most applicable when you need to support rounded edges
     on older browsers that are not compatible with CSS3.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 互联网美学的最新趋势是圆角，显然 Nginx 不会被落下。这个教程介绍了一个有趣的模块，它允许我们生成动态圆圈，我们可以轻松地用它来创建圆角样式。当你需要支持旧版浏览器的圆角样式，而这些浏览器不兼容
+    CSS3 时，这特别适用。
 - en: '![Generating circles for round edges using Nginx](img/4965_10_06.jpg)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 Nginx 生成圆角边缘的圆圈](img/4965_10_06.jpg)'
 - en: How to do it…
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做…
 - en: We will first install the plugin and then configure it in the following steps.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先安装插件，然后按照以下步骤配置它。
 - en: 'We will first need to install the Nginx Circle GIF module:'
+  id: totrans-74
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们首先需要安装 Nginx Circle GIF 模块：
 - en: '[PRE9]'
+  id: totrans-75
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'We will then use the following in our Nginx configuration:'
+  id: totrans-76
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，我们将在 Nginx 配置中使用以下内容：
 - en: '[PRE10]'
+  id: totrans-77
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Now, restart Nginx to see the changes.
+  id: totrans-78
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，重启 Nginx 以查看更改。
 - en: '[PRE11]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: How it works…
+  id: totrans-80
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: 'Configuring this module is simply adding a new URL endpoint, which will act
     as a web API to generate the gif. The format of the URL is as follows:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置这个模块其实很简单，只需要添加一个新的 URL 端点，它将作为一个 Web API 来生成 gif。URL 的格式如下：
 - en: '`<background color>/<foreground color>/<radius>.gif`'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '`<background color>/<foreground color>/<radius>.gif`'
 - en: 'So the following URL will generate a black on white circle of radius 10 pixels.
     We can use this to generate the rounded corner styles:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，以下 URL 将生成一个半径为 10 像素的黑色圆圈在白色背景上。我们可以用这个生成圆角样式：
 - en: '`http://www.example1.com/circles/ffffff/000000/10.gif`'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '`http://www.example1.com/circles/ffffff/000000/10.gif`'
 - en: '![How it works…](img/4965_10_07.jpg)'
+  id: totrans-85
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的…](img/4965_10_07.jpg)'
 - en: Running Python using Phusion Passenger
+  id: totrans-86
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Phusion Passenger 运行 Python
 - en: Nginx's primary purpose, to act as a state-of-art web and mail proxy server,
     has curtailed its image as that of an all-purpose server, of which it is fully
     capable. We will have a look at how can we run Python applications with Phusion
     Passenger as the backend.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 的主要目的，是作为一个最先进的 Web 和邮件代理服务器，这让它的形象不再仅仅是一个全能服务器，尽管它完全有能力做到这一点。我们将探讨如何使用
+    Phusion Passenger 作为后端运行 Python 应用。
 - en: '![Running Python using Phusion Passenger](img/4965_10_08.jpg)'
+  id: totrans-88
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 Phusion Passenger 运行 Python](img/4965_10_08.jpg)'
 - en: How to do it…
+  id: totrans-89
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做…
 - en: We will first install all the dependencies required to install Phusion Passenger
     and then configure Nginx with it in the following steps.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先安装所有安装 Phusion Passenger 所需的依赖项，然后在接下来的步骤中配置 Nginx。
 - en: 'We will first install Ruby:'
+  id: totrans-91
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装 Ruby：
 - en: '[PRE12]'
+  id: totrans-92
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'We need to install `rubygems`, which is the package management tool for Ruby:'
+  id: totrans-93
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要安装 `rubygems`，这是 Ruby 的包管理工具：
 - en: '[PRE13]'
+  id: totrans-94
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'We will install rails and Passenger Phusion:'
+  id: totrans-95
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将安装 Rails 和 Passenger Phusion：
 - en: '[PRE14]'
+  id: totrans-96
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'We will install the Passenger Phusion Nginx module, as shown in the following
     screenshot:'
+  id: totrans-97
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将安装 Passenger Phusion Nginx 模块，如下图所示：
 - en: '[PRE15]'
+  id: totrans-98
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '![How to do it…](img/4965_10_09.jpg)'
+  id: totrans-99
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![如何做…](img/4965_10_09.jpg)'
 - en: The following configuration is used in nginx.conf and it assumes that the application
     is placed at `/var/www/www.example1.com/`.
+  id: totrans-100
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 以下配置用于 nginx.conf，并假设应用程序位于 `/var/www/www.example1.com/`。
 - en: '[PRE16]'
+  id: totrans-101
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Now, a Nginx restart should let you see all the changes at work.
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，重启 Nginx 应该让你看到所有更改的效果。
 - en: '[PRE17]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: How it works…
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: Phusion Passenger is a very easy way to deploy production application in Rails,
     which is a web framework in Ruby. It is also very efficient at deploying Python
     (WSGI) applications. In this recipe, we have gone ahead and set up a small Python
     web script to demonstrate this capability.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: Phusion Passenger 是一种非常简便的方式，用于在 Rails（一个 Ruby 的 Web 框架）中部署生产应用。它同样非常高效地部署 Python（WSGI）应用程序。在本食谱中，我们已经提前设置了一个小型
+    Python Web 脚本来演示这一能力。
 - en: See also
+  id: totrans-106
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 另请参见
 - en: '[Chapter 6](ch06.html "Chapter 6. Setting Up Applications: FCGI and WSGI Modules"),
     *Setting up a Python site using uWSGI*'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '[第六章](ch06.html "第六章：设置应用程序：FCGI 和 WSGI 模块")，*使用 uWSGI 设置 Python 网站*'
 - en: Generating graphs directly from RRDtool in Nginx
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 直接从 RRDtool 在 Nginx 中生成图表
 - en: A lot of sites today show analytics as a part of their offering. The most common
     form of analytics representation is the time-based graphs, which are very efficiently
     generated by RRDtool, which is a really good open source graph generation tool.
     In this recipe, we will explore a module that will create a web API that you can
     dynamically call to get your graphs.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在许多网站都会将分析数据作为其服务的一部分。最常见的分析表示形式是基于时间的图表，这些图表是通过 RRDtool 高效生成的，RRDtool 是一个非常好的开源图形生成工具。在本食谱中，我们将探索一个模块，该模块将创建一个可以动态调用的
+    Web API，用于获取图表。
 - en: '![Generating graphs directly from RRDtool in Nginx](img/4965_10_10.jpg)'
+  id: totrans-110
   prefs: []
   type: TYPE_IMG
+  zh: '![直接从 RRDtool 在 Nginx 中生成图表](img/4965_10_10.jpg)'
 - en: How to do it…
+  id: totrans-111
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做…
 - en: We will first install the plugin and then configure it in the following steps.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先安装插件，然后按照以下步骤配置它。
 - en: 'We will install the Nginx RRDtool module; it assumes that you have already
     installed RRDtools:'
+  id: totrans-113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将安装 Nginx RRDtool 模块；假设你已经安装了 RRDtools：
 - en: '[PRE18]'
+  id: totrans-114
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'We will then use the following in our configuration:'
+  id: totrans-115
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们将在配置中使用以下内容：
 - en: '[PRE19]'
+  id: totrans-116
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Now, restart Nginx to see the changes.
+  id: totrans-117
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，重启 Nginx 以查看更改。
 - en: '[PRE20]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: How it works…
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: 'This set up is easy to demonstrate. Let''s say that we want to generate a graph
     using the following set of commands in the RRDtool:'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个设置很容易演示。假设我们想要使用以下命令集在 RRDtool 中生成图表：
 - en: '[PRE21]'
+  id: totrans-121
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: You can generate the following URL, which will return the preceding graph, but
     it will appear as a web URL which will simplify your life drastically. This URL
     contains the preceding code in an URL encoded format appended to the `http://www.example1.com/rrd_gen`
     URL.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以生成以下 URL，它将返回前述图表，但它将以 Web URL 的形式出现，这将极大简化你的工作。此 URL 包含以 URL 编码格式附加到 `http://www.example1.com/rrd_gen`
+    URL 的前述代码。
 - en: '`http://www.example1.com/rrd_gen--start%20now-300s%20--end%20now%20DEF%3Ads0%3Dtest.rrd%3Areading%3AAVERAGE%20LINE1%3Ads0%2300FF00`'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '`http://www.example1.com/rrd_gen--start%20now-300s%20--end%20now%20DEF%3Ads0%3Dtest.rrd%3Areading%3AAVERAGE%20LINE1%3Ads0%2300FF00`'
 - en: Using Google performance tools
+  id: totrans-124
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Google 性能工具
 - en: The more experienced Nginx user may actually need to look into limitations of
     the Nginx platform, in those cases libraries such as Google performance tools
     make life very easy for the developers. We will look at setting up the Google
     performance tools module in this recipe.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 更有经验的 Nginx 用户可能需要查看 Nginx 平台的限制，在这种情况下，像 Google 性能工具这样的库将极大地方便开发人员。我们将在本食谱中介绍如何设置
+    Google 性能工具模块。
 - en: '![Using Google performance tools](img/4965OS_10_11.jpg)'
+  id: totrans-126
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 Google 性能工具](img/4965OS_10_11.jpg)'
 - en: How to do it…
+  id: totrans-127
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做…
 - en: We will first install the plugin and then configure it in the following steps.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先安装插件，然后按照以下步骤配置它。
 - en: 'We will first install the Google performance Nginx module:'
+  id: totrans-129
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装 Google 性能 Nginx 模块：
 - en: '[PRE22]'
+  id: totrans-130
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Use the following in your configuration:'
+  id: totrans-131
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在你的配置中使用以下内容：
 - en: '[PRE23]'
+  id: totrans-132
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: We will need to restart Nginx to see the changes.
+  id: totrans-133
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要重启 Nginx 以查看更改。
 - en: '[PRE24]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: How it works…
+  id: totrans-135
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: This simple directive will let us profile our worker threads. The generated
     profile files are defined by the `google_perftools_profiles` directive, and this
     configuration will generate files such as `log/profile.<pid>` where `pid` is the
     process ID of the worker thread whose profiling information it is.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的指令将让我们对工作线程进行性能分析。生成的性能分析文件由 `google_perftools_profiles` 指令定义，配置将生成类似 `log/profile.<pid>`
+    的文件，其中 `pid` 是工作线程的进程 ID，表示该线程的性能分析信息。
 - en: Serving content directly from GridFS
+  id: totrans-137
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 直接从 GridFS 提供内容
 - en: GridFS is a specification for storing large files in MongoDB. It basically aims
     to split down files into smaller chunks which are easily manageable, and allows
     efficient range operations. We will have a look at how we can configure Nginx
     to serve content directly from GridFS, thereby creating a situation where you
     can manage all your large files through GridFS and serve them using Nginx.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: GridFS 是一种在 MongoDB 中存储大文件的规范。它基本上旨在将文件拆分成更小的块，便于管理，并允许高效的范围操作。我们将查看如何配置 Nginx
+    直接从 GridFS 提供内容，从而创建一个你可以通过 GridFS 管理所有大文件并使用 Nginx 提供它们的情况。
 - en: '![Serving content directly from GridFS](img/4965OS_10_12.jpg)'
+  id: totrans-139
   prefs: []
   type: TYPE_IMG
+  zh: '![直接从 GridFS 提供内容](img/4965OS_10_12.jpg)'
 - en: How to do it…
+  id: totrans-140
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作…
 - en: We will first install the plugin and then configure Nginx in the following steps.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先安装插件，然后按以下步骤配置 Nginx。
 - en: 'This recipe assumes that you have installed GridFS. We will install the Nginx
     gridFS module:'
+  id: totrans-142
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 此配方假设你已经安装了 GridFS。我们将安装 Nginx gridFS 模块：
 - en: '[PRE25]'
+  id: totrans-143
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'We will put the following in our Nginx configuration:'
+  id: totrans-144
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将在 Nginx 配置中加入以下内容：
 - en: '[PRE26]'
+  id: totrans-145
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Now, restart Nginx to check out the changes. Do make sure that GridFS is running
     before you test.
+  id: totrans-146
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，重启 Nginx 来检查更改。测试之前请确保 GridFS 已在运行。
 - en: '[PRE27]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: How it works…
+  id: totrans-148
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何工作…
 - en: The configuration above enables the GridFS on a MongoDB database called `my_app`,
     with the username password as foo and bar respectively. Any call made like `http://www.example1.com/gridfs/123/`
     will return the corresponding file from the *pic* collection with the ID 123.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置启用了一个名为 `my_app` 的 MongoDB 数据库上的 GridFS，用户名和密码分别为 foo 和 bar。任何像 `http://www.example1.com/gridfs/123/`
+    的请求都会返回来自 *pic* 集合、ID 为 123 的相应文件。
 - en: '![How it works…](img/4965OS_10_13.jpg)'
+  id: totrans-150
   prefs: []
   type: TYPE_IMG
+  zh: '![如何工作…](img/4965OS_10_13.jpg)'
 - en: Configuring Basic HTTP auth using PAM
+  id: totrans-151
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 PAM 配置基本 HTTP 认证
 - en: Nginx supports HTTP authentication, and as we have seen in earlier recipes,
     we can generate `htpasswd` files which contain the valid username and passwords.
     However, most systems have an existing authentication system that already integrates
     with PAM, and Nginx has a plugin that already lets you authenticate with PAM.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 支持 HTTP 认证，正如我们在之前的配方中所看到的，我们可以生成包含有效用户名和密码的 `htpasswd` 文件。然而，大多数系统已经有一个现有的认证系统，并与
+    PAM 集成，而 Nginx 已经有一个插件可以让你通过 PAM 进行认证。
 - en: Note
+  id: totrans-153
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: PAM is a mechanism that integrates low-level authentication schemes into high
     level programming API, thus all your programs can operate independently to how
     your login system operates.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: PAM 是一种将低级认证机制集成到高级编程 API 中的机制，因此你的所有程序都可以独立于登录系统的操作进行工作。
 - en: '![Configuring Basic HTTP auth using PAM](img/4965OS_10_14.jpg)'
+  id: totrans-155
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 PAM 配置基本 HTTP 认证](img/4965OS_10_14.jpg)'
 - en: The recipe describes a situation where you want to protect `http://www.example1.com/downloads`
     and ensure that only LDAP authenticated users can access that part of the site.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 本配方描述了一个情况，在该情况下你希望保护 `http://www.example1.com/downloads` 并确保只有通过 LDAP 认证的用户才能访问该网站部分。
 - en: How to do it…
+  id: totrans-157
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作…
 - en: We will first install the PAM authentication model and then configure Nginx
     in the following steps.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先安装 PAM 认证模型，然后按以下步骤配置 Nginx。
 - en: We will first install the Nginx PAM auth module. This recipe assumes that you
     have an already configured and working LDAP setup.
+  id: totrans-159
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装 Nginx PAM 认证模块。此配方假设你已经配置并运行了 LDAP 设置。
 - en: '[PRE28]'
+  id: totrans-160
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'We will then put the following in our Nginx configuration:'
+  id: totrans-161
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们将在 Nginx 配置中加入以下内容：
 - en: '[PRE29]'
+  id: totrans-162
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: We will need to put the following in `/etc/pam.d/nginx:`
+  id: totrans-163
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要在 `/etc/pam.d/nginx` 中加入以下内容：
 - en: '[PRE30]'
+  id: totrans-164
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: Now, you will need to restart your Nginx server.
+  id: totrans-165
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，你需要重启 Nginx 服务器。
 - en: '[PRE31]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: How it works…
+  id: totrans-167
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何工作…
 - en: This module basically utilizes PAM as the top level API to access the LDAP authentication
     structures. It first enables the authentication in the necessary location, which
     is `/downloads` in this case. Then we set up a PAM service called Nginx, that
     basically utilizes the PAM LDAP libraries to complete the authentication.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个模块基本上利用 PAM 作为顶级 API 来访问 LDAP 认证结构。它首先在必要的位置启用认证，在本例中是`/downloads`。然后我们设置一个名为
+    Nginx 的 PAM 服务，该服务基本上利用 PAM LDAP 库来完成认证。
 - en: '![How it works…](img/4965_10_15.jpg)'
+  id: totrans-169
   prefs: []
   type: TYPE_IMG
+  zh: '![如何工作…](img/4965_10_15.jpg)'
 - en: Configuring Basic HTTP auth using Kerberos
+  id: totrans-170
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Kerberos 配置基本 HTTP 认证
 - en: If you are using Windows based systems in a heterogeneous environment, in all
     probability you must use Kerberos as your authentication protocol. In situations
     where we are deploying a site internally it may be useful to handle web authentication
     with Kerberos. Nginx has the solution for this, as it has a module that lets you
     authenticate the user using Kerberos.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在异构环境中使用基于 Windows 的系统，那么你很可能必须使用 Kerberos 作为身份验证协议。在我们内部部署站点的情况下，使用 Kerberos
+    进行 Web 身份验证可能会很有用。Nginx 为此提供了解决方案，因为它有一个模块，可以使用 Kerberos 来对用户进行身份验证。
 - en: This recipe will take a look at how you can protect a particular web location
     using HTTP authentication using Kerberos as the backend. This is a highly experimental
     plugin, and only useful when you do not have an alternative to this form of authentication
     in your network.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个示例将展示如何使用 Kerberos 作为后台保护特定 Web 位置，通过 HTTP 身份验证来实现。这是一个高度实验性的插件，仅在你在网络中没有其他身份验证方案时才有用。
 - en: '![Configuring Basic HTTP auth using Kerberos](img/4965OS_10_16.jpg)'
+  id: totrans-173
   prefs: []
   type: TYPE_IMG
+  zh: '![使用 Kerberos 配置基本 HTTP 身份验证](img/4965OS_10_16.jpg)'
 - en: How to do it…
+  id: totrans-174
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作…
 - en: In this recipe, we first install the plugin and then configure Nginx to use
     it in the following steps.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们首先安装插件，然后在接下来的步骤中配置 Nginx 使用它。
 - en: 'We will first install the Nginx Kerberos module:'
+  id: totrans-176
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先安装 Nginx Kerberos 模块：
 - en: '[PRE32]'
+  id: totrans-177
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'Now we will configure the module:'
+  id: totrans-178
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们将配置该模块：
 - en: '[PRE33]'
+  id: totrans-179
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Restart Nginx for the changes to take effect.
+  id: totrans-180
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 重启 Nginx 使更改生效。
 - en: '[PRE34]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: How it works…
+  id: totrans-182
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: This module defines the realm name, and then we will need to define the location
     of the service credentials. Finally, we set up the service that you use to acquire
     the credentials.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块定义了领域名称，接着我们需要定义服务凭据的位置。最后，我们设置用于获取凭据的服务。
 - en: There are some assumptions that the preceding configuration makes. Your Nginx
     web server should be in the same broadcast scope of the Kerberos server and so
     should the client, who will be authenticated to that server.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面的配置假设了一些条件。你的 Nginx 网络服务器应该和 Kerberos 服务器处于同一广播范围内，客户端也应该如此，客户端将在该服务器上进行身份验证。
 - en: In another scenario, it is possible that you already have PAM with Kerberos
     support set up on your server. In this case you can use the preceding recipe to
     set up PAM with Kerberos.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 在另一种情况下，你可能已经在服务器上设置了带有 Kerberos 支持的 PAM。在这种情况下，你可以使用前面的做法来配置带有 Kerberos 的 PAM。
 - en: See also
+  id: totrans-186
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 另见
 - en: The *Configuring basic HTTP auth using PAM* recipe, in this chapter
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章中的 *使用 PAM 配置基本 HTTP 身份验证* 示例
