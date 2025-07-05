@@ -1,407 +1,605 @@
 - en: NGINX Plus – The Commercial Offering
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: NGINX Plus – 商业版本
 - en: 'In this chapter, we will cover the following:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将涵盖以下内容：
 - en: Installing NGINX Plus
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安装 NGINX Plus
 - en: Real-time server activity monitoring
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实时服务器活动监控
 - en: Dynamic config reloading
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 动态配置重新加载
 - en: Session persistence
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 会话持久性
 - en: Introduction
+  id: totrans-6
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: While the open source version of NGINX is the one most people are familiar with,
     Nginx Inc also produces a paid, commercial variant with a number of additional
     features aimed at enterprise and large tier deployments. With features such as
     detailed live monitoring, application health checking for load balancers, and
     dynamic configuration reloading, there are compelling reasons to consider the
     Plus version.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然大多数人熟悉的是开源版本的 NGINX，但 Nginx Inc 也推出了付费的商业版本，该版本具备多项额外功能，专为企业和大规模部署设计。具有详细的实时监控、负载均衡器的应用健康检查、动态配置重新加载等功能，因此考虑使用
+    Plus 版本是有充分理由的。
 - en: While some may find the US $2,500 starting point a steep jump over the open
     source version, these additional features pit it against commercial systems at
     over ten times the price. Suffice to say, once you get to the point where these
     features become paramount to your business, the price is well worth it. You'll
     also be supporting the continual development of NGINX, which most organizations
     with the Plus version still run.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管有人可能认为起始价格为 2500 美元相对于开源版本而言偏高，但这些额外的功能使其与价格超过十倍的商业系统竞争。可以说，一旦这些功能对您的业务变得至关重要，价格是非常值得的。您还将支持
+    NGINX 的持续开发，而大多数使用 Plus 版本的组织仍在运行这个版本。
 - en: Installing NGINX Plus
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 安装 NGINX Plus
 - en: Like its open source counterpart, NGINX Plus can be easily installed using the
     official repositories provided by NGINX.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 和其开源版本一样，NGINX Plus 可以通过 NGINX 提供的官方仓库轻松安装。
 - en: Getting ready
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: If you have NGINX installed already, you'll need to uninstall it first to prevent
     conflict. As NGINX Plus is a paid product, you'll also require a license key to
     complete the installation as well. This can be purchased from the NGINX store
     or you can request a trial license so that you can evaluate the features before
     buying.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您已经安装了 NGINX，则需要先卸载它，以防止冲突。由于 NGINX Plus 是一款付费产品，您还需要一个许可证密钥来完成安装。您可以从 NGINX
+    商店购买此许可证，或者请求一个试用许可证，在购买之前评估功能。
 - en: How to do it...
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: Official repositories exist for most major Linux installations, but we'll focus
     on just CentOS 7 and Ubuntu 16.04 LTS to cover the two most common scenarios.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数主要的 Linux 发行版都有官方仓库，但我们将专注于 CentOS 7 和 Ubuntu 16.04 LTS，来涵盖最常见的两种情况。
 - en: CentOS
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: CentOS
 - en: 'Firstly, we need to create a directory to store the repository certificates
     in:'
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，我们需要创建一个目录来存储仓库证书：
 - en: '[PRE0]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Next, you will need to download both the private and public certificates from
     the NGINX customer portal ([https://cs.nginx.com](https://cs.nginx.com)), which
     should be named:'
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，您需要从 NGINX 客户门户 ([https://cs.nginx.com](https://cs.nginx.com)) 下载私钥和公钥证书，文件名应该是：
 - en: '[PRE1]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Copy these files into the directory created. We can then ensure that the root
     CA certificate bundle has been installed:'
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将这些文件复制到创建的目录中。然后我们可以确保根 CA 证书包已安装：
 - en: '[PRE2]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'We can now install the NGINX Plus repository:'
+  id: totrans-22
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们可以安装 NGINX Plus 仓库：
 - en: '[PRE3]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'With the repository keys ready and the repository installed, we can now install
     NGINX Plus:'
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在仓库密钥准备好并安装完仓库之后，我们现在可以安装 NGINX Plus：
 - en: '[PRE4]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'If you have the correct keys, this will install NGINX Plus. You can confirm
     the installation is correct by inspecting the version:'
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果您有正确的密钥，这将安装 NGINX Plus。您可以通过检查版本来确认安装是否正确：
 - en: '[PRE5]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'This should give you an output similar to the following:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该会给出类似以下的输出：
 - en: '[PRE6]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Lastly, we can start and ensure that NGINX Plus automatically starts after
     boot:'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最后，我们可以启动并确保 NGINX Plus 在启动后自动启动：
 - en: '[PRE7]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The installation of NGINX Plus is now complete.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX Plus 的安装现已完成。
 - en: Ubuntu
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Ubuntu
 - en: 'Firstly, we need to create a directory to store the repository certificates
     in:'
+  id: totrans-34
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，我们需要创建一个目录来存储仓库证书：
 - en: '[PRE8]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Next, you will need to download both the private and public certificates from
     the NGINX customer portal ([https://cs.nginx.com](https://cs.nginx.com)), which
     should be named:'
+  id: totrans-36
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，您需要从 NGINX 客户门户 ([https://cs.nginx.com](https://cs.nginx.com)) 下载私钥和公钥证书，文件名应该是：
 - en: '[PRE9]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Copy these files into the directory created and then add the NGINX package
     signing key in using `apt-key`:'
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将这些文件复制到创建的目录中，然后使用 `apt-key` 添加 NGINX 软件包签名密钥：
 - en: '[PRE10]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'To ensure we have the required prerequisites, we can install these packages
     with the following command:'
+  id: totrans-40
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为确保我们拥有所需的前提条件，我们可以使用以下命令安装这些软件包：
 - en: '[PRE11]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'We can then add the NGINX Plus repository via the `add-apt-repository` command:'
+  id: totrans-42
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们可以通过 `add-apt-repository` 命令添加 NGINX Plus 仓库：
 - en: '[PRE12]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Before we can install the NGINX Plus packages, we first need to link the secured
     repositories to the key we previously downloaded. NGINX provides a preconfigured
     file to do this and we can download it to the correct location:'
+  id: totrans-44
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在安装 NGINX Plus 包之前，我们需要先将已下载的密钥链接到安全的仓库。NGINX 提供了一个预配置的文件来执行此操作，我们可以将其下载到正确的位置：
 - en: '[PRE13]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'With the repository set up and prepared, we can now update the package information
     and then install NGINX Plus:'
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在仓库设置并准备好之后，我们可以更新包信息，然后安装 NGINX Plus：
 - en: '[PRE14]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'If you have the correct keys, this will install NGINX Plus. You can confirm
     the installation is correct by inspecting the version:'
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果你拥有正确的密钥，安装过程将会安装 NGINX Plus。你可以通过检查版本来确认安装是否正确：
 - en: '[PRE15]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'This should give you an output similar to the following:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该会显示类似以下内容：
 - en: '[PRE16]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Lastly, we can start and ensure NGINX Plus automatically starts after boot:'
+  id: totrans-52
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最后，我们可以启动并确保 NGINX Plus 在启动后自动启动：
 - en: '[PRE17]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: The installation of NGINX Plus is now complete.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX Plus 的安装现在已经完成。
 - en: See also
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The NGINX Plus product page: [https://www.nginx.com/products/](https://www.nginx.com/products/)'
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX Plus 产品页面：[https://www.nginx.com/products/](https://www.nginx.com/products/)
 - en: 'The NGINX Plus installation guide: [https://www.nginx.com/resources/admin-guide/installing-nginx-plus/](https://www.nginx.com/resources/admin-guide/installing-nginx-plus/)'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX Plus 安装指南：[https://www.nginx.com/resources/admin-guide/installing-nginx-plus/](https://www.nginx.com/resources/admin-guide/installing-nginx-plus/)
 - en: Real-time server activity monitoring
+  id: totrans-58
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实时服务器活动监控
 - en: We covered some of the basics of monitoring your server all the way back in
     [Chapter 1](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml), *Let's Get Started*,
     which used the `ngxtop` utility to provide basic command line driven monitoring
     and statistics. Included in NGINX Plus is a powerful and comprehensive metrics
     system to show you real-time activity for your NGINX server.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在[第1章](69685f00-24c3-428c-b607-01a4e9a2784d.xhtml)《让我们开始》中已经讨论了监控服务器的一些基础知识，使用了
+    `ngxtop` 工具来提供基本的命令行驱动的监控和统计。NGINX Plus 包含一个强大而全面的度量系统，可以显示 NGINX 服务器的实时活动。
 - en: As you'll see in the upcoming screenshots, this is quite a comprehensive system.
     Not only does it include a web interface so that you can see the stats, but this
     data is also available as a JSON feed so that it can be directly imported by external
     monitoring tools.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你将在接下来的截图中看到的，这个系统相当全面。它不仅包括一个网页界面来查看统计信息，而且这些数据还可以作为 JSON 提要提供，便于外部监控工具直接导入。
 - en: Getting ready
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: 'As this is part of the NGINX Plus packages, you''ll need to ensure you have
     NGINX Plus installed and configured correctly. You can test to ensure you have
     NGINX Plus by running `nginx -v`. This should give you an output similar to the
     following:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这是 NGINX Plus 包的一部分，你需要确保已经正确安装并配置了 NGINX Plus。你可以通过运行 `nginx -v` 来测试 NGINX
+    Plus 是否已安装。这应该会显示类似以下内容：
 - en: '[PRE18]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: The important part to check is the *plus* in the naming for `nginx-plus-r12-p3`.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要检查的关键部分是 `nginx-plus-r12-p3` 名称中的 *plus* 部分。
 - en: How to do it...
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'In order to use the status module, we need to include it as part of the `server`
     block directive. You can choose to run in on a different port from your main web
     server and also restrict via IP, which is what we''ll do in our recipe. Here''s
     our configuration:'
+  id: totrans-66
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为了使用状态模块，我们需要将其包含在 `server` 块指令中。你可以选择在与主 Web 服务器不同的端口上运行，并且通过 IP 限制访问，这正是我们在本食谱中要做的。以下是我们的配置：
 - en: '[PRE19]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: This can be placed in the `/etc/nginx/conf.d/` directory as a separate file
     (for example, `status.conf`), to keep it clean and simple.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以作为单独的文件（例如 `status.conf`）放置在 `/etc/nginx/conf.d/` 目录中，以保持整洁和简单。
 - en: 'If you open up a browser and go to `http://<serveripaddress>:8188/status.html`,
     you should see a page similar to the following screenshot:'
+  id: totrans-69
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果你打开浏览器并访问 `http://<serveripaddress>:8188/status.html`，你应该会看到类似以下截图的页面：
 - en: '![](img/abd0b9e7-1040-4b75-a169-e0a85a26a3a0.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/abd0b9e7-1040-4b75-a169-e0a85a26a3a0.png)'
 - en: This page is just an HTML page, but uses the JSON data to update the status
     (every second by default). We can see all of the vital server statistics, such
     as the connections, requests, uptime, and traffic.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 该页面只是一个 HTML 页面，但使用 JSON 数据来更新状态（默认每秒更新一次）。我们可以看到所有重要的服务器统计信息，例如连接、请求、正常运行时间和流量。
 - en: 'If you have multiple server zones configured, you can view the stats individually
     to see the various statistics of your subsystems:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您配置了多个服务器区域，您可以单独查看每个区域的统计信息，以查看子系统的不同统计数据：
 - en: '![](img/a6bdcb96-2842-4ae9-9ae6-6d785fbcff99.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/a6bdcb96-2842-4ae9-9ae6-6d785fbcff99.png)'
 - en: 'Likewise, we can see the stats associated with upstream servers if you''re
     using NGINX Plus in a load balancer configuration:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，如果您在负载均衡配置中使用 NGINX Plus，我们也可以查看与上游服务器相关的统计信息：
 - en: '![](img/8770adbd-37ec-4774-9e5d-47e3bc2e38f0.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/8770adbd-37ec-4774-9e5d-47e3bc2e38f0.png)'
 - en: These insights allow you to precisely see what's going on with all aspects of
     your server in real-time.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些洞察使你能够实时精确地了解服务器的各个方面。
 - en: How it works...
+  id: totrans-77
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: We use the `listen` directive to tell NGINX Plus to listen on a different port
     for this `server` block, so that we can isolate it from the main connections.
     In this instance, we have it listening on port `8188`.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用`listen`指令告诉 NGINX Plus 在不同的端口上监听这个`server`块，以便将其与主连接隔离。在此示例中，我们让它监听`8188`端口。
 - en: Next, we set `status_zone`, which needs to be defined within each `server` or
     `http` block directive in order to collect statistics. For this recipe, we simply
     have one zone within our statistics block directive called `status-page`. For
     other `server` block directives, you can either combine into one (for example,
     `backend-zone`) or track individually if you require unique statistics per directive.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们设置`status_zone`，它需要在每个`server`或`http`块指令中定义，以便收集统计信息。在这个示例中，我们在统计块指令中只有一个名为`status-page`的区域。对于其他`server`块指令，您可以将它们合并为一个（例如，`backend-zone`）或单独跟踪，如果需要每个指令的唯一统计信息。
 - en: In order to serve the static `status.html` file, we define the root path where
     the files are located. Then, we ensure any root calls (for example, without a
     trailing `/status.html`) are redirected.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了服务静态的`status.html`文件，我们定义了文件所在的根路径。然后，我们确保任何根路径请求（例如，没有尾部`/status.html`的请求）都会被重定向。
 - en: Lastly, we set the `/status` location to serve the actual statistical data.
     We set this to be JSON format, which means it can be easily ingested into many
     other systems. It's what powers the HTML-based dashboard as well. This is required
     in order to display the statistics.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们设置`/status`位置来提供实际的统计数据。我们将其设置为 JSON 格式，这意味着它可以轻松地被其他许多系统接收。这也是驱动基于 HTML
+    的仪表板的基础。显示统计信息需要这一点。
 - en: There's more...
+  id: totrans-82
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多…
 - en: 'The HTML dashboard is, of course, only one way to use the stats. Because we
     have direct access to the JSON data, we can pull this data from a third-party
     monitoring system. For instance, we can view what information is available by
     calling:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: HTML 仪表板当然只是使用统计数据的一种方式。因为我们可以直接访问 JSON 数据，所以可以从第三方监控系统中提取这些数据。例如，我们可以通过调用来查看有哪些信息可用：
 - en: '[PRE20]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'This will produce a JSON based output, similar to the following:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将生成基于 JSON 的输出，类似如下：
 - en: '[PRE21]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'You can also reduce the output to the specific component you''re after, for
     example, we can call `/status/connections` to retrieve just the statistics about
     the connections:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以将输出缩小到您需要的特定组件，例如，我们可以调用`/status/connections`仅获取关于连接的统计信息：
 - en: '[PRE22]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Don't forget to adjust your accept/allow and/or authentication for third-party
     monitoring systems.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 不要忘记调整您的接受/允许设置和/或第三方监控系统的认证。
 - en: See also
+  id: totrans-90
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The NGINX Plus status module documentation is available at: [https://nginx.org/en/docs/http/ngx_http_status_module.html](https://nginx.org/en/docs/http/ngx_http_status_module.html)'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX Plus 状态模块的文档可在以下链接查看：[https://nginx.org/en/docs/http/ngx_http_status_module.html](https://nginx.org/en/docs/http/ngx_http_status_module.html)
 - en: Dynamic config reloading
+  id: totrans-92
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 动态配置重新加载
 - en: In large, high-scale systems where it's critical to minimize downtime, changes
     requiring a restart of services require careful planning. If you have a **Software
     as a Service** (**SaaS**) style platform, having a delay before deploying changes
     or new customer signups could be quite detrimental to your operations.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大型高规模系统中，最小化停机时间至关重要。需要重启服务的更改需要仔细规划。如果您有一个**软件即服务**（**SaaS**）平台，在部署更改或新客户注册之前的延迟可能会对您的业务运营产生不利影响。
 - en: System downtime can also be required in load balancing situations, where you
     need to add and remove application backends on the fly. Thankfully, NGINX Plus
     allows for the configuration to be reloaded without having to restart the services.
     In this recipe, we'll go through how to update your configuration with a dynamic
     reload.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 在负载均衡的情况下，系统停机可能也是必需的，您需要动态添加和移除应用程序后端。幸运的是，NGINX Plus允许重新加载配置而无需重新启动服务。在这个示例中，我们将介绍如何通过动态重新加载来更新您的配置。
 - en: Getting ready
+  id: totrans-95
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: We're using a basic recipe based on our load balancing recipe back in [Chapter
     8,](4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml) *Load Balancing*. With the open
     source version of NGINX, adding or removing backend servers from an NGINX configuration
@@ -410,127 +608,184 @@
     it comes to highly loaded systems. As it has to wait for all NGINX worker processes
     to finish before reloading, there's a period where the system won't be processing
     at the same capacity as normal.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用了基于我们在[第8章](4709da7c-9dbd-49d8-8fa7-c3fb6a9cdd6a.xhtml)的负载均衡食谱的基本食谱。使用NGINX的开源版本时，需要完全重新加载NGINX配置才能使用新更改。虽然这对轻载系统的影响很小，但对于高负载系统来说，这可能是一个重大问题。因为它必须等待所有NGINX工作进程完成重新加载，所以系统在此期间无法像正常情况下那样处理相同的容量。
 - en: 'Here''s how our scenario will look:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们的场景如何呈现的：
 - en: '![](img/08676d57-deaa-476d-be03-557852dca58c.png)'
+  id: totrans-98
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/08676d57-deaa-476d-be03-557852dca58c.png)'
 - en: How to do it...
+  id: totrans-99
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'In order to allow the dynamic reload, we''ll configure our `upstream` block
     directive, as well as two `server` block directives. Like most of the NGINX configuration,
     we can place this in a standalone file (for example, `loadbalancer.conf`) within
     the `/etc/nginx/conf.d` directory. Here''s the configuration:'
+  id: totrans-100
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为了允许动态重新加载，我们将配置我们的`upstream`块指令，以及两个`server`块指令。与大多数NGINX配置一样，我们可以将其放在一个独立文件中（例如`loadbalancer.conf`），放置在`/etc/nginx/conf.d`目录中。以下是配置内容：
 - en: '[PRE23]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: You can also use the HTest tool for ease of testing if this is outside of a
     production environment to simulate the backend servers.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以使用HTest工具来轻松测试，如果这不是在生产环境之外模拟后端服务器。
 - en: 'To make changes to this configuration on the fly, we can invoke an API call
     from the command line. Firstly, let''s get a copy of the existing configuration:'
+  id: totrans-103
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要在运行时更改此配置，我们可以从命令行调用API调用。首先，让我们获取现有配置的副本：
 - en: '[PRE24]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'This should print a list of servers out, which should match the configuration
     we''ve already loaded:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该打印出服务器列表，与我们已经加载的配置相匹配：
 - en: '[PRE25]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'If we want to add another backend, we can send an add command via `curl`:'
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果我们想要添加另一个后端，我们可以通过`curl`发送添加命令：
 - en: '[PRE26]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'This should echo out the new server added as confirmation:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该会确认添加的新服务器：
 - en: '[PRE27]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: The new server should be available immediately and will now be part of the round-robin
     assignment.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 新服务器应立即可用，并且现在将成为轮询分配的一部分。
 - en: 'In a similar fashion, we can also remove backend servers on the fly. To remove
     a server, we use the assigned ID to remove it:'
+  id: totrans-112
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 类似地，我们也可以在运行时移除后端服务器。要删除服务器，我们使用分配的ID来将其移除：
 - en: '[PRE28]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'This will echo back the remaining servers configured, which for our example
     will be:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将回显剩余配置的服务器，例如：
 - en: '[PRE29]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: How it works...
+  id: totrans-116
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 工作原理...
 - en: Similar to a standard NGINX load balancer configuration, we first define an
     `upstream` block directive. This defines a memory allocation to store the configuration
     so that it can be updated on the fly.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 与标准的NGINX负载均衡器配置类似，我们首先定义一个`upstream`块指令。这定义了一个内存分配以存储配置，以便可以在运行时更新。
 - en: Next, we define our standard `server` block directive. This is as per a standard
     configuration, which simply proxies the connections to the upstream servers.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们定义我们的标准`server`块指令。这与标准配置一样，简单地将连接代理到上游服务器。
 - en: Lastly, we then define a separate block directive to handle the `upstream_conf`
     module. We use the separate `server` block directive so that we can bind it to
     a specific port on the localhost and prevent accidental exposure to the internet.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们定义一个单独的块指令来处理`upstream_conf`模块。我们使用单独的`server`块指令将其绑定到本地主机上的特定端口，并防止意外暴露到互联网。
 - en: There's more...
+  id: totrans-120
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'While our example recipe allows for changes to be made on the fly, they aren''t
     persistent if we reboot NGINX Plus. To ensure these changes are maintained between
     reboots, we can add a `state` file to manage the current configuration. This is
     done via updating the `upstream` block directive. Here''s what our updated configuration
     looks like:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE30]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: We add the `state` directive, which is updated when there are any changes to
     the upstream configuration as well as being reread when NGINX restarts. All other
     server directives within that upstream must also be removed, as you can't combine
     static server configuration with a dynamic, stateful configuration. The state
     file itself is plain text (and uses the standard NGINX server directive format)
     but any direct manipulation of the file is strongly discouraged.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
 - en: See also
+  id: totrans-124
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'The NGINX Plus `http_upstream_conf` module documentation is available at: [https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html](https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html)'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
 - en: Session persistence
+  id: totrans-126
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -540,6 +795,7 @@
     be difficult to implement. While using the hash-based algorithm can ensure requests
     from the same IP is routed to the same backend, this doesn't always ensure a balanced
     distribution of requests.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
 - en: One of the key features for NGINX Plus is session persistence, where requests
@@ -547,27 +803,33 @@
     Also known as "sticky" sessions, this can be especially important when it comes
     to payment systems, where the sharing of information between backend servers can
     be quite restrictive.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
 - en: Getting ready
+  id: totrans-129
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: We'll reuse our simple, round-robin load balancing scenario and incorporate
     the various session persistence options available in NGINX Plus.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: How to do it...
+  id: totrans-131
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'There are three different methods to ensuring sticky sessions, each with their
     various pros and cons. Here''s a quick summary:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: '`cookie`: This method uses a cookie on the first request to store the tracking
     information in order to ensure subsequent requests are routed to the same backend
     server. As it means modifying the headers, it may not be compatible with all systems.'
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -575,6 +837,7 @@
     response headers to determine a unique identifier in which to track the requests.
     For example, most web frameworks have their own session ID, which can be leveraged
     for tracking. This means that no data modification is required.'
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -584,116 +847,166 @@
     when you have reasons to push to different clients to different servers. This
     could be used a "feature flag" method of routing clients to newer servers with
     differing features if they match the specific variables.'
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`route`：最后，我们可以根据变量来路由请求，明确选择使用的上游服务器。尽管这与Cookie方法相似（路由也使用Cookie来帮助追踪），但明确选择服务器在有理由将不同客户端推送到不同服务器时非常有用。如果匹配特定变量，它还可以作为一种“功能开关”方法，用于将客户端路由到具有不同功能的更新服务器。'
 - en: Cookie-based tracking
+  id: totrans-136
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于Cookie的追踪
 - en: 'To configure using cookie-based sticky sessions, we can use the following configuration:'
+  id: totrans-137
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要配置基于Cookie的粘性会话，我们可以使用以下配置：
 - en: '[PRE31]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'Upon the first request, NGINX will set a cookie to track all subsequent sessions.
     You can confirm the cookie by viewing received HTTP headers using a tool such
     as HTTPie:'
+  id: totrans-139
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在第一次请求时，NGINX将设置一个Cookie来追踪所有后续的会话。您可以通过使用如HTTPie等工具查看接收到的HTTP头部来确认Cookie：
 - en: '[PRE32]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'This output should show the server headers, which will contain a `Set-Cookie`
     header:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 此输出应显示服务器头信息，其中将包含一个`Set-Cookie`头信息：
 - en: '[PRE33]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Learn-based tracking
+  id: totrans-143
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于学习的追踪
 - en: 'If you can leverage an existing, unique identifier from your application to
     use for session tracking, you can avoid having to create any further cookies.
     Many common web frameworks set the session as a cookie for tracking, so as long
     as you know the name of the cookie then it can be used. Here''s what our recipe
     looks like:'
+  id: totrans-144
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果您能够利用应用程序中现有的唯一标识符来进行会话追踪，您可以避免创建更多的Cookie。许多常见的Web框架将会话设置为Cookie进行追踪，因此，只要您知道Cookie的名称，就可以使用它。以下是我们配方的样子：
 - en: '[PRE34]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: To test, you'll need to ensure that your application is sending a cookie set
     as `sessionid`.
+  id: totrans-146
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 测试时，您需要确保您的应用程序发送了一个设置为`sessionid`的Cookie。
 - en: Route-based tracking
+  id: totrans-147
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于路由的追踪
 - en: 'The last method of creating and ensuring consistent sessions is via routes.
     In order to do this, we also need to tell NGINX Plus how to interpret the routes.
     Here''s our configuration:'
+  id: totrans-148
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建和确保一致会话的最后一种方法是通过路由。为了做到这一点，我们还需要告诉NGINX Plus如何解释路由。以下是我们的配置：
 - en: '[PRE35]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'For this recipe, we''re reading a cookie named `route` and then using this
     to determine which server to persistently send the request to. To test, we can
     send a test route cookie to ensure it''s working:'
+  id: totrans-150
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于这个配方，我们正在读取一个名为`route`的Cookie，然后使用它来确定将请求持久性地发送到哪个服务器。为了测试，我们可以发送一个测试路由Cookie，以确保它有效：
 - en: '[PRE36]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: Each request should be served from the upstream server tagged as `server2`,
     which you can verify with the HTest utility or the logs of your backend server.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个请求应由标记为`server2`的上游服务器提供服务，您可以通过HTest工具或后端服务器的日志来验证这一点。
 - en: How it works...
+  id: totrans-153
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: For our cookie-based session tracking, we set a cookie named `cookbook` to use
     as the tracking for session persistence. This is also set with an expiry of one
     hour. It's also possible to explicitly set the domain and path as well if greater
     restrictions are required.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的基于Cookie的会话追踪，我们设置了一个名为`cookbook`的Cookie，用作会话持久性的追踪。这也设置了一个一小时的过期时间。如果需要更严格的限制，还可以显式设置域和路径。
 - en: Our learn-based tracking has three variables set. The first, create is used
     to track from the `upsteam` server, which we look for the cookie set header (`Set-Cookie`)
     using a naming pattern `$upstream_cookie_<cookiename>`. For our recipe, `$upstream_cookie_sessionid`
     means we match the `sessionid`.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的基于学习的追踪有三个已设置的变量。第一个，create，用于从`upstream`服务器追踪，我们通过查找设置的Cookie头（`Set-Cookie`）并使用命名模式`$upstream_cookie_<cookiename>`。对于我们的配方，`$upstream_cookie_sessionid`意味着我们匹配`sessionid`。
 - en: Next, we use the `lookup` variable to designate what to track from the client.
     This uses a similar tracking method to the create command. This recipe uses the
     `$cookie_sessionid` pattern, which means it will match the contents of a cookie
     named `sessionid`.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们使用`lookup`变量来指定需要从客户端追踪的内容。这与create命令使用的追踪方法相似。此配方使用`$cookie_sessionid`模式，这意味着它将匹配名为`sessionid`的Cookie内容。
 - en: Lastly, as this is stateful, we need to allocate memory in which to store the
     lookup table. This is done via the `zone` variable. For this recipe we have named
     the zone `client_sessions` and allocated 1 megabyte of memory. This is sufficient
     to store around 8,000 sessions. By default, these sessions are only persistent
     for 10 minutes. So, if you have a higher number of users per 10 minutes or require
     a longer timeout, you may need to increase the memory allocated.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，由于这是有状态的，我们需要分配内存来存储查找表。这是通过`zone`变量完成的。在这个示例中，我们将该zone命名为`client_sessions`并分配了1兆字节的内存。这足够存储大约8,000个会话。默认情况下，这些会话只会持久化10分钟。因此，如果每10分钟内的用户数较多，或需要更长的超时时间，可能需要增加分配的内存。
 - en: See also
+  id: totrans-158
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另请参阅
 - en: 'The NGINX Plus `http_upstream_conf` module documentation is available at: [https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html#sticky](https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html#sticky)'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX Plus的`http_upstream_conf`模块文档可以在以下网址查看：[https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html#sticky](https://nginx.org/en/docs/http/ngx_http_upstream_conf_module.html#sticky)

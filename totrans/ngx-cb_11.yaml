@@ -1,54 +1,80 @@
 - en: Performance Tuning
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 性能调优
 - en: 'In this chapter, we will cover the following recipes:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍以下几种配置：
 - en: Gzipping content in NGINX
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在NGINX中启用Gzip压缩
 - en: Enhancing NGINX with keep alive
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过Keep-Alive增强NGINX
 - en: Tuning worker processes and connections
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 调优工作进程和连接
 - en: Fine tuning basic Linux system limits
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 精细调整基本的Linux系统限制
 - en: Integrating `ngx_pagespeed`
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 集成`ngx_pagespeed`
 - en: Introduction
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Once you have your NGINX configuration working, you can turn your focus to fine
     tuning to enhance performance. A few sections of this chapter will focus on delivering
     increased performance for users, while others will focus on delivering performance
     enhancements at a server level to allow greater concurrency.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你的NGINX配置完成并正常工作，你可以将注意力集中在精细调优上，以提高性能。本章的一些部分将专注于为用户提供更高的性能，而另一些则将专注于在服务器级别提供性能提升，以支持更多的并发。
 - en: As with any tuning, you need to ensure that you understand the limits first.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 像进行任何调优一样，你需要首先了解系统的限制。
 - en: Premature optimization is the root of all evil.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 过早的优化是万恶之源。
 - en: – Donald Knuth, 1974
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: – 唐纳德·克努斯，1974年
 - en: In the context of NGINX, you need to ensure that you know what the limits are
     before changing them. Not all changes will necessarily result in performance increases
     if they don't suit your system or if they're not a current limitation.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在NGINX的环境下，你需要确保在更改之前了解限制是什么。如果更改不适合你的系统，或者当前没有限制，未必能带来性能的提升。
 - en: On the flip side, optimization of your NGINX server is also critical to ensure
     that your website or application can handle increased traffic and to ensure fast
     responses. Especially when it comes to e-commerce platforms, keeping user engagement
@@ -57,134 +83,189 @@
     $1.6 billion in revenue each year. Even without e-commerce, the last thing that
     you would want a user to be doing is waiting unnecessarily, as they will disengage
     very quickly.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，优化NGINX服务器也至关重要，确保你的网站或应用能够应对增加的流量并提供快速响应。尤其是对于电子商务平台来说，通过降低响应时间保持用户参与至关重要。亚马逊的研究发现，页面加载时间每增加一秒，每年将导致超过16亿美元的收入损失。即便不是电子商务网站，用户等待的时间过长也会导致他们快速流失。
 - en: Gzipping content in NGINX
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在NGINX中启用Gzip压缩
 - en: Gzip is a compression format, which is based on the DEFLATE algorithm and commonly
     found in most Unix environments. Compressing your HTML files is an easy way to
     reduce the amount of data transferred from NGINX to the browser. This in turn
     means that pages also load quicker as the file can be transferred in a shorter
     time due to the reduced size.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: Gzip是一种基于DEFLATE算法的压缩格式，常见于大多数Unix环境中。压缩HTML文件是一种简便的方法，能够减少从NGINX到浏览器传输的数据量。这意味着页面加载速度更快，因为压缩后文件的大小更小，可以更快地传输。
 - en: While it usually shows the most gain, HTML-based content isn't the only thing,
     which can compress easily. Any text-based file (for example, JavaScript or CSS)
     will generally compress by 70 percent or more, which can be quite significant
     with modern websites.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然它通常带来最大的增益，但基于HTML的内容并不是唯一能够轻松压缩的内容。任何基于文本的文件（例如JavaScript或CSS）通常都能压缩70%以上，对于现代网站来说，这种压缩效果可能非常显著。
 - en: Of course, enabling compression isn't free. There is a performance hit in server
     load, as the server needs to use CPU cycles to compress the data. While this used
     to be a large consideration, with modern CPU's, the performance hit is far outweighed
     by the benefit of the compression.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，启用压缩并非没有代价。服务器负载会有所增加，因为服务器需要使用CPU周期来压缩数据。虽然这曾经是一个重要的考虑因素，但随着现代CPU性能的提升，这种性能损耗已经远远被压缩带来的好处所抵消。
 - en: Getting ready
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: The NGINX `gzip` module is part of the core modules, so no additional installation
     is required.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的`gzip`模块是核心模块的一部分，因此无需额外安装。
 - en: How to do it...
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: In order to enable `gzip` within NGINX, we need to enable the `gzip` module
     and explicitly tell it what files to compress. The easiest way to do this server-wide
     is to create a `gzip.conf` file within the `/etc/nginx/conf.d` directory directly,
     alongside your server directive files. This could also be set per site or even
     per location if required; the `gzip` directives can be nested within an existing
     block directive.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了在NGINX中启用`gzip`，我们需要启用`gzip`模块，并明确告知它哪些文件需要压缩。最简单的方法是直接在`/etc/nginx/conf.d`目录下创建一个`gzip.conf`文件，放在你的服务器指令文件旁边。这也可以根据需要为每个站点或每个位置设置；`gzip`指令可以嵌套在现有的区块指令中。
 - en: 'Here''s what is required:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是所需的内容：
 - en: '[PRE0]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'If you want to measure how much difference *gzipping* your files may make,
     tools such as GTmetrix can outline the reduction in file transmission size. For
     example, if we look at the [https://www.packtpub.com/](https://www.packtpub.com/)
     website, we see the following in the Gzip section:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想衡量*Gzip压缩*文件可能带来的差异，可以使用GTmetrix等工具来概述文件传输大小的减少。例如，当我们查看[https://www.packtpub.com/](https://www.packtpub.com/)网站时，在Gzip部分可以看到以下内容：
 - en: '![](img/5189f612-1300-42f4-b646-a30c1c192f6f.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/5189f612-1300-42f4-b646-a30c1c192f6f.png)'
 - en: While the savings in this example aren't massive, the 82 percent reduction can
     show you what's possible for other sites. If there were other files, such as JS
     or CSS, which weren't already compressed, the decrease becomes much more significant.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这个例子中的节省并不大，但82%的减少可以向你展示其他网站可能实现的效果。如果有其他文件，如JS或CSS，尚未压缩，那么减少的幅度会更显著。
 - en: How it works...
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The first part of our configuration explicitly turns the `gzip` module `on`.
     Then, to maintain compatibility with really old versions of Internet Explorer
     (which hopefully nobody still uses), we disable `gzip` using the `MSIE [1-6]\.(?!.*SV1)`
     regex.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置的第一部分显式启用`gzip`模块。然后，为了保持与非常旧版本的Internet Explorer的兼容性（希望没有人还在使用它），我们使用`MSIE
+    [1-6]\.(?!.*SV1)`正则表达式禁用`gzip`。
 - en: Then, `gzip_proxied` sets which proxied connections will use `gzip`, which we
     set to `any` to cover all requests. `gzip_types` is then used to set what file
     types are to be compressed. This is matched with the MIME type, for example, `text/plain`.
     We explicitly set types, as not every file type can be compressed further (for
     example, JPEG images).
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，`gzip_proxied`设置哪些代理连接将使用`gzip`，我们将其设置为`any`，以涵盖所有请求。接着，`gzip_types`用于设置要压缩的文件类型。这与MIME类型匹配，例如`text/plain`。我们显式设置类型，因为并非所有文件类型都可以进一步压缩（例如JPEG图像）。
 - en: 'Lastly, we set `gzip_vary` to `on`. This sets the `Vary: Accept-Encoding` header,
     which specifies that both **Content Distribution Networks** (**CDN**) and upstream
     proxies store a copy of the file as both compressed and uncompressed. While every
     modern browser supports Gzip compression, there are still some minor browsers
     and script-based HTTP tools which don''t. Instructing the upstream CDN or proxy
     to store both shows that they''re still able to support these older systems.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '最后，我们将`gzip_vary`设置为`on`。这将设置`Vary: Accept-Encoding`头，指定**内容分发网络**（**CDN**）和上游代理存储压缩和未压缩文件的副本。虽然每个现代浏览器都支持Gzip压缩，但仍然有一些小型浏览器和基于脚本的HTTP工具不支持。在上游CDN或代理中存储两者副本，表明它们仍然能够支持这些较旧的系统。'
 - en: There's more...
+  id: totrans-31
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: If the performance hit from gzipping the files on the fly is too much, NGINX
     also allows the ability to precompress the files to serve. While this means that
     there's a bit of extra maintenance work required, this can be incorporated into
     an existing build process (such as **Grunt** or **Gulp**) to reduce the steps
     required.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在运行时对文件进行Gzip压缩的性能损失过大，NGINX还允许提前压缩文件以供提供。虽然这意味着需要进行额外的维护工作，但可以将其集成到现有的构建流程中（例如**Grunt**或**Gulp**），从而减少所需的步骤。
 - en: 'To enable in NGINX, we modify our `gzip.conf` file to look like the following
     code:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在NGINX中启用此功能，我们需要修改`gzip.conf`文件，使其如下所示：
 - en: '[PRE1]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: With `gzip_static` set to `on`, NGINX will serve the precompressed files if
     they exist.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置`gzip_static`为`on`后，NGINX将在文件存在的情况下提供已压缩的文件。
 - en: See also
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另请参见
 - en: The Gzip NGINX module can be found at [http://nginx.org/en/docs/http/ngx_http_gzip_module.html](http://nginx.org/en/docs/http/ngx_http_gzip_module.html)
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Gzip NGINX模块可以在[http://nginx.org/en/docs/http/ngx_http_gzip_module.html](http://nginx.org/en/docs/http/ngx_http_gzip_module.html)找到。
 - en: Refer to GTmetrix's official website at [https://gtmetrix.com/](https://gtmetrix.com/)
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请参阅GTmetrix的官方网站：[https://gtmetrix.com/](https://gtmetrix.com/)
 - en: Enhancing NGINX with keep alive
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 增强NGINX的持久连接
 - en: 'Using a persistent HTTP connection between the server and the browser speeds
     up additional requests, as there''s no extra handshaking required. Especially
     over more latent connections, this can increase the overall performance. If NGINX
@@ -193,296 +274,432 @@
     enabled to ensure high throughput while minimizing latency. The following diagram
     highlights both areas where the `keepalive` packets are important to maintain
     high performance:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用服务器和浏览器之间的持久HTTP连接可以加速额外的请求，因为不需要额外的握手。特别是在延迟较高的连接上，这可以提高整体性能。如果NGINX被用作反向代理（如在[第7章](bc04362e-995f-4550-92b7-183754306d34.xhtml)中详细介绍的，*反向代理*），确保这些连接启用了`keepalive`以确保高吞吐量并最小化延迟也非常重要。下图突出显示了`keepalive`数据包在维护高性能方面的重要性：
 - en: '![](img/d68c0f3a-c1d6-442f-8d4a-38ff97850155.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/d68c0f3a-c1d6-442f-8d4a-38ff97850155.png)'
 - en: This persistent connection remains established using **Keep Alive** packets,
     so that the connections remain open for minutes rather than closing once they
     are complete. This reuse can be immediate for additional CSS/JS files or as further
     pages and resources are requested.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个持久连接通过**Keep Alive**数据包保持连接，从而使得连接在几分钟内保持打开，而不是在完成后关闭。这个重用可以立即进行，例如在请求额外的CSS/JS文件或进一步的页面和资源时。
 - en: While some of the client-side gains are negated using HTTP/2 (which multiplexes
     connections as well as uses `keepalive`), it's still necessary for HTTP (non-SSL)
     connections and upstream connections.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管使用HTTP/2（它进行连接复用并使用`keepalive`）会抵消一些客户端方面的收益，但它仍然对于HTTP（非SSL）连接和上游连接是必要的。
 - en: Getting ready
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备就绪
 - en: The NGINX `keepalive` module is part of the core modules, so no additional installation
     is required.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的`keepalive`模块是核心模块的一部分，因此不需要额外安装。
 - en: How to do it...
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'By default, NGINX enables keep alive connections for non-proxied connections.
     This means that the connection between NGINX and the browser has already been
     optimized. However, as `keepalive` packets require HTTP/1.1 support, it''s not
     enabled by default for reverse proxy connections. Using our Express example from
     [Chapter 3](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml), *Common Frameworks*,
     we can add the additional directives:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，NGINX会为非代理连接启用keep alive连接。这意味着NGINX与浏览器之间的连接已经被优化。然而，由于`keepalive`数据包需要HTTP/1.1支持，因此默认情况下并未为反向代理连接启用它。通过我们在[第3章](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml)中使用的Express示例，*常见框架*，我们可以添加额外的指令：
 - en: '[PRE2]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: How it works...
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: By adding the `keepalive` directive, we define the maximum number of idle connections
     to keep open using keep alives. In our recipe, we specified a maximum of eight
     idle connections. It's important to note that this isn't the maximum number of
     connections in total, this only defines the number of idle connections to keep
     open.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过添加`keepalive`指令，我们定义了保持打开的最大空闲连接数。在我们的示例中，我们指定了最多八个空闲连接。需要注意的是，这并不是总连接数的最大值，它仅定义了保持打开的空闲连接数。
 - en: 'We can confirm that `keepalive` is working by checking the connections from
     the NGINX server. To do this, we use the `ss` command with the `-o` flag to display
     timer information in relation to the socket. For example, we can run the following
     command:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过检查NGINX服务器的连接来确认`keepalive`是否正常工作。为此，我们使用`ss`命令并加上`-o`标志来显示与套接字相关的计时器信息。例如，我们可以运行以下命令：
 - en: '[PRE3]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'With our Express-based demo, you should see something like the following:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的基于Express的演示中，您应该看到如下内容：
 - en: '[PRE4]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: We can see that sockets which have a `keepalive` packet have been flagged with
     a timer output to show the expiry.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，具有`keepalive`数据包的套接字已经被标记，并显示了一个计时器输出来展示过期时间。
 - en: 'If you need to test if the browser is seeing the `keepalive` response from
     the server, you can do this with browser developer tools such as Chrome **Developer
     Tools** (**DevTools**). In your browser of preference, open the developer tools
     and look for the response headers:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您需要测试浏览器是否看到了来自服务器的`keepalive`响应，可以使用浏览器开发者工具，如Chrome **开发者工具**（**DevTools**）。在您首选的浏览器中，打开开发者工具并查看响应头：
 - en: '![](img/801e506e-3bb0-4b83-bf46-7ec05000d7a9.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/801e506e-3bb0-4b83-bf46-7ec05000d7a9.png)'
 - en: 'In the preceding screenshot, we can see that the server responded with `Connection:
     keep-alive`. This means that the keepalive packets are supported and working.'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '在前面的截图中，我们可以看到服务器响应了`Connection: keep-alive`。这意味着keepalive数据包得到了支持并正在工作。'
 - en: See also
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: The NGINX `keepalive` documentation can be found at [http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive)
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX `keepalive` 文档可以在 [http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive)
+    查阅
 - en: Tuning worker processes and connections
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 调整工作进程和连接数
 - en: One of the first limits you'll find with running NGINX at scale is the defaults
     for the worker processes and connections. At a low level, an NGINX worker process
     is the dedicated event handler for processing all requests.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大规模运行 NGINX 时，最先遇到的限制之一就是工作进程和连接数的默认值。在低级别上，NGINX 的工作进程是用于处理所有请求的专用事件处理程序。
 - en: The defaults for most NGINX installations are 512 worker connections and 1 worker
     process. While these defaults work in most scenarios, a very busy server can benefit
     from adjusting these levels to suit your environment. There is no one-size-fits-all
     scenario when it comes to the correct values, so it's important to know where
     you're hitting limits and therefore, how to adjust to overcome them.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数 NGINX 安装的默认值是 512 个工作连接和 1 个工作进程。虽然这些默认值在大多数场景下有效，但对于非常繁忙的服务器，调整这些值以适应你的环境会有所帮助。在正确的值方面没有“一刀切”的方案，因此了解你在哪些地方遇到限制，并了解如何调整以克服它们是很重要的。
 - en: Setting the limits too high can result in increased memory and CPU overhead,
     which would have the overall effect of reduced performance rather than increasing
     it. Thankfully, NGINX will log when it hits certain limits, which is why the logging
     (as covered in [Chapter 5](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml), *Logging*)
     and metrics of your systems are paramount to maintaining high performance.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置过高的限制可能会导致内存和 CPU 的开销增加，从而产生降低性能的整体效果，而不是提升性能。幸运的是，NGINX 会在达到某些限制时记录日志，这也是为什么系统的日志记录（如在[第
+    5 章](3aa7298c-9fc0-4f41-9dfa-6db2e4e5e345.xhtml)，*日志记录*中所讨论）和指标对于维持高性能至关重要。
 - en: Getting ready
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: No special requirements exist for modifying worker process or connection directives.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 修改工作进程或连接指令没有特别的要求。
 - en: How to do it...
+  id: totrans-67
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: As the worker processes and worker connections can be independently adjusted,
     we can adjust either or both of them; depending on the limits which you're hitting.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于工作进程和工作连接数可以独立调整，我们可以调整其中一个或两个，具体取决于你遇到的限制。
 - en: Worker processes
+  id: totrans-69
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 工作进程
 - en: 'To adjust the number of worker processes, we need to edit the main NGINX configuration
     file. For most installations, this will be located at `/etc/nginx/nginx.conf`,
     and the directive is generally the first line in the file. Here''s what you may
     see for a default value:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 要调整工作进程的数量，我们需要编辑 NGINX 的主配置文件。对于大多数安装，配置文件通常位于 `/etc/nginx/nginx.conf`，并且该指令通常是文件中的第一行。以下是默认值的示例：
 - en: '[PRE5]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'If the server is dedicated to just running NGINX (for example, it doesn''t
     have the database and other services also running on it), a good rule of thumb
     is to set it to the number of CPU''s available. Consider this example when you
     have four CPU''s:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果服务器专门用于运行 NGINX（例如，它没有同时运行数据库和其他服务），一个好的经验法则是将其设置为可用的 CPU 数量。考虑一下以下例子，假设你有四个
+    CPU：
 - en: '[PRE6]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: If you have a high number of connections and they're not CPU bound (for example,
     heavy disk I/O), having more processes than CPU's may assist with increasing the
     overall throughput of the server.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有大量的连接，并且它们不是 CPU 密集型的（例如，磁盘 I/O 很重），那么工作进程数多于 CPU 数可能有助于提高服务器的整体吞吐量。
 - en: 'Lastly, NGINX can attempt to autodetect the number of CPU''s in your system
     by setting the value to auto:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，NGINX 可以尝试通过将值设置为 auto 来自动检测系统中的 CPU 数量：
 - en: '[PRE7]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: If you're not sure what value to use, auto is the best option to use.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不确定使用什么值，选择 auto 是最好的选择。
 - en: Worker connections
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 工作连接数
 - en: 'Each process can handle up to a maximum number of connections, as specified
     by the `worker_connections` directive. This defaults to 512, but for systems with
     high numbers of connections, we can increase this further. To do this, we need
     to edit the main nginx configuration file (`/etc/nginx/nginx.conf`) and adjust
     the following:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个进程可以处理最多数量的连接，该数量由 `worker_connections` 指令指定。默认值是 512，但对于连接数较多的系统，我们可以进一步增加此值。为此，我们需要编辑主
+    nginx 配置文件(`/etc/nginx/nginx.conf`) 并调整以下内容：
 - en: '[PRE8]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: As increasing the maximum number of connections means that additional system
     resources are required, caution should be exercised when making a change. If the
     server hits the limit for `worker_connections`, this will be logged in the NGINX
     error log. By ensuring that this is monitored alongside server resources, you
     can ensure that it has been set to the correct limit.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于增加最大连接数意味着需要更多的系统资源，因此在更改时应谨慎。如果服务器达到`worker_connections`的限制，NGINX错误日志中将记录此信息。通过确保同时监控服务器资源，你可以确保已将其设置为正确的限制。
 - en: There's more...
+  id: totrans-82
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: 'The worker connections can be further enhanced on modern systems by a few extra
     directives. Here''s what our updated block directive looks like:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在现代系统上，通过增加一些额外的指令可以进一步增强工作进程连接。以下是我们更新后的块指令：
 - en: '[PRE9]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: We have added the additional `multi_accept` directive and set it to `on`. This
     tells the NGINX worker to accept more than one connection at once when there are
     a high number of new, incoming connections.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们添加了额外的`multi_accept`指令并将其设置为`on`。这告诉NGINX工作进程在有大量新连接时一次接受多个连接。
 - en: Then, we set the `use` directive to `epoll`. This is the method NGINX uses to
     process the connections. While on every modern system this should be automatically
     set to `epoll` by default, we can explicitly set this to ensure that it's used.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将`use`指令设置为`epoll`。这是NGINX用来处理连接的方法。虽然在每个现代系统上，这个参数默认应该自动设置为`epoll`，但我们可以显式设置它以确保使用该方法。
 - en: See also
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另请参见
 - en: For more information on worker processes, refer to [http://nginx.org/en/docs/ngx_core_module.html#worker_processes](http://nginx.org/en/docs/ngx_core_module.html#worker_processes)
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如需了解更多关于工作进程的信息，请参阅[http://nginx.org/en/docs/ngx_core_module.html#worker_processes](http://nginx.org/en/docs/ngx_core_module.html#worker_processes)
 - en: For more information on worker connections, refer to [http://nginx.org/en/docs/ngx_core_module.html#worker_connections](http://nginx.org/en/docs/ngx_core_module.html#worker_connections)
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如需了解更多关于工作进程连接的信息，请参阅[http://nginx.org/en/docs/ngx_core_module.html#worker_connections](http://nginx.org/en/docs/ngx_core_module.html#worker_connections)
 - en: Fine tuning basic Linux system limits
+  id: totrans-90
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 调整基础Linux系统限制
 - en: The most popular hosting **Operating System** (**OS**) for NGINX is Linux, which
     is why we have focused on it in this book. Like NGINX, the out-of-the-box parameters
     are a good balance between resource usage and performance.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX最常用的**操作系统**（**OS**）是Linux，这也是我们在本书中重点讨论的操作系统。与NGINX类似，开箱即用的参数在资源使用和性能之间取得了良好的平衡。
 - en: One of the neat features of Linux is the fact that most of the kernel (the *engine*
     of the OS) can be tweaked and tuned as required. In fact, nearly every underlying
     aspect can be adjusted quite easily to ensure that you can perfectly tune it to
     your needs. With over 1,000 configurable parameters in the kernel, there's virtually
     infinite tuning available.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: Linux的一个优点是大部分内核（操作系统的*引擎*）都可以根据需要进行调整和优化。实际上，几乎每个底层方面都可以很容易地进行调整，以确保你可以完美地将其调优以满足需求。内核中有超过1,000个可配置的参数，几乎可以进行无限的调优。
 - en: Like our warning at the beginning of this chapter however, larger numbers don't
     necessarily reflect greater performance. It's important to ensure that you understand
     what parameters you're changing to understand the impact they'll have.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，正如本章开头的警告所述，较大的数字并不一定代表更好的性能。理解你所更改的参数非常重要，这样才能理解它们带来的影响。
 - en: Getting ready
+  id: totrans-94
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: Make sure that you have a backup of your existing server before making any changes.
     As the changing of the kernel parameters could result in adverse performance or
     even an unworkable system, it's advisable to perform this on a development or
     staging system first.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进行任何更改之前，请确保你已备份现有服务器。由于更改内核参数可能导致性能下降甚至系统无法正常工作，因此建议先在开发或预发布系统上进行测试。
 - en: How to do it...
+  id: totrans-96
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Each kernel parameter can be set in real time, which allows you to test and
     refine the changes on the fly. To do this, you can use the `sysctl` program to
     change these parameters. For starters, we can ensure that TCP syncookies (a method
     of resisting low level denial of service attacks) are enabled:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个内核参数都可以实时设置，这使你能够即时测试和调整更改。为此，你可以使用`sysctl`程序来更改这些参数。首先，我们可以确保启用了TCP同步cookie（这是一种抵御低级拒绝服务攻击的方法）：
 - en: '[PRE10]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'If you want the change to be persistent between boots, we can add this to the
     `sysctl` configuration file, generally located at `/etc/sysctl.conf`. Here''s
     what the configuration line should look like:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你希望此更改在重启后保持有效，我们可以将其添加到`sysctl`配置文件中，通常位于`/etc/sysctl.conf`。以下是配置行的样子：
 - en: '[PRE11]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'You can test and retrieve what value any of the kernel parameters are set to
     using `sysctl` again in read-only mode:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以再次使用`sysctl`以只读模式测试并检索任何内核参数的设置值：
 - en: '[PRE12]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'If you'' set it correctly, you should see the following result:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你设置正确，你应该看到以下结果：
 - en: '[PRE13]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: When you're trying to determine if limits have been hit, ensure that you check
     the kernel ring buffer for errors by running the `dmesg` utility. This logs the
     output from any kernel module, which generally occurs when they either encounter
     a limit or error and usually the first port of call to determine what limits you've
     hit.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你尝试确定是否已达到限制时，确保通过运行`dmesg`工具检查内核环形缓冲区中的错误。此工具记录来自任何内核模块的输出，通常当它们遇到限制或错误时会发生，通常是判断你已达到哪些限制的第一个方法。
 - en: 'If you have a busy server, one of the first Linux kernel limits you may find
     yourself hitting is when there are some delays in processing and you still have
     a large number of incoming connections which haven''t yet been accepted. While
@@ -491,11 +708,15 @@
     adjust the limit by increasing the value for `net.core.somaxconn`. On many systems,
     this defaults to 128 connections, but we can increase this by running the following
     command:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一台繁忙的服务器，其中一个你可能遇到的第一个Linux内核限制是，当处理出现延迟且仍有大量未被接受的传入连接时。虽然有一个缓冲区，但一旦你达到此缓冲区，服务器将会丢弃任何进一步的传入连接，这会导致中断。为了增加这个限制，我们可以通过增加`net.core.somaxconn`的值来调整限制。在许多系统中，这个默认值是128个连接，但我们可以通过运行以下命令来增加这个值：
 - en: '[PRE14]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'With a large amount of incoming connections, you may also find yourself running
     out of ephemeral ports for newer connections. As one of the final stages of a
     TCP connection is the `TIME_WAIT` stage, here the connection has been requested
@@ -503,239 +724,354 @@
     a busy server, this can result in thousands of connections being held in a `TIME_WAIT`
     state and, by default, these need to be completely closed before they can be reused.
     We can see the state of the TCP ports on a server by running the following command:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 当有大量传入连接时，你可能还会发现自己耗尽了新的连接所需的临时端口。由于TCP连接的最后阶段之一是`TIME_WAIT`阶段，此时连接已经请求关闭，但仍保持打开状态，以防有更多数据包到来。在繁忙的服务器上，这可能导致数千个连接被保持在`TIME_WAIT`状态，并且默认情况下，在这些连接可以被重用之前，必须完全关闭它们。我们可以通过运行以下命令查看服务器上TCP端口的状态：
 - en: '[PRE15]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Here''s the output from a moderately-low used server:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是来自一个中等低使用量服务器的输出：
 - en: '[PRE16]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'If the server becomes very busy, it''s possible that all the ports available
     will be locked in the `TIME_WAIT` state. There are two approaches to overcoming
     this limitation. The first is to reduce the time we hold a connection in the `TIME_WAIT`
     stage. This can be done by lowering the default of `60` seconds to `10` seconds:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果服务器变得非常繁忙，所有可用端口可能都会被锁定在`TIME_WAIT`状态。解决此限制有两种方法。第一种方法是减少我们在`TIME_WAIT`阶段保持连接的时间。这可以通过将默认的`60`秒调整为`10`秒来实现：
 - en: '[PRE17]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'Secondly, we could simply tell the Linux kernel to reuse ports still in the
     `TIME_WAIT` stage for new connections, if required:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，我们可以简单地告诉Linux内核，如果需要，可以重用仍处于`TIME_WAIT`阶段的端口进行新的连接：
 - en: '[PRE18]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: This generally isn't enabled by default due to possible conflicts and issues
     with old, legacy applications, but should be safe to enable for an NGINX server.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于可能与旧版遗留应用程序存在冲突和问题，默认情况下通常不会启用此功能，但对于NGINX服务器启用它应该是安全的。
 - en: You may also find many blogs and articles advising you to increase the buffer
     sizes for TCP, but these generally focus on increasing the buffer sizes for file
     serving. Unless you're using NGINX to serve large files, the default values are
     generally high enough for low latency connections.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可能会发现许多博客和文章建议你增加TCP的缓冲区大小，但这些通常侧重于增加文件服务的缓冲区大小。除非你使用NGINX提供大文件服务，否则默认值通常对于低延迟连接已经足够高。
 - en: See also
+  id: totrans-118
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: The NGINX tuning blog can be found at [https://www.nginx.com/blog/tuning-nginx/](https://www.nginx.com/blog/tuning-nginx/)
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX调优博客可以在[https://www.nginx.com/blog/tuning-nginx/](https://www.nginx.com/blog/tuning-nginx/)找到。
 - en: For more information on kernel tuning, refer to [https://www.linux.com/news/kernel-tuning-sysctl](https://www.linux.com/news/kernel-tuning-sysctl)
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有关内核调优的更多信息，请参考 [https://www.linux.com/news/kernel-tuning-sysctl](https://www.linux.com/news/kernel-tuning-sysctl)
 - en: Integrating ngx_pagespeed
+  id: totrans-121
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 集成 ngx_pagespeed
 - en: As the kings of high performance, Google has given us many tools and enhancements
     that have benefited the web world enormously. Google Chrome (as of 2017) has over
     60 percent of the browser market share and its drive for performance has forced
     other browsers to play catch-up.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为高性能的代表，谷歌为我们提供了许多工具和改进，这些都大大造福了互联网世界。谷歌 Chrome（截至 2017 年）占据了超过 60% 的浏览器市场份额，其对性能的追求也迫使其他浏览器加速跟进。
 - en: Not to be outdone at the server level, Google also has vested interest in ensuring
     that websites are highly performant as well. This is because faster sites offer
     a better user experience, which is important when you're trying to offer highly
     relevant search results. To expedite this, Google released `ngx_pagespeed`, which
     is a module for NGINX that tries to apply Google's best practices to reduce both
     latency and bandwidth for websites.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了在服务器层面不甘落后，谷歌也致力于确保网站具备高性能。这是因为更快速的网站能提供更好的用户体验，而在提供高度相关的搜索结果时，这一点尤为重要。为加速这一进程，谷歌发布了`ngx_pagespeed`，这是一个为
+    NGINX 设计的模块，旨在应用谷歌的最佳实践来减少网站的延迟和带宽消耗。
 - en: While many (if not all) of these optimizations can be manually applied, or should
     be part of any highly-performant development workflow, not everyone has the time
     to put the same amount of focus on overall website performance. This is especially
     common with smaller business websites, where the development has been outsourced
     to a third party, but don't have the budget to fully optimize.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然许多（如果不是所有）这些优化可以手动应用，或者应该是任何高性能开发工作流的一部分，但并非每个人都有时间将同样的精力集中于整体网站性能上。这在小型商业网站中尤为常见，这些网站的开发外包给第三方，但没有预算进行全面优化。
 - en: Getting ready
+  id: totrans-125
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: 'The `ngx_pagespeed` module requires you to compile the module and NGINX from
     source, which can be achieved in two ways. The first is to use the automated script
     provided by Google:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ngx_pagespeed` 模块要求你从源代码编译模块和 NGINX，这可以通过两种方式实现。第一种是使用谷歌提供的自动化脚本：'
 - en: '[PRE19]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Manually inspecting any script before running it is advisable, especially when
     downloading from new or unknown sources.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行任何脚本之前，建议手动检查，特别是当从新的或未知的来源下载时。
 - en: This script will install any required dependencies, then download the latest
     mainline NGINX edition, and then add the `ngx_pagespeed` module. This script isn't
     completely headless and may ask you to confirm some basic parameters such as additional
     modules to compile (if required). If you intend to use this on a production server,
     you will need to adjust some of the installation paths to suit your environment.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 该脚本将安装所有所需的依赖项，然后下载最新的主线 NGINX 版本，再添加 `ngx_pagespeed` 模块。这个脚本并非完全自动化，可能会要求你确认一些基本参数，比如是否需要编译其他模块（如果需要的话）。如果打算在生产服务器上使用此脚本，你需要调整一些安装路径，以适应你的环境。
 - en: The second method is via a manual installation, which can also be used if you
     need to modify the standard build. Details of the manual installation steps are
     located on the `ngx_pagespeed` website. With the advent of dynamic modules within
     NGINX, there should hopefully be a compiled binary version available very soon
     as well.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二种方法是通过手动安装，如果你需要修改标准构建，也可以使用这种方法。手动安装步骤的详细信息可以在 `ngx_pagespeed` 网站上找到。随着 NGINX
+    动态模块的出现，希望不久后会有一个已编译的二进制版本可用。
 - en: How to do it...
+  id: totrans-131
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作…
 - en: 'To test the differences with and without the module enabled, I''ve used a typical
     Bootstrap-based website which incorporates several JavaScript and **Cascading
     Style Sheets** (**CSS**) scripts:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了测试启用与未启用该模块的差异，我使用了一个典型的基于 Bootstrap 的网站，其中包含了多个 JavaScript 和 **层叠样式表**（**CSS**）脚本：
 - en: 'To serve these files, we have a basic NGINX configuration:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了服务这些文件，我们有一个基本的 NGINX 配置：
 - en: '[PRE20]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'With a basic site set up, we can now enable the `nginx_pagespeed` module. Before
     we enable the module, we first need to create a directory for cache file storage.
     We can do this using the following command:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置好基本站点后，我们现在可以启用 `ngx_pagespeed` 模块。在启用模块之前，我们首先需要为缓存文件存储创建一个目录。可以使用以下命令来完成此操作：
 - en: '[PRE21]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'We also need to ensure that it''s writable by NGINX, so we simply set the ownership
     to be the `nginx` user, using the following command:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要确保 NGINX 对该目录具有写权限，因此只需使用以下命令将目录的所有权设置为 `nginx` 用户：
 - en: '[PRE22]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'With the cache directory ready, we can now load the module by adding the following
     lines into the server block directive:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，缓存目录准备好了，我们可以通过将以下行添加到服务器块指令中来加载模块：
 - en: '[PRE23]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'While it may seem overly simple, there''s an enormous amount of complexity
     and work which goes on in the module. Since some of the options may cause issues
     with a small number of sites, there''s also the ability to disable certain sub-modules.
     For instance, if we wanted to disable combining CSS files, we can disable the
     filter by adding the following directive:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这看起来非常简单，但模块中有大量复杂的工作。在某些选项可能导致少数站点出现问题的情况下，还可以禁用某些子模块。例如，如果我们想禁用合并CSS文件，可以通过添加以下指令来禁用该过滤器：
 - en: '[PRE24]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: How it works...
+  id: totrans-143
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: 'Using Google''s **PageSpeed Insights**, we can see the out-of-the-box score
     for the website without any optimization enabled:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用谷歌的**PageSpeed Insights**，我们可以查看在没有启用任何优化的情况下，网站的开箱即用得分：
 - en: '![](img/584442ec-2238-448f-8e4f-85756a1df79c.png)'
+  id: totrans-145
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/584442ec-2238-448f-8e4f-85756a1df79c.png)'
 - en: 'Obviously, 51/100 isn''t a great score; this is due to multiple CSS and JS
     files that haven''t been minified, are not compressed, and use no explicit browser
     caching. With `ngx_pagespeed` enabled, we get a much better result:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，51/100的得分并不高；这是由于多个未经过最小化的CSS和JS文件，它们没有压缩，也没有使用显式的浏览器缓存。启用`ngx_pagespeed`后，我们可以获得更好的结果：
 - en: '![](img/01f109cb-7dd0-4578-bbc6-eaf724ea22d7.png)'
+  id: totrans-147
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/01f109cb-7dd0-4578-bbc6-eaf724ea22d7.png)'
 - en: This has instantly given the website a boost in performance, but the simple
     score doesn't tell the whole story. When comparing the differences in the number
     of requests, the total has nearly halved.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 这立即提升了网站的性能，但简单的得分并没有告诉我们全部内容。在比较请求数量的差异时，总数几乎减半。
 - en: '|  | **Without ngx_pagespeed** | **With ngx_pagespeed** |'
+  id: totrans-149
   prefs: []
   type: TYPE_TB
+  zh: '|  | **未启用ngx_pagespeed** | **启用ngx_pagespeed** |'
 - en: '| **Files Loaded** | 18 | 11 |'
+  id: totrans-150
   prefs: []
   type: TYPE_TB
+  zh: '| **已加载文件** | 18 | 11 |'
 - en: '| **Total Transferred** | 540 kB | 214 kB |'
+  id: totrans-151
   prefs: []
   type: TYPE_TB
+  zh: '| **总传输量** | 540 kB | 214 kB |'
 - en: While this is only for a very basic site, as the improvements show, there are
     significant performance gains for nearly zero effort.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这只是针对一个非常基础的网站，但正如改进所显示的，几乎没有任何努力就能带来显著的性能提升。
 - en: Like many of the systems that work, Google's optimizations have quite a number
     of neat features. As compressing and minifying CSS/JS can be CPU intensive, on
     the first page load (without the cache being warmed), NGINX will simply serve
     the site in the original format. In the background, the module queues these tasks
     and, once available, they will be served directly from the cache.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 像许多工作系统一样，谷歌的优化也有许多巧妙的功能。由于压缩和最小化CSS/JS可能会消耗大量CPU资源，在第一次加载页面时（缓存未预热），NGINX会直接提供原始格式的站点。在后台，模块会将这些任务排队，任务完成后，将直接从缓存中提供。
 - en: There's more...
+  id: totrans-154
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多……
 - en: 'If you want to see what''s going on, we can enable the admin area for `modpagespeed`.
     To do this, we need to add configuration items outside of the main server directive.
     Here''s the code to add:'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想查看正在发生的情况，我们可以为`modpagespeed`启用管理区域。为此，我们需要在主服务器指令之外添加配置项。下面是需要添加的代码：
 - en: '[PRE25]'
+  id: totrans-156
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'This allows us to see what''s going on within the module, including details
     such as hits and misses from the cache, image compression, CSS, and JavaScript
     minification, and more:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使我们能够看到模块内部发生的情况，包括缓存的命中和未命中、图像压缩、CSS和JavaScript最小化等细节：
 - en: '![](img/19685a0a-8b8a-4240-9d73-61f111a2b769.png)'
+  id: totrans-158
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/19685a0a-8b8a-4240-9d73-61f111a2b769.png)'
 - en: If this is a production environment, ensure that you restrict access so that
     it can't be used for malicious reasons.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果这是生产环境，请确保限制访问，以防止它被用于恶意目的。
 - en: See also
+  id: totrans-160
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: To learn more about NGINX PageSpeed, refer to [http://ngxpagespeed.com/](http://ngxpagespeed.com/)
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要了解更多关于NGINX PageSpeed的信息，请访问[http://ngxpagespeed.com/](http://ngxpagespeed.com/)
 - en: More information about installation reference is available at [https://modpagespeed.com/doc/build_ngx_pagespeed_from_source](https://modpagespeed.com/doc/build_ngx_pagespeed_from_source)
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安装参考的更多信息请访问[https://modpagespeed.com/doc/build_ngx_pagespeed_from_source](https://modpagespeed.com/doc/build_ngx_pagespeed_from_source)
 - en: "More information about PageSpeed Insights can be found at [https://developers.google.com/speed/pagespeed/insights/\uFEFF\
     ](https://developers.google.com/speed/pagespeed/insights/)"
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: "关于PageSpeed Insights的更多信息可以在[https://developers.google.com/speed/pagespeed/insights/\uFEFF\
+    ](https://developers.google.com/speed/pagespeed/insights/)找到"

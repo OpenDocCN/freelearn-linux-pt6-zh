@@ -1,383 +1,580 @@
 - en: OpenResty
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: OpenResty
 - en: 'In this chapter, we will cover the following topics:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将涵盖以下主题：
 - en: Installing OpenResty
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安装 OpenResty
 - en: Getting started with OpenResty Lua
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 开始使用 OpenResty Lua
 - en: Lua microservices with OpenResty
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 OpenResty 实现 Lua 微服务
 - en: A simple hit counter with a Redis backend
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个简单的带 Redis 后端的点击计数器
 - en: Powering API gateways with OpenResty
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用 OpenResty 提供 API 网关
 - en: Introduction
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: If you've ever wondered whether you can make a few changes to NGINX dynamically
     or wanted a bit more flexibility, then you're going to love OpenResty.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你曾经想过是否可以动态地对 NGINX 进行一些更改，或者希望拥有更多的灵活性，那么你一定会喜欢 OpenResty。
 - en: '![](img/2f639334-f4ef-41c0-a7f5-2edabbf6488c.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/2f639334-f4ef-41c0-a7f5-2edabbf6488c.png)'
 - en: Think of OpenResty as NGINX with the kitchen sink thrown in; it's a combination
     of NGINX, along with Lua scripting, and several additional third-party modules
     all packaged up and ready to use. The inclusion of Lua scripting and additional
     modules allows NGINX to be extended to be a full web application rather than simply
     a web server.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 把 OpenResty 想象成是 NGINX 与“厨房水槽”结合体；它是 NGINX 和 Lua 脚本，以及多个额外的第三方模块的组合，所有这些都被打包并准备好使用。Lua
+    脚本和额外模块的加入，使得 NGINX 能够扩展为一个完整的 Web 应用，而不仅仅是一个 Web 服务器。
 - en: Some may fear that this additional functionality comes with a performance hit,
     but this simply isn't the case. Large platforms, such as **Cloudflare**, use a
     combination of NGINX and Lua to achieve what they do at scale, and it's due to
     the power of OpenResty. In fact, the original creator, Yichun Zhang worked for
     Cloudflare on OpenResty and has now formed a separate OpenResty foundation to
     steward the platform going forward.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 有些人可能担心这些额外的功能会带来性能损失，但事实并非如此。像**Cloudflare**这样的巨大平台，使用 NGINX 和 Lua 的组合来实现其大规模的操作，而这正是
+    OpenResty 强大之处。实际上，OpenResty 的原创者张益春曾在 Cloudflare 工作并参与 OpenResty 项目，现已成立了一个独立的
+    OpenResty 基金会，以推动平台的未来发展。
 - en: This power allows complicated scenarios such as **Web Application Firewalls**
     (**WAFs**) to be tightly integrated at the website level, allowing the combination
     of per-site flexibility with the high-speed aspects NGINX is known for. In fact,
     many are even starting to use OpenResty for their full framework and it can be
     especially effective for a simple microservice-driven system.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种强大功能使得复杂的场景，例如**Web 应用防火墙**（**WAFs**），能够在网站级别紧密集成，从而将每个站点的灵活性与 NGINX 知名的高速性能结合起来。实际上，许多公司已经开始使用
+    OpenResty 作为其完整框架，尤其适合简单的微服务驱动系统。
 - en: This is just one of the many examples. In this chapter, you'll see that OpenResty
     is a great fit for many scenarios where you want to use NGINX but also wish to
     add a bit of dynamic flair.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 这只是众多示例中的一个。在本章中，你将看到 OpenResty 在很多场景下非常适合使用 NGINX 的同时，还能加入一些动态的特性。
 - en: Installing OpenResty
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 安装 OpenResty
 - en: OpenResty is packaged for the easy installation of most Linux distributions,
     but there are binary packages for both Windows and OS X available as well. As
     most production deployments will predominantly be Linux-based, we'll concentrate
     on Linux for our recipe.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: OpenResty 为大多数 Linux 发行版提供了简便的安装包，同时也有适用于 Windows 和 OS X 的二进制安装包。由于大多数生产部署将主要基于
+    Linux，因此我们将专注于 Linux 来进行教程。
 - en: Getting ready
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备就绪
 - en: If you have NGINX already installed, you'll need to uninstall it first to remove
     any other conflicts.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你已经安装了 NGINX，你需要先卸载它，以避免与其他软件产生冲突。
 - en: How to do it...
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: Official repositories exist for most major Linux installations, but we'll focus
     on just CentOS 7 and Ubuntu 16.04 LTS to cover the two most common scenarios.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数主要的 Linux 发行版都有官方仓库，但我们将专注于 CentOS 7 和 Ubuntu 16.04 LTS，涵盖这两种最常见的场景。
 - en: CentOS
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: CentOS
 - en: 'To add the repository, the first thing we need is the `yum-utils` package.
     This makes the creation of repositories as simple as a one-line installation:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 要添加仓库，首先需要安装 `yum-utils` 包。通过它，创建仓库就像一行命令那样简单：
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'With `yum-utils` installed, we can now create the `openresty` repository on
     our server:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装了 `yum-utils` 后，我们可以在服务器上创建 `openresty` 仓库：
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This will automatically fetch the remote repository file and place it in the
     correct location for you.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将自动获取远程仓库文件，并将其放置在正确的位置。
 - en: 'With the repository installed and enabled, we can now install OpenResty:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装并启用仓库后，我们可以安装 OpenResty：
 - en: '[PRE2]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: This will install the latest OpenResty package, as well as all the required
     dependencies.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将安装最新的 OpenResty 包及其所有所需的依赖项。
 - en: 'To enable the service to start on boot, we can enable it via `systemd`:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使服务在启动时自动启动，我们可以通过 `systemd` 启用它：
 - en: '[PRE3]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'You can start the service via `systemd` as well:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以通过 `systemd` 启动该服务：
 - en: '[PRE4]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'This will start NGINX, which will be preconfigured with all the OpenResty additions.
     As it comes with a simple configuration (as NGINX does out-of-the-box), you can
     quickly open a browser and see the output via the IP to confirm it''s working:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将启动 NGINX，并且会预先配置所有 OpenResty 的附加功能。由于它带有一个简单的配置（就像 NGINX 默认安装的配置一样），你可以快速打开浏览器并通过
+    IP 地址查看输出，以确认它是否正常工作：
 - en: '![](img/58cbc56d-aff3-4944-8ba8-4b876af7d1d1.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/58cbc56d-aff3-4944-8ba8-4b876af7d1d1.png)'
 - en: Ubuntu
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Ubuntu
 - en: 'To install OpenResty on an Ubuntu-based system, first we need to import the
     **GPG** key used for signing the packages:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在基于 Ubuntu 的系统上安装 OpenResty，首先我们需要导入用于签名包的 **GPG** 密钥：
 - en: '[PRE5]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Like the CentOS installation, we can use a helper package to make the installation
     of the repository easy. To install it, use the following command:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 和 CentOS 安装一样，我们可以使用辅助包来简化仓库的安装。要安装它，使用以下命令：
 - en: '[PRE6]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'We can now install the repository for OpenResty and then refresh the `package`
     indexes:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以安装 OpenResty 的仓库，并刷新 `package` 索引：
 - en: '[PRE7]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'With the repository installed, we can now install the OpenResty package:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装完仓库后，我们现在可以安装 OpenResty 包：
 - en: '[PRE8]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Once all the dependencies and OpenResty packages are installed, you can now
     set the service to start on boot and then start it so that you can test the service.
     You can do this via `systemd`:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦所有依赖项和 OpenResty 包安装完成，你现在可以设置服务在启动时自动启动，然后启动服务以进行测试。你可以通过 `systemd` 来完成此操作：
 - en: '[PRE9]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: If you don't see any errors, you will then be able browse to the IP address
     of your server (or virtual machine) and see the OpenResty test page, as shown
     in the previous CentOS installation instructions.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有看到任何错误，你将能够浏览到你的服务器（或虚拟机）的 IP 地址，并看到 OpenResty 测试页面，正如前面 CentOS 安装说明中所示。
 - en: How it works...
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The locations of the configuration files and system libraries are slightly different
     to a standard NGINX installation, so it's important to remember the location.
     By default, OpenResty installs to `/usr/local/openresty`. For example, if you
     look for the NGINX configuration files, they'll be stored in `/usr/local/openresty/nginx/conf`.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置文件和系统库的位置与标准 NGINX 安装有所不同，因此记住这些位置很重要。默认情况下，OpenResty 安装在 `/usr/local/openresty`。例如，如果你查找
+    NGINX 配置文件，它们将存储在 `/usr/local/openresty/nginx/conf`。
 - en: If you look at the standard NGINX configuration file, you won't see any real
     difference between it and the standard package. Because OpenResty is essentially
     just NGINX with additional modules compiled, you can easily take an existing NGINX
     configuration (like any of the ones covered in this book) and extend the functionality
     with the additional OpenResty modules.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你查看标准的 NGINX 配置文件，你将不会看到与标准包有任何实质性的区别。因为 OpenResty 本质上只是带有额外模块的 NGINX，所以你可以轻松地将现有的
+    NGINX 配置（例如本书中涉及的任何配置）与 OpenResty 的附加模块结合，扩展其功能。
 - en: 'We can confirm these modules are available by running the following command:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过运行以下命令来确认这些模块是否可用：
 - en: '[PRE10]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'This should give you an output similar to the following:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该会给出类似于以下内容的输出：
 - en: '[PRE11]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: We can confirm that there are additional modules installed, such as `lua_upstream`
     and `luajit`, which form the core of the OpenResty capabilities.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以确认已经安装了额外的模块，如 `lua_upstream` 和 `luajit`，它们构成了 OpenResty 的核心功能。
 - en: See also
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: "For official installation instructions, refer to [https://openresty.org/en/installation.html](6863d7d3-d70d-4aa7-a96d-a799f0bb8667.xhtml).\uFEFF"
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关官方安装说明，请参阅 [https://openresty.org/en/installation.html](6863d7d3-d70d-4aa7-a96d-a799f0bb8667.xhtml)。
 - en: Getting started with OpenResty Lua
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 开始使用 OpenResty Lua
 - en: One of the key powers of OpenResty is the built-in Lua scripting language. For
     those not familiar with Lua, it's a high-performance, yet lightweight scripting
     language. This is why, when it's combined with the NGINX event engine, it results
     in a very powerful combination.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: OpenResty 的一个关键优势是内置的 Lua 脚本语言。对于那些不熟悉 Lua 的人来说，它是一种高性能且轻量级的脚本语言。这就是为什么，当它与
+    NGINX 事件引擎结合时，能产生非常强大的组合效果。
 - en: Being a dynamically typed and interpreted language makes Lua similar to other
     scripting languages, such as JavaScript, but there are some subtle differences
     (especially syntax-wise). If you're new to Lua, then it's worthwhile reading through
     a few basic tutorials to familiarize yourself with the syntax and differences.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一种动态类型和解释型语言，Lua 类似于其他脚本语言，如 JavaScript，但也有一些细微的差别（特别是在语法上）。如果你是 Lua 新手，那么阅读一些基础教程以熟悉语法和差异是值得的。
 - en: Getting ready
+  id: totrans-60
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: For this recipe, we'll use the standard OpenResty modules, so no further changes
     are required to get started.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个食谱，我们将使用标准的 OpenResty 模块，因此无需进行其他更改即可开始使用。
 - en: How to do it...
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'We''ll start with using one of the most basic functions in OpenResty and Lua,
     which is the `content_by_lua_block` block directive. This allows us to insert
     Lua code directly in line with our NGINX configuration, providing rapid and dynamic
     changes. The first recipe returns a basic string:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从使用 OpenResty 和 Lua 中最基本的功能之一开始，那就是 `content_by_lua_block` 块指令。这个指令允许我们直接在
+    NGINX 配置中插入 Lua 代码，提供快速和动态的变更。第一个食谱返回一个基本字符串：
 - en: '[PRE12]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: If you browse to the URL (or use cURL to make the request), you should simply
     get `This is a simple test` as the HTTP response. Running a simple Apache Benchmark
     against this URL (just to show a baseline performance) shows that it can serve
     this URL over 20,000 times a second on a modestly resourced VM. While the code
     isn't overly complex, it does show that the overheads for adding Lua have a very
     minimal effect on performance.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你浏览该 URL（或使用 cURL 发起请求），你应该会看到 `This is a simple test` 作为 HTTP 响应。使用简单的 Apache
+    Benchmark 对该 URL 进行压力测试（仅为展示基准性能）表明，它可以在配置适中的虚拟机上每秒提供超过 20,000 次的服务。尽管代码并不复杂，但它确实展示了添加
+    Lua 的开销对性能的影响非常小。
 - en: 'If you need to return the data as JSON, then this is quite simple to do as
     well. Using the basic example, as we used previously, we can leverage the Lua
     CJSON library (compiled with OpenResty by default) to encode the output:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你需要将数据以 JSON 格式返回，那么这也是非常简单的。使用我们之前使用的基本示例，我们可以利用 Lua CJSON 库（默认与 OpenResty
+    一起编译）来编码输出：
 - en: '[PRE13]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'If we call the `/simplejsontest` URL, you should see the following output:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们访问 `/simplejsontest` URL，你应该看到以下输出：
 - en: '[PRE14]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: This, of course, barely scratches the surface of what can be achieved with Lua,
     but this should at least get you started.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这仅仅是 Lua 可以实现的功能的冰山一角，但至少它能让你入门。
 - en: How it works...
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In both recipes, we utilized Lua modules to provide (albeit simplistic) output
     based on Lua code. While the code is in line with the NGINX configuration, it
     runs directly within each worker process. This gives it massive concurrency out-of-the-box,
     which, combined with the native speed of Lua, means it's incredibly powerful.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这两个食谱中，我们都使用了 Lua 模块来提供（尽管是简单的）基于 Lua 代码的输出。虽然代码与 NGINX 配置行内执行，但它直接在每个工作进程中运行。这为其提供了巨大的并发能力，而
+    Lua 的原生速度使它非常强大。
 - en: See also
+  id: totrans-73
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: For more details on the Lua module, refer to [https://github.com/openresty/lua-nginx-module#readme](https://github.com/openresty/lua-nginx-module#readme).
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关 Lua 模块的更多细节，请参考 [https://github.com/openresty/lua-nginx-module#readme](https://github.com/openresty/lua-nginx-module#readme)。
 - en: Lua microservices with OpenResty
+  id: totrans-75
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 OpenResty 的 Lua 微服务
 - en: 'One of the quickest, natural extensions of OpenResty is to create and run a
     microservice directly, rather than having to proxy it to another external service.
     For those not familiar with microservices, this is a methodology of breaking down
     a software platform into small, independent services rather than a single, monolithic
     system. Here''s a basic diagram of how the services may look for a web application:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: OpenResty 的一个最快且自然的扩展方式是直接创建和运行一个微服务，而不是将其代理到另一个外部服务。对于不熟悉微服务的人来说，这是一种将软件平台拆分成小的独立服务，而不是单一的庞大系统的方法。以下是
+    Web 应用程序中服务可能的基本图示：
 - en: '![](img/74ba2c1f-c837-4089-be2a-07ee4a28ff01.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/74ba2c1f-c837-4089-be2a-07ee4a28ff01.png)'
 - en: This means that each microservice can be independently upgraded, changed, and
     scaled as required; keeping it to one task means the code should remain easier
     to manage.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着每个微服务可以根据需要独立升级、变更和扩展；保持单一任务意味着代码应该更容易管理。
 - en: Getting ready
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: In this recipe, we're going to focus on just one microservice. In a real-world
     deployment, these microservices could be as high as 150 for a complex platform,
     and many typically hover between the range of 10-30.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个食谱中，我们将专注于一个微服务。在真实的部署中，这些微服务的数量可能高达 150 个，用于一个复杂的平台，许多通常在 10 到 30 个之间。
 - en: For this microservice, we're going to take advantage of the built-in Lua DNS
     module (`lua-resty-dns`) to provide a resolution tool and return the result as
     JSON. As a real-world example, we're going to look up the **Mail Exchanger** (**MX**)
     record. This could be part of a platform for email migration, anti-spam validation,
     or similar and would traditionally require NGINX to proxy the connection to an
     external application.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个微服务，我们将利用内置的Lua DNS模块（`lua-resty-dns`）来提供解析工具并返回JSON格式的结果。作为实际的例子，我们将查询**邮件交换器**（**MX**）记录。这可能是用于电子邮件迁移、反垃圾邮件验证或类似功能的平台的一部分，通常需要NGINX将连接代理到外部应用程序。
 - en: How to do it...
+  id: totrans-82
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To create our microservice, we''re going to create a `location` block directive
     with the following:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了创建我们的微服务，我们将创建一个`location`块指令，内容如下：
 - en: '[PRE15]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'If you browse to the IP or the name of the server and pass the domain as a
     get variable with the name to test, you should receive a copy of the MX records
     back in JSON format for that domain. For example, if we call `http://openresty.nginxcookbook.com/getmxrecord/?domain=instagram.com`,
     you should see the following:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你浏览服务器的IP或名称，并传递域名作为get变量来进行测试，你应该会收到该域名的MX记录的JSON格式副本。例如，如果我们调用`http://openresty.nginxcookbook.com/getmxrecord/?domain=instagram.com`，你应该会看到以下内容：
 - en: '[PRE16]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: There can be more than one MX record; this is why you see an array returned
     within the JSON data for the records.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个域名可能有多个MX记录；这就是为什么在记录的JSON数据中返回一个数组的原因。
 - en: How it works...
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: We start by loading the CJSON and Lua OpenResty DNS modules and initiating the
     DNS module by setting the nameservers to `8.8.8.8` (Google's free open resolver).
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先加载CJSON和Lua OpenResty DNS模块，并通过设置`8.8.8.8`（Google的免费开放解析器）来初始化DNS模块。
 - en: Then, we parse the `GET` argument, named domain. Through the NGINX API, Lua
     can call this directly via the `domain` name. If the get variable you wanted was
     named shop, you could have called it via `ngx.var.arg_shop`.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们解析`GET`参数，命名为domain。通过NGINX API，Lua可以直接通过`domain`名称调用它。如果你想要的get变量名为shop，你可以通过`ngx.var.arg_shop`调用它。
 - en: This is then validated by ensuring the variable is set (for example, the `GET`
     argument was passed) and then checking for a basic domain. The formats of the
     regular expressions within Lua are slightly different to the more common **Perl-Compatible
@@ -386,221 +583,326 @@
     contain at least one dot (`.`) and alphanumeric characters. While it's not a perfect
     validator, the advent of all the new **Top-Level Domains** (**TLDs**) has made
     this considerably harder to do.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 这通过确保变量已设置（例如，`GET`参数已传递）并检查基本域名来验证。Lua中的正则表达式格式与更常见的**Perl兼容正则表达式**（**PCRE**）略有不同，但概念是相同的。我们确保域名以字母数字字符开头（使用`%w`）；它们应该包含至少一个点（`.`）和字母数字字符。虽然这不是一个完美的验证器，但由于新的**顶级域**（**TLDs**）的出现，这使得验证变得更加困难。
 - en: After ensuring the domain is valid, we run a query, specifying the query type
     to be MX. If we receive a result, this is encoded via the CJSON module to return
     the results as JSON code.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 在确保域名有效后，我们执行查询，指定查询类型为MX。如果收到结果，将通过CJSON模块对其进行编码，返回JSON格式的结果。
 - en: There's more...
+  id: totrans-93
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: In a production environment, you can use the standard NGINX rate-limiting features
     (as covered in [Chapter 9](c879c343-0d45-42e7-9f86-2217fd837e4d.xhtml), *Advanced
     Features*) to limit the abuse of a service like this, especially if it's exposed
     directly to the internet. The advantage of OpenResty is that you still have the
     full power of NGINX to use outside of the enhancements it provides.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生产环境中，你可以使用标准的NGINX限流功能（如[第9章](c879c343-0d45-42e7-9f86-2217fd837e4d.xhtml)，*高级功能*中所述）来限制此类服务的滥用，特别是当它直接暴露到互联网时。OpenResty的优势在于，你仍然可以使用NGINX的全部功能，而不仅仅是它所提供的增强功能。
 - en: See also
+  id: totrans-95
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: For more information on Lua-resty-dns module, refer to [https://github.com/openresty/lua-resty-dns](https://github.com/openresty/lua-resty-dns)
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有关Lua-resty-dns模块的更多信息，请参阅[https://github.com/openresty/lua-resty-dns](https://github.com/openresty/lua-resty-dns)
 - en: For more information on Lua NGINX API variables, refer to [https://github.com/openresty/lua-nginx-module#ngxvarvariable](https://github.com/openresty/lua-nginx-module#ngxvarvariable)
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有关Lua NGINX API变量的更多信息，请参阅[https://github.com/openresty/lua-nginx-module#ngxvarvariable](https://github.com/openresty/lua-nginx-module#ngxvarvariable)
 - en: Simple hit counter with a Redis backend
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 带有Redis后端的简单访问计数器
 - en: One simple example to show the ease of extendibility of OpenResty is with a
     basic hit counter. Taking it a step further, we're going to use a Redis backend
     so that the counter is both persistent and could also be part of a clustered deployment
     to give a combined hit counter. This will also introduce you to the basics of
     how OpenResty can directly talk to many other services outside of the basic proxying
     of connections or via FPM.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个简单的例子展示了OpenResty的可扩展性，使用一个基本的访问计数器。更进一步，我们将使用Redis后端，使得计数器既持久化，又能作为集群部署的一部分，提供一个合并的访问计数器。这也将向你介绍OpenResty如何直接与许多其他服务进行交互，而不仅仅是代理连接或通过FPM。
 - en: In a deployment where every bit of optimization possible is critical, this could
     also be used to retrieve cached data direct from Redis, allowing the application
     servers to simply write cache data to Redis in an asynchronized manner.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 在每一处优化都至关重要的部署环境中，我们也可以利用这一点直接从Redis中获取缓存数据，这样应用服务器就可以以异步的方式将缓存数据写入Redis。
 - en: Getting ready
+  id: totrans-101
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: We'll need access to a Redis daemon or cluster from this server. This could
     be in the form of a full cluster or you can simply have Redis installed alongside
     OpenResty on the same server.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要从这个服务器访问Redis守护进程或集群。这可以是一个完整的集群，或者你可以仅仅在同一台服务器上安装Redis和OpenResty。
 - en: How to do it...
+  id: totrans-103
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'To implement our simple hit counter, we''re going to add a basic location block
     directive to our main `nginx.conf` configuration file. Here''s the block directive
     to add:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现我们的简单访问计数器，我们将向主`nginx.conf`配置文件添加一个基本的location块指令。以下是需要添加的块指令：
 - en: '[PRE17]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: If we call the `/redistest` URL, we should see the counter increase each time
     the page is refreshed.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们访问`/redistest`这个URL，每次刷新页面时，我们应该看到计数器增加。
 - en: How it works...
+  id: totrans-107
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 工作原理...
 - en: We again used `content_by_lua_block` to return content, and this contains our
     basic counter code. It starts by making a connection to Redis on the localhost
     (`127.0.0.1`) and returns an error if the connection fails.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们再次使用了`content_by_lua_block`来返回内容，这包含了我们基本的计数器代码。它首先尝试在本地主机（`127.0.0.1`）上与Redis建立连接，如果连接失败，则返回错误。
 - en: If the connection is successful, we attempt to fetch a value from Redis with
     a key named `counter`. In the event that there's no data or an invalid number,
     we set the counter to `0` (zero). Then, we increment the Lua variable to indicate
     there's been a hit to this URL. This is then stored back in Redis (via the `set`
     command), and the value of the counter is returned as plain text with a status
     of `200` (the default for `ngx.say`).
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果连接成功，我们尝试从Redis中获取一个名为`counter`的值。如果没有数据或者获取到的是无效的数字，我们将计数器设置为`0`（零）。然后，我们增加Lua变量，以表示该URL已被访问。接着，计数器的值会通过`set`命令存回Redis，并且返回一个值为计数器的纯文本，状态码为`200`（`ngx.say`的默认状态码）。
 - en: See also
+  id: totrans-110
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: For more information on the `lua-resty-redis` module, refer to [https://github.com/openresty/lua-resty-redis.](https://github.com/openresty/lua-resty-redis)
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关`lua-resty-redis`模块的更多信息，请参阅[https://github.com/openresty/lua-resty-redis.](https://github.com/openresty/lua-resty-redis)
 - en: Powering API Gateways with OpenResty
+  id: totrans-112
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用OpenResty为API网关提供支持
 - en: 'In our previous recipe, we explored a basic microservice to look up DNS records.
     While this can be limited per service to prevent abuse, ideally, we want to configure
     a centralized point to manage this. Otherwise, any limits across multiple services
     will not be considered as a whole and will need to be individually implemented
     per service. The following figure explains the differences:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们之前的示例中，我们探讨了一个基本的微服务来查找DNS记录。虽然可以对每个服务进行限制以防止滥用，但理想情况下，我们希望配置一个集中点来管理这些限制。否则，跨多个服务的任何限制将不会作为一个整体来考虑，而需要在每个服务中单独实现。以下图示解释了这些差异：
 - en: '![](img/f68f3d6a-adbd-4928-9d31-b7f82b84578d.png)'
+  id: totrans-114
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/f68f3d6a-adbd-4928-9d31-b7f82b84578d.png)'
 - en: 'To build a centralized API gateway, we need to consider the following points:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 要构建一个集中式的API网关，我们需要考虑以下几点：
 - en: Authentication
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 身份验证
 - en: Request routing
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请求路由
 - en: Rate limiting
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 限流
 - en: Load balancing
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 负载均衡
 - en: Security
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安全性
 - en: Logging
+  id: totrans-121
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 日志记录
 - en: This recipe will cover a basic implementation of an API gateway to get you started
     with some of the core concepts. Because of the ease of implementation, it provides
     a rapid way to get started with the management of a few, small microservices.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 本示例将涵盖API网关的基本实现，帮助你了解一些核心概念。由于实现简单，它提供了一种快速的方式，让你开始管理一些小型的微服务。
 - en: Getting ready
+  id: totrans-123
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 准备工作
 - en: Because we'll be centralizing some of the information, we need access to a **Redis**
     daemon accessible from the server. This could be in the form of a full cluster
     or should simply have Redis installed alongside OpenResty on the same server.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为我们将集中一些信息，所以我们需要访问一个从服务器可访问的 **Redis** 守护进程。这可以是一个完整的集群，也可以是将 Redis 安装在与 OpenResty
+    相同的服务器上。
 - en: 'In order to have a test URL, you can set it via `redis-cli`, using the following
     command:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了拥有一个测试 URL，你可以通过 `redis-cli` 设置，使用以下命令：
 - en: '[PRE18]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: How to do it...
+  id: totrans-127
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何做…
 - en: Our API gateway is going to be a simplified version of a production system to
     ensure it is easy to follow. Being OpenResty-based, it means it's easily extendible
     to suit your needs.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 API 网关将是一个简化版的生产系统，确保易于跟随。由于基于 OpenResty，它意味着可以轻松扩展以适应你的需求。
 - en: 'In our `nginx.conf` file (located in `/usr/local/openresty/nginx/conf`), add
     the following script:'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的 `nginx.conf` 文件（位于 `/usr/local/openresty/nginx/conf`）中，添加以下脚本：
 - en: '[PRE19]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'Unlike the previous recipes, where we added the details within a `lua` block
     directive, this time we''ve separated the code into individual files for ease
     of management. Within the `nginx` directory (within the main `OpenResty` directory),
     we''ve created an `apigateway` directory to store the files for ease of management.
     Here''s the code for the `auth.lua` file:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 与之前的教程不同，我们这次将代码分离到单独的文件中，以便管理。在 `nginx` 目录下（位于主 `OpenResty` 目录内），我们创建了一个 `apigateway`
+    目录来存储文件，以方便管理。以下是 `auth.lua` 文件的代码：
 - en: '[PRE20]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'Next, we''ll create a file to store the routing application code, named `route.lua`:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将创建一个文件来存储路由应用程序代码，命名为 `route.lua`：
 - en: '[PRE21]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'We can test the authentication by running a call with and without the `X-API-KEY`
     header. Without the header, we can either browse to the URL or use cURL to send
     a `GET` request to `/api/v1`, and it should display the following:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过在有和没有 `X-API-KEY` 头的情况下运行调用来测试身份验证。如果没有头部，我们可以浏览 URL 或使用 cURL 发送 `GET`
+    请求到 `/api/v1`，并且应该显示如下内容：
 - en: '[PRE22]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Conversely, with the correct header set, we should see the expected result
     returned. To test this, we can run the following:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，在设置了正确的头部的情况下，我们应该看到返回的预期结果。要测试这个，我们可以运行以下命令：
 - en: '[PRE23]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'The returned value should be as follows:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回的值应该如下所示：
 - en: '[PRE24]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: How it works...
+  id: totrans-141
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: There's quite a bit going on in this recipe, so we'll go through it section
     by section. Firstly, the core NGINX configuration has two main sections. The first
     is the proxy location block directive, which is what we use to make external requests.
@@ -610,86 +912,128 @@
     It simply takes the remote request as part of the URI to pass through. We've also
     locked it down (using `allow` / `deny`) to the localhost to prevent any external
     misuse.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 这篇教程涉及了很多内容，所以我们将分段进行讲解。首先，核心的 NGINX 配置有两个主要部分。第一个是代理位置块指令，我们用它来进行外部请求。这是因为在
+    `route.lua` 中，`location.capture` 函数仅适用于内部请求。虽然在本教程中我们只进行了内部请求，但有了这个 `proxy_pass`
+    指令，我们可以轻松地将外部调用纳入其中。它只是将远程请求作为 URI 的一部分传递出去。我们还将它锁定（使用 `allow` / `deny`）为本地主机，以防止外部滥用。
 - en: Next, we define our API location block directive. To keep the code within the
     main configuration file neat and precise, we store the configuration in an external
     file so that the code management is easier.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们定义了 API 位置块指令。为了保持主配置文件中的代码整洁，我们将配置存储在外部文件中，以便更容易管理代码。
 - en: Our `auth.lua` file contains our authentication code. For the sake of keeping
     this recipe simple to follow, I've created a basic table type (which is an associative
     array) to store a few test API keys in; for a production system, these would be
     pulled from an external data source.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 `auth.lua` 文件包含我们的身份验证代码。为了简化此教程，我创建了一个基本的表类型（即关联数组）来存储一些测试 API 密钥；对于生产系统，这些密钥应该从外部数据源中提取。
 - en: We then define a `badAuth` function, which gives us an easy way to return an
     `HTTP 401` error to let the client connection know the connection wasn't authorized.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 接着我们定义了一个 `badAuth` 函数，它为我们提供了一种简单的方法来返回 `HTTP 401` 错误，通知客户端连接没有被授权。
 - en: The next function we've defined is `isAuthorised`. This simply iterates through
     our table of allowed API keys to determine whether there is a match or not.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义的下一个函数是 `isAuthorised`。它简单地遍历我们的允许的 API 密钥表，以确定是否有匹配项。
 - en: Lastly, we extract the `X-API-KEY` header to interrogate the value. If it's
     nil, that is, the header hasn't been set, we use `badAuth` to return `401`. If
     it's not nil, we use the `isAuthorised` function to determine whether there is
     a match or not. If there's a match, there's simply nothing further for our code
     to do and OpenResty will start processing the content components.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们提取 `X-API-KEY` 头来查询其值。如果它为 nil，即头部未设置，我们使用 `badAuth` 返回 `401`。如果不为 nil，我们使用
+    `isAuthorised` 函数判断是否匹配。如果匹配，代码便不再执行任何操作，OpenResty 将开始处理内容组件。
 - en: This brings us to our routing code contained within the `route.lua` file. Like
     our previous recipe, we make a connection to our Redis server. This is used to
     provide dynamic routing. This means, to change our endpoints or even to provide
     new API functions, there's no requirement to restart our API gateway to detect
     these changes.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将我们引导到包含在 `route.lua` 文件中的路由代码。与之前的方案一样，我们连接到了 Redis 服务器，这用于提供动态路由。这意味着，要更改端点或提供新的
+    API 功能，无需重启 API 网关即可检测到这些变化。
 - en: To get the endpoint URI to call, we use `ngx.var.uri` as the key. In our example,
     this has been configured as `/api/v1/test`. If this exists, we use `ngx.location.capture`
     to proxy this through and retrieve the data. A successful return of data is then
     sent back to the client, parsed as JSON using the `CJSON` module. In the case
     of an error, we simply return an error message and set the HTTP status to `500`.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了获取要调用的端点 URI，我们使用 `ngx.var.uri` 作为键。在我们的示例中，这已经配置为 `/api/v1/test`。如果它存在，我们使用
+    `ngx.location.capture` 将其代理并检索数据。数据成功返回后，便会发送回客户端，并使用 `CJSON` 模块将其解析为 JSON。如果发生错误，我们会返回一个错误信息，并将
+    HTTP 状态设置为 `500`。
 - en: There's more...
+  id: totrans-150
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 更多内容...
 - en: 'What''s missing from this recipe is any form of **rate limiting**. We could
     again incorporate either the standard NGINX module or use the `lua-resty-limit-traffic`
     module to provide extended functionality; alternatively, you can go for a fully
     featured API system, such as Kong:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个方案中缺少的一个功能是 **限流**。我们可以再次使用标准的 NGINX 模块，或者使用 `lua-resty-limit-traffic` 模块来提供扩展功能；另外，你也可以选择一个功能全面的
+    API 系统，如 Kong：
 - en: '![](img/9c98cab7-4369-40f2-8c51-a242ace9aa7b.png)'
+  id: totrans-152
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/9c98cab7-4369-40f2-8c51-a242ace9aa7b.png)'
 - en: Based on OpenResty, Kong offers a very highly configurable API gateway and microservice
     management system with features such as a REST-based administration, easy horizontal
     scaling, and a modular plugin system for easy extension. Authentication features,
     such as OAuth, JWT, LDAP, and more, are all available out-of-the-box and it has
     security features such as ACLs and CORs to provide high levels of protection.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于 OpenResty，Kong 提供了一个高度可配置的 API 网关和微服务管理系统，具有如 REST 基础管理、简易的横向扩展以及模块化插件系统等特性，方便扩展。身份验证功能，如
+    OAuth、JWT、LDAP 等，均可开箱即用，同时还具备 ACL 和 COR 等安全特性，以提供高水平的保护。
 - en: If you move beyond a few basic services or want to provide your API to the public,
     it's well worth considering Kong as your starting point.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你超越了几个基本服务，或者想将你的 API 提供给公众，考虑 Kong 作为起点是非常值得的。
 - en: See also
+  id: totrans-155
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: For more information on **Lua NGINX API variables**, refer to [https://github.com/openresty/lua-nginx-module#ngxvarvariable](https://github.com/openresty/lua-nginx-module#ngxvarvariable)
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 想了解更多 **Lua NGINX API 变量**，请参考 [https://github.com/openresty/lua-nginx-module#ngxvarvariable](https://github.com/openresty/lua-nginx-module#ngxvarvariable)
 - en: For more information on **OpenResty FAQ**, refer to [https://openresty.org/en/faq.html](https://openresty.org/en/faq.html)
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 想了解更多 **OpenResty FAQ**，请参考 [https://openresty.org/en/faq.html](https://openresty.org/en/faq.html)
 - en: "You can visit the official website of **Kong** at [https://getkong.org/\uFEFF\
     ](https://getkong.org/)"
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: "你可以访问 **Kong** 的官方网站：[https://getkong.org/\uFEFF](https://getkong.org/)"
