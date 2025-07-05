@@ -3,6 +3,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第6章 NGINX HTTP服务器
 - en: An HTTP server is primarily a piece of software that will deliver web pages
     to clients when requested. These web pages can be anything from a simple HTML
     file on disk to a multicomponent framework delivering user-specific content, dynamically
@@ -11,57 +12,68 @@
   id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: HTTP服务器主要是一种软件，在客户端请求时提供网页。这些网页可以是任何内容，从磁盘上的简单HTML文件到一个多组件框架，动态更新用户特定内容，通过AJAX或WebSocket传输。NGINX是模块化的，旨在处理任何必要的HTTP服务。
 - en: 'In this chapter, we will investigate the various modules that work together
     to make NGINX such a scalable HTTP server. The following topics are included in
     this chapter:'
   id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将研究各种模块，它们共同工作使NGINX成为一个可扩展的HTTP服务器。本章包括以下主题：
 - en: NGINX's architecture
   id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX的架构
 - en: The HTTP core module
   id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: HTTP核心模块
 - en: Using limits to prevent abuse
   id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用限制防止滥用
 - en: Restricting access
   id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 限制访问
 - en: Streaming media files
   id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 流媒体文件
 - en: Predefined variables
   id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 预定义变量
 - en: Using NGINX with PHP-FPM
   id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用NGINX与PHP-FPM
 - en: Wiring NGINX and uWSGI together
   id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将NGINX与uWSGI连接起来
 - en: NGINX's architecture
   id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: NGINX的架构
 - en: NGINX consists of a single master process and multiple worker processes. Each
     of these is single-threaded and designed to handle thousands of connections simultaneously.
     The worker process is where most of the action takes place, as this is the component
@@ -70,12 +82,14 @@
   id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX由一个主进程和多个工作进程组成。每个进程都是单线程的，旨在同时处理数千个连接。工作进程是大部分操作发生的地方，因为它是处理客户端请求的组件。NGINX利用操作系统的事件机制迅速响应这些请求。
 - en: The NGINX **master process** is responsible for reading the configuration, handling
     sockets, spawning workers, opening log files, and compiling embedded Perl scripts.
     The master process is the one that responds to administrative requests via signals.
   id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的**主进程**负责读取配置、处理套接字、生成工作进程、打开日志文件以及编译嵌入的Perl脚本。主进程是响应管理员请求的进程，通过信号来执行。
 - en: The NGINX **worker process** runs in a tight event loop to handle incoming connections.
     Each NGINX module is built into the worker, so that any request processing, filtering,
     handling of proxy connections, and much more is done within the worker process.
@@ -86,6 +100,7 @@
   id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的**工作进程**在一个紧密的事件循环中运行，以处理传入的连接。每个NGINX模块都被构建到工作进程中，因此任何请求处理、过滤、代理连接的处理等都在工作进程内完成。由于这种工作进程模型，操作系统可以单独处理每个进程，并优化地调度进程在每个处理器核心上运行。如果有任何可能阻塞工作进程的过程，如磁盘I/O，可以配置比核心更多的工作进程来分担负载。
 - en: There are also a small number of helper processes that the NGINX master process
     spawns to handle dedicated tasks. Among these are the **cache loader** and **cache
     manager** processes. The cache loader is responsible for preparing the metadata
@@ -94,6 +109,7 @@
   id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有少数辅助进程是由NGINX主进程创建的，用于处理专门的任务。其中包括**缓存加载器**和**缓存管理器**进程。缓存加载器负责为工作进程准备缓存使用的元数据。缓存管理器进程负责检查缓存项并使无效的项过期。
 - en: NGINX is built in a modular fashion. The master process provides the foundation
     upon which each module may perform its function. Each protocol and handler is
     implemented as its own module. The individual modules are chained together into
@@ -104,6 +120,7 @@
   id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX是以模块化的方式构建的。主进程提供了一个基础平台，在此基础上，每个模块都可以执行其功能。每个协议和处理器都被实现为自己的模块。各个模块被串联成一个管道，用于处理连接和处理请求。请求处理完毕后，会传递给一系列的过滤器，在这些过滤器中，响应会被处理。其中一个过滤器负责处理子请求，这是NGINX最强大的功能之一。
 - en: Subrequests are how NGINX can return the results of a request that differs from
     the URI that the client sent. Depending on the configuration, they may be multiply
     nested and call other subrequests. Filters can collect the responses from multiple
@@ -1111,27 +1128,33 @@
   id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节中，我们探讨了限制NGINX运行的网站免受恶意访问的方法。现在，我们将看看如何限制访问整个网站或其特定部分。访问限制有两种形式：限制某一特定IP地址集合的访问，或限制某一特定用户集合的访问。这两种方法也可以结合使用，以满足某些用户可以从特定IP地址集合中访问网站，或者在通过有效的用户名和密码进行身份验证后访问的要求。
 - en: 'The following directives will help us achieve these goals:'
   id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下指令将帮助我们实现这些目标：
 - en: 'Table: HTTP access module directives'
   id: totrans-167
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：HTTP访问模块指令
 - en: '| Directive | Explanation |'
   id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
   id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `allow` | Allows access from this IP address, network, or `all`. |'
   id: totrans-170
   prefs: []
   type: TYPE_TB
+  zh: '| `allow` | 允许来自该IP地址、网络或`all`的访问。 |'
 - en: '| `auth_basic` | Enables authentication using HTTP Basic Authentication. The
     parameter string is used as the realm name. If the special value `off` is used,
     this indicates that the `auth_basic` value of the parent configuration level is
@@ -1139,27 +1162,35 @@
   id: totrans-171
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_basic` | 启用使用HTTP基本认证的身份验证。参数字符串用于作为区域名称。如果使用特殊值`off`，则表示父级配置的`auth_basic`值被否定。
+    |'
 - en: '| `auth_basic_user_file` | Indicates the location of a file of `username:password:comment`
     tuples used to authenticate users. The `password` field needs to be encrypted
     with the crypt algorithm. The `comment` field is optional. |'
   id: totrans-172
   prefs: []
   type: TYPE_TB
+  zh: '| `auth_basic_user_file` | 指定用于身份验证用户的`username:password:comment`元组文件的位置。`password`字段需要使用crypt算法加密。`comment`字段是可选的。
+    |'
 - en: '| `deny` | Denies access from this IP address, network, or `all`. |'
   id: totrans-173
   prefs: []
   type: TYPE_TB
+  zh: '| `deny` | 拒绝来自该IP地址、网络或`all`的访问。 |'
 - en: '| `satisfy` | Allows access if `all` or `any` of the preceding directives grant
     access. The default value `all` indicates that a user must come from a specific
     network address and enter the correct password. |'
   id: totrans-174
   prefs: []
   type: TYPE_TB
+  zh: '| `satisfy` | 如果前面的`all`或`any`指令授权访问，则允许访问。默认值`all`表示用户必须来自特定网络地址并输入正确的密码。
+    |'
 - en: 'To restrict access to clients coming from a certain set of IP addresses, the
     `allow` and `deny` directives can be used as follows:'
   id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 要限制来自某一特定IP地址集合的客户端访问，可以按如下方式使用`allow`和`deny`指令：
 - en: '[PRE17]'
   id: totrans-176
   prefs: []
@@ -1170,11 +1201,13 @@
   id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 此配置将只允许从本地主机访问`/stats` URI。
 - en: 'To restrict access to authenticated users, the `auth_basic` and `auth_basic_user_`
     `file` directives are used as follows:'
   id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 要限制只有经过身份验证的用户才能访问，可以按如下方式使用`auth_basic`和`auth_basic_user_file`指令：
 - en: '[PRE18]'
   id: totrans-179
   prefs: []
@@ -1188,6 +1221,8 @@
   id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何想要访问`restricted.example.com`的用户，都需要提供与NGINX根目录下`conf`目录中的`htpasswd`文件匹配的凭证。`htpasswd`文件中的条目可以使用任何支持标准UNIX
+    `crypt()`函数的工具生成。例如，以下Ruby脚本将生成适当格式的文件：
 - en: '[PRE19]'
   id: totrans-181
   prefs: []
@@ -1199,6 +1234,8 @@
   id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 将此文件保存为`http_auth_basic.rb`，并指定一个文件名（`-f`）、一个用户（`-u`）和一个密码（`-p`），它将生成适用于NGINX
+    `auth_basic_user_file`指令的条目：
 - en: '[PRE20]'
   id: totrans-183
   prefs: []
@@ -1210,6 +1247,7 @@
   id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 要处理在某些IP地址集合之外才需要输入用户名和密码的场景，NGINX有一个`satisfy`指令。`any`参数用于表示这种“任一或”的场景：
 - en: '[PRE21]'
   id: totrans-185
   prefs: []
@@ -1222,6 +1260,7 @@
   id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果要求配置为用户必须来自某一特定IP地址并提供身份验证，则默认值为`all`。因此，我们省略`satisfy`指令本身，只包括`allow`、`deny`、`auth_basic`和`auth_basic_user_file`：
 - en: '[PRE22]'
   id: totrans-187
   prefs: []
@@ -1232,6 +1271,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 流媒体文件
 - en: NGINX is capable of serving certain video media types. The `flv` and `mp4` modules,
     included in the base distribution, can perform what is called **pseudo-streaming**.
     This means that NGINX will seek to a certain location in the video file, as indicated
@@ -1239,6 +1279,8 @@
   id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 能够提供某些视频媒体类型的服务。包括在基础发行版中的 `flv` 和 `mp4` 模块可以执行所谓的 **伪流媒体** 功能。这意味着 NGINX
+    会跳转到视频文件中的某个位置，位置由 `start` 请求参数指定。
 - en: 'In order to use the pseudo-streaming capabilities, the corresponding module
     needs to be included at compile time: `--with-http_flv_module` for Flash Video
     (FLV) files and/or `--with-http_mp4_module` for H.264/AAC files. The following
@@ -1246,42 +1288,52 @@
   id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使用伪流媒体功能，需要在编译时包含相应的模块：`--with-http_flv_module` 用于 Flash Video (FLV) 文件，`--with-http_mp4_module`
+    用于 H.264/AAC 文件。然后，以下指令将变为可配置项：
 - en: 'Table: HTTP streaming directives'
   id: totrans-191
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：HTTP 流媒体指令
 - en: '| Directive | Explanation |'
   id: totrans-192
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 解释 |'
 - en: '| --- | --- |'
   id: totrans-193
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `flv` | Activates the `flv` module for this location. |'
   id: totrans-194
   prefs: []
   type: TYPE_TB
+  zh: '| `flv` | 为此位置激活 `flv` 模块。 |'
 - en: '| `mp4` | Activates the `mp4` module for this location. |'
   id: totrans-195
   prefs: []
   type: TYPE_TB
+  zh: '| `mp4` | 为此位置激活 `mp4` 模块。 |'
 - en: '| `mp4_buffer_size` | Sets the initial buffer size for delivering MP4 files.
     |'
   id: totrans-196
   prefs: []
   type: TYPE_TB
+  zh: '| `mp4_buffer_size` | 设置传送 MP4 文件的初始缓冲区大小。 |'
 - en: '| `mp4_max_buffer_size` | Sets the maximum size of the buffer used to process
     MP4 metadata. |'
   id: totrans-197
   prefs: []
   type: TYPE_TB
+  zh: '| `mp4_max_buffer_size` | 设置用于处理 MP4 元数据的缓冲区最大大小。 |'
 - en: 'Activating FLV pseudo-streaming for a location is as simple as just including
     the `flv` keyword:'
   id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 激活FLV伪流媒体功能只需要在配置中加入 `flv` 关键字：
 - en: '[PRE23]'
   id: totrans-199
   prefs: []
@@ -1295,6 +1347,8 @@
   id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: MP4 伪流媒体有更多的选项，因为 H.264 格式包含需要解析的元数据。一旦播放器解析了“moov atom”，就可以进行跳转。所以为了优化性能，请确保元数据位于文件的开头。如果日志中出现如下错误信息，则需要增大
+    `mp4_max_buffer_size`：
 - en: '[PRE24]'
   id: totrans-201
   prefs: []
@@ -1304,6 +1358,7 @@
   id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mp4_max_buffer_size` 可以通过以下方式增大：'
 - en: '[PRE25]'
   id: totrans-203
   prefs: []
@@ -1314,6 +1369,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 预定义变量
 - en: 'NGINX makes constructing configurations based on the values of variables easy.
     Not only can you instantiate your own variables by using the `set` or `map` directives,
     but there are also predefined variables used within NGINX. They are optimized
@@ -1324,6 +1380,8 @@
   id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 使得根据变量的值构建配置变得简单。你不仅可以使用 `set` 或 `map` 指令来实例化自己的变量，而且还有一些在NGINX中预定义的变量。它们经过优化以便快速评估，并且在请求的生命周期内缓存其值。你可以将它们中的任何一个作为
+    `if` 语句的键，或传递给代理。如果你定义自己的日志文件格式，一些变量可能会非常有用。不过，如果你尝试重新定义它们，你将会收到如下的错误信息：
 - en: '[PRE26]'
   id: totrans-206
   prefs: []
@@ -1334,200 +1392,245 @@
   id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些变量也不适用于宏扩展配置——它们主要在运行时使用。
 - en: 'The following are the variables and their values defined in the `http` module:'
   id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是 `http` 模块中定义的变量及其值：
 - en: 'Table: HTTP variables'
   id: totrans-209
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：HTTP 变量
 - en: '| Variable Name | Value |'
   id: totrans-210
   prefs: []
   type: TYPE_TB
+  zh: '| 变量名 | 值 |'
 - en: '| --- | --- |'
   id: totrans-211
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `$arg_name` | The `name` argument present in the request parameters. |'
   id: totrans-212
   prefs: []
   type: TYPE_TB
+  zh: '| `$arg_name` | 请求参数中的 `name` 参数。 |'
 - en: '| `$args` | All of the request parameters. |'
   id: totrans-213
   prefs: []
   type: TYPE_TB
+  zh: '| `$args` | 所有请求参数。 |'
 - en: '| `$binary_remote_addr` | The client''s IP address in binary form (always 4
     bytes long). |'
   id: totrans-214
   prefs: []
   type: TYPE_TB
+  zh: '| `$binary_remote_addr` | 客户端的IP地址（以二进制形式表示，始终为4字节）。 |'
 - en: '| `$content_length` | The value of the `Content-Length` request header. |'
   id: totrans-215
   prefs: []
   type: TYPE_TB
+  zh: '| `$content_length` | `Content-Length` 请求头的值。 |'
 - en: '| `$content_type` | The value of the `Content-Type` request header. |'
   id: totrans-216
   prefs: []
   type: TYPE_TB
+  zh: '| `$content_type` | `Content-Type` 请求头的值。 |'
 - en: '| `$cookie_name` | The cookie labeled `name`. |'
   id: totrans-217
   prefs: []
   type: TYPE_TB
+  zh: '| `$cookie_name` | 名为 `name` 的 cookie。 |'
 - en: '| `$document_root` | The value of the `root` or `alias` directive for the current
     request. |'
   id: totrans-218
   prefs: []
   type: TYPE_TB
+  zh: '| `$document_root` | 当前请求的 `root` 或 `alias` 指令的值。 |'
 - en: '| `$document_uri` | An alias for `$uri`. |'
   id: totrans-219
   prefs: []
   type: TYPE_TB
+  zh: '| `$document_uri` | `$uri` 的别名。 |'
 - en: '| `$host` | The value of the `Host` request header, if present. If this header
     is not present, the value is equal to the `server_name` matching the request.
     |'
   id: totrans-220
   prefs: []
   type: TYPE_TB
+  zh: '| `$host` | 请求头中 `Host` 的值（如果存在）。如果该头部不存在，则其值等于与请求匹配的 `server_name`。 |'
 - en: '| `$hostname` | The name of the host where NGINX is running. |'
   id: totrans-221
   prefs: []
   type: TYPE_TB
+  zh: '| `$hostname` | 运行 NGINX 的主机名。 |'
 - en: '| `$http_name` | The value of the `name` request header. If this header has
     dashes, they are converted to underscores; capital letters to lower case. |'
   id: totrans-222
   prefs: []
   type: TYPE_TB
+  zh: '| `$http_name` | `name` 请求头的值。如果该头部有连字符，它们将被转换为下划线；大写字母将转换为小写字母。 |'
 - en: '| `$https` | If the connection was made over SSL, the value of this variable
     is `on`. Otherwise, it''s an empty string. |'
   id: totrans-223
   prefs: []
   type: TYPE_TB
+  zh: '| `$https` | 如果连接是通过 SSL 建立的，则该变量的值为 `on`。否则，它是一个空字符串。 |'
 - en: '| `$is_args` | If the request has arguments, the value of this variable is
     `?`. Otherwise, it''s an empty string. |'
   id: totrans-224
   prefs: []
   type: TYPE_TB
+  zh: '| `$is_args` | 如果请求包含参数，则该变量的值为 `?`。否则，它是一个空字符串。 |'
 - en: '| `$limit_rate` | The value of the `limit_rate` directive. If not set, allows
     rate limitation to be set using this variable. |'
   id: totrans-225
   prefs: []
   type: TYPE_TB
+  zh: '| `$limit_rate` | `limit_rate` 指令的值。如果未设置，则允许使用此变量设置速率限制。 |'
 - en: '| `$nginx_version` | The version of the running `nginx` binary. |'
   id: totrans-226
   prefs: []
   type: TYPE_TB
+  zh: '| `$nginx_version` | 正在运行的 `nginx` 二进制文件的版本。 |'
 - en: '| `$pid` | The process ID of the worker process. |'
   id: totrans-227
   prefs: []
   type: TYPE_TB
+  zh: '| `$pid` | 工作进程的进程 ID。 |'
 - en: '| `$query_string` | An alias for `$args`. |'
   id: totrans-228
   prefs: []
   type: TYPE_TB
+  zh: '| `$query_string` | `$args` 的别名。 |'
 - en: '| `$realpath_root` | The value of the `root` or `alias` directive for the current
     request, with all symbolic links resolved. |'
   id: totrans-229
   prefs: []
   type: TYPE_TB
+  zh: '| `$realpath_root` | 当前请求的 `root` 或 `alias` 指令的值，所有符号链接已解析。 |'
 - en: '| `$remote_addr` | The client''s IP address. |'
   id: totrans-230
   prefs: []
   type: TYPE_TB
+  zh: '| `$remote_addr` | 客户端的 IP 地址。 |'
 - en: '| `$remote_port` | The client''s port. |'
   id: totrans-231
   prefs: []
   type: TYPE_TB
+  zh: '| `$remote_port` | 客户端的端口。 |'
 - en: '| `$remote_user` | When using HTTP basic authentication, this variable is set
     to the username. |'
   id: totrans-232
   prefs: []
   type: TYPE_TB
+  zh: '| `$remote_user` | 使用 HTTP 基本认证时，设置为用户名。 |'
 - en: '| `$request` | The complete request, as received from the client, including
     the HTTP method, URI, HTTP protocol, header, and request body. |'
   id: totrans-233
   prefs: []
   type: TYPE_TB
+  zh: '| `$request` | 完整的请求，包括客户端发送的 HTTP 方法、URI、HTTP 协议、头部和请求体。 |'
 - en: '| `$request_body` | The body of the request, for use in locations processed
     by a `*_pass directive`. |'
   id: totrans-234
   prefs: []
   type: TYPE_TB
+  zh: '| `$request_body` | 请求体，用于 `*_pass directive` 指令处理的区域。 |'
 - en: '| `$request_body_file` | The path to the temporary file where the request''s
     body is saved. For this file to be saved, the `client_body_in_file_only` directive
     needs to be set to `on`. |'
   id: totrans-235
   prefs: []
   type: TYPE_TB
+  zh: '| `$request_body_file` | 请求体保存的临时文件路径。要保存该文件，`client_body_in_file_only` 指令需要设置为
+    `on`。 |'
 - en: '| `$request_completion` | If the request has completed, the value of this variable
     is `OK`. Otherwise, it''s an empty string. |'
   id: totrans-236
   prefs: []
   type: TYPE_TB
+  zh: '| `$request_completion` | 如果请求已完成，则该变量的值为 `OK`。否则，它是一个空字符串。 |'
 - en: '| `$request_filename` | The path to the file for the current request, based
     on the value of the `root` or `alias` directive plus the URI. |'
   id: totrans-237
   prefs: []
   type: TYPE_TB
+  zh: '| `$request_filename` | 当前请求的文件路径，基于 `root` 或 `alias` 指令的值加上 URI。 |'
 - en: '| `$request_method` | The HTTP method used in the current request. |'
   id: totrans-238
   prefs: []
   type: TYPE_TB
+  zh: '| `$request_method` | 当前请求中使用的 HTTP 方法。 |'
 - en: '| `$request_uri` | The complete request URI, as received from the client, including
     arguments. |'
   id: totrans-239
   prefs: []
   type: TYPE_TB
+  zh: '| `$request_uri` | 完整的请求 URI，包括客户端发送的参数。 |'
 - en: '| `$scheme` | The scheme for the current request, either HTTP or HTTPS. |'
   id: totrans-240
   prefs: []
   type: TYPE_TB
+  zh: '| `$scheme` | 当前请求的协议类型，HTTP 或 HTTPS。 |'
 - en: '| `$sent_http_name` | The value of the `name` response header. If this header
     has dashes, they are converted to underscores; capital letters to lower case.
     |'
   id: totrans-241
   prefs: []
   type: TYPE_TB
+  zh: '| `$sent_http_name` | `name` 响应头的值。如果该头部有连字符，它们将被转换为下划线；大写字母将转换为小写字母。 |'
 - en: '| `$server_addr` | The value of the server''s address that accepted the request.
     |'
   id: totrans-242
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_addr` | 接受请求的服务器地址的值。 |'
 - en: '| `$server_name` | The `server_name` of the virtual host that accepted the
     request. |'
   id: totrans-243
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_name` | 接受请求的虚拟主机的 `server_name`。 |'
 - en: '| `$server_port` | The value of the server''s port that accepted the request.
     |'
   id: totrans-244
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_port` | 接受请求的服务器端口的值。 |'
 - en: '| `$server_protocol` | The HTTP protocol used in the current request. |'
   id: totrans-245
   prefs: []
   type: TYPE_TB
+  zh: '| `$server_protocol` | 当前请求中使用的 HTTP 协议。 |'
 - en: '| `$status` | The response''s status. |'
   id: totrans-246
   prefs: []
   type: TYPE_TB
+  zh: '| `$status` | 响应的状态。 |'
 - en: '| `$tcpinfo_rtt``$tcpinfo_rttvar``$tcpinfo_snd_cwnd``$tcpinfo_rcv_space` |
     If a system supports the `TCP_INFO` socket option, these variables will be filled
     with the relevant information. |'
   id: totrans-247
   prefs: []
   type: TYPE_TB
+  zh: '| `$tcpinfo_rtt``$tcpinfo_rttvar``$tcpinfo_snd_cwnd``$tcpinfo_rcv_space` |
+    如果系统支持 `TCP_INFO` 套接字选项，这些变量将填充相关信息。 |'
 - en: '| `$uri` | The normalized URI of the current request. |'
   id: totrans-248
   prefs: []
   type: TYPE_TB
+  zh: '| `$uri` | 当前请求的标准化 URI。 |'
 - en: Using NGINX with PHP-FPM
   id: totrans-249
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 NGINX 配合 PHP-FPM
 - en: Apache has long been considered the only option for serving PHP websites because
     the `mod_php` Apache module makes integrating PHP directly into the web server
     an easy task. With **PHP-FPM** being accepted into PHP's core, there is now an
@@ -1539,6 +1642,10 @@
   id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: Apache 一直被认为是提供 PHP 网站服务的唯一选择，因为 `mod_php` Apache 模块使得将 PHP 直接集成到 Web 服务器中变得非常容易。随着
+    **PHP-FPM** 被纳入 PHP 核心，现在 PHP 分发包中就包含了一个替代方案。PHP-FPM 是一种在 FastCGI 服务器下运行 PHP 的方式。PHP-FPM
+    主进程负责创建工作进程、适应站点使用情况，并在必要时重新启动子进程。它使用 FastCGI 协议与其他服务进行通信。你可以在 [http://php.net/manual/en/install.fpm.php](http://php.net/manual/en/install.fpm.php)
+    了解更多关于 PHP-FPM 的信息。 |
 - en: NGINX has a `fastcgi` module, which is capable of communicating not only with
     PHP-FPM, but also with any FastCGI-compliant server. It is enabled by default,
     so no special consideration needs to be made to start using NGINX with FastCGI
@@ -1546,119 +1653,147 @@
   id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 有一个 `fastcgi` 模块，能够与不仅仅是 PHP-FPM，还能与任何符合 FastCGI 协议的服务器进行通信。默认情况下此模块已启用，因此无需额外的配置即可开始使用
+    NGINX 与 FastCGI 服务器。 |
 - en: 'Table: FastCGI directives'
   id: totrans-252
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 表格：FastCGI 指令 |
 - en: '| Directive | Explanation |'
   id: totrans-253
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 说明 |'
 - en: '| --- | --- |'
   id: totrans-254
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `fastcgi_buffer_size` | The size of the buffer used for the first part of
     the response from the FastCGI server, in which the response headers are found.
     |'
   id: totrans-255
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_buffer_size` | 用于 FastCGI 服务器响应的第一部分的缓冲区大小，其中包含响应头。 |'
 - en: '| `fastcgi_buffers` | The number and size of buffers used for the response
     from a FastCGI server, for a single connection. |'
   id: totrans-256
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_buffers` | 用于从 FastCGI 服务器接收响应的缓冲区的数量和大小，针对单个连接。 |'
 - en: '| `fastcgi_busy_buffers_size` | The total size of buffer space allocated to
     sending the response to the client while still being read from the FastCGI server.
     This is typically set to two `fastcgi_buffers`. |'
   id: totrans-257
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_busy_buffers_size` | 分配给向客户端发送响应时仍在从 FastCGI 服务器读取的缓冲区空间的总大小。通常设置为两个
+    `fastcgi_buffers`。 |'
 - en: '| `fastcgi_cache` | Defines a shared memory zone to be used for caching. |'
   id: totrans-258
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache` | 定义一个共享内存区域，用于缓存。 |'
 - en: '| `fastcgi_cache_bypass` | One or more string variables, which when non-empty
     or non-zero, will cause the response to be taken from the FastCGI server instead
     of the cache. |'
   id: totrans-259
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_bypass` | 一个或多个字符串变量，当其非空或非零时，会导致响应直接从 FastCGI 服务器获取，而不是从缓存中获取。
+    |'
 - en: '| `fastcgi_cache_key` | A string used as the key for storing and retrieving
     cache values. |'
   id: totrans-260
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_key` | 用作存储和检索缓存值的键的字符串。 |'
 - en: '| `fastcgi_cache_lock` | Enabling this directive will prevent multiple requests
     from making an entry into the same cache key. |'
   id: totrans-261
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_lock` | 启用此指令将防止多个请求进入相同的缓存键。 |'
 - en: '| `fastcgi_cache_lock_timeout` | The length of time a request will wait for
     an entry to appear in the cache or for the `fastcgi_cache_lock` to be released.
     |'
   id: totrans-262
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_lock_timeout` | 请求等待缓存中出现条目或等待 `fastcgi_cache_lock` 被释放的时间长度。
+    |'
 - en: '| `fastcgi_cache_min_uses` | The number of requests for a certain key needed
     before a response is cached. |'
   id: totrans-263
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_min_uses` | 缓存响应之前，针对某个特定键所需的请求次数。 |'
 - en: '| `fastcgi_cache_path` | A directory in which to place the cached responses
     and a shared memory zone (`keys_zone = name:size`) to store active keys and response
     metadata. Optional parameters are:'
   id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `fastcgi_cache_path` | 放置缓存响应的目录以及一个共享内存区域（`keys_zone = name:size`）用于存储活动的键和响应元数据。可选参数包括：
+    |'
 - en: '`levels`: Colon-separated length of subdirectory name at each level (one or
     two), maximum of three levels deep'
   id: totrans-265
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`levels`：每一层次子目录名称的长度，用冒号分隔（最多两层），最多三层深度。 |'
 - en: '`inactive`: The maximum length of time an inactive response stays in the cache
     before being ejected'
   id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`inactive`：一个非活动响应在缓存中停留的最大时间，超过该时间后会被清除。 |'
 - en: '`max_size`: The maximum size of the cache; when the size exceeds this value,
     a cache manager process removes the least recently used items'
   id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max_size`：缓存的最大大小；当大小超过此值时，缓存管理进程会删除最久未使用的项目。 |'
 - en: '`loader_files`: The maximum number of cached files whose metadata are loaded
     per iteration of the cache loader process'
   id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`loader_files`：每次缓存加载器进程迭代时加载的最大缓存文件数（仅元数据）。 |'
 - en: '`loader_sleep`: The number of milliseconds paused between each iteration of
     the cache loader process'
   id: totrans-269
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`loader_sleep`：缓存加载器进程每次迭代之间暂停的毫秒数。 |'
 - en: '`loader_threshold`: The maximum length of time a cache loader iteration may
     take'
   id: totrans-270
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`loader_threshold`：缓存加载器迭代可能花费的最长时间。'
 - en: '|'
   id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `fastcgi_cache_use_stale` | The cases under which it is acceptable to serve
     stale cached data if an error occurs when accessing the FastCGI server. The `updating`
     parameter indicates the case when fresh data are being loaded. |'
   id: totrans-272
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_use_stale` | 在访问 FastCGI 服务器时发生错误时，接受提供过期缓存数据的情况。`updating`
+    参数表示正在加载新数据的情况。 |'
 - en: '| `fastcgi_cache_valid` | Indicates the length of time for which a cached response
     with response code 200, 301, or 302 is valid. If an optional response code is
     given before the time parameter, that time is only for that response code. The
@@ -1667,46 +1802,58 @@
   id: totrans-273
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_cache_valid` | 指示响应代码为 200、301 或 302 的缓存响应有效的时间长度。如果在时间参数之前给出可选的响应代码，则该时间仅适用于该响应代码。特殊参数
+    `any` 表示任何响应代码应缓存该时间长度。 |'
 - en: '| `fastcgi_connect_timeout` | The maximum amount of time NGINX will wait for
     its connection to be accepted when making a request to a FastCGI server. |'
   id: totrans-274
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_connect_timeout` | NGINX 在向 FastCGI 服务器发起请求时，等待连接被接受的最长时间。 |'
 - en: '| `fastcgi_hide_header` | A list of header fields that should not be passed
     on to the client. |'
   id: totrans-275
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_hide_header` | 不应传递给客户端的头字段列表。 |'
 - en: '| `fastcgi_ignore_client_abort` | If set to `on`, NGINX will not abort the
     connection to a FastCGI server if the client aborts the connection. |'
   id: totrans-276
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_ignore_client_abort` | 如果设置为 `on`，当客户端中止连接时，NGINX 将不会中止与 FastCGI
+    服务器的连接。 |'
 - en: '| `fastcgi_ignore_headers` | Sets which headers may be disregarded when processing
     the response from the FastCGI server. |'
   id: totrans-277
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_ignore_headers` | 设置在处理来自 FastCGI 服务器的响应时可以忽略哪些头部。 |'
 - en: '| `fastcgi_index` | Sets the name of a file to be appended to `$fastcgi_script_name`
     that ends with a slash. |'
   id: totrans-278
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_index` | 设置要附加到 `$fastcgi_script_name` 的文件名，该文件名以斜杠结尾。'
 - en: '| `fastcgi_intercept_errors` | If enabled, NGINX will display a configured
     `error_page` instead of the response directly from the FastCGI server. |'
   id: totrans-279
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_intercept_errors` | 如果启用，NGINX 将显示配置的 `error_page`，而不是直接显示来自 FastCGI
+    服务器的响应。 |'
 - en: '| `fastcgi_keep_conn` | Enables `keepalive` connections to FastCGI servers
     by instructing the server not to immediately close the connection. |'
   id: totrans-280
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_keep_conn` | 通过指示服务器不立即关闭连接，启用与 FastCGI 服务器的 `keepalive` 连接。 |'
 - en: '| `fastcgi_max_temp_file_size` | The maximum size of the overflow file, written
     when the response doesn''t fit into memory buffers. |'
   id: totrans-281
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_max_temp_file_size` | 溢出文件的最大大小，当响应无法放入内存缓冲区时，写入该文件。 |'
 - en: '| `fastcgi_next_upstream` | Indicates the conditions under which the next FastCGI
     server will be selected for the response. This won''t be used if the client has
     already been sent something. The conditions are specified using the following
@@ -1714,82 +1861,101 @@
   id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `fastcgi_next_upstream` | 指示在什么条件下将选择下一个 FastCGI 服务器进行响应。如果客户端已经收到了响应，则不会使用此条件。条件由以下参数指定：'
 - en: '`error`: An error occurred while communicating with the FastCGI server'
   id: totrans-283
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`error`：与 FastCGI 服务器通信时发生了错误。'
 - en: '`timeout`: A timeout occurred while communicating with the FastCGI server'
   id: totrans-284
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`timeout`：与 FastCGI 服务器通信时发生了超时。'
 - en: '`invalid_header`: The FastCGI server returned an empty or otherwise invalid
     response'
   id: totrans-285
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`invalid_header`：FastCGI 服务器返回了一个空的或其他无效的响应。'
 - en: '`http_500`: The FastCGI server responded with a 500 error code'
   id: totrans-286
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_500`：FastCGI 服务器响应了 500 错误代码。'
 - en: '`http_503`: The FastCGI server responded with a 503 error code'
   id: totrans-287
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_503`：FastCGI 服务器响应了 503 错误代码。'
 - en: '`http_404`: The FastCGI server responded with a 404 error code'
   id: totrans-288
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http_404`：FastCGI 服务器响应了 404 错误代码。'
 - en: '`off`: Disables passing the request to the next FastCGI server when an error
     occurs'
   id: totrans-289
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`：当发生错误时，禁用将请求传递给下一个 FastCGI 服务器。'
 - en: '|'
   id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `fastcgi_no_cache` | One or more string variables, which when non-empty or
     non-zero, will instruct NGINX to not save the response from the FastCGI server
     in the cache. |'
   id: totrans-291
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_no_cache` | 一个或多个字符串变量，当它们非空或非零时，将指示 NGINX 不将来自 FastCGI 服务器的响应保存在缓存中。
+    |'
 - en: '| `fastcgi_param` | Sets a parameter and its value to be passed to the FastCGI
     server. If the parameter should only be passed when the value is non-empty, the
     `if_not_empty` additional parameter should be set. |'
   id: totrans-292
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_param` | 设置一个参数及其值，并将其传递给 FastCGI 服务器。如果参数只应在值非空时传递，则应设置 `if_not_empty`
+    附加参数。 |'
 - en: '| `fastcgi_pass` | Specifies the FastCGI server to which the request is passed,
     either as an `address:port` combination or as `unix:path` for a UNIX-domain socket.
     |'
   id: totrans-293
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_pass` | 指定将请求传递给的 FastCGI 服务器，可以是 `address:port` 组合，或 `unix:path`
+    用于 UNIX 域套接字。 |'
 - en: '| `fastcgi_pass_header` | Overrides the disabled headers set in `fastcgi_hide_header`,
     allowing them to be sent to the client. |'
   id: totrans-294
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_pass_header` | 覆盖在 `fastcgi_hide_header` 中禁用的头部，允许它们发送给客户端。 |'
 - en: '| `fastcgi_read_timeout` | Specifies the length of time that needs to elapse
     between two successive read operations from a FastCGI server before the connection
     is closed. |'
   id: totrans-295
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_read_timeout` | 指定从 FastCGI 服务器进行两次连续读取操作之间需要经过的时间长度，超过该时间后连接会被关闭。
+    |'
 - en: '| `fastcgi_send_timeout` | The length of time that needs to elapse between
     two successive write operations to a FastCGI server before the connection is closed.
     |'
   id: totrans-296
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_send_timeout` | 两次连续写入 FastCGI 服务器操作之间需要经过的时间长度，超过该时间后连接会被关闭。 |'
 - en: '| `fastcgi_split_path_info` | Defines a regular expression with two captures.
     The first capture will be the value of the `$fastcgi_script_name` variable. The
     second capture becomes the value of the `$fastcgi_path_info` variable. Only necessary
@@ -1797,6 +1963,8 @@
   id: totrans-297
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_split_path_info` | 定义一个具有两个捕获组的正则表达式。第一个捕获组将是 `$fastcgi_script_name`
+    变量的值。第二个捕获组将成为 `$fastcgi_path_info` 变量的值。仅对于依赖 `PATH_INFO` 的应用程序是必需的。 |'
 - en: '| `fastcgi_store` | Enables storing responses retrieved from a FastCGI server
     as files on disk. The `on` parameter will use the `alias` or `root` directive
     as the base path under which to store the file. A string may instead be given,
@@ -1804,27 +1972,34 @@
   id: totrans-298
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_store` | 启用将从 FastCGI 服务器获取的响应存储为磁盘上的文件。`on` 参数将使用 `alias` 或 `root`
+    指令作为存储文件的基础路径。也可以给定一个字符串，指示存储文件的替代位置。 |'
 - en: '| `fastcgi_store_access` | Sets file access permissions for newly-created `fastcgi_store`
     files. |'
   id: totrans-299
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_store_access` | 设置新创建的 `fastcgi_store` 文件的访问权限。 |'
 - en: '| `fastcgi_temp_file_write_size` | Limits the amount of data buffered to a
     temporary file at one time, so that NGINX will not block too long on a single
     request. |'
   id: totrans-300
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_temp_file_write_size` | 限制每次写入临时文件时缓冲的数据量，以便 NGINX 不会在单个请求上阻塞过长时间。
+    |'
 - en: '| `fastcgi_temp_path` | A directory where temporary files may be buffered as
     they are proxied from the FastCGI server, optionally multilevel deep. |'
   id: totrans-301
   prefs: []
   type: TYPE_TB
+  zh: '| `fastcgi_temp_path` | 用于缓冲从 FastCGI 服务器代理的临时文件的目录，可以选择多层深度。 |'
 - en: An example Drupal configuration
   id: totrans-302
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个 Drupal 配置示例：
 - en: Drupal ([http://drupal.org](http://drupal.org)) is a popular open source content
     management platform. There is a large installed user base, and many popular websites
     are run on Drupal. As with most PHP web frameworks, Drupal is typically run under
@@ -1833,6 +2008,9 @@
   id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: Drupal ([http://drupal.org](http://drupal.org)) 是一个流行的开源内容管理平台，拥有大量安装用户基础，许多流行网站都运行在
+    Drupal 上。像大多数 PHP 网络框架一样，Drupal 通常在 Apache 下使用 `mod_php` 运行。我们将探讨如何配置 NGINX 来运行
+    Drupal。
 - en: 'There is a very comprehensive Drupal configuration guide for NGINX found at
     [https://github.com/perusio/drupal-with-nginx](https://github.com/perusio/drupal-with-nginx).
     It goes more in-depth than we are able to do here, but we will point out some
@@ -1841,6 +2019,8 @@
   id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个非常全面的 NGINX 配置指南，适用于 Drupal，可以在 [https://github.com/perusio/drupal-with-nginx](https://github.com/perusio/drupal-with-nginx)
+    上找到。它比我们这里能够深入探讨的内容更详细，但我们将指出一些提到的特性，并讲解 Drupal 6 与 Drupal 7 之间的一些差异：
 - en: '[PRE27]'
   id: totrans-305
   prefs: []
@@ -1852,6 +2032,7 @@
   id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来的高级聚合模块配置只在所用的 `location` 上有所不同。CSS 的高级聚合模块配置如下：
 - en: '[PRE28]'
   id: totrans-307
   prefs: []
@@ -1861,6 +2042,7 @@
   id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 JavaScript，配置如下：
 - en: '[PRE29]'
   id: totrans-309
   prefs: []
@@ -1870,6 +2052,7 @@
   id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个部分的共同配置项如下：
 - en: '[PRE30]'
   id: totrans-311
   prefs: []
@@ -1879,6 +2062,7 @@
   id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 服务音频文件展示了 AIO 的使用。MP3 的 `location` 配置如下：
 - en: '[PRE31]'
   id: totrans-313
   prefs: []
@@ -1888,6 +2072,7 @@
   id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: Ogg/Vorbis 的 `location` 配置如下：
 - en: '[PRE32]'
   id: totrans-315
   prefs: []
@@ -1897,6 +2082,7 @@
   id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些配置项之间有以下共同点：
 - en: '[PRE33]'
   id: totrans-317
   prefs: []
@@ -1907,6 +2093,7 @@
   id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来的两个伪流媒体部分也很相似。H264 文件的伪流媒体配置如下代码：
 - en: '[PRE34]'
   id: totrans-319
   prefs: []
@@ -1916,6 +2103,7 @@
   id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 AAC 文件的伪流媒体配置如下代码：
 - en: '[PRE35]'
   id: totrans-321
   prefs: []
@@ -1925,6 +2113,7 @@
   id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些配置项之间有以下共同点：
 - en: '[PRE36]'
   id: totrans-323
   prefs: []
@@ -1934,6 +2123,7 @@
   id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下`locations`都设置了`return 404`以拒绝访问：
 - en: '[PRE37]'
   id: totrans-325
   prefs: []
@@ -1945,11 +2135,13 @@
   id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述提到的`include`文件为了简洁起见没有在此重复。它们可以在本节开头提到的Perusio的GitHub仓库中找到。
 - en: Wiring NGINX and uWSGI together
   id: totrans-327
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将NGINX和uWSGI连接起来
 - en: The Python **WSGI** (**Web Server Gateway Interface**) is an interface specification
     formalized as PEP-3333 ([http://www.python.org/dev/peps/pep-3333/](http://www.python.org/dev/peps/pep-3333/)).
     Its purpose is to provide a "standard interface between web servers and Python
@@ -1965,6 +2157,8 @@
   id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: Python的**WSGI**（**Web服务器网关接口**）是根据PEP-3333（[http://www.python.org/dev/peps/pep-3333/](http://www.python.org/dev/peps/pep-3333/)）正式化的接口规范。它的目的是提供一个“Web服务器和Python
+    Web应用程序或框架之间的标准接口，以促进Web应用程序在多种Web服务器上的可移植性”。由于其在Python社区中的广泛使用，许多其他语言也有符合WSGI规范的实现。虽然uWSGI服务器并非专为Python编写，但它提供了一种运行符合此规范的应用程序的方式。与uWSGI服务器通信的原生协议称为uwsgi。有关uWSGI服务器的更多详细信息，包括安装说明、示例配置和其他支持的语言，请参阅[http://projects.unbit.it/uwsgi/](http://projects.unbit.it/uwsgi/)和[https://github.com/unbit/uwsgi-docs](https://github.com/unbit/uwsgi-docs)。
 - en: NGINX's `uwsgi` module can be configured to talk to this server using directives
     similar to the `fastcgi_*` directives discussed in the previous section. Most
     directives have the same meaning as their FastCGI counterparts, with the obvious
@@ -1978,11 +2172,13 @@
   id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的`uwsgi`模块可以使用类似于前一节中讨论的`fastcgi_*`指令的方式配置与此服务器通信。大多数指令的意义与它们的FastCGI对应指令相同，显著的区别是它们以`uwsgi_`而不是`fastcgi_`开头。然而，也有少数例外——`uwsgi_modifier1`和`uwsgi_modifier2`，以及`uwsgi_string`。前两个指令分别设置uwsgi包头的第一个或第二个修饰符。`uwsgi_string`允许NGINX向uWSGI或任何其他支持eval修饰符的uwsgi服务器传递任意字符串。这些修饰符特定于uwsgi协议。有效值及其含义的表格可以在[http://uwsgi-docs.readthedocs.org/en/latest/Protocol.html](http://uwsgi-docs.readthedocs.org/en/latest/Protocol.html)找到。
 - en: An example Django configuration
   id: totrans-330
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个Django配置示例
 - en: Django ([https://www.djangoproject.com/](https://www.djangoproject.com/)) is
     a Python web framework in which developers can quickly create high-performing
     web applications. It has become a popular framework in which many different kinds
@@ -1990,6 +2186,8 @@
   id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: Django（[https://www.djangoproject.com/](https://www.djangoproject.com/)）是一个Python
+    Web框架，开发人员可以利用它快速创建高性能的Web应用程序。它已成为一个流行的框架，用于编写各种类型的Web应用程序。
 - en: 'The following configuration is an example of how to connect NGINX to multiple
     Django applications running under an Emperor mode uWSGI server with FastRouter
     activated. See the URLs embedded in the comments in the following code for more
@@ -1997,6 +2195,7 @@
   id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置示例展示了如何将NGINX连接到在Emperor模式下运行并启用FastRouter的多个Django应用程序。有关如何像这样运行uWSGI的更多信息，请参阅以下代码中的注释中嵌入的URL：
 - en: '[PRE38]'
   id: totrans-333
   prefs: []
@@ -2007,11 +2206,13 @@
   id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使得可以在不更改NGINX配置的情况下动态托管多个站点。
 - en: Summary
   id: totrans-335
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we have explored a number of directives used to make NGINX
     serve files over HTTP. Not only does the `http` module provide this functionality,
     but there are also a number of helper modules that are essential to the normal
@@ -2025,6 +2226,8 @@
   id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们探讨了用于通过 HTTP 提供文件的若干指令。`http` 模块不仅提供了这一功能，还有许多对于 NGINX 正常运行至关重要的辅助模块。这些辅助模块默认启用。结合这些不同模块的指令，我们能够构建出满足需求的配置。我们探讨了
+    NGINX 如何根据请求的 URI 查找文件。我们研究了不同指令如何控制 HTTP 服务器与客户端的交互，以及如何使用 `error_page` 指令来处理多种需求。基于带宽使用、请求频率和连接数量限制访问都是可能的。
 - en: We saw, too, how we can restrict access based on either IP address or through
     requiring authentication. We explored how to use NGINX's logging capabilities
     to capture just the information we want. Pseudo-streaming was examined briefly,
@@ -2036,8 +2239,12 @@
   id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还看到，如何根据 IP 地址或要求认证来限制访问。我们探讨了如何使用 NGINX 的日志功能，只捕获我们想要的信息。同时，伪流媒体也进行了简要的研究。NGINX
+    提供了许多变量，可以用来构建我们的配置。我们还探讨了使用 `fastcgi` 模块连接 PHP-FPM 应用程序，以及使用 `uwsgi` 模块与 uWSGI
+    服务器进行通信的可能性。示例配置结合了本章讨论的指令，以及其他章节中讨论的部分内容。
 - en: The next chapter will introduce some modules that will help you as a developer
     integrate NGINX into your application.
   id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一章将介绍一些模块，帮助开发者将 NGINX 集成到他们的应用程序中。
