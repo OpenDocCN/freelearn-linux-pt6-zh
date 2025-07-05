@@ -1,40 +1,58 @@
 - en: 'Chapter 6. Setting Up Applications: FCGI and WSGI Modules'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第六章：设置应用程序：FCGI 和 WSGI 模块
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章内容包括：
 - en: Setting up a PHP FCGI site
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置 PHP FCGI 网站
 - en: Setting up a Python site using uWSGI
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 uWSGI 设置 Python 网站
 - en: Modifying FCGI timeouts
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 修改 FCGI 超时设置
 - en: Utilizing FCGI cache to speed it up
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 FCGI 缓存来加速
 - en: Using multiple FCGI backends
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用多个 FCGI 后端
 - en: Introduction
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: This is a practical section devoted to helping programmers and system administrators
     to understand and install their applications using Nginx as the web server. Due
     to the lack of integrated modules for running PHP and Python, the setting up of
     such systems can be an issue for non-experienced system administrators.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个实践部分，旨在帮助程序员和系统管理员理解并使用 Nginx 作为 Web 服务器安装他们的应用程序。由于缺乏集成模块来运行 PHP 和 Python，配置此类系统对经验不足的系统管理员来说可能是一个问题。
 - en: Nginx is designed to be a framework to handle native web and mail protocols
     using an event driven mechanism. Most of the web server-application interfaces
     have been added to the main web server later. Over time, CGI has evolved into
@@ -42,365 +60,536 @@
     The goal at the end of the day for all these protocols is to effectively communicate
     with the web server in a standardized format with the lowest possible language
     overheads.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 被设计为一个框架，用于通过事件驱动机制处理本地 Web 和邮件协议。大多数 Web 服务器与应用程序的接口是后来才被加入到主 Web 服务器中的。随着时间的推移，CGI
+    演变出了许多形式，最终发展成了 FCGI、SCGI 以及用于 Python 的 WSGI 协议。这些协议的最终目标是通过标准化格式与 Web 服务器有效地通信，同时尽可能减少语言开销。
 - en: Setting up a PHP FCGI site
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置 PHP FCGI 网站
 - en: This recipe helps you to set up a PHP site using Nginx and PHP-fpm fairly easily
     and quickly. Nginx, unlike Apache, does not have `mod_php` built into it and remains
     a standalone web server which supports many standard protocols such as CGI, FCGI,
     SCGI, WSGI, and more through core and third-party modules.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 本篇教程帮助你通过 Nginx 和 PHP-fpm 快速而轻松地设置 PHP 网站。与 Apache 不同，Nginx 不自带 `mod_php`，而是作为一个独立的
+    Web 服务器，通过核心模块和第三方模块支持多种标准协议，如 CGI、FCGI、SCGI、WSGI 等。
 - en: PHP-fpm is a set of utilities and scripts that enables the system administrator
     to easily run and manage a PHP FCGI backend. This is officially available as a
     part of the PHP5.3.x stable and would become a major part of PHP deployment going
     forward.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: PHP-fpm 是一套工具和脚本，帮助系统管理员轻松运行和管理 PHP FCGI 后端。它是 PHP5.3.x 稳定版的一部分，今后将在 PHP 部署中占据重要地位。
 - en: We will initially have a look at how to set up php-fpm and then see a simple
     WordPress site being configured using this setup.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先了解如何设置 php-fpm，然后通过这个设置配置一个简单的 WordPress 网站。
 - en: How to do it...
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作…
 - en: This will be divided into two sections; one which will help you install php-fpm
     and the other which will help you configure WordPress on Nginx using this setup.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 本部分将分为两个部分：一部分帮助你安装 php-fpm，另一部分则帮助你在 Nginx 上使用该设置配置 WordPress。
 - en: '**Installing php-fpm for PHP 5.2.x**'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '**为 PHP 5.2.x 安装 php-fpm**'
 - en: Depending on your system and PHP requirements you will need to either download
     the packages [deb/rpm] or the source code.
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 根据你的系统和 PHP 的需求，你需要下载相应的 [deb/rpm] 软件包或源代码。
 - en: If you are lucky, you can work with the packages you can download from [http://php-fpm.org/download/](http://php-fpm.org/download/)
     depending on the version of PHP that you have.
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果你运气好，你可以使用从 [http://php-fpm.org/download/](http://php-fpm.org/download/) 下载的
+    PHP 软件包，具体取决于你使用的 PHP 版本。
 - en: 'If you are not in luck for the packages, you will need to follow the guide
     on the following site: [http://legacy.php-fpm.org/Documentation](http://legacy.php-fpm.org/Documentation).
     In this guide you will effectively download the latest patch for PHP 5.2.X and
     then apply the patch:'
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果你运气不好找不到相关软件包，你需要按照以下网站的指南操作：[http://legacy.php-fpm.org/Documentation](http://legacy.php-fpm.org/Documentation)。在这个指南中，你需要下载适用于
+    PHP 5.2.X 的最新补丁，并进行补丁应用：
 - en: '[PRE0]'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: After the installation is done, you can start the php-fpm daemon process. This
     will by default run on the 9000 port (or you can configure it according to your
     needs).
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 安装完成后，你可以启动 php-fpm 守护进程。默认情况下，它会在 9000 端口运行（当然，你也可以根据需要进行配置）。
 - en: '**Configuring WordPress**'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '**配置 WordPress**'
 - en: Now we will simply create a new configuration for the WordPress site that you
     plan to run with Nginx and PHP-FPM. This assumes that the php-fpm is listening
     on port 9000.
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们将为计划与 Nginx 和 PHP-FPM 一起运行的 WordPress 网站创建一个新的配置。假设 php-fpm 正在监听 9000 端口。
 - en: '[PRE1]'
+  id: totrans-24
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Now all you need to do is restart Nginx and make sure that it accepts the configuration.
+  id: totrans-25
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，您只需重启 Nginx，并确保它接受配置即可。
 - en: After this, we can access the domain that has been set up and that will redirect
     you to the installation page, as displayed in the following screenshot:![How to
     do it...](img/4965_06_01.jpg)
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 完成后，我们可以访问已经设置的域名，它将会重定向到安装页面，如下所示的屏幕截图所示：![如何操作...](img/4965_06_01.jpg)
 - en: You will need to make sure that you have created a MySQL database on your system,
     as the next installation screen requires you to enter the database information:![How
     to do it...](img/4965_06_02.jpg)
+  id: totrans-27
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要确保在系统上创建了一个 MySQL 数据库，因为下一步安装界面需要你输入数据库信息：![如何操作...](img/4965_06_02.jpg)
 - en: Finally, you will have got your PHP WordPress blog up and running!
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最后，你将成功启动你的 PHP WordPress 博客！
 - en: '![How to do it...](img/4965_06_03.jpg)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_06_03.jpg)'
 - en: How it works...
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的…
 - en: Depending on the operating system and PHP version, you will have to choose the
     correct method of installing php-fpm. After the installation, you will need to
     start the php-fpm daemon installed on a port that is not already in use by any
     other application.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据操作系统和 PHP 版本的不同，您需要选择正确的安装 php-fpm 的方法。安装完成后，您需要启动 php-fpm 守护进程，并确保它绑定到一个没有被其他应用程序占用的端口。
 - en: The Nginx configuration step involves setting up a server directive which will
     basically invoke the daemon with the HTTP request and the script being queried.
     We are also handling WordPress clean URLs using the above rewrites.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 配置步骤涉及设置一个服务器指令，该指令将基本上调用守护进程，处理 HTTP 请求和正在查询的脚本。我们还通过上述重写来处理 WordPress
+    的干净 URL。
 - en: There's more...
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多…
 - en: You can also go ahead and install other PHP applications without any clean URLs
     by simply using the following sample configuration! In this case, we do not require
     any of the static files and clean URL rewrites.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以继续安装其他 PHP 应用程序，而无需干净的 URL，只需使用以下示例配置！在这种情况下，我们不需要任何静态文件和干净的 URL 重写。
 - en: '[PRE2]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Setting up a Python site using uWSGI
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 uWSGI 设置 Python 网站
 - en: Python has seen an immense rise of popularity ever since it was adopted by Google
     for a significant part of its server side scripting. It has garnered significant
     support from the industry and consequently warrants attention in this practical
     chapter.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 自从 Python 被 Google 采用，用于其服务器端脚本的重大部分以来，它的受欢迎程度急剧上升。它已经获得了业界的广泛支持，因此在本章中值得关注。
 - en: There has been development of **Web Server Gateway Interface** (WSGI) which
     acts as a simple and universal interface between a web server and the various
     Python frameworks that have come up in recent times. In this recipe, we will use
     a sample installation of Django, which is a Python web framework, to show how
     we can get Nginx and python to work together.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Web 服务器网关接口**（WSGI）的开发，作为 Web 服务器和近年来出现的各种 Python 框架之间的一个简单通用接口。在本教程中，我们将使用
+    Django 这一 Python Web 框架的示例安装，展示如何让 Nginx 和 Python 协同工作。'
 - en: How to do it...
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: For setting up a simple python, we will look at three parts. The first part
     will deal with the installation of uWSGI (`http://projects.unbit.it/uwsgi/wiki`),
     the second will deal with the setting up a very basic Django installation, and
     the last will deal with how to get them all working together.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了设置一个简单的 Python 网站，我们将分为三个部分。第一部分将涉及 uWSGI 的安装（`http://projects.unbit.it/uwsgi/wiki`），第二部分将介绍如何设置一个非常基础的
+    Django 安装，最后一部分则讨论如何让它们一起工作。
 - en: '**Installation of uWSGI**'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '**uWSGI 安装**'
 - en: If you are using a Nginx which is greater than 0.8.4 then uWSGI is already installed
     on your server. Otherwise you will need to follow the steps below. It is also
     assumed that you have root privileges or `sudo` access to the server on which
     the installation is to be done.
+  id: totrans-42
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果你使用的是版本大于 0.8.4 的 Nginx，那么 uWSGI 已经在你的服务器上安装。如果不是，你将需要按照以下步骤进行操作。假设你拥有 root
+    权限或可以使用 `sudo` 访问安装服务器。
 - en: 'Download the uWSGI module at the same level of your Nginx source code directory
     and then configure the package:'
+  id: totrans-43
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在与 Nginx 源代码目录同级的地方下载 uWSGI 模块，然后配置该软件包：
 - en: wget [http://projects.unbit.it/downloads/uwsgi-0.9.6.5.tar.gz](http://projects.unbit.it/downloads/uwsgi-0.9.6.5.tar.gz
     )
+  id: totrans-44
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: wget [http://projects.unbit.it/downloads/uwsgi-0.9.6.5.tar.gz](http://projects.unbit.it/downloads/uwsgi-0.9.6.5.tar.gz)
 - en: '[PRE3]'
+  id: totrans-45
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This will install the uWSGI module for your Nginx setup. You will also need
     to copy the `uwsgi_params` file into your Nginx installation directory.
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这将为你的 Nginx 设置安装 uWSGI 模块。你还需要将 `uwsgi_params` 文件复制到你的 Nginx 安装目录中。
 - en: '**Basic Django setup with WSGI script**'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '**使用 WSGI 脚本的基本 Django 设置**'
 - en: We will first install the easy_install script from [http://peak.telecommunity.com/dist/ez_setup.py](http://peak.telecommunity.com/dist/ez_setup.py)
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将首先从[http://peak.telecommunity.com/dist/ez_setup.py](http://peak.telecommunity.com/dist/ez_setup.py)安装easy_install脚本。
 - en: '[PRE4]'
+  id: totrans-49
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: We will then install the Django package using `easy_install`, this will handle
     all the dependencies and install them for you.
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们将使用`easy_install`安装Django包，这将处理所有依赖项并为你安装它们。
 - en: '[PRE5]'
+  id: totrans-51
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: After this, we will start a new project called `test`
+  id: totrans-52
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在此之后，我们将开始一个名为`test`的新项目。
 - en: '[PRE6]'
+  id: totrans-53
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'We can now test if it is running or not by simply going into the test directory
     and invoking the in-built development server:'
+  id: totrans-54
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们现在可以通过进入测试目录并调用内置的开发服务器来测试它是否运行：
 - en: '[PRE7]'
+  id: totrans-55
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '![How to do it...](img/4965_06_04.jpg)'
+  id: totrans-56
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_06_04.jpg)'
 - en: We will now create the WSGI file that will run this test setup. You will need
     to go above the test directory and create a new file called `django_wsgi.py:`
+  id: totrans-57
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们现在将创建运行此测试设置的WSGI文件。你需要进入测试目录上级并创建一个名为`django_wsgi.py`的新文件：
 - en: '[PRE8]'
+  id: totrans-58
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: You will now need to run a uWSGI instance for this site using the following
     command. This assumes that the project was created at `/var/www/` and the port
     that uWSGI will use is 3031.
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你现在需要使用以下命令运行一个uWSGI实例来为该站点提供服务。假设该项目是在`/var/www/`创建的，并且uWSGI将使用3031端口。
 - en: '[PRE9]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '**Nginx with uWSGI**'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Nginx与uWSGI**'
 - en: 'For running this test Django site, you will need to add the following configuration:'
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要运行此测试Django站点，你需要添加以下配置：
 - en: '[PRE10]'
+  id: totrans-63
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: You will need to restart the Nginx web server and then you can try visiting
     your site.
+  id: totrans-64
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要重启Nginx Web服务器，然后你可以尝试访问你的网站。
 - en: '![How to do it...](img/4965_06_05.jpg)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_06_05.jpg)'
 - en: How it works...
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The idea behind uWSGI is to provide a common protocol between the application
     and the web server so that you can plug and play depending on your needs. In this
     recipe, we can clearly see how one can go about uWSGI, which in some cases already
     comes as a part of the Nginx source package. We can see how to create and get
     a small Django application running.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: uWSGI的核心理念是提供一个应用程序和Web服务器之间的通用协议，以便根据需要进行插件式配置。在这个示例中，我们可以清楚地看到如何使用uWSGI，在某些情况下它已经作为Nginx源代码包的一部分。我们可以看到如何创建并运行一个小型Django应用。
 - en: So the uWSGI daemon runs on the 3031 port in our example and Nginx basically
     converts the HTTP requests into the WSGI protocol and proxies them to the daemon.
     uWSGI provides quite a lot of features which allow you to also manage the python
     overheads properly.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，uWSGI守护进程在我们的示例中运行在3031端口，Nginx基本上将HTTP请求转换为WSGI协议，并将其代理到守护进程。uWSGI提供了许多功能，允许你正确管理Python的开销。
 - en: There's more...
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: You can take this simple example and extend it to most other python frameworks.
     Here is a really small standalone python script for `web.py` developers. Save
     this as `django_usgi2.py:`
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以把这个简单的示例扩展到大多数其他Python框架。这里有一个非常小的独立Python脚本，供`web.py`开发者使用。将其保存为`django_usgi2.py`：
 - en: '[PRE11]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'To run this use:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 要运行此脚本，请使用：
 - en: '[PRE12]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Modifying FCGI timeouts
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 修改FCGI超时
 - en: If you have already discovered the various possibilities of how to set up PHP
     with Nginx, it will become clear that FCGI is a fairly optimal setup for low to
     medium traffic environments for PHP and Python, where RAM is a constraint.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你已经发现了如何在Nginx中设置PHP的各种可能性，你会清楚地看到，FCGI是一个相当适合低至中等流量环境的优化配置，尤其是当RAM成为限制因素时，无论是PHP还是Python。
 - en: In situations where due to resource constraints or time-consuming computation
     the FCGI daemon is not able to send back a response quickly enough, the user is
     made to wait and this lowers the quality of experience for the site.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在由于资源限制或计算时间过长导致FCGI守护进程无法快速返回响应的情况下，用户将被迫等待，这降低了网站的体验质量。
 - en: How to do it...
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'In order to increase your FCGI timeout from the default 60 second you will
     need to add the following to your FCGI directives:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了将FCGI超时时间从默认的60秒增加，你需要在FCGI指令中添加以下内容：
 - en: '[PRE13]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: How it works...
+  id: totrans-80
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: These simple directives simply increase the amount of time the server waits
     for the upstream FCGI process to process and send data. This is important as other
     directives like `send_timeout` and `proxy_connect_timeout` do not affect the Nginx
     FCGI upstream setting.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些简单的指令仅仅增加了服务器等待上游FCGI进程处理并发送数据的时间。这很重要，因为像`send_timeout`和`proxy_connect_timeout`这样的其他指令不会影响Nginx的FCGI上游设置。
 - en: We are utilizing the same Nginx setup from the recipe use to set up PHP-fpm
     with Nginx in the above configuration.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们正在使用与上面配置PHP-fpm与Nginx时相同的Nginx设置。
 - en: Utilizing FCGI cache to speed it up
+  id: totrans-83
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 利用FCGI缓存来加速
 - en: Due to the disconnected nature of the Nginx and the FCGI daemon, a cache in
     between can really speed things up for common requests. If set up correctly it
     can do wonders for a site and the server as the CPU will not be utilized unnecessarily.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 Nginx 和 FCGI 守护进程之间是断开的，因此在两者之间放置缓存能够极大地加速常见请求。如果设置正确，它可以对站点和服务器产生极大的帮助，因为
+    CPU 不会被不必要地占用。
 - en: How to do it...
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何做的...
 - en: 'It is pretty easy to setup:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置起来非常简单：
 - en: '[PRE14]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: How it works...
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In this recipe we are setting up a cache called `NAME` and setting it up for
     the site, with an hour of caching on any site that was successfully retrieved,
     while very low caching for error pages.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，我们设置了一个名为 `NAME` 的缓存，并为该站点进行配置，任何成功获取的站点都会缓存一个小时，而错误页面的缓存则非常短。
 - en: The `fastcgi_cache_path` directive specifies the path to the cache storage and
     other cache parameters. All data is stored within this directive, the cache key
     and the name of the cache file are calculated as the MD5 sum of the proxied URL.
@@ -408,92 +597,143 @@
     to be used in the caching file location. The size has been set to 10M in the current
     example, and by default, entries are removed from the chache if inactive for ten
     minutes.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '`fastcgi_cache_path` 指令指定缓存存储路径及其他缓存参数。所有数据都存储在该指令中，缓存的键值和缓存文件的名称是通过代理的 URL
+    的 MD5 和计算得到的。levels 参数设置用于缓存文件位置的子目录名称的数量和宽度。在当前示例中，大小被设置为 10M，并且默认情况下，如果缓存 10
+    分钟内没有被访问，缓存条目会被删除。'
 - en: 'The following table summarizes the various directives and their use:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下表格总结了各种指令及其用途：
 - en: '| Directive | Use |'
+  id: totrans-92
   prefs: []
   type: TYPE_TB
+  zh: '| 指令 | 用途 |'
 - en: '| --- | --- |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| fastcgi_cache | This determines the area which will be utilized for caching
     |'
+  id: totrans-94
   prefs: []
   type: TYPE_TB
+  zh: '| fastcgi_cache | 这个指令决定了用于缓存的区域 |'
 - en: '| fastcgi_cache_key | This sets the key that will be used for caching |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| fastcgi_cache_key | 这个指令设置用于缓存的键值 |'
 - en: '| fastcgi_cache_path | This sets the path and other critical parameters for
     the cache being created |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| fastcgi_cache_path | 这个指令设置缓存路径及其他关键参数 |'
 - en: '| fastcgi_cache_methods | This sets which HTTP methods are to be allowed while
     caching |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '| fastcgi_cache_methods | 这个指令设置在缓存时允许哪些 HTTP 方法 |'
 - en: '| fastcgi_cache_min_uses | This specifies how many requests to the same URL
     will be cached |'
+  id: totrans-98
   prefs: []
   type: TYPE_TB
+  zh: '| fastcgi_cache_min_uses | 这个指令指定同一 URL 被缓存的请求次数 |'
 - en: '| fastcgi_cache_use_stale | This determines if the web server will start serving
     stale cached data in case of gateway errors |'
+  id: totrans-99
   prefs: []
   type: TYPE_TB
+  zh: '| fastcgi_cache_use_stale | 这个指令决定了在网关错误的情况下，Web 服务器是否会开始提供陈旧的缓存数据 |'
 - en: '| fastcgi_cache_valid | This sets the caching period for the specified HTTP
     codes |'
+  id: totrans-100
   prefs: []
   type: TYPE_TB
+  zh: '| fastcgi_cache_valid | 这个指令设置指定 HTTP 代码的缓存期限 |'
 - en: Using multiple FCGI backends
+  id: totrans-101
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用多个 FCGI 后端
 - en: In this recipe, we will look at how to work with multiple FCGI backends on the
     system. This can happen in a system where you have multiple types of applications
     running, such as a PHP application, a Python FCGI application, and so on.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，我们将学习如何在系统上使用多个 FCGI 后端。这种情况可能发生在你有多个类型的应用程序运行时，比如 PHP 应用程序、Python FCGI
+    应用程序等。
 - en: It can also be the case that you want to isolate two application backends to
     prevent performance issues between them, as one slow application would definitely
     tie the other one down.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 也有可能你希望隔离两个应用程序的后端，以避免它们之间的性能问题，因为一个慢速应用程序肯定会拖慢另一个应用程序的速度。
 - en: How to do it...
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何做的...
 - en: 'This is fairly straightforward, as you can create a simple `fcgi_common` file
     that will contain the common FCGI configuration:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 这相当简单，因为你可以创建一个简单的`fcgi_common`文件，其中包含常见的 FCGI 配置：
 - en: '[PRE15]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: You will then need to use the following configuration and put it in the Nginx
     configuration file at `sites-enabled/www.example1.com:`
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你需要使用以下配置，并将其放入 Nginx 配置文件 `sites-enabled/www.example1.com` 中：
 - en: '[PRE16]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: You will then need to use the following configuration and put it in the Nginx
     configuration file at `sites-enabled/www.example2.com`
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你需要使用以下配置，并将其放入 Nginx 配置文件 `sites-enabled/www.example2.com` 中
 - en: '[PRE17]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: How it works...
+  id: totrans-111
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This setup basically lets you take out the common parts of the FCGI directives
     and have a clean setup for as many sites as you want.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种设置基本上让你能够提取 FCGI 指令中的共同部分，并为任意数量的站点建立干净的设置。
 - en: If you notice, with this setup the rewrites specific for the clean URLs of an
     application are the only extra directives that are required.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你注意到，使用这种设置时，针对应用程序的干净 URL 的重写规则是唯一需要的额外指令。

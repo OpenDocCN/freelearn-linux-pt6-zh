@@ -1,45 +1,65 @@
 - en: 'Chapter 5. Let''s be Secure: Security Modules'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第五章：让我们确保安全：安全模块
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将讨论：
 - en: Setting up HTTP auth for access control
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置HTTP认证以进行访问控制
 - en: Generating a secure link for files
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成文件的安全链接
 - en: Setting up HTTPS for a simple site
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为简单站点设置HTTPS
 - en: Using non standard error codes for debugging SSL setup
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用非标准错误代码调试SSL设置
 - en: Using wildcard certificates with multiple servers
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用通配符证书与多个服务器
 - en: Using Nginx SSL variables for rewrite rules
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Nginx SSL变量进行重写规则
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Internet security has become one of the hottest topics of research and progress
     in recent time. Most countries have government mandates to run cyber-security
     teams in conjunction with normal security forces. Nginx, due to its rather small
     footprint and clear modular design, has a distinct advantage in maintaining a
     secure codebase in comparison to lots of much larger open source web servers.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 近年来，互联网安全已成为最热门的研究和进展话题之一。大多数国家要求政府组织与常规安全力量合作，组建网络安全团队。由于Nginx体积小、模块化设计清晰，它在维护安全代码库方面，相较于许多体积更大的开源Web服务器，具有明显的优势。
 - en: It is fair to say that there is no web server with zero exploits; the only way
     to prevent security issues is to have the right policy in place. A policy is inclusive
     of the activities that others in the system can perform and the various security
@@ -47,176 +67,253 @@
     through correct configuration. A simple example is that we can use simple HTTP
     authentication to prevent random people from accessing a staging site. Here, the
     policy is to prevent unknown individuals from accessing your private beta site.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 公平地说，没有一个Web服务器是零漏洞的；防止安全问题的唯一方法是实施正确的政策。政策包括其他系统用户可以执行的活动以及各种安全日志机制。然而，所有政策的效果都取决于通过正确配置来实施。一个简单的例子是，我们可以使用简单的HTTP认证来防止随机人员访问一个暂存站点。在这里，政策是防止未知人员访问你的私人Beta站点。
 - en: In this chapter we will look at how we can use the security modules built-in
     Nginx to secure your site and user's data.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将探讨如何利用Nginx内置的安全模块来保护你的站点和用户的数据。
 - en: Setting up HTTP auth for access control
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置HTTP认证以进行访问控制
 - en: In recent APIs, some of the larger web properties have utilized HTTP auth as
     a way of access control for their APIs. This however, has been gradually phased
     out for OAuth based authentication in most applications. The advantage of this
     scheme is that it's fairly fast to implement and ship out as an API provider as
     it is based on HTTP headers. In this particular recipe we will set up HTTP auth
     on a particular end-point and test it out.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最近的API中，一些大型网站已经将HTTP认证作为其API的访问控制方式。然而，这种方法在大多数应用中逐渐被OAuth认证取代。这种方案的优点是，它基于HTTP头部，因此实现起来非常快速，适合API提供者进行部署。在这个教程中，我们将设置一个特定端点的HTTP认证并进行测试。
 - en: How to do it...
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何做到这一点...
 - en: 'You will first need to create the `htpasswd` file using Apache utils. This
     file basically contains the username and password hash pairs, which are used to
     authenticate the users:'
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你首先需要使用Apache工具创建`htpasswd`文件。这个文件基本上包含用户名和密码哈希对，用于验证用户身份：
 - en: '[PRE0]'
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The preceding command will create a user dipankar and ask for a password from
     the command line.
+  id: totrans-17
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 上述命令将创建一个用户`dipankar`并要求从命令行输入密码。
 - en: 'Now we basically add this configuration to the location portion of the configuration,
     where we want to protect the URL end-point using HTTP authentication:'
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，我们基本上将这个配置添加到配置文件的location部分，在这里我们希望使用HTTP认证来保护URL端点：
 - en: '[PRE1]'
+  id: totrans-19
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Now you can go to `http://www.example1.com` and test the HTTP authentication.
     If you enter `dipankar` and the password that you used earlier, you will be successfully
     able to enter, as shown in the following screenshot:'
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，你可以访问`http://www.example1.com`并测试HTTP认证。如果你输入`dipankar`以及之前使用的密码，你将能够成功进入，如下图所示：
 - en: '![How to do it...](img/4965_05_01.jpg)'
+  id: totrans-21
   prefs: []
   type: TYPE_IMG
+  zh: '![如何做到这一点...](img/4965_05_01.jpg)'
 - en: 'If you are unable to enter the correct combination of username and password
     you will get the "Authorization Required" page as in the following screenshot:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你无法输入正确的用户名和密码组合，你将看到“需要授权”的页面，如下图所示：
 - en: '![How to do it...](img/4965_05_02.jpg)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![如何做到这一点...](img/4965_05_02.jpg)'
 - en: How it works...
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The above configuration needs an authentication file which contains the list
     of users and passwords in the traditional Apache `htpasswd` format, and you can
     use it to password-protect any part of the site that you want to.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述配置需要一个身份验证文件，该文件包含传统 Apache `htpasswd` 格式的用户和密码列表，你可以使用它来为网站的任何部分添加密码保护。
 - en: It is just as easy to have a different set of username passwords for password
     protecting other URLs on the site; you just need to create a separate set of `htpasswd`
     files.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了为网站上的其他 URL 添加密码保护，拥有一组不同的用户名和密码也同样简单；你只需要创建一组单独的 `htpasswd` 文件。
 - en: Generating a secure link for files
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为文件生成安全链接
 - en: Sometimes the only form of security that one needs for sharing files is a special
     URL. This is useful when the data is online temporarily, or maybe has value for
     a limited period of time. Nginx provides a module for exactly that purpose as
     well. In this recipe we will look at how to quickly implement secure links for
     files on your web server.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，分享文件时所需的唯一安全方式就是一个特殊的 URL。这在数据仅在网上暂时存在，或者可能只有有限的时间值时非常有用。Nginx 也提供了一个专门为此目的而设计的模块。在这个教程中，我们将看看如何快速为
+    Web 服务器上的文件实现安全链接。
 - en: How to do it...
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现……
 - en: 'The first step is to ensure that Nginx is compiled with this module, so you
     will need to make sure that you download Nginx and use the following flag during
     compilation:'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 第一步是确保 Nginx 已经编译了该模块，因此你需要确保下载 Nginx，并在编译时使用以下标志：
 - en: '[PRE2]'
+  id: totrans-31
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The next step is to choose a secret key (for example, `superhash)` and then
     use the following configuration:'
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下一步是选择一个密钥（例如，`superhash`），然后使用以下配置：
 - en: '[PRE3]'
+  id: totrans-33
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Now we can test this on a file (`top_secret.html`) that we have, so the generated
     URL is of the form `http://www.example1.com/t/<md5 hash>/top_secret.html` where
+  id: totrans-34
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们可以在我们拥有的文件（`top_secret.html`）上进行测试，因此生成的 URL 形式为 `http://www.example1.com/t/<md5
+    hash>/top_secret.html`，其中
 - en: '[PRE4]'
+  id: totrans-35
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: generates the `<md5-hash>`
+  id: totrans-36
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生成 `<md5-hash>`
 - en: 'If the above generated hash is correct, then you will be able to download the
     file. Otherwise, you will go to an Error page:'
+  id: totrans-37
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果上述生成的哈希值正确，你将能够下载文件。否则，你将进入一个错误页面：
 - en: '![How to do it...](img/4965_05_03.jpg)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![如何实现…](img/4965_05_03.jpg)'
 - en: 'If you by mistake you enter the wrong hash, you will receive a "Forbidden"
     page as shown in the following screenshot:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不小心输入了错误的哈希值，你将会看到一个“禁止访问”的页面，如下所示：
 - en: '![How to do it...](img/4965_05_04.jpg)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![如何实现…](img/4965_05_04.jpg)'
 - en: How it works...
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的……
 - en: The idea is to create a simple mechanism to have a unique and difficult URL
     to generate for a given file. In this case, the combination of the filename and
     the secret salt is used to generate the MD5 hash to form a part of the URL.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个想法是创建一个简单的机制，使得生成一个特定文件的唯一且难以猜测的 URL 成为可能。在这种情况下，文件名和秘密盐的组合被用来生成 MD5 哈希，从而形成
+    URL 的一部分。
 - en: Setting up HTTPS for a simple site
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为简单站点设置 HTTPS
 - en: Cryptography has evolved over the ages and in today's world public key cryptography
     is pretty much the cutting edge (this is what PGP is based upon). All browsers
     implement certificate based security, allowing for safe and encrypted transactions
     on the Internet. It has proven to be one of the key factors contributing to the
     growth of e-commerce over the last decade.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 加密技术随着时代的演变而不断发展，在今天的世界中，公钥加密技术几乎处于最前沿（这正是 PGP 所基于的技术）。所有浏览器都实现了基于证书的安全性，允许在互联网上进行安全和加密的交易。这被证明是过去十年中促进电子商务增长的关键因素之一。
 - en: Just as most browsers implement SSL based client mechanisms, all web servers
     also need to handle the server end of things. Nginx has a very clean and easy-to-configure
     implementation of SSL-based security. In this recipe we will have a look at how
     easy it is to get a pair of certificates and quickly set up a secure site.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像大多数浏览器实现基于 SSL 的客户端机制一样，所有 Web 服务器也需要处理服务器端的内容。Nginx 提供了一种非常简洁且易于配置的 SSL 安全性实现。在这个教程中，我们将看看如何轻松获取一对证书并快速设置一个安全站点。
 - en: How to do it...
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现……
 - en: Initially, you will need to buy a certificate from one of the known Certificate
     Authority (CAs) or obtain it from a free, public CA such as CAcert. Alternatively
     you can generate a certificate yourself. You can read more about this by picking
@@ -224,149 +321,220 @@
     come with 2 files, one of which is the certificate and the other a key. Let's
     say they are called `cert.pem` and `cert.key`. They are always specific to the
     domain that you are using it for.
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最初，你需要从知名的证书颁发机构（CA）购买证书，或者从免费的公共CA（如CAcert）获得证书。或者，你也可以自己生成证书。你可以通过阅读一本关于服务器安全的Packt出版书籍，了解更多关于这个的信息。这些证书通常包含两个文件，一个是证书文件，另一个是密钥文件。我们可以称它们为`cert.pem`和`cert.key`。它们总是特定于你使用的域名的。
 - en: To implement SSL on a certain end-point you will need to make sure that your
     firewall has the right ports open (80,443).
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要在某个终端点实现SSL，你需要确保防火墙已开放正确的端口（80, 443）。
 - en: The following piece of configuration has to be placed in the configuration file
     for the particular domain (in this case [www.example1.com)](http://www.example1.com)).
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 以下配置片段需要放入特定域名的配置文件中（在本例中为[www.example1.com)](http://www.example1.com))。
 - en: '[PRE5]'
+  id: totrans-50
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Now you can just try out [https://www.example1.com](http://https://www.example1.com),
     and it should open without any errors. If there are errors, it implies that the
     certificates are not being validated correctly by the browser. In the following
     example we can see how Paypal ([https://www.paypal.com](https://www.paypal.com))
     has a valid certificate from Verisign Inc:'
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在你可以尝试访问[https://www.example1.com](http://https://www.example1.com)，如果没有错误，页面应该能正常打开。如果出现错误，说明浏览器没有正确验证证书。在以下示例中，我们可以看到Paypal（[https://www.paypal.com](https://www.paypal.com)）有一个来自Verisign
+    Inc的有效证书：
 - en: '![How to do it...](img/4965_05_05b.jpg)'
+  id: totrans-52
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_05_05b.jpg)'
 - en: In a lot of cases, the certificate of the site may not be correctly configured,
     or may have expired. In those cases, most modern browsers will ask the user if
     they want to navigate to such a site, as shown in the following screenshot. It
     is advised, in most cases, to remove badly configured certificates as they may
     act as a barrier for the end user.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在很多情况下，网站的证书可能未正确配置，或已过期。在这种情况下，大多数现代浏览器会询问用户是否要继续访问该网站，如下图所示。大多数情况下，建议删除配置错误的证书，因为它们可能会成为最终用户的障碍。
 - en: '![How to do it...](img/4965_05_06.jpg)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![如何操作...](img/4965_05_06.jpg)'
 - en: How it works...
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'The following image best describes the actual process of SSL authentication.
     In the configuration, we basically define the certificate and the key for the
     web server, and the rest is pretty much handled internally:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下图片最好地描述了SSL认证的实际过程。在配置中，我们基本上定义了Web服务器的证书和密钥，其余的基本上由内部处理：
 - en: '![How it works...](img/4965OS_05_07.jpg)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![它是如何工作的...](img/4965OS_05_07.jpg)'
 - en: There's more...
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'Let''s say that you do not yet want to buy certificates for your site, and
     want instead to try out SSL based security for you site. You can generate your
     certificates by following the steps below:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你还不想为你的网站购买证书，而是想尝试使用SSL安全性。你可以按照以下步骤生成证书：
 - en: 'First, change directory to where you want to create the certificate and private
     key, for example:'
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，切换到你想要创建证书和私钥的目录，例如：
 - en: '[PRE6]'
+  id: totrans-61
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Now create the server private key. You''ll be asked for a passphrase:'
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在创建服务器私钥。系统会要求你输入密码短语：
 - en: '[PRE7]'
+  id: totrans-63
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Create the Certificate Signing Request (CSR):'
+  id: totrans-64
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建证书签名请求（CSR）：
 - en: '[PRE8]'
+  id: totrans-65
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Remove the necessity of entering a passphrase for starting up Nginx with SSL
     using the above private key:'
+  id: totrans-66
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用上述私钥，移除启动Nginx时输入密码短语的必要性：
 - en: '[PRE9]'
+  id: totrans-67
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Finally, sign the certificate using the above private key and CSR:'
+  id: totrans-68
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最后，使用上述私钥和证书签名请求（CSR）签署证书：
 - en: '[PRE10]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Using non standard error codes for debugging SSL setup
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用非标准错误代码调试SSL设置
 - en: Most setups are difficult to get the first time around, and to that end Nginx
     has provided some really easy-to-use non-standard error codes for debugging your
     SSL setup.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数设置第一次配置时会很困难，因此Nginx提供了一些非常易于使用的非标准错误代码来调试你的SSL设置。
 - en: In this recipe we will take a look at the non-standard error codes that are
     present and how to tackle SSL setup issues.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我们将看看这些非标准错误代码，以及如何处理SSL设置问题。
 - en: How to do it...
+  id: totrans-73
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'These error codes are enabled by default and are as follows:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些错误代码默认启用，具体如下：
 - en: '| HTTP error codes | Error |'
+  id: totrans-75
   prefs: []
   type: TYPE_TB
+  zh: '| HTTP 错误代码 | 错误 |'
 - en: '| --- | --- |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| 495 | Error checking client certificate |'
+  id: totrans-77
   prefs: []
   type: TYPE_TB
+  zh: '| 495 | 检查客户端证书错误 |'
 - en: '| 496 | Client did not grant the required certificate |'
+  id: totrans-78
   prefs: []
   type: TYPE_TB
+  zh: '| 496 | 客户端未授权所需证书 |'
 - en: '| 497 | Normal request was sent to HTTPS |'
+  id: totrans-79
   prefs: []
   type: TYPE_TB
+  zh: '| 497 | 正常请求已发送到 HTTPS |'
 - en: How it works...
+  id: totrans-80
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The idea is fairly simple. Nginx allows you to log these special errors that
     you can use to identify and correct SSL issues.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个想法非常简单。Nginx允许你记录这些特殊的错误，你可以用来识别并修复SSL问题。
 - en: A simple example is that you can create a simple page that looks at all the
     Nginx variables on a particular error code for debugging purposes only. If you
     get a 495 error page it implies that the client certificate was not successfully
@@ -377,146 +545,219 @@
     scenario or replay attacks where there is a small proxy server that sits in the
     middle and records all the above steps necessary to create a SSL connection, only
     to target and cause havoc at a later time.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个简单的例子是，你可以创建一个简单的页面，用来查看特定错误代码下所有Nginx变量，仅用于调试目的。如果你收到495错误页面，意味着客户端证书未能成功通过它所发行的CA的检查。这可能是由于防火墙权限问题，或是你在Web服务器上可能存在解析问题。在某些情况下，当你得到496错误时，可能表明有人试图对你的网站造成一些问题！大多数SSL攻击都涉及中间人攻击或重放攻击，这种攻击通过一个小的代理服务器插入其中，记录所有创建SSL连接所需的步骤，然后在稍后的时间对目标进行破坏。
 - en: Using wildcard certificates with multiple servers
+  id: totrans-83
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用通配符证书和多个服务器
 - en: In lots of situations, we would want to provide a lot of secured subdomains
     among unsecured ones and share resources, both across the HTTP and HTTPS subdomains.
     In this recipe we will have a look at how to configure a HTTP domain, a secured
     subdomain and a directory shared on both HTTP and HTTPS subdomains.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多情况下，我们希望在一些不安全的子域名中提供多个安全的子域名，并且在HTTP和HTTPS子域之间共享资源。在这个实例中，我们将看看如何配置一个HTTP域名，一个安全的子域名，以及一个同时在HTTP和HTTPS子域上共享的目录。
 - en: How to do it...
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'To achieve the above, all we need to do is to add the following to the configuration.
     It assumes that all the certificate files have been concatenated into one file
     (common.crt) and similarly all the keys have been concatenated as well (common.key):'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现上述目标，我们只需要将以下内容添加到配置中。假设所有证书文件已经合并为一个文件（common.crt），同样，所有密钥也已合并（common.key）：
 - en: '[PRE11]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Now if you visit the three different parts of the site, you will realize that
     you can access `http://www.example1.com` and `http://static.example1.com/null.gif`
     but not be able to access `https://www.example1.com` or `http://payment.example1.com/`.
     The following screenshot demonstrates `https://www.example1.com` not opening:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果你访问网站的三个不同部分，你会发现你可以访问`http://www.example1.com`和`http://static.example1.com/null.gif`，但无法访问`https://www.example1.com`或`http://payment.example1.com/`。以下截图展示了`https://www.example1.com`无法打开：
 - en: '![How to do it...](img/4965_05_08.jpg)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![如何实现...](img/4965_05_08.jpg)'
 - en: The following screenshot displays the `null.gif` file being served correctly
     by Nginx, while [https://www.example1.com](http://https://www.example1.com) does
     not open as shown in the preceding screenshot.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下截图显示了`null.gif`文件在Nginx中被正确提供，而[https://www.example1.com](http://https://www.example1.com)如前所示无法打开。
 - en: '![How to do it...](img/4965_05_09.jpg)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![如何实现...](img/4965_05_09.jpg)'
 - en: How it works...
+  id: totrans-92
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This particular configuration shows the versatility of Nginx. In this recipe,
     you simply turned SSL on and off depending on the domain. You had one case where
     you did not want SSL (`http://www.example1.com`), another in which you wanted
     only SSL (`https://payment.example1.com`), and a third case where both the SSL
     and non-SSL URLs were enabled for the files in a particular directory (/var/www/www.example1.com/static).
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个配置展示了Nginx的多功能性。在这个实例中，你仅根据域名的不同打开或关闭SSL。你有一种情况不需要SSL（`http://www.example1.com`），另一种情况只需要SSL（`https://payment.example1.com`），还有一种情况是对于某个特定目录中的文件（/var/www/www.example1.com/static），同时启用了SSL和非SSL的URL。
 - en: Using Nginx SSL variables for rewrite rules
+  id: totrans-94
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Nginx SSL变量进行重写规则
 - en: 'Nginx has a very smart and well-designed rewrite system. It even allows you
     to access SSL variables for your rewrite rules. In this recipe, we will explore
     a simple example to see what we can do with these variables. You can explore more
     about rewrite rules in [Chapter 2](ch02.html "Chapter 2. All About Rewrites: The
     Rewrite Module") which focuses on rewrites.'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx有一个非常智能且设计良好的重写系统。它甚至允许您在重写规则中访问SSL变量。在这个例子中，我们将探讨一个简单的示例，看看我们可以用这些变量做什么。您可以在[第2章](ch02.html
+    "第2章：重写全攻略：重写模块")中了解更多关于重写规则的内容。
 - en: We will basically check if the SSL verification ($ssl_client_verify) was a success
     and show a different set of pages if it was not.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本上，我们将检查SSL验证（`$ssl_client_verify`）是否成功，如果没有成功，将显示不同的页面。
 - en: How to do it...
+  id: totrans-97
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Inserting this configuration in your file will basically result in showing
     the user a different site if the SSL client certificate is successfully verified:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 将此配置插入您的文件中，基本上将导致如果SSL客户端证书成功验证，则向用户显示不同的站点：
 - en: '[PRE12]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: How it works...
+  id: totrans-100
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This simple example has a look at how we caused the client certificate validation
     to redirect the client to a different part of the site (in this case `http://www.example1.com/test/)`.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的示例展示了我们如何使客户端证书验证将客户端重定向到站点的不同部分（在这个例子中是`http://www.example1.com/test/`）。
 - en: You can use other variables that the SSL module populates for a given session
     to do other things, like protocol based logging and more.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以使用SSL模块为特定会话填充的其他变量来做更多的事情，比如基于协议的日志记录等。
 - en: There's more...
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'You can access the following variables that can be utilized in creating interesting
     rules:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以访问以下变量，这些变量可以在创建有趣的规则时使用：
 - en: '| SSL variable | Description |'
+  id: totrans-105
   prefs: []
   type: TYPE_TB
+  zh: '| SSL 变量 | 描述 |'
 - en: '| --- | --- |'
+  id: totrans-106
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `$ssl_cipher` | This returns the cipher suite being used for the currently
     established SSL/TLS connection. |'
+  id: totrans-107
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_cipher` | 返回当前建立的SSL/TLS连接所使用的密码套件。 |'
 - en: '| `$ssl_client_serial` | This returns the serial number of the client certificate
     for the currently established SSL/TLS connection, if applicable. That is, if client
     authentication is activated in the connection. |'
+  id: totrans-108
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_client_serial` | 返回当前建立的SSL/TLS连接中客户端证书的序列号，如果适用的话。即，如果连接中启用了客户端认证。
+    |'
 - en: '| `$ssl_client_s_dn` | This returns the subject Distinguished Name (DN) of
     the client certificate for the currently established SSL/TLS connection, if applicable.
     That is, if client authentication is activated in the connection. |'
+  id: totrans-109
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_client_s_dn` | 返回当前建立的SSL/TLS连接中客户端证书的主题区分名称（DN），如果适用的话。即，如果连接中启用了客户端认证。
+    |'
 - en: '| `$ssl_client_i_dn` | This returns the issuer DN of the client certificate
     for the currently established SSL/TLS connection, if applicable. That is, if client
     authentication is activated in the connection. |'
+  id: totrans-110
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_client_i_dn` | 返回当前建立的SSL/TLS连接中客户端证书的颁发者区分名称（DN），如果适用的话。即，如果连接中启用了客户端认证。
+    |'
 - en: '| `$ssl_protocol` | This returns the protocol of the currently established
     SSL/TLS connection, depending on the configuration and client available options,
     it''s one of SSLv2, SSLv3, or TLSv1. |'
+  id: totrans-111
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_protocol` | 返回当前建立的SSL/TLS连接的协议，具体取决于配置和客户端可用选项，它可能是SSLv2、SSLv3或TLSv1之一。
+    |'
 - en: '| `$ssl_session_id` | The Session ID of the established secure connection—requires
     Nginx version greater or equal to 0.8.20. |'
+  id: totrans-112
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_session_id` | 已建立安全连接的会话ID—要求Nginx版本大于或等于0.8.20。 |'
 - en: '| `$ssl_client_cert` | Returns the client certificate installed for the particular
     domain. |'
+  id: totrans-113
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_client_cert` | 返回特定域名安装的客户端证书。 |'
 - en: '| `$ssl_client_raw_cert` | Returns the raw client certificate. |'
+  id: totrans-114
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_client_raw_cert` | 返回原始客户端证书。 |'
 - en: '| `$ssl_client_verify` | Takes the value "SUCCESS" when the client certificate
     is successfully verified. |'
+  id: totrans-115
   prefs: []
   type: TYPE_TB
+  zh: '| `$ssl_client_verify` | 当客户端证书成功验证时，取值为“SUCCESS”。 |'

@@ -1,76 +1,111 @@
 - en: 'Chapter 4. Slow Them Down: Access and Rate Limiting Module'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第4章：减缓他们的速度：访问和速率限制模块
 - en: 'In this chapter, we will cover:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将涵盖：
 - en: Limiting requests for any given session
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 限制每个会话的请求
 - en: Blocking and allowing access using IP
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 IP 阻止和允许访问
 - en: Setting up simple rate limiting for a download directory
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为下载目录设置简单的速率限制
 - en: Rate limiting search engine bots
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 限制搜索引擎爬虫的请求
 - en: Setting up GeoIP using the MaxMind country database
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 MaxMind 国家数据库设置 GeoIP
 - en: Using the GeoIP module to set up access and rate control
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 GeoIP 模块设置访问和速率控制
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: In this day and age of the Internet, the user is extremely sensitive about the
     quality of service they get from their online services. There are a lot of small
     companies with few resources that are able to capture a part of the market by
     innovating rapidly. Such companies eventually have to rate limit, as inevitably
     they have more traffic than their servers can handle.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个互联网时代，用户对于他们从在线服务中获得的服务质量非常敏感。许多资源有限的小公司通过快速创新能够抓住市场的一部分。然而，这些公司最终不得不进行速率限制，因为他们的流量不可避免地超过了服务器的承载能力。
 - en: Something as simple as getting "digged" ([http://www.digg.com](http://www.digg.com))
     or "slashdotted" ([http://www.slashdot.org](http://www.slashdot.org)) used to
     bring down sites, but Nginx provides good protection against situations like this
     by providing rate limiting and server access based on IP.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些像“被 digged”([http://www.digg.com](http://www.digg.com)) 或“被 slashdotted”([http://www.slashdot.org](http://www.slashdot.org))
+    这样简单的事情曾经导致网站崩溃，但 Nginx 通过提供基于 IP 的速率限制和服务器访问，能有效防止这种情况。
 - en: Limiting requests for any given session
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 限制每个会话的请求
 - en: Due to its event driven nature, Nginx is being adopted all over the world whenever
     one needs performance with resource constraints. However, in a lot of situations,
     that is not enough and the only way is to limit request to ensure that your site
     is up and your server does not suffer any downtime.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于其事件驱动的特性，Nginx 在全球范围内被广泛采用，尤其是在需要高性能和资源受限的场合。然而，在许多情况下，这还不足够，唯一的办法就是限制请求，以确保你的网站正常运行，服务器不发生宕机。
 - en: How to do it...
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'The following configuration, when applied within a server directive, allows
     you to limit requests for a given session:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置，当应用于 `server` 指令时，可以限制特定会话的请求：
 - en: '[PRE0]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: How it works...
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The `limit_req_zone` directive basically allows you to define what variable
     (in this case `$binary_remote_addr)` to act as the key of the sessions, in addition
     to allocating 10MB for this "zone" and limiting the rate to one request per second.
@@ -78,325 +113,481 @@
     the memory to handle the zone allocations. A given zone which uses, say, the remote
     address as the key for the session, will be able to handle about 32,000 sessions
     in 1M of session memory allocated to it.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '`limit_req_zone` 指令基本上允许你定义哪个变量（在这种情况下是`$binary_remote_addr`）作为会话的键，同时为这个“区域”分配
+    10MB 内存，并将速率限制为每秒一个请求。设置区域的数量没有限制，只要你有足够的内存来处理区域分配。一个区域，假设使用远程地址作为会话的键，可以在分配给它的
+    1M 会话内存中处理大约 32,000 个会话。'
 - en: In the `server` directive, we actually do the request rate limiting by using
     the `limit_req directive`, which basically uses zone one, which allows no more
     than an average of one request per second with a maximum burst rate of five requests.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `server` 指令中，我们实际上是通过使用 `limit_req` 指令来限制请求速率，该指令基本上使用了区域一，它允许每秒平均最多一个请求，且最大突发速率为五个请求。
 - en: Any request that is beyond the rate capacity will receive a "Service unavailable"
     503 error page.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 超过速率容量的任何请求将收到“服务不可用”503错误页面。
 - en: There's more...
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多内容...
 - en: You can use other variables to act as the session key, but it is important to
     note that the session key variable size must be small to accommodate all the incoming
     connections (that is total connections x session value size < size of session
     cache).
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用其他变量作为会话键，但需要注意的是，会话键的变量大小必须较小，以便容纳所有传入的连接（即总连接数 x 会话值大小 < 会话缓存的大小）。
 - en: Blocking and allowing access using IP
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 IP 阻止和允许访问
 - en: One of the most important things that a site needs to do is to blacklist some
     malicious IPs that over time try to probe and cause harm to your site. This can
     be done at multiple levels like the router, and even at the software firewall
     level which will also drive away this unnecessary load from Nginx. If you do not
     have enough control on your stack, then Nginx is the best place to start blocking
     those bots and hackers.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 网站需要做的一件最重要的事情是黑名单一些恶意的 IP，这些 IP 随着时间的推移会试图探测并对你的网站造成伤害。这可以在多个层面上进行，比如路由器，甚至是在软件防火墙层面，这样也能减少
+    Nginx 的不必要负载。如果你对自己的技术栈控制不够强，Nginx 是开始屏蔽这些机器人和黑客的最佳地方。
 - en: How to do it...
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'This lets you block some IPs from accessing your site:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这允许你阻止一些 IP 访问你的网站：
 - en: '[PRE1]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: How it works...
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: It is clear that the `deny` and `allow` directives are in sequence, so it will
     deny the IP 192.168.1.1 while it allows the network 192.168.1.0/24 to access.
     A final `deny all`; directive makes sure that no other IP can access this location
     (`http://www.example1.com`).
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 很明显，`deny` 和 `allow` 指令是按顺序执行的，所以它会拒绝 IP 192.168.1.1，同时允许网络 192.168.1.0/24 访问。最后的
+    `deny all` 指令确保没有其他 IP 可以访问该位置（`http://www.example1.com`）。
 - en: So all other IPs, when they try to access this HTTP location, will get a 403
     forbidden page. You can use the `error_page` directive to rewrite this to a 404
     page.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以所有其他 IP 在尝试访问此 HTTP 位置时，将会收到一个 403 禁止访问页面。你可以使用 `error_page` 指令将其重写为 404 页面。
 - en: There's more....
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'It is important to realize that the sequence of the directives is critical.
     Something like:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是要意识到指令的顺序至关重要。像这样的指令：
 - en: '[PRE2]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Will give a 403 forbidden to all the clients that open the location (`http://www.example1.com`).
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 将向所有访问该位置（`http://www.example1.com`）的客户端返回 403 禁止访问页面。
 - en: Setting up simple rate limiting for a download directory
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为下载目录设置简单的速率限制
 - en: We have looked at ways to rate limit requests, but sometimes the issue is that
     some clients start to hog the bandwidth and pull down the quality of service for
     the other users. In such scenarios, it is best to use bandwidth based rate limiting.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经了解了如何限制请求的速率，但有时问题在于某些客户端开始占用带宽，降低其他用户的服务质量。在这种情况下，最好使用基于带宽的速率限制。
 - en: The best application of something like this is with the static files on your
     site. It ensures that no one leeches your bandwidth for the wrong reasons.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的最佳应用场景是在你网站的静态文件中。它确保没有人因错误原因窃取你的带宽。
 - en: How to do it...
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'The following simple configuration in the server directive will allow you to
     rate limit the whole site:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下简单的配置将在 server 指令中允许你对整个网站进行速率限制：
 - en: '[PRE3]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: How it works...
+  id: totrans-40
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: This simple configuration will limit the `/downloads` file downloading speed
     to 10k for all users.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的配置将把所有用户对 `/downloads` 文件的下载速度限制为 10k。
 - en: There's more...
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'There are a lot more things that can be done with this rate limiting; the following
     configuration will let you limit the rate to 100k after the 1 megabyte of the
     file has been sent in full throttle to the client:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个速率限制，还可以做更多事情；以下配置将在文件已完全以全速传输给客户端 1 兆字节后，将速率限制为 100k：
 - en: '[PRE4]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Rate limiting search engine bots
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 速率限制搜索引擎机器人
 - en: Till now we have learned about easy ways of blocking, request-limiting, and
     bandwidth-limiting all clients. We can start applying most of this knowledge to
     some problems that do come up in the production environment.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们已经学习了阻止、请求限制和带宽限制所有客户端的简便方法。我们可以开始将这些知识应用于生产环境中实际遇到的一些问题。
 - en: Most of the time, it so happens that with content heavy sites, bots and search
     engines start using up more bandwidth than actual users. In such a scenario, where
     you want to make sure the actual users are not hindered, yet you have the SEO
     intact, you will want to rate limit search engine bots.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数情况下，对于内容繁重的网站，机器人和搜索引擎开始使用的带宽超过了实际用户。在这种情况下，如果你希望确保实际用户不受影响，同时又能保持 SEO 效果，你将需要对搜索引擎机器人进行速率限制。
 - en: How to do it...
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'This following configuration, when placed within the location directive, will
     help you block and rate limit some bots:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下配置，当放置在位置指令中时，将帮助你屏蔽并限制一些机器人的速率：
 - en: '[PRE5]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: How it works...
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The idea is fairly simple, in cases where it is clear that the bot is not getting
     you traffic but only leeching your bandwidth, it is best to block them. But not
     all bots are bad. Googlebot, yahoobot and msnbot are all crucial for your search
     engine traffic to come through. It is a fine balance that has to be undertaken
     in situations where you have a high traffic site.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个思路相对简单，在确定某个机器人不会给你带来流量，而只是盗取带宽时，最好阻止它们。但并非所有机器人都是坏的。Googlebot、yahoobot和msnbot对你的搜索引擎流量至关重要。在流量较高的站点中，需要在阻止不良机器人和允许有用机器人的平衡中找到细微的差别。
 - en: There's more....
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'You can use this situation to also ensure that your site gets very little spam
     traffic. It is clear that most commenting bots can be stopped with simple blacklisting
     of the `HTTP_REFERER`, as shown in the following snippet:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以利用这种情况确保你的站点几乎没有垃圾流量。显然，大多数评论机器人可以通过简单地黑名单`HTTP_REFERER`来阻止，具体代码如下：
 - en: '[PRE6]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Setting up GeoIP using the MaxMind country database
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用MaxMind国家数据库设置GeoIP
 - en: MaxMind is a company that specializes in generating databases which map countries
     and cities to IP ranges. It allows you to easily locate the geographic location
     of the end client. This information can be used to show the user geo-dependent
     data, or maybe redirect to server locations that can serve the end-client faster.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: MaxMind是一家专门生成数据库的公司，这些数据库将国家和城市与IP地址范围进行映射。它使你能够轻松地定位终端客户的地理位置。该信息可用于显示用户的地理相关数据，或许还可以将其重定向到更靠近的服务器位置，以便更快地为终端客户提供服务。
 - en: 'In this recipe, we will install the MaxMind database in Nginx and show the
     usage of the GeoIP variables inside the Nginx configuration. Check out their demo
     at: [http://www.maxmind.com/app/locate_my_ip](http://www.maxmind.com/app/locate_my_ip).'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本食谱中，我们将在Nginx中安装MaxMind数据库，并展示如何在Nginx配置中使用GeoIP变量。你可以在此链接查看他们的演示：[http://www.maxmind.com/app/locate_my_ip](http://www.maxmind.com/app/locate_my_ip)。
 - en: '![Setting up GeoIP using the MaxMind country database](img/4965_04_01.jpg)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![使用MaxMind国家数据库设置GeoIP](img/4965_04_01.jpg)'
 - en: How to do it...
+  id: totrans-60
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Download the Geo-IP database or install the package:'
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下载Geo-IP数据库或安装相关软件包：
 - en: '[PRE7]'
+  id: totrans-62
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: or
+  id: totrans-63
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或者
 - en: '[PRE8]'
+  id: totrans-64
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'You will need to install some GeoIP libraries:'
+  id: totrans-65
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你需要安装一些GeoIP库：
 - en: '[PRE9]'
+  id: totrans-66
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Then you configure Nginx for installing the GeoIP module as well. This assumes
     that you have already downloaded the Nginx codebase and have the compilation dependencies
     already installed. This has been covered in one of the earlier recipes as well.
+  id: totrans-67
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后，你也需要为Nginx配置安装GeoIP模块。这假设你已经下载了Nginx的代码库，并且已经安装了编译所需的依赖项。这部分内容已经在前面的食谱中讲解过。
 - en: '[PRE10]'
+  id: totrans-68
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'We will then add the following configuration user the `http` directive:'
+  id: totrans-69
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们将在`http`指令下添加以下配置：
 - en: '[PRE11]'
+  id: totrans-70
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: How it works...
+  id: totrans-71
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 它的工作原理...
 - en: The preceding steps installs the databases and configures the GeoIP module in
     Nginx. This allows the configuration to access the following new variables. These
     variables can let you write geography specific rules!
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述步骤安装了数据库并在Nginx中配置了GeoIP模块。这使得配置可以访问以下新的变量。这些变量可以帮助你编写特定于地理位置的规则！
 - en: '| Variable | Purpose |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| 变量 | 作用 |'
 - en: '| --- | --- |'
+  id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `$geoip_city_country_code` | Two-letter country code, for example, "RU",
     "US". |'
+  id: totrans-75
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_city_country_code` | 两字母国家代码，例如“RU”、“US”。 |'
 - en: '| `$geoip_city_country_code3` | Three-letter country code, for example, "RUS",
     "USA". |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_city_country_code3` | 三字母国家代码，例如“RUS”、“USA”。 |'
 - en: '| `$geoip_city_country_name` | The name of the country, for example, "Russian
     Federation", "United States" — if available. |'
+  id: totrans-77
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_city_country_name` | 国家名称，例如“俄罗斯联邦”、“美国”等——如果可用的话。 |'
 - en: '| `$geoip_region` | The name of the region (province, region, state, province,
     federal land, and the like), for example, "Moscow City", "DC" — if available.
     |'
+  id: totrans-78
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_region` | 地区名称（省份、区域、州、联邦土地等），例如“莫斯科市”、“华盛顿特区”等——如果可用的话。 |'
 - en: '| `$geoip_city` | The name of the city, for example, "Moscow", "Washington",
     "Lisbon", &c — if available. |'
+  id: totrans-79
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_city` | 城市名称，例如“莫斯科”、“华盛顿”、“里斯本”等——如果可用的话。 |'
 - en: '| `$geoip_postal_code` | Zip code or postal code — if available. |'
+  id: totrans-80
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_postal_code` | 邮政编码——如果可用的话。 |'
 - en: '| `$geoip_city_continent_code` | Continent if available |'
+  id: totrans-81
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_city_continent_code` | 大洲名称（如果可用的话） |'
 - en: '| `$geoip_latitude` | Latitude — if available. |'
+  id: totrans-82
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_latitude` | 纬度——如果可用的话。 |'
 - en: '| `$geoip_longitude` | Longitude — if available. |'
+  id: totrans-83
   prefs: []
   type: TYPE_TB
+  zh: '| `$geoip_longitude` | 经度——如果可用的话。 |'
 - en: Using the GeoIP module to set up access and rate control
+  id: totrans-84
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用GeoIP模块设置访问和速率控制
 - en: Now we come to an interesting part of Nginx, where we can use the GeoIP module
     to set up access and rate control.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们进入Nginx的一个有趣部分，在这里我们可以使用GeoIP模块来设置访问和速率控制。
 - en: For example, you can make your site inaccessible to a whole country depending
     on your needs. Hulu videos ([http://www.hulu.com](http://www.hulu.com)) are not
     available to IPs outside of the United States. This is, of course, not completely
     fool-proof as there are anonymity networks that allow you to mask your actual
     IP or appear as if you are a client from the US.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，你可以根据需要让整个国家无法访问你的网站。Hulu的视频（[http://www.hulu.com](http://www.hulu.com)）对于美国以外的IP是不可用的。当然，这并非完全无懈可击，因为有匿名网络可以让你隐藏真实的IP，或者让你看起来像是来自美国的客户端。
 - en: How to do it...
+  id: totrans-87
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'This simple configuration, which assumes that you have already installed GeoIP
     as per the preceding recipe, will allow Bermuda users to access certain content
     while blocking Bhutan and Bolivia users from accessing the site:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单的配置假设你已经按照前面的教程安装了GeoIP，它将允许百慕大用户访问某些内容，同时阻止不丹和玻利维亚用户访问该网站：
 - en: '[PRE12]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: How it works...
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: The idea behind the GeoIP module is simple. It basically looks at the remote
     client IP and fills up some variables which let you easily identify the various
     geographic attributes of the client. In this example, we are filtering requests
     that are from the Bermudas and rate limiting their bandwidth to 20k, while we
     are taking requests that are identified as coming from Bhutan and sending a 403
     forbidden response to them.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: GeoIP模块背后的原理很简单。它基本上查看远程客户端IP，并填充一些变量，让你能够轻松识别客户端的各种地理属性。在这个示例中，我们正在过滤来自百慕大的请求，并将其带宽限制为20k，同时对于来自不丹的请求，我们发送403禁止访问的响应。
 - en: You can extend this to create alternate sites for different countries on the
     same URL. This is useful for language localization as well. Nginx is clearly state-of-the-art
     when it comes to GeoIP mapping.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以扩展这个功能，在同一个网址上为不同国家创建备用站点。这对于语言本地化也非常有用。Nginx在GeoIP映射方面显然是最先进的。
