@@ -1,722 +1,1071 @@
 - en: Logging
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 日志记录
 - en: 'In this chapter, we will cover the following recipes:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍以下内容：
 - en: Logging to syslog
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录到 syslog
 - en: Customizing web access logs
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自定义 Web 访问日志
 - en: Virtual host log format
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 虚拟主机日志格式
 - en: Application focused logging
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 应用程序聚焦日志记录
 - en: Logging TLS mode and cipher information
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录 TLS 模式和密码信息
 - en: Logging POST data
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录 POST 数据
 - en: Conditional logging
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 条件日志记录
 - en: Using the Elastic Stack
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 Elastic Stack
 - en: Introduction
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Akin to metrics, logging is key to monitoring how your server is performing
     and debugging errors. Thankfully, NGINX has an extensive logging module built-in
     to cover nearly all usage scenarios. In this chapter, we'll go through some of
     the various ways you can change the standard logging formats, as well as how to
     process them in more efficient manners.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 与度量类似，日志记录是监控服务器性能和调试错误的关键。幸运的是，NGINX 内置了一个功能强大的日志记录模块，可以覆盖几乎所有使用场景。在本章中，我们将介绍如何更改标准日志格式的几种不同方式，以及如何以更高效的方式处理它们。
 - en: Logging to syslog
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 记录到 syslog
 - en: If you already have your centralized server logs or your logs are analyzed by
     a standard syslog system, you can also redirect your NGINX logs to do the same.
     This is useful when using external platforms such as Loggly and Papertrail, which
     integrate via syslog.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您已经有了集中式服务器日志，或者您的日志已通过标准的 syslog 系统进行分析，您还可以将 NGINX 的日志重定向到同样的系统。这在使用 Loggly
+    和 Papertrail 等外部平台时非常有用，这些平台通过 syslog 集成。
 - en: How to do it...
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Firstly, we need to consider where we''re pushing the logs to, syslog can be
     both local and network-based, so we''ll cover both ways. For nearly all Linux
     distributions, the default syslog service is `rsyslog` which will be listening
     on the Unix socket located at `/dev/log`. Here''s our NGINX configuration for
     local logging:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要考虑将日志发送到哪里，syslog 可以是本地的，也可以是基于网络的，因此我们将介绍这两种方式。对于几乎所有 Linux 发行版，默认的
+    syslog 服务是 `rsyslog`，它会监听位于 `/dev/log` 的 Unix 套接字。以下是我们的 NGINX 本地日志配置：
 - en: '[PRE0]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The handling of the logs will now be done by `rsyslog`. By default, this will
     match the wildcard rule and write the log entries to `/var/log/syslog` for Debian-
     / Ubuntu-based systems and `/var/log/messages` for CentOS- / RedHat-based distributions.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在日志的处理将由 `rsyslog` 完成。默认情况下，这将匹配通配符规则，并将日志条目写入 `/var/log/syslog`（适用于 Debian
+    / Ubuntu 系统）或 `/var/log/messages`（适用于 CentOS / RedHat 系统）。
 - en: 'We can confirm it''s working as expected by viewing the last line in our `syslog`
     after accessing the website:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过访问网站后查看 `syslog` 的最后一行，我们可以确认它按预期工作：
 - en: '[PRE1]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Remote syslog
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 远程 syslog
 - en: While we can generate a bit more flexibility using a local syslog daemon, generally,
     the reason we want to offload the logging is to either decrease the load on our
     production systems or to use external tools for better log analysis.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们可以使用本地 syslog 守护进程生成更多的灵活性，但通常，我们希望卸载日志记录的原因是为了减少生产系统的负载，或使用外部工具进行更好的日志分析。
 - en: The simplest way to do this is to send the logs to a syslog daemon or processing
     system that doesn't exist on the same server. This can also be used to aggregate
     logging from multiple servers, which facilitates monitoring and reporting in a
     central location.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 最简单的方法是将日志发送到不在同一服务器上的 syslog 守护进程或处理系统。这也可以用来聚合来自多个服务器的日志，方便在一个中心位置进行监控和报告。
 - en: 'To send the logs to a remote server, firstly, we need to enable the syslog
     server to listen on a network port. This is disabled on most `rsyslog`-based systems,
     so that it prevents accidental security issues. To enable, we simply uncomment
     the following in the `rsyslog.conf` (generally `/etc/rsyslog.conf`) file:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将日志发送到远程服务器，首先需要启用 syslog 服务器在网络端口上监听。这在大多数基于 `rsyslog` 的系统中是禁用的，目的是避免意外的安全问题。要启用它，我们只需在
+    `rsyslog.conf` 文件（通常是 `/etc/rsyslog.conf`）中取消注释以下内容：
 - en: '[PRE2]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: After the syslog daemon is restarted (`systemctl restart rsyslog`), it will
     now be listening on port `514` for UDP log packets.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 在重启 syslog 守护进程（`systemctl restart rsyslog`）后，它将开始监听 `514` 端口的 UDP 日志数据包。
 - en: By default, syslog data is decrypted. We highly recommend that you ensure that
     the logs are sent via a VPN tunnel or similar encrypted means.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，syslog 数据是解密的。我们强烈建议您确保日志通过 VPN 隧道或类似的加密方式发送。
 - en: 'On the NGINX server, we now need to update the `server` block for the access
     and debug logs:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 NGINX 服务器上，我们现在需要更新 `server` 块来处理访问和调试日志：
 - en: '[PRE3]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'After reloading NGINX to apply the new rules, we can now verify that the logs
     are hitting the syslog on the remote server:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在重新加载 NGINX 以应用新规则后，我们现在可以验证日志是否已经到达远程服务器的 syslog：
 - en: '[PRE4]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: On a Debian- / Ubuntu-based system, this will be `/var/log/syslog`. If you run
     a RedHat- / CentOS-based system, this will be logged to `/var/log/messages`.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在基于 Debian / Ubuntu 的系统中，日志会保存在 `/var/log/syslog`。如果你运行基于 RedHat / CentOS 的系统，则会记录到
+    `/var/log/messages`。
 - en: See also
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'NGINX reference: [https://nginx.org/en/docs/syslog.html](https://nginx.org/en/docs/syslog.html)'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 参考：[https://nginx.org/en/docs/syslog.html](https://nginx.org/en/docs/syslog.html)
 - en: Customizing web access logs
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 自定义网页访问日志
 - en: There are a number of ways you can customize the log files, including the format,
     the information provided, and where to save them to. This customization can be
     especially handy if you're using NGINX as a proxy in front of application servers,
     where traditional web style logs may not be as useful.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过多种方式自定义日志文件，包括格式、提供的信息以及保存位置。如果你在应用服务器前使用 NGINX 作为代理，这种自定义尤其方便，因为传统的网页日志格式可能不太有用。
 - en: How to do it...
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'There are a few different ways we can customize the access logs in order to
     get more relevant information or reduce the amount of logging where it''s not
     required. The standard configuration of `combined` is as follows:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 有几种不同的方式可以自定义访问日志，以获取更相关的信息或减少不必要的日志记录。`combined`的标准配置如下：
 - en: '[PRE5]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: This format is already predefined in NGINX out of the box, which is compatible
     with the Apache combined format. What this means is that, by default, combined
     formatted logs will be compatible with most log parsers and, will be therefore,
     able to directly interpret the log data.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个格式已经在 NGINX 中预定义，并且与 Apache 的合并格式兼容。这意味着，默认情况下，合并格式的日志将与大多数日志解析器兼容，从而能够直接解释日志数据。
 - en: While having more data can be quite helpful (as we'll show later), be careful
     about deviating from a standard format. If you want to use a third-party system
     to parse the logs, you'll also need to update or customize the parser as well.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然拥有更多数据可以非常有帮助（如我们稍后将展示的），但要小心偏离标准格式。如果你想使用第三方系统解析日志，你还需要更新或自定义解析器。
 - en: See also
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The NGINX log module documentation: [http://nginx.org/en/docs/http/ngx_http_log_module.html](http://nginx.org/en/docs/http/ngx_http_log_module.html)'
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 日志模块文档：[http://nginx.org/en/docs/http/ngx_http_log_module.html](http://nginx.org/en/docs/http/ngx_http_log_module.html)
 - en: 'The NGINX core variables: [http://nginx.org/en/docs/http/ngx_http_core_module.html#variables](http://nginx.org/en/docs/http/ngx_http_core_module.html#variables)'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 核心变量：[http://nginx.org/en/docs/http/ngx_http_core_module.html#variables](http://nginx.org/en/docs/http/ngx_http_core_module.html#variables)
 - en: Virtual host log format
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 虚拟主机日志格式
 - en: If you're running a virtual host style environment (with multiple `server` blocks)
     with NGINX, there's one small tweak you can make to enhance the logs. By default,
     the host (defined as `$host`) isn't logged when using the default combined format.
     Having this field in the logs means that the log can be parsed externally without
     the need for additional information.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在 NGINX 中运行虚拟主机环境（具有多个`server`块），你可以做一个小小的调整来增强日志功能。默认情况下，当使用默认的合并格式时，主机（定义为`$host`）不会被记录。将此字段包含在日志中意味着日志可以在外部解析，而不需要额外的信息。
 - en: How to do it...
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To start with, we need to define our new log format:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要定义新的日志格式：
 - en: '[PRE6]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The `log_format` directive needs to be outside the `server` block.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '`log_format`指令需要放在`server`块外。'
 - en: 'To use our new log file, we update the access log format in the `server` block
     with the new format. Here''s an example with our MediaWiki recipe:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用我们新的日志文件，我们需要在`server`块中更新访问日志格式，使用新的格式。以下是使用我们 MediaWiki 配方的一个例子：
 - en: '[PRE7]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: If you had a wildcard setup for your subdomains, this would mean that you'd
     also have the correct hostname in the logs as well. Without this, the logs wouldn't
     be able to differentiate between any of the subdomains for statistical analysis
     and comparison.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你为子域名设置了通配符，这意味着日志中也会有正确的主机名。如果没有这个，日志将无法区分任何子域名，从而影响统计分析和比较。
 - en: 'With the updated format, here''s an example from our logs:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用更新的格式，下面是我们日志中的一个例子：
 - en: '[PRE8]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: We can now see the hostname clearly in the logs.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以在日志中清楚地看到主机名。
 - en: Application focused logging
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 面向应用的日志记录
 - en: In this recipe, we're going to customize the logs to give us a bit more information
     when it comes to applications and metrics. Additional information, such as the
     response time, can be immensely useful for measuring the responsiveness of your
     application. While it can generally be generated within your application stack,
     it can also induce some overhead or give incomplete results.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本例中，我们将定制日志，以便在涉及应用程序和指标时提供更多的信息。额外的信息，如响应时间，对于衡量应用程序的响应性非常有用。尽管它通常可以在应用程序栈内生成，但也可能会引入一些开销或导致结果不完全。
 - en: How to do it...
+  id: totrans-58
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'To start with, we need to define our new log format:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要定义我们新的日志格式：
 - en: '[PRE9]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: The `log_format` directive needs to be outside the `server` block.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '`log_format`指令需要位于`server`块之外。'
 - en: Here, we've deviated from the combined format to change the time to the ISO
     8601 format (which will look something like `2016-07-16T21:48:36+00:00`), removed
     the HTTP referrer and user agent, but added the request processing time (`$request_time`)
     to get a better idea on how much time it's taking our application to generate
     responses.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们偏离了合并格式，将时间改为 ISO 8601 格式（例如`2016-07-16T21:48:36+00:00`），移除了 HTTP 引用来源和用户代理，但增加了请求处理时间（`$request_time`），以更好地了解我们的应用程序生成响应所花费的时间。
 - en: 'With our new log format defined, we can now use this for our application logs:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义了新的日志格式后，我们现在可以将其用于我们的应用程序日志：
 - en: '[PRE10]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'We''re using the default Meteor application which we had set up in [Chapter
     3](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml), *Common Frameworks* and as we
     want applications to be very responsive, `$request_time` will provide instant
     feedback as to what calls aren''t quick enough. Here''s an example output from
     the logs:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用的是默认的 Meteor 应用程序，它是在[第3章](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml)中设置的，*常见框架*，并且因为我们希望应用程序具有很高的响应性，`$request_time`将提供即时反馈，告诉我们哪些调用的响应时间不够快。下面是日志中的一个示例输出：
 - en: '[PRE11]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: As the request times are measured in milliseconds, we can see that our base
     call took 0.005 ms to complete and the WebSocket connection took 14 ms to complete.
     This additional information can now be easily searched for and, with additional
     log parsers (like the Elastic Stack detailed later in this chapter), we can set
     further searches and alerts.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于请求时间是以毫秒为单位进行测量的，我们可以看到我们的基本调用花费了 0.005 毫秒完成，而 WebSocket 连接花费了 14 毫秒完成。这些附加信息现在可以轻松搜索，并且通过额外的日志解析器（如本章稍后介绍的
+    Elastic Stack），我们可以设置进一步的搜索和警报。
 - en: Logging TLS mode and cipher information
+  id: totrans-68
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 记录 TLS 模式和密码信息
 - en: With the advent of HTTP/2 and the ever changing cryptography best practices,
     small compatibility issues can arise, which are very difficult to resolve. Browsers
     also change what they accept on a constant basis. To ensure, we know exactly what
     ciphers have been used with what protocol, we can add this additional information
     to our log files.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着 HTTP/2 的出现以及不断变化的加密最佳实践，可能会出现一些小的兼容性问题，这些问题通常很难解决。浏览器也会不断改变它们接受的内容。为了确保我们确切知道使用了哪些密码算法和协议，我们可以将这些附加信息添加到我们的日志文件中。
 - en: How to do it...
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'Here''s our SSL enhanced log format:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们的 SSL 增强日志格式：
 - en: '[PRE12]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'This is based on the common format and we''ve added `$ssl_protocol` and `$ssl_cipher`
     to the end. Here''s what we now have in our logs:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是基于常见格式的，我们在末尾添加了`$ssl_protocol`和`$ssl_cipher`。现在我们的日志看起来是这样的：
 - en: '[PRE13]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: In the log details, we can now see the requests from Chrome, Firefox, Safari,
     and even cURL are using `TLSv1.2` and `ECDHE-RSA-AES128-GCM-SHA256`. If we saw
     abnormal behavior with a different browser or protocol, this would greatly assist
     in the diagnosis of the problem.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 在日志细节中，我们现在可以看到来自 Chrome、Firefox、Safari，甚至 cURL 的请求都使用了`TLSv1.2`和`ECDHE-RSA-AES128-GCM-SHA256`。如果我们发现不同浏览器或协议出现异常行为，这将大大帮助我们诊断问题。
 - en: Logging POST data
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 记录 POST 数据
 - en: When we have form submissions, errors in this become difficult to replay and
     debug if we don't know the value of the data. By default, NGINX doesn't log POST
     data, as it can be very bulky. However, there are certain situations where getting
     access to this data is vital to debugging issues.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们有表单提交时，如果不知道数据的值，调试和重现错误会变得非常困难。默认情况下，NGINX 不记录 POST 数据，因为它可能非常庞大。然而，在某些情况下，获取这些数据对于调试问题至关重要。
 - en: How to do it...
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'In order to log POST data, we need to define a custom log format:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了记录 POST 数据，我们需要定义一个自定义日志格式：
 - en: '[PRE14]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: By logging `$request_body`, we'll be able to see the contents of a POST submission.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过记录`$request_body`，我们将能够看到 POST 提交的内容。
 - en: 'To enable our POST log format, all we need to do is specify the log format
     for the access logs:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 要启用我们的 POST 日志格式，我们只需指定访问日志的日志格式：
 - en: '[PRE15]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'If you just want to verify that it''s working as expected, we can use cURL
     to send post data. I''ve used Express, as set up in [Chapter 3](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml),
     *Common Frameworks*, to accept the POST data, so we can make a call as follows:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你只是想验证它是否按预期工作，我们可以使用 cURL 发送 POST 数据。我使用了 [第三章](db163fa8-2a5d-40bc-b83e-61e72ec67237.xhtml)
+    中设置的 Express 来接收 POST 数据，因此我们可以如下调用：
 - en: '[PRE16]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'This posts the variables name, phone, and email through to the root (`/`) URL.
     If we look at `postdata-access.log`, we can now see the following:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将通过根（`/`）URL 提交变量 name、phone 和 email。如果我们查看 `postdata-access.log`，我们现在可以看到以下内容：
 - en: '[PRE17]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: If you still had the standard log format enabled, it would simply display a
     dash (`-`) for the request, making further debugging impossible if it wasn't captured
     by the application.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你仍然启用了标准日志格式，它会简单地显示一个破折号（`-`）来表示请求，如果应用程序没有捕获它，进一步调试将变得不可能。
 - en: 'Here''s the corresponding log entry in a standard combined format:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是对应的标准合并格式的日志条目：
 - en: '[PRE18]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Of course, by logging all of the POST data, you'll use considerably more disk
     space and server overhead. We highly recommend that this is only enabled for development
     environments.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，通过记录所有的 POST 数据，你将使用相当多的磁盘空间和服务器开销。我们强烈建议仅在开发环境中启用此功能。
 - en: Conditional logging
+  id: totrans-92
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 条件日志记录
 - en: There are some instances where we may want to log different data, based on some
     sort of conditional argument. For instance, if you have a beta copy of your application
     and are interested in gathering more information for it, we can log this data
     just for the beta URL. Rather than clogging up our log files with the additional
     information when it's not required, we can simply trigger it when required.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些情况下，我们可能希望根据某种条件参数记录不同的数据。例如，如果你有一个应用程序的测试版并且希望收集更多信息，我们可以仅为测试版的 URL 记录这些数据。为了避免在不需要时将额外的信息塞进日志文件，我们可以仅在需要时触发记录。
 - en: How to do it...
+  id: totrans-94
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'To enable, we map the (`$args`) URI arguments to a `$debuglogs` variable, based
     on if a condition is set. Here''s the code:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 要启用条件日志记录，我们根据是否设置了条件，将 (`$args`) URI 参数映射到 `$debuglogs` 变量。下面是代码：
 - en: '[PRE19]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'Like the custom log formats, this needs to be placed outside of the `server`
     directives. Then, within the `server` directive, we can make use of the variable
     and create additional logging:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 与自定义日志格式一样，这需要放在 `server` 指令之外。然后，在 `server` 指令内，我们可以使用该变量并创建额外的日志记录：
 - en: '[PRE20]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'If we call a normal URL, it will simply log the access to the standard `djangodemo-access.log`
     in the combined format. If we call a URL with the `debug` argument set (for example:
     `http://djangodemo.nginxcookbook.com/?debug`), we now get the details logged in
     both the standard logs as well as our additional `djangodemo-debug-access.log`
     using the `applogs` format we defined in the previous recipe.'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们调用一个普通的 URL，它会简单地将访问记录到标准的 `djangodemo-access.log` 文件中，采用合并格式。如果我们调用一个带有
+    `debug` 参数的 URL（例如：`http://djangodemo.nginxcookbook.com/?debug`），我们现在可以在标准日志中看到详细信息，并且我们的额外日志文件
+    `djangodemo-debug-access.log` 也会使用我们在前一个示例中定义的 `applogs` 格式记录这些信息。
 - en: Using the Elastic Stack
+  id: totrans-100
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Elastic Stack
 - en: '![](img/a9286138-8e1e-4665-9227-9ed93b6e21c6.png)'
+  id: totrans-101
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/a9286138-8e1e-4665-9227-9ed93b6e21c6.png)'
 - en: Manually digging through log files to gain insights or to detect anomalies can
     be very slow and time-consuming. To solve this issue, we're going to run through
     a quick example using the Elastic Stack (previously referred to as the **Elasticsearch
     Logstash Kibana** (**ELK**) stack. Elasticsearch is a high-speed search engine
     which offers real-time indexing and searching. Data is stored as schema-less JSON
     documents and has an easy-to-use API for access.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 手动翻阅日志文件以获得洞察或检测异常可能非常慢且耗时。为了解决这个问题，我们将通过一个简单的例子来演示如何使用 Elastic Stack（以前称为 **Elasticsearch
+    Logstash Kibana** (**ELK**) 堆栈）。Elasticsearch 是一个高速搜索引擎，提供实时索引和搜索。数据以无模式的 JSON
+    文档存储，并且有一个易于使用的 API 供访问。
 - en: To complement this, there's also Logstash and Kibana. Logstash is a tool that
     allows for the collection of logs, parses the data on the fly, and then pushes
     it to a storage backend such as Elasticsearch. The original creator of Logstash
     (Jordan Sissel) wrote it to parse web server log files such as those produced
     by NGINX, so it's well suited to the task.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了配合这一点，还有 Logstash 和 Kibana。Logstash 是一个允许收集日志、即时解析数据并将其推送到存储后端（如 Elasticsearch）的工具。Logstash
+    的原始创建者（Jordan Sissel）编写它是为了解析如 NGINX 生成的 Web 服务器日志文件，因此它非常适合这项任务。
 - en: Kibana is then the final part of the puzzle. Once the data has been collected,
     parsed, and stored, we now need to be able to read it and view it. Kibana allows
     you to easily visualize the data by allowing you to easily structure the filters
     and queries and then display the information in easy-to-read graphs and tables.
     As a graphical representation, it is far quicker and easier to interpret and see
     variances in data which may be meaningful.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: Kibana是最终的拼图部分。一旦数据被收集、解析并存储，我们现在需要能够读取并查看它。Kibana允许你轻松地可视化数据，通过结构化过滤器和查询，然后以易于阅读的图表和表格形式展示信息。作为一种图形表示，它可以更快速、更轻松地解读数据，并看到可能有意义的数据差异。
 - en: What's more, the whole ELK stack is open source and therefore freely available
     to use and extend. In fact, the stack itself has expanded with tools such as Beats
     to provide lightweight data shipping to be processed by Logstash. Once you start
     using it, it's hard to revert to flat files!
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 更重要的是，整个ELK堆栈是开源的，因此可以自由使用和扩展。实际上，该堆栈已经扩展，增加了如Beats等工具，以提供轻量级数据传输，供Logstash处理。一旦开始使用它，就很难再回到平面文件的模式！
 - en: How to do it...
+  id: totrans-106
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: To run the Elastic Stack, you can either install it on your own systems or use
     a cloud-based instance. For this recipe, we're going to install it on a separate
     server.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 要运行Elastic Stack，你可以选择将其安装在自己的系统上，或者使用基于云的实例。对于这个配方，我们将把它安装在一个独立的服务器上。
 - en: Elasticsearch
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Elasticsearch
 - en: 'To install Elastic, simply download the appropriate `.deb` or `.rpm` package
     for your particular instance. For the example, I''ll use Ubuntu 16.04\. First,
     we''ll need to install Java version 8 (required for Elastic 5.x):'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 要安装Elastic，只需下载适合你实例的`.deb`或`.rpm`包。以这个示例为例，我将使用Ubuntu 16.04。首先，我们需要安装Java 8版本（Elastic
+    5.x所需）：
 - en: '[PRE21]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'Next, we''ll download the latest Elastic package and install it:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将下载最新的Elastic包并安装它：
 - en: '[PRE22]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: The example is also using the 5.x release, which was in alpha during writing.
     Make sure you select the latest stable release for production use.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 该示例还使用的是5.x版本，该版本在编写时处于alpha阶段。确保为生产环境选择最新的稳定版本。
 - en: 'While Elasticsearch can become quite a complex system as you start to use it
     heavily, the good news is that the default configuration doesn''t require any
     changes to get started. However, we highly recommend ensuring that you only run
     Elasticsearch on a private network (where possible) to avoid accidentally exposing
     your server to the internet. Here''s what our scenario will look like:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然Elasticsearch在你开始重度使用时可能变得相当复杂，但好消息是默认配置无需任何更改即可开始使用。然而，我们强烈建议确保你只在私有网络上运行Elasticsearch（如果可能的话），以避免不小心将服务器暴露到互联网。以下是我们的场景示例：
 - en: '![](img/a919d615-cf1b-4c4f-9a44-ae0e07842317.png)'
+  id: totrans-115
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/a919d615-cf1b-4c4f-9a44-ae0e07842317.png)'
 - en: 'In our example, we have a private network on the `192.168.50.x` range for all
     systems, with our Elasticsearch server being `192.168.50.5`. Accordingly, we simply
     edit the configuration file (`/etc/elasticsearch/elasticsearch.yml`) and set the
     following:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的示例中，所有系统都位于`192.168.50.x`范围内的私有网络中，Elasticsearch服务器的IP为`192.168.50.5`。因此，我们只需编辑配置文件(`/etc/elasticsearch/elasticsearch.yml`)，并设置以下内容：
 - en: '[PRE23]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: We also set the minimum number of master nodes to `1`, so that it knows to wait
     for other master nodes. In a clustered system, you ideally want three or more
     nodes to form a quorum to ensure the data remains valid.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将主节点的最小数量设置为`1`，以便它知道要等待其他主节点。在集群系统中，理想情况下你需要三个或更多节点来形成一个法定人数，从而确保数据的有效性。
 - en: 'So, all we need to do is start it:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，我们只需要做的就是启动它：
 - en: '[PRE24]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'We can now test it quickly with a simple cURL call to ensure it works:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以通过一个简单的cURL调用来快速测试它，以确保它正常工作：
 - en: '[PRE25]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'The output should look similar to this:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出应类似于以下内容：
 - en: '[PRE26]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Logstash
+  id: totrans-125
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Logstash
 - en: With Elasticsearch set up, we can now install and configure Logstash. As Logstash
     will be performing the log collection role, it needs to be installed on the same
     server as NGINX. For larger installations, you could use Filebeat (also part of
     the Elastic family) to act as a lightweight log forwarder and have Logstash on
     its own instance to parse the logs.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置好Elasticsearch后，我们现在可以安装和配置Logstash。由于Logstash将执行日志收集的角色，因此需要将其安装在与NGINX相同的服务器上。对于更大的安装，可以使用Filebeat（也是Elastic家族的一部分）作为轻量级的日志转发器，并将Logstash单独部署到实例上进行日志解析。
 - en: 'Like Elasticsearch, we need Java 8 or higher to run Logstash. As this demo
     recipe is also using Ubuntu 16.04, we can install it via the following:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 和Elasticsearch一样，我们需要Java 8或更高版本才能运行Logstash。由于这个示例配方也使用的是Ubuntu 16.04，我们可以通过以下方式安装它：
 - en: '[PRE27]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: 'Next, we download the latest copy of Logstash and install it:'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们下载Logstash的最新版本并安装它：
 - en: '[PRE28]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: 'Once the installation is complete, we''ll now need to create the configuration
     file. This file will define where to look for the logs, how to parse them, and
     then where to send them to. While the complexity can be a bit daunting at first,
     it''s mostly a set and forget scenario once it''s working. Here''s the configuration
     which will work for most of the configurations already outlined in this book:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装完成后，我们需要创建配置文件。这个文件将定义在哪里查找日志，如何解析它们，以及将其发送到哪里。虽然一开始配置可能看起来有点复杂，但一旦工作正常，它就像是设定好后不再需要过多关注的情况。以下是适用于本书中大多数已描述配置的配置文件：
 - en: '[PRE29]'
+  id: totrans-132
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: For most installations, this needs to be placed in the `/etc/logstash/conf.d/`
     folder with a `.conf` filename (for example, `nginx.conf`).
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于大多数安装情况，这个文件需要放在`/etc/logstash/conf.d/`文件夹下，并以`.conf`作为文件扩展名（例如`nginx.conf`）。
 - en: In the `input` section, we use the `file` plugin to monitor all the logs which
     have the naming pattern `*-access.log`. The `type` definition simply allows for
     easy filtering if your Elasticsearch server has logs from more than one source.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`input`部分，我们使用`file`插件来监控所有名称模式为`*-access.log`的日志。`type`定义只是为了在Elasticsearch服务器中存在来自多个源的日志时，方便进行过滤。
 - en: Then, in the `filter` section, we use the `grok` plugin to turn plain text data
     into a structured format. If you haven't used grok patterns before, they're similar
     to regular expressions and can look quite complex to start with. Because we have
     NGINX using the combined log format (which has already been defined as a grok
     pattern), the hard work has already been done for us.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，在`filter`部分，我们使用`grok`插件将纯文本数据转换为结构化格式。如果你之前没有使用过grok模式，它们类似于正则表达式，起初可能看起来比较复杂。由于我们使用的是NGINX的合并日志格式（它已经被定义为grok模式），所以大部分工作已经为我们做完了。
 - en: Lastly, the `output` section defines where we're sending the data. Logstash
     can send to multiple sources (about 30 different ones), but, in this instance,
     we're simply sending it to our Elasticsearch server. The hosts setting can take
     an array of Elasticsearch servers, so that in a big scenario you can load balance
     the push of the data.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，`output`部分定义了数据的发送目标。Logstash可以将数据发送到多个目标（大约30种不同的目标），但在本例中，我们只是将其发送到Elasticsearch服务器。`hosts`设置可以接受一个Elasticsearch服务器数组，这样在大规模场景下，可以对数据推送进行负载均衡。
 - en: 'To start Logstash, we can simply call the standard init system, which for our
     example is systemd:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 要启动Logstash，我们只需调用标准的init系统，在我们的示例中是systemd：
 - en: '[PRE30]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'If we now load a page on any of the monitored sites, you should now have data
     within Elasticsearch. We can run a simple test by querying the `logstash` index
     and returning a record. To do this from the command line, run the following:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们现在在任何一个监控站点加载页面，你应该会在Elasticsearch中看到数据。我们可以通过查询`logstash`索引并返回一条记录来进行简单的测试。要在命令行中执行此操作，请运行以下命令：
 - en: '[PRE31]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'I pipe the cURL command through `python` to quickly format the code; by default,
     it returns it in a compressed format without whitespaces. While that cuts down
     on the packet size, it also makes it harder to read. Here''s what the output should
     look like:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 我通过`python`管道传输cURL命令来快速格式化代码；默认情况下，它以压缩格式返回，且没有空格。虽然这减少了数据包的大小，但也使得阅读起来更加困难。输出应如下所示：
 - en: '![](img/0da4ab23-7384-4d8d-b5ee-67d1bd87b019.png)'
+  id: totrans-142
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/0da4ab23-7384-4d8d-b5ee-67d1bd87b019.png)'
 - en: While the exact syntax won't make a lot of sense yet, the important bit is to
     note that our single log line has been parsed into separate fields. The power
     of this will become evident, once we completed the installation of Kibana.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然具体的语法现在可能还不太容易理解，但重要的是要注意，我们的单行日志已被解析为多个字段。一旦我们完成Kibana的安装，这个功能的强大之处将会显现。
 - en: Kibana
+  id: totrans-144
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Kibana
 - en: 'The last part of our stack is Kibana, which visualizes the Elasticsearch data.
     To install, we''ll simply download and install the single package. As per our
     initial diagram, we''re installing this on our Elasticsearch server:'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们技术栈的最后一部分是Kibana，它用来可视化Elasticsearch中的数据。要安装Kibana，我们只需下载并安装单个包。根据我们最初的示意图，我们将其安装在Elasticsearch服务器上：
 - en: '[PRE32]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'As we have Elasticsearch bound to the local IP (`192.168.50.5`), we need to
     edit the Kibana configuration (`/etc/kibana/kibana.yml`) and set it to look for
     this address:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们已经将Elasticsearch绑定到本地IP（`192.168.50.5`），我们需要编辑Kibana配置文件（`/etc/kibana/kibana.yml`），并将其设置为查找这个地址：
 - en: '[PRE33]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Kibana is open to the world by default; ideally, we won't leave it in this state.
     Of course, one of the easiest ways to secure Kibana is by proxying it through
     NGINX and we'll cover this scenario in a later chapter. For now, ensure that you
     don't accidentally expose it to the world.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，Kibana是对外开放的；理想情况下，我们不应该保持这种状态。当然，确保Kibana安全的一个简单方法是通过NGINX进行代理，我们将在后续章节中讨论这种情况。目前，请确保不要不小心将它暴露给外界。
 - en: 'Let''s start the Kibana service and get started:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们启动Kibana服务并开始：
 - en: '[PRE34]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'Kibana will now be accessible via a web interface on port 5601; you should
     see something like this:'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，Kibana可以通过5601端口在Web界面上访问；你应该会看到如下所示的内容：
 - en: '![](img/06a74ceb-c877-410e-9bef-fd8e6bf8ef71.png)'
+  id: totrans-153
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/06a74ceb-c877-410e-9bef-fd8e6bf8ef71.png)'
 - en: 'This will be a very quick crash course in the usage of Kibana, which can be
     complex enough to warrant a whole book in itself. To be able to visualize the
     data, we first need to load an index pattern into Kibana. If you click on the
     Discover icon (the very first at the left), it will prompt you to do so. This
     screen should look like the following screenshot:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个非常简短的Kibana使用入门教程，它的复杂程度足以让一本书来讲解。为了能够可视化数据，我们首先需要将索引模式加载到Kibana中。如果你点击发现图标（最左边的那个），它会提示你这么做。此时，屏幕应该像以下截图所示：
 - en: '![](img/7bcfcf40-3dee-4d0d-a14a-231d18e58bc9.png)'
+  id: totrans-155
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/7bcfcf40-3dee-4d0d-a14a-231d18e58bc9.png)'
 - en: As our configuration is very simple, we can simply accept the default settings
     and hit Create. You should then see a list of fields and field types; this means
     that Kibana now knows how to sort, filter, and search for these.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们的配置非常简单，我们可以直接接受默认设置并点击创建。此时，你应该会看到一个字段和字段类型的列表；这意味着Kibana现在知道如何对这些字段进行排序、筛选和搜索。
 - en: 'Click on the Discover icon again and it should show you the access logs in
     a combined bar graph and tabular format. If you don''t see anything, check the
     time period you''re searching for, which will be set in the top right. Here''s
     what my test data looks like:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次点击发现图标，它应该会以合并的柱状图和表格格式显示访问日志。如果什么都没有显示，检查一下你设置的时间范围，它会显示在右上角。以下是我的测试数据：
 - en: '![](img/50bc5998-7b7a-4d1c-8a4c-010abd65df1d.png)'
+  id: totrans-158
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/50bc5998-7b7a-4d1c-8a4c-010abd65df1d.png)'
 - en: 'This isn''t overly useful just yet, but at least we can see a quick historical
     view based on the hit times. To show other fields in the table, we can hover over
     them on the left-hand column and it should show the add button. I''ve added in
     the request, response, bytes, and httpversion to give a more detailed view like
     this one:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 这目前还不是很有用，但至少我们可以看到基于命中次数的历史视图。为了在表格中显示其他字段，我们可以将鼠标悬停在左侧栏中的字段上，应该会显示添加按钮。我已经添加了请求、响应、字节和http版本，以便提供更详细的视图，如下所示：
 - en: '![](img/946e6db4-d66b-4ba7-8677-772b680a7cb3.png)'
+  id: totrans-160
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/946e6db4-d66b-4ba7-8677-772b680a7cb3.png)'
 - en: 'We can start to quickly glance at the data and see if there are errors or anomalies.
     If we wanted to see a quick breakdown of what the requests have been, we could
     click on the field in the left-hand column and it would display the top five results
     within the search. For example, here''s our demo output:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以快速浏览数据，查看是否存在错误或异常。如果我们想快速了解请求的分布情况，可以点击左侧栏中的字段，它会显示搜索结果的前五项。例如，以下是我们的演示输出：
 - en: '![](img/a4697ad9-c6cf-44b9-a38a-50e744e04095.png)'
+  id: totrans-162
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/a4697ad9-c6cf-44b9-a38a-50e744e04095.png)'
 - en: At a quick glance, we know what the most popular requests have been. We can
     also filter based on these values, by clicking on the magnifying glasses at the
     right of the dialog. The positive icon will ensure only those which match this
     request are shown and the negative icon will exclude anything which matches this
     request.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 一眼看去，我们就能知道最受欢迎的请求是什么。我们还可以根据这些值进行筛选，只需点击对话框右侧的放大镜图标。正向图标会确保只显示与此请求匹配的内容，而负向图标会排除所有与此请求匹配的内容。
 - en: 'This is just the beginning too, as you''ll see on the left-hand side, there''s
     the ability to create visualizations, which can then be placed in a full dashboard.
     You can add any number of line graphs, bar graphs, and similar items based on
     predetermined filters and searches. Of course, you can have multiple dashboards,
     so that you can customize them for multiple different scenarios. As one example,
     here''s a quick dashboard which was created in about five minutes:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 这只是一个开始，如你在左侧所见，可以创建可视化图表，然后将其放入完整的仪表盘中。你可以根据预设的过滤器和搜索条件，添加任意数量的折线图、柱状图及类似的项目。当然，你可以拥有多个仪表盘，以便根据不同场景进行定制。举个例子，这里有一个大约五分钟内创建的快速仪表盘：
 - en: '![](img/abcb08f0-871a-4d88-8a52-2c778091c21c.png)'
+  id: totrans-165
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/abcb08f0-871a-4d88-8a52-2c778091c21c.png)'
 - en: See also
+  id: totrans-166
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另请参阅
 - en: 'The Elastic Stack documentation: [https://www.elastic.co/guide/index.html](https://www.elastic.co/guide/index.html)'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: Elastic Stack 文档： [https://www.elastic.co/guide/index.html](https://www.elastic.co/guide/index.html)

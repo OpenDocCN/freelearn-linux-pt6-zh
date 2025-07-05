@@ -1,548 +1,815 @@
 - en: Rewrites
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重写规则
 - en: 'In this chapter, we will cover the following recipes:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍以下几种重写规则：
 - en: Redirecting non-www to www-based sites
+  id: totrans-2
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重定向非 www 到 www 网站
 - en: Redirecting to a new domain
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重定向到新域名
 - en: Blocking malicious user agents
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 阻止恶意用户代理
 - en: Redirecting all calls to HTTPS to secure your site
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重定向所有 HTTPS 调用以确保网站安全
 - en: Redirecting pages and directories
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重定向页面和目录
 - en: Redirecting `404` errors through a search page
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过搜索页面重定向`404`错误
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: The ability to rewrite URLs gives us a number of different abilities within
     NGINX. First and foremost, we can display neat URLs to the end user when we have
     a dynamically driven system such as WordPress. For example, instead of trying
     to remember `index.php?page_id=124`, we can simply use `/about/`.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: URL 重写的能力为我们在 NGINX 中提供了多种不同的功能。最重要的是，当我们使用像 WordPress 这样的动态驱动系统时，可以向最终用户展示简洁的
+    URL。例如，我们可以简单地使用 `/about/`，而不是尝试记住 `index.php?page_id=124`。
 - en: Secondly, when we move content, change platforms, or update a system, we want
     to make sure all the old URLs still work. This is especially important for **Search
     Engine Optimization** (**SEO**), as well as for anyone who has your old page bookmarked.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，当我们迁移内容、换平台或更新系统时，我们需要确保所有旧的 URL 仍然有效。这对于**搜索引擎优化**（**SEO**）以及任何收藏了你旧页面书签的人来说尤为重要。
 - en: In this chapter, we'll run through a number of recipes describing how to activate
     all of the common rewrites and also describing a few of these rewrites to provide
     great flexibility.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将介绍多个示例，说明如何激活所有常见的重写规则，并描述其中一些重写规则，以提供更大的灵活性。
 - en: Redirecting non-www to www-based sites
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重定向非 www 到 www 网站
 - en: The debate about using a non-www prefixed URL versus including the www still
     rages on in the SEO world, but the key thing is to ensure there is consistency.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于使用非 www 前缀 URL 和包含 www 前缀的 URL，SEO 界的争论依然存在，但关键是要确保 URL 一致性。
 - en: This means that if you choose to have the `www` prefix, then you'll want to
     ensure all URL calls are to this pattern. Especially since there are SEO implications
     involved with any URL change, attention to detail is critical here. For this recipe,
     we'll redirect all non-www to www-based calls, but the reverse is simply a matter
     of slightly modifying the rewrite rule.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着，如果你选择使用 `www` 前缀，那么你需要确保所有 URL 调用都遵循此模式。特别是由于任何 URL 更改都涉及到 SEO 影响，因此在这里细节至关重要。对于这个示例，我们将把所有非
+    www 的调用重定向到 www 基于的 URL，但反向操作只需要稍微修改重写规则即可。
 - en: How to do it...
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'If you''re used to the Apache way of doing things, this may look a little different.
     In the NGINX world, *if is evil* and needs to be avoided at all costs. Instead,
     we set one `server` block up for the non-www site and set it to redirect and a
     separate `server` block for the www-based site. Here''s an example code:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你习惯了 Apache 的做法，这看起来可能会有些不同。在 NGINX 中，*if 是邪恶的*，必须尽量避免。相反，我们为非 www 网站设置一个
+    `server` 块并设置其重定向，同时为基于 www 的站点设置另一个 `server` 块。以下是一个示例代码：
 - en: '[PRE0]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Using the Chrome DevTools (or the equivalent), we can see the following sequence:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Chrome 开发者工具（或等效工具），我们可以看到以下顺序：
 - en: '![](img/d31e6386-07f0-4893-9ff5-de05026894ac.png)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![](img/d31e6386-07f0-4893-9ff5-de05026894ac.png)'
 - en: The original request to `redirect.nginxcookbook.com` sends a `301` to immediately
     load `www.redirect.nginxcookbook.com`. The browser then makes a request for this
     new URL, which, in the preceding example, responded with a HTTP 200.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 对 `redirect.nginxcookbook.com` 的原始请求发送 `301` 状态码，立即加载 `www.redirect.nginxcookbook.com`。浏览器随后对这个新
+    URL 发起请求，在前面的示例中，该请求返回了 HTTP 200 响应。
 - en: How it works...
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: In this rewrite, we use a `301` HTTP call, which means that the URL has moved
     permanently. This indicates to any upstream system (be it a web crawler or proxy)
     that the change is final and not to look for the old URL. From an SEO perspective,
     this is critical, as any links or rankings applied to the old link should then
     be transferred to the new link.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个重写规则中，我们使用`301` HTTP调用，表示该 URL 已永久移动。这向任何上游系统（无论是网页爬虫还是代理）表明此更改是最终的，并且不再需要查找旧
+    URL。从 SEO 的角度来看，这是至关重要的，因为对旧链接应用的任何链接或排名应该转移到新链接上。
 - en: The `$request_uri` variable passes the full URI, including arguments. This means
     that scenarios such as subdirectories (for example, `/about/`) as well as any
     arguments (for example, `id=123`) are redirected. This ensures that all bookmarks
     and direct links will remain working seamlessly after the change.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '`$request_uri` 变量传递完整的 URI，包括参数。这意味着像子目录（例如 `/about/`）以及任何参数（例如 `id=123`）都会被重定向。这样确保所有书签和直接链接在更改后能无缝工作。'
 - en: See also
+  id: totrans-24
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'Moz redirection: [https://moz.com/learn/seo/redirection](https://moz.com/learn/seo/redirection)'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Moz 重定向：[https://moz.com/learn/seo/redirection](https://moz.com/learn/seo/redirection)
 - en: 'NGINX redirect blog: [https://www.nginx.com/blog/creating-nginx-rewrite-rules/](https://www.nginx.com/blog/creating-nginx-rewrite-rules/)'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: NGINX 重定向博客：[https://www.nginx.com/blog/creating-nginx-rewrite-rules/](https://www.nginx.com/blog/creating-nginx-rewrite-rules/)
 - en: Redirecting to a new domain
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重定向到新域名
 - en: If a product or company decides to rebrand and rename, then one key part of
     this is to redirect the old domain to the new one. Even the top names such as
     Google (who started as BackRub) and eBay (who started as AuctionWeb) have had
     to go through this process, so it's more common than people realize.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个产品或公司决定重新品牌化并更名，那么其中一个关键部分就是将旧域名重定向到新域名。即使是像 Google（最初是 BackRub）和 eBay（最初是
+    AuctionWeb）这样的顶级公司，也不得不经历这个过程，因此这比人们意识到的要普遍得多。
 - en: In order to maintain all previous links and functionalities, ensuring all URLs
     are redirected to the new domain is critical. Thankfully, all that's required
     is a simple redirect with a rewrite to ensure that the full URL and all arguments
     are correctly sent to the new domain.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了保持所有以前的链接和功能，确保所有的 URL 都能重定向到新域名至关重要。幸运的是，所需的只是一个简单的重定向并进行重写，以确保完整的 URL 和所有参数都正确地发送到新域名。
 - en: How to do it...
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'As in the previous recipe, we need to have two distinct `server` blocks. Here''s
     how to redirect the old site:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 和前面的步骤一样，我们需要两个不同的 `server` 块。以下是如何重定向旧站点的方法：
 - en: '[PRE1]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: How it works...
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: Like our non-www redirect, this recipe works in the same fashion. In fact, a
     redirect for a subdomain isn't functionally any different from a completely different
     domain altogether.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像我们的非 www 重定向一样，这个步骤以相同的方式工作。事实上，子域名的重定向在功能上与完全不同的域名并没有什么不同。
 - en: The return rule works just the same, where calls to subdirectories and all arguments
     are passed to the new domain without breaking their functionality. For example,
     using our preceding code, if we made a call to `http://oldsite.nginxcookbook.com/pages/?item=1951`,
     it would send a `301` redirect to `http://newsite.nginxcookbook.com/pages/?item=1951`.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 返回规则的工作方式相同，调用子目录和所有参数会被传递到新域名，而不会破坏其功能。例如，使用我们之前的代码，如果我们调用 `http://oldsite.nginxcookbook.com/pages/?item=1951`，它会发送一个
+    `301` 重定向到 `http://newsite.nginxcookbook.com/pages/?item=1951`。
 - en: There's more...
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: While redirecting the domain fixes one part of the problem, you may need to
     make code changes as well. CMSes such as WordPress also need to have both the
     site URL and internal links updated as well. Make sure you consult the documentation
     for your respective application to ensure you take the necessary steps to migrate
     internal calls.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然重定向域名解决了问题的一部分，但你可能还需要进行代码更改。像 WordPress 这样的内容管理系统（CMS）也需要更新站点 URL 和内部链接。确保查阅相应应用程序的文档，确保你采取必要的步骤来迁移内部调用。
 - en: Blocking malicious user agents
+  id: totrans-38
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 阻止恶意用户代理
 - en: 'As the saying goes:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如俗话所说：
 - en: '*"Just because you''re not paranoid doesn''t mean they aren''t after you*."'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '*“仅仅因为你不是偏执狂，并不意味着他们不在找你。”*'
 - en: –Joseph Heller.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: – Joseph Heller。
 - en: In the web world, hackers are continually scanning your servers and sites regardless
     of who you are and what sort of site you have. In 99 percent of all instances,
     they don't care who you are or what your site is, but only see how easily they
     can manipulate it to do what they want.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在网络世界中，黑客不断扫描你的服务器和站点，无论你是谁，或者你的网站是什么。99% 的情况下，他们不在乎你是谁或你的网站是什么，只关心他们能多容易地操控它来实现他们的目的。
 - en: Even if you're 100 percent sure that your website is secure, you can save a
     lot of CPU cycles and potential **Denial of Service** (**DOS**) attacks by blocking
     these agents.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使你百分之百确定你的网站是安全的，通过阻止这些代理，你也能节省大量的 CPU 资源并防止潜在的 **拒绝服务攻击** (**DOS**)。
 - en: How to do it...
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: 'The `server` block contains an `if` statement, which generally should be avoided,
     but it''s necessary here. Performance wise, evaluating it for each call is necessary
     for interrogating the user agent anyway, so there''s no degradation. In the following
     configuration, we''ll drop out the bots we don''t want to be able to access our
     site:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '`server` 块包含一个 `if` 语句，通常应避免使用，但在这里是必须的。从性能角度来看，每次调用时评估它来检查用户代理是必要的，因此不会导致性能下降。在以下配置中，我们将排除掉不希望访问我们站点的机器人：'
 - en: '[PRE2]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: This is of course, just a very small amount of user agents to block, but some
     of the more common. Ideally, you should keep the list small; the larger the list
     the larger the chance of blocking the wrong thing.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这里列出的是仅仅一些常见的用户代理需要阻止，但理想情况下，您应当保持列表较小；列表越大，阻止错误项的风险就越大。
 - en: 'If we view the logs, we can see that the access has been blocked:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果查看日志，我们可以看到访问已被阻止：
 - en: '[PRE3]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: How it works...
+  id: totrans-50
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: Before our `location` block, we add an `if` statement to compare against the
     user agent. This ensures it's evaluated for every call. If your intent is to drop
     the CPU load by blocking malicious requests, it can be a good compromise.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的 `location` 块之前，我们添加了一个 `if` 语句来与用户代理进行比较。这确保了每次调用都会进行评估。如果您的目的是通过阻止恶意请求来降低
+    CPU 负载，这可以是一个不错的折中方案。
 - en: '[PRE4]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The tilde (`~`) performs a case-sensitive match against the user agent (`$http_user_agent`),
     and allows for a partial match. This means that if the user agent string contains
     `Yandex1.0` or `Yandex2.0`, both will still match the rule.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 波浪符号（`~`）对用户代理（`$http_user_agent`）进行区分大小写的匹配，并允许部分匹配。这意味着如果用户代理字符串包含 `Yandex1.0`
+    或 `Yandex2.0`，都仍然会匹配该规则。
 - en: The list of blocked agents (`Baiduspider|Yandex|DirBuster|libwww|""`), uses
     the pipe (`|`) as an OR so that any of the strings can be matched. The double
     quotes at the end are there to block any system which doesn't report any user
     agent.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 被阻止的代理列表（`Baiduspider|Yandex|DirBuster|libwww|""`）使用管道符号（`|`）作为“或”，以便匹配任何一个字符串。结尾的双引号用于阻止任何不报告用户代理的系统。
 - en: If you need complexity and more dynamic protection, then a proper **Web Application
     Firewall** (**WAF**) may be a better fit. A WAF has the ability to block other
     threats, such as SQL injection and **Cross-site Scripting** (**XSS**) as well.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您需要更复杂和动态的保护，那么合适的**Web 应用防火墙**（**WAF**）可能更适合。WAF 能够阻止其他威胁，例如 SQL 注入和**跨站脚本攻击**（**XSS**）。
 - en: There's more...
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: 'During the writing of this chapter, a site I manage was hit with over 200,000
     malicious connections a minute and I needed these rules in place to ensure it
     remained operational. The attack was a WordPress pingback DOS attack, which exploits
     the fact that the WordPress pingback doesn''t have a way of validating the return
     address. Since the site itself wasn''t WordPress-based, we could simply block
     WordPress as the user agent:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在编写本章时，我管理的一个站点遭遇了每分钟超过 200,000 次恶意连接，我需要这些规则以确保站点继续运行。此次攻击是一个 WordPress pingback
+    DOS 攻击，利用了 WordPress pingback 无法验证返回地址的问题。由于该站点本身并非基于 WordPress，我们可以简单地将 WordPress
+    用户代理阻止：
 - en: '[PRE5]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: With this rule in place, the site remained operational and the only negative
     issue was slightly increased traffic. The server was easily able to cope with
     the normal traffic and the rise in CPU usage was only minimal. Being able to turn
     a site which was completely offline back into an operational site within five
     minutes was a great outcome.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 在启用此规则后，站点保持运行，唯一的问题是流量稍微增加。服务器能够轻松处理正常流量，CPU 使用率的上升也只是微乎其微。能够在五分钟内将一个完全离线的站点恢复为正常运行，效果非常好。
 - en: Redirecting all calls to HTTPS to secure your site
+  id: totrans-60
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将所有访问重定向到 HTTPS 以确保您的站点安全
 - en: Back in [Chapter 4](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml), *All About
     SSLs*, we covered installing and configuring an SSL certificate with NGINX. However,
     one thing we didn't cover was, ensuring that all calls to your site or application
     are always encrypted. This is especially critical if you're handling private data
     or payment information, which could be mandated by law to ensure the transmissions
     of the data is encrypted. Thankfully, enforcing HTTPS is simple to do.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[第4章](ec61d6cb-64ef-4260-bb9d-d606dd47ebef.xhtml)，*SSL全解析*中，我们介绍了如何使用 NGINX
+    安装和配置 SSL 证书。然而，我们没有涉及的一点是，确保所有访问您的站点或应用程序的请求始终是加密的。如果您处理的是私人数据或支付信息，这一点尤其重要，可能根据法律要求确保数据传输的加密。幸运的是，强制使用
+    HTTPS 是非常简单的。
 - en: How to do it...
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现...
 - en: 'Like our previous redirects, using two `server` blocks is the most efficient
     method:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 像我们之前的重定向一样，使用两个 `server` 块是最有效的方法：
 - en: '[PRE6]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Here, we have our standard `server` block listening on port `80` and then redirecting
     all calls back to our calls to the HTTPS version. With the whole site redirected,
     even if there's a mistaken link to the HTTP version of the site, it will be automatically
     redirected.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们有一个标准的 `server` 块监听端口 `80`，然后将所有请求重定向回 HTTPS 版本的站点。通过将整个站点重定向，即使存在指向 HTTP
+    版本的错误链接，也会被自动重定向。
 - en: There's more...
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 还有更多...
 - en: While a `server` block for each named site to redirect works perfectly, we can
     easily convert this back into a generic `server` block. This way, it's a simple
     configuration file between different sites and ensures that all other virtual
     servers on the same system also redirect.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然为每个命名站点重定向创建一个`server`块工作得非常完美，但我们可以轻松地将其转换为通用的`server`块。这样，不同站点之间的配置文件会非常简洁，并确保系统上的所有其他虚拟服务器也会进行重定向。
 - en: '[PRE7]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Set `default_server` to the `server` block of any undefined server. The underscore
     (`_`) is simply a placeholder in NGINX; because we've set this `server` block
     to be the default, it will process all non-matching requests anyway. The underscore
     simply makes it easy to view.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 将`default_server`设置为任何未定义服务器的`server`块。下划线（`_`）仅仅是NGINX中的占位符；由于我们已经将这个`server`块设置为默认，它将处理所有不匹配的请求。下划线只是让查看变得更加简便。
 - en: See also
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The NGINX `server_name` documentation: [http://nginx.org/en/docs/http/server_names.html](http://nginx.org/en/docs/http/server_names.html)'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的`server_name`文档：[http://nginx.org/en/docs/http/server_names.html](http://nginx.org/en/docs/http/server_names.html)
 - en: Redirecting pages and directories
+  id: totrans-72
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重定向页面和目录
 - en: One of the most common uses of rewrites is to automatically redirect a URL from
     an old platform to your new site. If you've ever changed your platform (for example,
     moved from a proprietary system to WordPress or similar), then you'll have a large
     amount of existing links which will already be bookmarked and ranked within Google.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 重写最常见的用途之一是自动将URL从旧平台重定向到新网站。如果你曾经更换过平台（例如，从专有系统迁移到WordPress或类似平台），你将会有大量已经被书签或在Google中排名的现有链接。
 - en: Like our `404` recipe, many modern CMSes can do this, but most can't do it with
     the efficiency that NGINX can. Anything which can reduce the server load on a
     production system is always a good thing, especially if you have a very busy site.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 像我们的`404`示例一样，许多现代CMS都可以做到这一点，但大多数CMS无法像NGINX那样高效地处理。任何能够减少生产系统服务器负载的东西都是值得推崇的，特别是当你有一个非常繁忙的网站时。
 - en: How to do it...
+  id: totrans-75
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何操作...
 - en: The following are a number of quick references to redirect your page or directory.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一些快速参考，帮助你重定向页面或目录。
 - en: Single page redirect
+  id: totrans-77
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 单页重定向
 - en: 'If you''ve moved a page or have a new CMS, you can redirect each page using
     the following:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你移动了某个页面或有一个新的CMS，可以使用以下方法重定向每个页面：
 - en: '[PRE8]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'This simply has to be within your `server` block directive. It''s important
     to note that the syntax needs to be an exact match. In the preceding example,
     if you called the URL without the trailing slash, it would fail to redirect. We
     can account for both these scenarios by modifying the `rewrite` directive quickly:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这必须放在你的`server`块指令内。需要注意的是，语法必须完全匹配。在前面的示例中，如果你访问的URL没有尾部斜杠，它将无法重定向。我们可以通过快速修改`rewrite`指令来考虑这两种情况：
 - en: '[PRE9]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: As explained in detail later, this means that the trailing slash is now optional,
     so that both call to `/originalpage` and `/originalpage/` will now both redirect.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 如下文所述，这意味着尾部斜杠现在是可选的，因此`/originalpage`和`/originalpage/`都会进行重定向。
 - en: Full directory redirect
+  id: totrans-83
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 完整目录重定向
 - en: 'If you want everything within a whole directory to redirect, this can also
     be easily covered with one line:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想要整个目录中的内容都进行重定向，也可以通过一行代码轻松实现：
 - en: '[PRE10]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Again, this needs to go within your existing `server` block directive. While
     similar to the single page, there are a few key differences. First, we add a subexpression
     (`.*`), which we then pass to the new URL as a variable (`$1`).
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，这需要放在你现有的`server`块指令中。虽然与单个页面类似，但有一些关键的区别。首先，我们添加了一个子表达式（`.*`），然后将其作为变量（`$1`）传递到新的URL中。
 - en: For example, if we call the `/oldproduct/information` URL, it will redirect
     to `/newproduct/information`. This will match anything in the URL, so if you have
     parameters in the call (for example, `id=1`), these will also be passed to the
     new URL.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果我们访问`/oldproduct/information` URL，它会重定向到`/newproduct/information`。这会匹配URL中的任何内容，因此如果你在请求中有参数（例如，`id=1`），这些参数也会被传递到新的URL。
 - en: How it works...
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: 'The rewrite rules use **Perl Compatible Regular Expressions** (**PCRE**), which
     is a pattern matching system for textual content. While the more complex scenarios
     can be quite complex to read, you can quickly grasp the basics by understanding
     the basics of the syntax. Here''s a reference table:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 重写规则使用**Perl兼容正则表达式**（**PCRE**），这是一个用于文本内容的模式匹配系统。虽然更复杂的场景可能相当复杂难以阅读，但你可以通过理解语法的基本知识快速掌握基础内容。以下是一个参考表：
 - en: '| **Syntax** | **Meaning** |'
+  id: totrans-90
   prefs: []
   type: TYPE_TB
+  zh: '| **语法** | **含义** |'
 - en: '| `^` | The start of the string to match |'
+  id: totrans-91
   prefs: []
   type: TYPE_TB
+  zh: '| `^` | 匹配字符串的开始 |'
 - en: '| `$` | The end of the string to match |'
+  id: totrans-92
   prefs: []
   type: TYPE_TB
+  zh: '| `$` | 匹配字符串的结尾 |'
 - en: '| `.` | Any character (except newline) |'
+  id: totrans-93
   prefs: []
   type: TYPE_TB
+  zh: '| `.` | 任意字符（除了换行符） |'
 - en: '| `\d` | Any digit |'
+  id: totrans-94
   prefs: []
   type: TYPE_TB
+  zh: '| `\d` | 任意数字 |'
 - en: '| `\D` | Any non-digit |'
+  id: totrans-95
   prefs: []
   type: TYPE_TB
+  zh: '| `\D` | 任意非数字字符 |'
 - en: '| `\w` | Word, meaning letters, digits, and underscore (`_`) |'
+  id: totrans-96
   prefs: []
   type: TYPE_TB
+  zh: '| `\w` | 单词字符，即字母、数字和下划线(`_`) |'
 - en: '| `*` | Zero or more of the previous expression |'
+  id: totrans-97
   prefs: []
   type: TYPE_TB
+  zh: '| `*` | 前面的表达式匹配零次或多次 |'
 - en: '| `+` | One or more of the previous expression |'
+  id: totrans-98
   prefs: []
   type: TYPE_TB
+  zh: '| `+` | 一个或多个前面的表达式 |'
 - en: '| `?` | Zero or one of the previous expression |'
+  id: totrans-99
   prefs: []
   type: TYPE_TB
+  zh: '| `?` | 前面的表达式匹配零次或一次 |'
 - en: '| `()` | Group the expression to allow the subexpression to be used separately
     |'
+  id: totrans-100
   prefs: []
   type: TYPE_TB
+  zh: '| `()` | 将表达式分组，允许单独使用子表达式 |'
 - en: 'These are just the basics, but it does allow a very rapid understanding of
     the more simplistic rules. The following table has a number of quick examples
     of a match against the `/oldproduct/show.php?id=1` string:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些只是基础知识，但它确实能够让您快速理解一些较简单的规则。以下表格提供了一些快速示例，用于匹配`/oldproduct/show.php?id=1`字符串：
 - en: '| **Rule** | **Meaning** | **Match** |'
+  id: totrans-102
   prefs: []
   type: TYPE_TB
+  zh: '| **规则** | **含义** | **匹配示例** |'
 - en: '| `^.*$` | This matches everything on a line | `/oldproduct/show.php?id=1`
     |'
+  id: totrans-103
   prefs: []
   type: TYPE_TB
+  zh: '| `^.*$` | 这个匹配整行的内容 | `/oldproduct/show.php?id=1` |'
 - en: '| `^/oldproduct/$` | This looks for a string which must be exactly `/oldproduct/`
     | No match |'
+  id: totrans-104
   prefs: []
   type: TYPE_TB
+  zh: '| `^/oldproduct/$` | 这个匹配必须是精确的`/oldproduct/`字符串 | 无匹配 |'
 - en: '| `^/oldproduct/` | This looks for a string which must start with `/oldproduct/`
     but only matches that phrase | `/oldproduct/` |'
+  id: totrans-105
   prefs: []
   type: TYPE_TB
+  zh: '| `^/oldproduct/` | 这个匹配必须以`/oldproduct/`开头，但只匹配该短语 | `/oldproduct/` |'
 - en: '| `^/oldproduct.*` | This looks for a string which must start with `/oldproduct/`
     and also matches everything after that | `/oldproduct/show.php?id=1` |'
+  id: totrans-106
   prefs: []
   type: TYPE_TB
+  zh: '| `^/oldproduct.*` | 这个匹配必须以`/oldproduct/`开头，并且匹配其后所有内容 | `/oldproduct/show.php?id=1`
+    |'
 - en: '| `\w+\.php` | This looks for any letters, numbers, or underscores and match
     at least 1 ending in `.php` | `show.php` |'
+  id: totrans-107
   prefs: []
   type: TYPE_TB
+  zh: '| `\w+\.php` | 这个匹配任意字母、数字或下划线，且至少匹配一个以`.php`结尾的字符串 | `show.php` |'
 - en: Unless you do it day in and day out, don't expect to have your regular expression
     work perfectly the first time. There are a number of handy tools online (such
     as [regex101.com](http://regex101.com)), which allows you to test your expressions
     and give a detailed feedback. For complex scenarios, these tools are critical
     and allow detailed testing before adding the rules to a live server.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非您每天都在使用正则表达式，否则不要指望第一次就能完美匹配。网上有许多实用的工具（例如[regex101.com](http://regex101.com)），可以帮助您测试正则表达式并提供详细的反馈。对于复杂的场景，这些工具至关重要，它们允许在将规则应用到实际服务器之前进行详细的测试。
 - en: See also
+  id: totrans-109
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 另见
 - en: 'The regular expression test tool: [https://regex101.com/](https://regex101.com/)'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 正则表达式测试工具：[https://regex101.com/](https://regex101.com/)
 - en: Redirecting 404 errors through a search page
+  id: totrans-111
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 通过搜索页面重定向`404`错误
 - en: If you have moved URLs or have an incorrect link to your site, it will generally
     generate a `404 Not Found` error to the browser. While you can also style this
     page to make it match the site, the end result is generally the same. If a user
     hits this link, either way, they won't find the content they were originally searching
     for.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您移动了网址或网站链接不正确，浏览器通常会生成`404 Not Found`错误。虽然您也可以对该页面进行样式设计，使其与网站匹配，但最终结果通常是一样的。如果用户点击此链接，无论如何，他们都无法找到他们原本在搜索的内容。
 - en: With a small amount of trickery, we can instead turn the `404` into search parameters
     to push through to your site. This way, you can either match the page or item
     the user was looking for or at least display the best guesses for them.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过一些小技巧，我们可以将`404`错误转化为搜索参数，从而推送到您的网站。这样，您可以匹配到用户原本寻找的页面或项目，或者至少展示出最有可能的内容给用户。
 - en: While most modern CMSes either have this functionality built in or have a plugin
     to handle it for you, if you're stuck with an older system or custom coded site,
     then you can quickly add this functionality.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然大多数现代CMS系统要么内建此功能，要么有插件可以为您处理它，但如果您使用的是旧系统或自定义编码的网站，您也可以快速添加此功能。
 - en: How to do it...
+  id: totrans-115
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何做到...
 - en: 'In order to convert the `404` requests into arguments, here''s our `server`
     directive:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了将`404`请求转换为参数，以下是我们的`server`指令：
 - en: '[PRE11]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: In this `server` block, we've assumed that the site uses PHP, but static files
     with a search file just for the `404` errors will also work.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个`server`区块中，我们假设网站使用PHP，但仅用于`404`错误的静态搜索文件也可以正常工作。
 - en: How it works...
+  id: totrans-119
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的...
 - en: For our `404` errors, we override the default NGINX 404 page to a custom location
     (`error_page 404 @404page;`). The reason we need to use a custom location is so
     that we can rewrite the URI and arguments.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的`404`错误，我们重写了默认的NGINX 404页面，指向一个自定义位置（`error_page 404 @404page;`）。我们需要使用自定义位置的原因是，便于我们重写URI和参数。
 - en: 'Within our `@404page` location, we rewrite the URI and arguments to the search
     page (`/search.php?uri=$uri&$args`), so that they can be used as variables. For
     example, if we make a call to `/oldpage/index.asp?id=44`, it will send this to
     `/search.php` as the following variables:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的`@404page`位置中，我们将URI和参数重写为搜索页面(`/search.php?uri=$uri&$args`)，以便它们可以作为变量使用。例如，如果我们调用`/oldpage/index.asp?id=44`，它将把这些作为以下变量发送到`/search.php`：
 - en: '`[uri] => /oldpage/index.asp`'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[uri] => /oldpage/index.asp`'
 - en: '`[id] => 44`'
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[id] => 44`'
 - en: Lastly, we also include a `try_files` call to ensure that any missing PHP files
     are also rewritten to the `search.php` file.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们还包括了一个`try_files`调用，以确保任何丢失的PHP文件也会重写到`search.php`文件。
 - en: The `search.php` file could include the ability to have a lookup table or it
     could incorporate a database search to do a fuzzy search and either automatically
     redirect or simply present options to the user.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: '`search.php`文件可以包含一个查找表，也可以集成数据库搜索，进行模糊搜索，并自动重定向或仅向用户呈现选项。'
