@@ -1,7 +1,9 @@
 - en: Chapter 1. Searching for Problems in Nginx Configuration
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第1章：在Nginx配置中寻找问题
 - en: Nginx is a complex piece of software that will help you implement your own part
     of the World Wide Web—one of the killer applications of the Internet as a whole.
     Although seeming to be simple, the Web and the underlying HTTP have a lot of intricate
@@ -11,32 +13,46 @@
     Nginx expects a certain level of understanding and zeal from you so that it can
     serve in the best way possible. It also means that there is freedom and huge potential
     for mistakes.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx是一款复杂的软件，帮助你实现自己在万维网中的一部分——互联网的杀手级应用之一。尽管看似简单，Web及其底层的HTTP协议有许多复杂的细节，可能需要特别关注。Nginx通过其丰富的配置语言让你有能力关注这些细节。沿袭了UNIX传统的可读性和可写性文本配置文件，Nginx期待你具备一定的理解力和热情，以便它能够以最佳的方式提供服务。这也意味着存在自由度，并且容易出错。
 - en: The main goal of this chapter is to lead you through the way Nginx is configured
     and show you some of the areas that are prone to errors.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的主要目标是带领你了解Nginx的配置方式，并展示一些易出错的区域。
 - en: 'You will find further:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将进一步了解：
 - en: Configuration syntax with description and examples
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 配置语法及其描述和示例
 - en: Description of all files in the default configuration bundled with Nginx
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 默认配置文件中所有文件的描述
 - en: Some mistakes you could make with examples from the default configuration and
     techniques to avoid them
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可能会犯的错误，通过默认配置中的示例，并提供避免这些错误的技巧
 - en: Introducing basic configuration syntax, directives, and testing
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍基本的配置语法、指令以及测试
 - en: Igor Sysoev, the principal author of Nginx, said, on several occasions, that
     he designed the Nginx configuration language in such a way that writing the configuration
     should not feel like programming, or actual coding. For a long time, he himself
@@ -48,8 +64,10 @@
     to formulate which behavior is needed without delving into how that could be achieved
     in software. One interesting example of quite the opposite idea in language design
     is the Lighttpd configuration language, but that's out of the scope of this book.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx的主要作者Igor Sysoev曾多次表示，他设计Nginx配置语言的方式是为了让配置过程不应像编程或实际编码一样。长期以来，他自己曾是俄罗斯几家较大网站的专业系统管理员。他完全理解网站管理员的目标不是编写美观、优雅的配置，或是拥有各种可能情况下所需的每个功能，无论这些情况有多么罕见。目标是能够声明性地描述业务需求，表述需要什么样的行为，而不深入探讨如何在软件中实现这些行为。与此相对的语言设计理念的一个有趣例子是Lighttpd配置语言，但这不在本书的讨论范围内。
 - en: This is what we have now—a simple declarative language inspired by Apache's
     one but without all the XML-like tags. Open the default `nginx.conf` file to see
     what Nginx configuration looks like. Some distributions contain their own modifications
@@ -58,113 +76,159 @@
     What follows is a quick syntax introduction using parts of that file as examples.
     You might find it too obvious but bear with us; even the most experienced reader
     will do good to refresh his or her memory.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是我们现在所拥有的——一个简单的声明性语言，灵感来自Apache的配置语言，但没有那些类似XML的标签。打开默认的`nginx.conf`文件，看看Nginx配置的样子。某些发行版会包含对默认文件的修改。我们将使用来自原始压缩包中的版本，下载链接为[http://nginx.org/download/nginx-1.9.12.tar.gz](http://nginx.org/download/nginx-1.9.12.tar.gz)。接下来是一个快速的语法介绍，使用该文件中的部分作为示例。你可能觉得这很显而易见，但请耐心一点；即便是最有经验的读者，也会从中受益，重新温习一遍。
 - en: 'Let us look at the very beginning of the file. Lines starting with `#` are
     comments, and they are ignored. *Commenting out* is a very common technique to
     make Nginx ignore a part of configuration. The topmost line in default Nginx configuration
     file (as of version 1.9.12) is actually commented out:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看一下文件的最开始部分。以`#`开头的行是注释，它们会被忽略。*注释掉*是一种非常常见的技术，用来让Nginx忽略配置中的一部分内容。在默认的Nginx配置文件（截至1.9.12版本）中，最上面的那一行实际上就是被注释掉的：
 - en: '[PRE0]'
+  id: totrans-11
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: One easy way to comment out a block of lines in vim is highlighting them visually
     with *Shift-V* and then issuing the `:s/^/#/ ex` command. In Emacs, just select
     a region and then press *M-;*.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在vim中注释掉一段代码块的一个简单方法是通过*Shift-V*高亮显示它们，然后执行`:s/^/#/ ex`命令。在Emacs中，只需选择一个区域，然后按*M-;*。
 - en: Nonempty noncommented lines in Nginx configuration are of the two following
     types.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx配置文件中非空且未注释的行有以下两种类型。
 - en: Simple directives
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 简单指令
 - en: 'Simple directives consist of a command word followed by a number of parameters
     and a semicolon. For example (see at the top of the default `nginx.conf` file):'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单指令由一个命令词、若干参数和一个分号组成。例如（见默认的`nginx.conf`文件顶部）：
 - en: '[PRE1]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Nothing to worry about here. People having too much experience with modern scripting
     languages, such as Python and Ruby, tend to forget the semicolon; we advise you
     to make sure that you add it.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里没有什么好担心的。对于那些拥有现代脚本语言（如Python和Ruby）经验的人来说，他们往往会忘记分号；我们建议您确保添加它。
 - en: The parameters mentioned here can be either constant values (numbers or strings,
     which does not matter, they are all parsed in the same way at this level) or they
     may contain variables. Variables in Nginx are the `$dollar_prefixed` identifiers
     that are replaced with some actual value at runtime. For example, there are variables
     containing data from an HTTP request, and you can modify website behavior depending
     on their values or just log them.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里提到的参数可以是常量值（数字或字符串，这两者并不重要，它们在这个层级下都以相同方式解析），或者它们可能包含变量。Nginx中的变量是以`$dollar_prefixed`形式出现的标识符，它们在运行时被替换为实际的值。例如，某些变量包含来自HTTP请求的数据，您可以根据这些值来修改网站的行为，或者仅仅将它们记录下来。
 - en: 'A very good example of variables in the default `nginx.conf` file is this:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在默认的`nginx.conf`文件中，一个非常好的变量示例是：
 - en: '[PRE2]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: This directive creates a log format by constructing a template for each line
     of the log. It uses a number of variables available during the request/response
     cycle.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 该指令通过为日志的每一行构建一个模板来创建日志格式。它使用了在请求/响应周期中可用的多个变量。
 - en: Multiline directives
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 多行指令
 - en: Multiline directives are simple directives with a BUT. Instead of a semicolon
     in the end, there is a block enclosed in braces `{ ... }`. And here *instead*
     is meant literally. You don't put semicolons after closing braces. Those of you
     with just enough experience with more traditional C-like syntax programming languages
     will find this very natural.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 多行指令是简单指令的扩展。但与简单指令不同，结束时没有分号，而是有一个用大括号`{ ... }`括起来的代码块。在这里，*instead*是字面意义上的。你不需要在关闭大括号后添加分号。对于那些拥有一定经验的传统C语言或类似语言的程序员来说，这一点是非常自然的。
 - en: 'Here is an example of the very first multiline directive in the default Nginx
     1.9.12 `nginx.conf` file:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个默认Nginx 1.9.12版本的`nginx.conf`文件中非常初始的多行指令示例：
 - en: '[PRE3]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Now, this is an `events` directive, which does not have any parameters, and
     it contains a block instead of a semicolon. Because of these blocks, multiline
     directives are also named "block directives". Blocks contain various kinds of
     content, but one of the most important and interesting blocks is the one containing
     other directives—both simple and multiline.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，这是一个`events`指令，它没有任何参数，并且包含一个代码块，而不是分号。由于这些代码块，多行指令也被称为“块指令”。块可以包含各种类型的内容，但其中最重要且有趣的块是包含其他指令的块——无论是简单的还是多行的。
 - en: In the previous example, the block of the `events` directive contains a simple
     `worker_connections` directive.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的示例中，`events`指令的代码块包含了一个简单的`worker_connections`指令。
 - en: Multiline directives that allow other directives inside their blocks are named
     "contexts". They introduce new context for the enclosed, inner part of the configuration.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 允许其他指令出现在其块内的多行指令被称为“上下文”。它们为封闭的配置内部部分引入了新的上下文。
 - en: Most of the multiline directives are actually contexts—from the most popular,
     such as `server` or `location`, to the most obscure, such as `limit_except`. An
     example of a multiline directive that is not a context is `types`, which introduces
     the relation between file extensions and the so-called **Multipurpose Internet
     Mail Extensions** (**MIME**) types. We will look at `types` later in this chapter.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数多行指令实际上都是上下文——从最常见的`server`或`location`，到最冷僻的`limit_except`。一个不是上下文的多行指令的例子是`types`，它引入了文件扩展名与所谓的**多用途互联网邮件扩展**（**MIME**）类型之间的关系。我们将在本章稍后介绍`types`。
 - en: Contexts are very important. They are scopes and topics of the directives that
     are inside. If a command is not included in any multiline directive block, then
     it is considered part of the special context named "main" with the widest scope.
     Directives in this context affect the whole Nginx application. Other contexts
     are all either inside "main" or even deeper below, and the commands that are contained
     within those contexts have narrower scopes and affect only parts of the whole.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 上下文非常重要。它们是指令所在的作用域和主题。如果一条命令没有包含在任何多行指令块中，那么它被认为是属于名为“main”的特殊上下文，它的作用域是最广泛的。这个上下文中的指令会影响整个Nginx应用程序。其他上下文则位于“main”之内，或者更深层次，而那些上下文中的命令作用范围较小，只影响整个系统的一部分。
 - en: Include directive
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: include指令
 - en: 'We will not describe actual directives here except for one of them. It is the
     `include` directive, a special dear to the hearts of all sysadmins who scale their
     work to many websites, servers, or just URLs. It is a very simple block-level
@@ -173,74 +237,108 @@
     glob-style) matching a number of files. During processing, this directive is replaced
     by the contents of the files it refers to. A quick example (from the default `nginx.conf`
     file):'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了一个指令外，我们将不会在这里描述实际的指令。这个指令是`include`，它是所有将工作扩展到多个网站、服务器或URL的系统管理员心爱的指令。如果我们可以使用更多编程术语，它是一个非常简单的块级“包管理工具”。这个简单的指令有一个参数，即文件名或一个匹配多个文件的通配符（UNIX
+    glob风格）。在处理过程中，这个指令会被它所引用的文件内容所替代。一个简单的示例（来自默认的`nginx.conf`文件）：
 - en: '[PRE4]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: We won't offend you by spending more time on explaining `include`. What we need
     to add is that included files have to be fully correct syntactically. You cannot
     have half of a command in one file and then include the rest from another.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们不会浪费时间再解释`include`。我们需要补充的是，被包含的文件必须在语法上完全正确。你不能将一条命令的一部分放在一个文件中，然后在另一个文件中包含剩余部分。
 - en: 'So, this is it, the whole syntax is described. Let us show you a fictional
     piece of configuration that demonstrates everything but does not actually work
     because it contains nonexistent directives (or maybe those are from some future
     version of Nginx):'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样，整个语法已经描述完毕。让我们给你展示一段虚构的配置，虽然它展示了所有内容，但由于包含了不存在的指令（或者可能是某个未来版本的Nginx中的指令），它并不能实际工作：
 - en: '[PRE5]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Testing Nginx configuration
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 测试Nginx配置
 - en: 'There is a very handy tool in the Nginx kit, a syntax checker for the configuration
     files. It is built into the main Nginx executable application and invoked by using
     the `-t` command-line switch as follows:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx工具包中有一个非常方便的工具，用于检查配置文件的语法。它是内置于Nginx主可执行程序中的，通过以下命令行开关`-t`来调用：
 - en: '[PRE6]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The command `nginx -t` tries to check your configuration quite thoroughly. For
     example, it will check all the included files and try to access all the auxiliary
     files like logs or pids to warn you about their nonexistence or insufficient permissions.
     You will become a better Nginx administrator if you acquire a habit of frequently
     running `nginx -t`.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 命令`nginx -t`会非常彻底地检查你的配置。例如，它会检查所有被包含的文件，并尝试访问所有辅助文件，如日志文件或PID文件，以警告你它们的不存在或权限不足。如果你养成频繁运行`nginx
+    -t`的习惯，你将成为一个更优秀的Nginx管理员。
 - en: The default configuration directory layout
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 默认的配置目录结构
 - en: We will now run through the entire configuration that you get bundled with Nginx
     by default. Some of it is a good example from which you will start writing your
     own. Some of it is just a sign of Nginx age. Again, we use the original tarball
     for the 1.9.12 version that is available on the official Nginx website.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将逐一浏览你在Nginx默认安装包中得到的配置文件。其中一些是很好的示例，你可以从中开始编写自己的配置。有些则只是Nginx版本的陈迹。再次提醒，我们使用的是从官方Nginx网站上下载的1.9.12版本的原始tar包。
 - en: 'This is a list of files inside the `conf` folder of the Nginx source archive:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 Nginx 源代码存档中 `conf` 文件夹内文件的列表：
 - en: '[PRE7]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The `nginx.conf` is the main file, the one everything starts with. All other
     files are either included from `nginx.conf` or not used at all. Actually, `nginx.conf`
     is the only configuration file that is required by Nginx code (and you can override
     even that by using `-c` command-line switch). We will discuss its content a little
     bit later.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '`nginx.conf` 是主文件，是所有内容的起点。所有其他文件要么从 `nginx.conf` 包含，要么根本不使用。实际上，`nginx.conf`
+    是 Nginx 代码必需的唯一配置文件（你甚至可以通过使用 `-c` 命令行开关来覆盖它）。稍后我们会详细讨论它的内容。'
 - en: A pair of `fastcgi.conf` and `fastcgi_params` files contains almost the same
     list of simple commands configuring the Nginx FastCGI client. FastCGI, being an
     interface to run web applications behind Nginx, is not turned on by default. These
     two files are provided as examples (one of them is even included with the `include`
     command from a commented section of the `nginx.conf` file).
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 一对 `fastcgi.conf` 和 `fastcgi_params` 文件包含几乎相同的简单命令列表，用于配置 Nginx FastCGI 客户端。默认情况下，FastCGI
+    不会启用。这两个文件作为示例提供（其中一个甚至是从 `nginx.conf` 文件的注释部分使用 `include` 命令包含的）。
 - en: Three files with enigmatic names `koi-utf`, `koi-win`, and `win-utf` are character
     maps to convert between different ways to encode Cyrillic characters in electronic
     documents. And Cyrillic is, of course, the script used for Russian and several
@@ -256,20 +354,33 @@
     towards UTF-8 as the one universal encoding for all human languages. You won't
     ever use these `koi-utf`, `koi-win`, and `win-utf` files unless you support a
     very old website for Russian-speaking visitors.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 三个具有谜一般名称的文件 `koi-utf`、`koi-win` 和 `win-utf` 是字符映射，用于在电子文档中不同的方式编码 Cyrillic
+    字符。当然，Cyrillic 是用于俄语和其他几种语言的文字。在俄罗斯的第一批互联网主机的早期，关于在文档中如何编码俄语字母曾有一场争论。你可以在 [http://czyborra.com/charsets/cyrillic.html](http://czyborra.com/charsets/cyrillic.html)
+    上了解不同的 Cyrillic 字符集和编码。其中几种变得流行起来，而 Web 服务器必须包含转换文档编码的功能，以便在客户端浏览器请求与服务器使用的编码不同时动态转换文档。甚至有一个完全基于此功能的
+    Apache Web 服务器分支。Nginx 也必须做同样的事情，以与 Apache 竞争。现在，10 多年过去了，作为全球**万维网**继续向 UTF-8
+    作为所有人类语言的通用编码迈进，这些重新编码文件已深为过时。除非你支持面向俄语访客的非常旧的网站，否则你永远不会使用这些 `koi-utf`、`koi-win`
+    和 `win-utf` 文件。
 - en: The file named `mime.types` is used by default. You can see that it is included
     from the main `nginx.conf`, and you better leave it that way. "MIME types" is
     a registry of different types of information in files.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 名为 `mime.types` 的文件是默认使用的。你可以看到它是从主 `nginx.conf` 中包含的，最好保持这样。"MIME 类型" 是文件中不同信息类型的注册表。
 - en: 'They have their origin in some of the email standards (hence, the MIME name)
     but are used everywhere, including the Web. Let''s look inside `mime.types`:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 它们起源于一些电子邮件标准（因此称为 MIME），但被广泛用于包括 Web 在内的所有地方。让我们来看看 `mime.types` 的内容：
 - en: '[PRE8]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Because it is included from `nginx.conf`, it should have a proper Nginx configuration
     language syntax. That's right, it contains a single multiline directive `types`,
     which is not a context (as described in the previous section). Its block is a
@@ -278,17 +389,25 @@
     MIME (or content) type. According to the quoted segment, the files `common.css`
     and `new.css` will get the type `text/css`, whereas `index.shtml` will be `text/html`,
     and so on and so forth; it is really easy.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为它是从 `nginx.conf` 中包含的，所以它应该符合正确的 Nginx 配置语言语法。没错，它包含一个单一的多行指令 `types`，这不是一个上下文（如前一部分所述）。它的块是由一对对组成，每一对都表示一个
+    MIME 类型与一组文件扩展名的映射关系。这个映射用来标识由 Nginx 提供的静态文件，标明其拥有特定的 MIME（或内容）类型。根据引用的片段，`common.css`
+    和 `new.css` 将被赋予 `text/css` 类型，而 `index.shtml` 将是 `text/html`，依此类推，这非常简单。
 - en: A quick example of modifying the MIME types registry
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 修改 MIME 类型注册表的快速示例
 - en: Sometimes, you will add things to this registry. Let's try to do this now and
     demonstrate an introduction of a simple mistake and the workflow to find and fix
     it.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时候，您会往这个注册表中添加内容。现在让我们尝试一下，演示如何引入一个简单的错误以及如何找到并修复它的工作流程。
 - en: Your website will host calendars for your colleagues. A calendar is a file in
     the iCalendar format generated by a third-party application and saved to a file
     with `.ics` extension. There is nothing about `ics` in the default `mime.types`,
@@ -298,68 +417,105 @@
     that the new calendar application your colleagues use require proper iCalendar-typed
     HTTP responses. This means that you have to add this `text/calendar` type into
     your `mime.types` file.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 您的网站将为同事们提供日历。日历是一个由第三方应用生成的 iCalendar 格式文件，并以 `.ics` 扩展名保存。在默认的 `mime.types`
+    文件中没有关于 `ics` 的内容，因此，您的 Nginx 实例将以默认的 `application/octet-stream` MIME 类型提供这些文件，这基本上意味着“这是一堆字节（字节流），我完全不知道它们的含义”。假设您的同事使用的新日历应用需要正确的
+    iCalendar 类型的 HTTP 响应。这意味着您必须将 `text/calendar` 类型添加到您的 `mime.types` 文件中。
 - en: 'You open `mime.types` in your editor and add this line to the very end (not
     in the middle, not to the start, but the end is important for the sake of this
     experiment) of the file:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 打开编辑器中的 `mime.types` 文件，并将这一行添加到文件的末尾（不要放到中间，也不要放到开头，末尾对于这个实验很重要）：
 - en: '[PRE9]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'You then run `nginx -t` because you are a good Nginx administrator:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，您运行 `nginx -t`，因为您是一个优秀的 Nginx 管理员：
 - en: '[PRE10]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Bam. Nginx is smart enough to tell you what you need to fix; this line does
     not look like either a simple or a multiline directive. Let''s add the semicolon:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 啪。Nginx 足够聪明，会告诉您需要修复的地方；这一行看起来既不像简单的指令，也不像多行指令。让我们加上分号：
 - en: '[PRE11]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Now this is more obscure. What you should do here is understand that this line
     is not a separate standalone directive. It is a part of the big `types` multiline
     (the rare, non-context one) directive; therefore, it should be moved into the
     block.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在这部分内容稍显复杂。您需要理解的是，这一行并不是一个独立的指令。它是 `types` 多行（稀有的非上下文）指令的一部分；因此，它应该被移入到块中。
 - en: 'Change the tail of the `mime.types` from this:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 将 `mime.types` 文件的尾部从以下内容更改：
 - en: '[PRE12]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'The preceding code should look as follows:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述代码应如下所示：
 - en: '[PRE13]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'It is done by swapping the last two meaningful lines:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过交换最后两行有效的代码实现：
 - en: '[PRE14]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Congratulations, you just enabled a new business process for your company involving
     mobile workforce.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜，您刚刚为公司启用了一个新的业务流程，涉及到移动工作团队。
 - en: Two last default configuration files are `scgi_params` and `uwsgi_params`. Those
     two are the counterparts for the `fastcgi_params`, setting up two alternative
     methods of running web application on your web servers (SCGI and UWSGI, respectively,
     as you guessed). You will use them if and when your application developers will
     bring you applications written with these interfaces in mind.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后的两个默认配置文件是 `scgi_params` 和 `uwsgi_params`。这两者分别对应 `fastcgi_params`，为您的 Web
+    服务器设置了两种替代的 Web 应用程序运行方法（如您所猜测的，分别是 SCGI 和 UWSGI）。当您的应用程序开发人员为您提供这些接口编写的应用程序时，您将使用它们。
 - en: Default nginx.conf
+  id: totrans-70
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 默认的 nginx.conf
 - en: 'Now, let''s dig deeper into the main configuration file `nginx.conf`. In its
     default form that you see inside the tarball, it is rather empty and useless.
     At the same time, it is always what you use as a starting point when writing your
@@ -367,65 +523,93 @@
     that people inflict on themselves. Going over each directive is not needed, so
     only those that are good to demonstrate a technique or a common place of errors
     will be included in this section:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们深入了解主配置文件 `nginx.conf`。在它的默认形式中（你在 tarball 中看到的），它相当空洞且没有用处。与此同时，它始终是你编写自己配置时的起始点，并且也可以作为展示一些常见问题的示例，这些问题是人们自己造成的。并不需要逐个讲解所有指令，所以只会包括那些适合展示技巧或常见错误点的部分：
 - en: '[PRE15]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: This directive specifies the name of the UNIX user that Nginx processes will
     run as. Commenting out pieces of configuration is a common documentation technique.
     It shows the default values and removing the comment character is safe. Nginx
     will complain if you try to run it as a nonexistent user. As a general rule, you
     should either trust your package vendor and not change the default or use an account
     with the least permissions possible.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 该指令指定了 Nginx 进程将以哪个 UNIX 用户身份运行。注释掉配置中的部分内容是常见的文档技巧。它展示了默认值，并且去掉注释字符是安全的。如果你试图以一个不存在的用户身份运行，Nginx
+    会报错。作为一般规则，你应该信任你的包管理供应商，不要更改默认设置，或者使用权限最小的帐户。
 - en: '[PRE16]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'These lines specify some default filenames. The three `error_log` directives
     are an example of yet another technique: providing several variants as comments
     so that you can uncomment the one you prefer. These three differ by the level
     of detail that goes into the error log. There is a whole chapter about logs as
     those are definitely the first and foremost debugging and troubleshooting tool
     available for any Nginx administrator.'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些行指定了一些默认文件名。三个 `error_log` 指令是另一个技术的示例：提供多个变体作为注释，这样你可以取消注释你喜欢的版本。这三者的区别在于错误日志中记录的详细程度。关于日志有一个完整章节，因为它们无疑是任何
+    Nginx 管理员进行调试和故障排除时最重要的工具。
 - en: The `pid` directive allows you to change the filename where pid of the main
     Nginx process will be stored. You rarely have to change this.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pid` 指令允许你更改存储主 Nginx 进程 pid 的文件名。你很少需要更改它。'
 - en: Note that these directives use relative paths in these examples, but this is
     not required. They could also use absolute paths (starting with `/`). The `error_log`
     directive provides two other ways of logging besides simple files, which you will
     see later.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这些指令在这些示例中使用了相对路径，但这并不是强制要求的。它们也可以使用绝对路径（以 `/` 开头）。`error_log` 指令提供了除简单文件之外的另外两种日志记录方式，稍后你会看到它们。
 - en: '[PRE17]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: This is our first context and a confusing one. `events` is not used to narrow
     the scope of directives inside it. Most of those directives cannot be used in
     any other context except `events`. This is used as a logical grouping mechanism
     for many parameters that configure the way Nginx responds to activity on the network.
     These are very general words, but they fit the purpose. Think of `events` as a
     fancy historical way of marking a group of parameters that are close to one another.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们的第一个上下文，且有些混乱。`events` 并不是用来限定其中指令的作用范围。大多数这些指令只能在 `events` 中使用，不能在其他任何上下文中使用。它作为一种逻辑分组机制，用于许多配置
+    Nginx 如何响应网络活动的参数。这些是非常通用的词汇，但它们恰如其分。你可以将 `events` 看作是一个标记彼此相关参数的历史方式，虽然有些复杂。
 - en: The `worker_connections` directive specifies the maximum number of all network
     connections each worker process will have. It may be a source of strange mistakes.
     You should remember that this limit includes both the client connections between
     Nginx and your user's browsers and the `server` connections that Nginx will have
     to open for your backend web application code (unless you only serve static files).
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '`worker_connections` 指令指定了每个工作进程能够拥有的最大网络连接数。它可能是一些奇怪错误的根源。你应该记住，这个限制包括了 Nginx
+    与用户浏览器之间的客户端连接和 Nginx 为你的后台 Web 应用程序代码所必须打开的 `server` 连接（除非你只提供静态文件）。'
 - en: The http directive
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: http 指令
 - en: '[PRE18]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Here we go, `http` marks the start of a huge context that usually spans several
     files (via nested includes) and groups all the configuration parameters that concern
     the web part of Nginx. You might feel that this sounds a lot like `events`, but
@@ -434,27 +618,39 @@
     IMAP and POP3\. It is an infrequent use case, to put it mildly, and we won't spend
     our time on it, but it shows a very legitimate reason to have a special scope
     for all HTTP options.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里我们开始，`http` 标记了一个庞大的上下文的开始，通常会跨越多个文件（通过嵌套包含），并将所有与 Nginx 的 Web 部分相关的配置参数进行分组。你可能会觉得这听起来很像
+    `events`，但它实际上是一个非常有效的上下文，需要一个单独的指令，因为 Nginx 不仅能作为 HTTP 服务器工作，还能提供其他协议的服务，例如 IMAP
+    和 POP3。这个使用场景可以说是很少见的，我们不会在这里浪费时间，但它展示了一个非常合理的理由，即为所有 HTTP 选项设立一个特殊的作用域。
 - en: You probably know what the first two directives inside `http` do. Never change
     the default MIME type. Many web clients use this particular type as an indication
     of a file that needs to be saved on the client computer as an opaque blob of data,
     and it is a good idea for all the unknown files.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能知道 `http` 内部的前两个指令的作用。永远不要更改默认的 MIME 类型。许多 Web 客户端使用这种特定类型作为指示，表明一个文件需要作为一个不透明的数据块保存到客户端计算机上，对于所有未知的文件来说，这是一个不错的选择。
 - en: '[PRE19]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'These two directives specify logging of all requests, both successful and unsuccessful,
     for the reason of tracing and statistics. The first directive creates a log format
     and the second initiates logging to a specific file according to the mentioned
     format. It is a very powerful mechanism that gets special attention later in this
     book. Then we have the following code:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两条指令用于记录所有请求，无论是成功还是失败，目的是为了追踪和统计。第一条指令创建日志格式，第二条指令根据所述格式将日志记录到特定文件中。这是一个非常强大的机制，本书后面会对其进行特别讲解。然后我们有以下代码：
 - en: '[PRE20]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: The first and the second of these turn on certain networking features of the
     HTTP support. `sendfile` is a syscall that allows copying of bytes from a file
     to a socket by the OS kernel itself, sometimes using "zero copy" semantics. It
@@ -472,8 +668,15 @@
     You can try if you know something special about your clients, but usually people
     either leave the default timeout or turn the `keepalive` off altogether by setting
     the timeout to zero.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两条指令打开了 HTTP 支持的某些网络功能。`sendfile` 是一个系统调用，它允许操作系统内核将文件中的字节直接复制到套接字，有时使用 "零拷贝"
+    语义。除非你的内存非常少，否则通常保持开启是安全的——有报告称，在内存很少的服务器上，`sendfile` 可能会工作不可靠。`tcp_nopush` 仅在
+    `sendfile on` 的情况下才有意义。它允许你优化通过 `sendfile-d` 文件发送的网络数据包数量。`keepalive` 是现代 HTTP
+    的一项特性——浏览器（或任何其他客户端）可能会选择不立即关闭与服务器的连接，而是保持连接，以防很快再次需要与同一服务器通信。对于许多由成百上千个对象组成的现代网页，这可能会大有帮助，尤其是在
+    HTTPS 上，因为开启新连接的成本更高。`keepalive` 超时是 Nginx 在不关闭客户端开放连接时的时间（秒）。调整默认值 75 很少会影响性能。如果你对你的客户端有特殊了解，可以尝试调整，但通常情况下，人们要么保持默认超时，要么通过将超时设置为零来完全关闭
+    `keepalive`。
 - en: There are a (big) number of compression algorithms much better than the LZW
     of the traditional gzip, but gzip is most widely available among servers and clients
     on the web, providing good enough compression for texts with very little cost.
@@ -484,11 +687,16 @@
     at [http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_disable](http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_disable).
     It might be a source of problems, but only if you have some really odd users either
     with weird special-case client software or from the past.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在有很多压缩算法远比传统gzip的LZW算法要好，但gzip在Web服务器和客户端中是最广泛使用的，它能提供足够好的文本压缩效果，且几乎没有成本。`gzip
+    on`将启用Nginx与其客户端之间的数据自动压缩，当然，前提是客户端声明支持gzip压缩的服务器响应。仍然有一些浏览器不完全支持gzip。有关`gzip_disable`指令的描述，请参考Nginx文档中的[http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_disable](http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_disable)。这可能是问题的来源，但只有在您有一些非常特殊的用户，使用奇怪的特殊客户端软件或是来自过去的用户时，才会出现问题。
 - en: '[PRE21]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: Now we have another multiline context directive inside `http`. It is a famous
     `server` directive that configures a single web server object with a hostname
     and a TCP port to listen on. Those two are the top-most directives inside this
@@ -500,54 +708,74 @@
     in its simplest form; it just contains a hostname in the form of DNS domain and
     it will be matched against the name that browser sent in the `Host:` header which,
     in turn, is just the host name part of the URL.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了另一个多行上下文指令，位于`http`中。这是一个著名的`server`指令，用于配置一个单独的Web服务器对象，指定主机名和监听的TCP端口。这两者是该`server`中最上层的指令。第一个，`listen`，其语法比仅指定端口号复杂得多，我们在这里不会详细描述。第二个指令语法简单，但匹配规则较复杂，最好在在线文档中查阅详细描述。简单地说，这两个指令提供了一种选择正确服务器来处理传入HTTP请求的方式。最常用的是最简单形式的`server_name`，它只包含一个DNS域名形式的主机名，并与浏览器在`Host:`头中发送的名称进行匹配，而该名称实际上只是URL中的主机名部分。
 - en: '[PRE22]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: This is a way to indicate the charset (encoding) of the documents you serve
     to the browsers. It is set by default to the special value `off` and not the good
     old `koi8-r` from RFC1489\. Nowadays, your best bet is specifying `utf8` here
     or just leaving it off. If you specify a charset that does not correspond to the
     actual charset of your documents, you will get troubles.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是指示您为浏览器提供的文档的字符集（编码）的一种方式。默认情况下，它设置为特殊值`off`，而不是RFC1489中的老旧`koi8-r`。如今，最佳的选择是指定`utf8`，或者直接不指定。如果您指定的字符集与文档的实际字符集不匹配，将会遇到问题。
 - en: '[PRE23]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: Here is an interesting example of using a directive inside a narrowing context.
     Remember that we already discussed `access_log` one level higher, inside the `http`
     directive. This one will turn on logging of requests to this particular server
     only. It is a good habit to include the name of the server in the name of its
     access log. So, replace `host` with something very similar to your `server_name`.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个有趣的例子，展示了如何在狭窄的上下文中使用指令。记住，我们已经在`http`指令中的上一级讨论过`access_log`。这个指令只会开启对该特定服务器的请求日志记录。将服务器名称包含在其访问日志的名称中是一个好习惯。因此，应该将`host`替换为与`server_name`非常相似的内容。
 - en: '[PRE24]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Again, we see a multiline directive introducing a context for a number of URLs
     on this particular server. `location /` will match all the requests unless there
     is a more specific location on the same level. The rules to choose the correct
     location block to process an incoming request are quite complex, but simple cases
     could be described with simple words.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次看到，我们在这个特定服务器上看到一个多行指令，引入了多个URL的上下文。`location /`将匹配所有请求，除非在同一级别上有一个更具体的location指令。选择正确的location块来处理传入请求的规则相当复杂，但简单的情况可以用简单的语言描述。
 - en: The `index` directive specifies the way to process URLs that correspond to a
     local folder. In this case, Nginx seeks the first existing file from the list
     in this directive. Serving either an `index.html` or `index.htm` for such URLs
     is a very old convention; you shouldn't break it unless you know what you are
     doing.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '`index`指令指定了处理对应本地文件夹的URL的方式。在这种情况下，Nginx会在该指令的列表中查找第一个存在的文件。为此类URL提供`index.html`或`index.htm`是一个非常古老的约定；除非你知道自己在做什么，否则不应该打破它。'
 - en: By the way, `index.htm` without the last `l` is an artifact of the old Microsoft
     filesystems that allowed three or less characters in the filename extension. Nginx
     never worked on Microsoft systems with such limitations, but files ending in `htm`
     instead of `html` still linger around.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便提一下，`index.htm`没有最后一个`l`是旧版Microsoft文件系统的遗物，这些文件系统允许文件扩展名中最多有三个字符。Nginx从未在这种受限的Microsoft系统上工作过，但以`htm`结尾而非`html`的文件仍然存在。
 - en: '[PRE25]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: These directives set up the way errors are reported to the user. You, as the
     webmaster, will most certainly rely on your logs but just in case something happened,
     your users should not be left in dark. The `error_page` directive installs a handler
@@ -556,61 +784,86 @@
     report it to the user as a real 404 error but instead initiate the subrequest
     to the `/404.html` location, render the results, and present them in the response
     to the original user request.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些指令设置了错误报告给用户的方式。作为网站管理员，你肯定会依赖日志，但万一发生了什么，用户不应该被置于黑暗之中。`error_page`指令为基于著名HTTP状态码的HTTP错误安装了一个处理器。第一个示例（已注释）告诉Nginx，如果遇到404（未找到）错误，它不应该将其报告为真实的404错误，而是应该发起子请求到`/404.html`位置，渲染结果，并将其作为响应呈现给原始用户请求。
 - en: By the way, one of the most embarrassing mistakes you could make with Apache
     web server is to provide a 404 handler that raises another 404 error. Remember
     these?
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便说一句，使用Apache web服务器时，你可能犯的最尴尬的错误之一就是提供一个404处理程序，结果却引发了另一个404错误。还记得这些吗？
 - en: '![The http directive](img/B04329_01_01.jpg)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![The http directive](img/B04329_01_01.jpg)'
 - en: 'Nginx will not show this type of detail to users, but they will still see some
     very ugly error messages:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx不会向用户显示这种细节，但他们仍然会看到一些非常丑陋的错误信息：
 - en: '![The http directive](img/B04329_01_02.jpg)'
+  id: totrans-105
   prefs: []
   type: TYPE_IMG
+  zh: '![The http directive](img/B04329_01_02.jpg)'
 - en: The `location = /50x.html` looks suspiciously similar to the one we discussed
     earlier. The only important difference is the `=` character that means "exact
     match". The whole matching algorithm is a complete topic in itself, but here you
     should definitely remember that `=` means "process requests for this and only
     this URL, do not treat it as a prefix that could match longer URLs".
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '`location = /50x.html`看起来与我们之前讨论的非常相似。唯一重要的区别是`=`字符，表示“精确匹配”。整个匹配算法是一个完整的主题，但在这里你一定要记住，`=`表示“仅处理这个URL的请求，不要把它当作可以匹配更长URL的前缀”。'
 - en: '[PRE26]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: This is a big commented chunk of options all about the same – processing PHP
     scripts using two different strategies. Nginx, as you know, does not try to be
     everything, and it especially tries to never be an application server. The first
     `location` directive sets up proxying to another local PHP server, probably Apache
     with `mod_php`.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个很大的注释块，关于同样的事情——使用两种不同的策略处理PHP脚本。正如你所知，Nginx并不试图做所有事情，尤其是它尽量不作为应用服务器。第一个`location`指令设置了代理到另一个本地PHP服务器，可能是启用了`mod_php`的Apache。
 - en: Note
+  id: totrans-109
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Pay attention to the `~` character in `location`. It turns on regular expressions
     engine for the matching of the URLs, hence the escaped `.` and the `$` in the
     end. Nginx regular expressions use the common syntax originating from the first
     grep and ed programs written in the late 1960s. They are implemented with the
     PCRE library. See the PCRE documentation for the comprehensive description of
     the language at [http://www.pcre.org/original/doc/html/pcrepattern.html](http://www.pcre.org/original/doc/html/pcrepattern.html).
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意`location`中的`~`字符。它开启了正则表达式引擎来匹配URLs，因此末尾的`.`和`$`需要转义。Nginx的正则表达式使用了源自1960年代后期第一个grep和ed程序的通用语法。它们通过PCRE库实现。有关该语言的全面描述，请参见PCRE文档：[http://www.pcre.org/original/doc/html/pcrepattern.html](http://www.pcre.org/original/doc/html/pcrepattern.html)。
 - en: The second block talks to a FastCGI server running locally on the `9000` port
     instead of HTTP proxying. It is a bit more modern way of running PHP, but it also
     requires a lot of parameters (see included file) as compared with the very simple
     and humble HTTP.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个块与本地运行在 `9000` 端口上的 FastCGI 服务器交互，而不是 HTTP 代理。这是一种较为现代的 PHP 运行方式，但与简单且朴素的
+    HTTP 相比，它也需要更多的参数（参见包含的文件）。
 - en: '[PRE27]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: The last part of the server block under discussion introduces **Access Control
     Lists** (**ACLs**), in a `location` with a regular expression. The note in the
     comment is a curious one. There is a tradition of "bolting" Nginx onto an existing
@@ -619,93 +872,142 @@
     is definitely not recommended, but you have probably seen or even inherited one.
     Nginx itself does not support the local `.htaccess` files but has to protect those
     files left from Apache because they could contain sensitive information.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 讨论中的服务器块的最后部分引入了**访问控制列表**（**ACLs**），这是一个带有正则表达式的`location`。注释中的说明很有意思。Nginx
+    与现有的 Apache 安装“结合”使用是一种传统的做法，即让 Nginx 处理所有静态文件，而将更复杂的动态 URL 代理到下游的 Apache。这种设置绝对不推荐，但你可能已经见过甚至继承了这样的配置。Nginx
+    本身不支持本地 `.htaccess` 文件，但必须保护这些从 Apache 继承的文件，因为它们可能包含敏感信息。
 - en: 'And the final server multiline directive is an example of a secure server serving
     HTTPS:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终的服务器多行指令是一个提供 HTTPS 服务的安全服务器示例：
 - en: '[PRE28]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Besides a bunch of simple `ssl_` directives in the middle, the important thing
     to note is `listen 443 ssl`, which enables HTTPS (basically, HTTPS is HTTP over
     SSL on the TCP port `443`). We talk about HTTPS in [Chapter 3](ch03.html "Chapter 3. Troubleshooting
     Functionality"), *Troubleshooting Functionality* of this book.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了中间一堆简单的 `ssl_` 指令外，重要的一点是 `listen 443 ssl`，它启用了 HTTPS（基本上，HTTPS 就是通过 SSL 在
+    TCP 端口 `443` 上运行的 HTTP）。我们在本书的[第 3 章](ch03.html "第 3 章. 故障排除功能") *故障排除功能* 中讨论了
+    HTTPS。
 - en: Common mistakes in configuration
+  id: totrans-117
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置中的常见错误
 - en: Reading default configuration files may turn out interesting and educating,
     but more useful thing is, of course, looking at examples of configuration that
     is actually used in production. We will now look at some common mistakes that
     happen during the configuration of Nginx.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 阅读默认配置文件可能会让人感兴趣且富有教育意义，但更有用的当然是查看实际用于生产环境的配置示例。我们现在将讨论一些在配置 Nginx 时常见的错误。
 - en: If you don't see something that has happened to you and you need help immediately,
     by all means skip and browse the rest of the book. There are a lot more examples
     throughout the chapters grouped by the nature of the problem or the effects it
     has.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你没看到一些发生在你身上的情况，并且需要立即帮助，完全可以跳过并浏览书中的其余部分。全书中有更多按问题性质或影响分类的示例。
 - en: Semicolons and newlines
+  id: totrans-120
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 分号和换行符
 - en: One common feature of truly great software is forgiving. Nginx will understand
     and autocorrect some syntax violations when the result is unambiguous. For example,
     if your hands insist on enclosing values in quotes—you can actually do this.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个真正伟大的软件的共同特点是它的宽容。Nginx 会在结果不模糊的情况下理解并自动纠正一些语法错误。例如，如果你非得将值用引号括起来——你完全可以这么做。
 - en: 'This is completely legal and works okay:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是完全合法且运行正常的：
 - en: '[PRE29]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'On the other hand, here is a case when Nginx will not allow you to leave a
     stray, unneeded semicolon although it does not introduce any ambiguity:'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，这里有一个例子，Nginx 会拒绝你留下一个多余、不必要的分号，即使它并不会引入任何歧义：
 - en: '[PRE30]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '[PRE31]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'The author once had a configuration file saved in the older Mac format, that
     is, with <CR> as the newline separator. This is a format used on pre-OS X Apple
     operating systems. Text editors and pagers work around this rare curiosity, and
     you will have a hard time noticing anything unusual. Nginx could not split the
     file into lines at all:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者曾经有一个配置文件保存为旧版 Mac 格式，也就是以<CR>作为换行符。这是早期 Apple 操作系统使用的格式。文本编辑器和分页器会处理这种罕见的情况，你几乎不会注意到任何异常。但
+    Nginx 完全无法将文件分割成行：
 - en: '[PRE32]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'The way to fix it is to convert newlines from <CR> to <LF> or to <CR><LF>.
     The easiest method, using `tr` from the Unix/Linux command line, looks like this:'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 修复的方法是将换行符从 <CR> 转换为 <LF> 或 <CR><LF>。最简单的方法是使用 Unix/Linux 命令行中的 `tr`，如下所示：
 - en: '[PRE33]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: (After this, check it manually and replace the old file with `mv`.)
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: （之后，手动检查并用 `mv` 替换旧文件。）
 - en: File permissions
+  id: totrans-132
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 文件权限
 - en: 'Have you noticed that we run `nginx -t` with `sudo`? Let us try without `sudo`
     and see what happens:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 你注意到我们用 `sudo` 运行 `nginx -t` 吗？让我们试试不加 `sudo` 看会发生什么：
 - en: '![File permissions](img/B04329_01_03.jpg)'
+  id: totrans-134
   prefs: []
   type: TYPE_IMG
+  zh: '![文件权限](img/B04329_01_03.jpg)'
 - en: It is actually quite interesting. Nginx reported that the syntax of the file
     is okay, but then it decided to dig deeper and check not only the syntax but also
     the availability of some features mentioned in the configuration. First, it complained
@@ -715,20 +1017,29 @@
     on each restart of Nginx. Both of them are not available for writing from the
     main working account (and they should not be, of course). That is why sudo is
     needed when running `nginx -t`.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 其实这件事很有趣。Nginx 报告说文件的语法是正常的，但随后它决定深入检查，不仅检查语法，还检查配置中提到的某些功能是否可用。首先，它抱怨无法更改有效用户，这个用户是所有工作进程运行时的权限。你记得
+    `user` 指令吗？它还试图打开主服务器范围的错误日志和 `pid` 文件，后者在每次重启 Nginx 时会被重写。这两个文件都无法从主工作账户进行写操作（当然它们不应该被写）。这就是为什么运行
+    `nginx -t` 时需要使用 sudo 的原因。
 - en: Variables
+  id: totrans-136
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 变量
 - en: Here is another example of a simple syntax error that might bite you once or
     twice in your career. Do you remember variables that we discussed several pages
     before? Nginx uses `$syntax` that is very familiar to everyone with the UNIX shell,
     awk, Perl, or PHP programming experience. Still, it is very easy to miss the dollar
     character and Nginx will not notice that because a variable will just turn into
     a simple string constant.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有另一个简单的语法错误示例，这种错误可能会在你职业生涯中咬你一两次。你还记得我们在前几页讨论过的变量吗？Nginx 使用 `$syntax`，这对有
+    UNIX shell、awk、Perl 或 PHP 编程经验的人来说非常熟悉。不过，容易忽视美元符号，而 Nginx 并不会注意到这一点，因为变量就会变成一个简单的字符串常量。
 - en: 'When you set up your Nginx as a proxy for another web server (such configuration
     is traditionally named "reverse accelerator", but less and less often so in recent
     times), you will quickly find that all client connections to your backend server
@@ -737,11 +1048,17 @@
     you will need to work around this limitation of proxying. A common practice is
     to include an additional HTTP request header on all requests from Nginx to the
     backend. Here is how you do that:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你将 Nginx 设置为另一个 Web 服务器的代理时（这种配置传统上被称为“反向加速器”，但近些年这种叫法越来越少），你会很快发现所有来自客户端的请求都会通过
+    Nginx 转发到你的后端服务器，而且所有客户端连接看起来都来自同一个 IP 地址——你的 Nginx 主机的地址。原因很明显，但一旦你的后端逻辑依赖于获取实际客户端地址，你就需要绕过这个代理的限制。一个常见的做法是，在所有从
+    Nginx 发往后端的请求中包含一个额外的 HTTP 请求头。下面是实现方法：
 - en: '[PRE34]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'The application will have to check for this header, and only in its absence
     use the actual client IP address from the socket. Now, imagine losing that dollar
     sign in the beginning of `$remote_addr`. Suddenly, your Nginx will add a very
@@ -753,22 +1070,33 @@
     that silently loses valuable information! Depending on luck, this could be in
     production for months before someone notices that some fresh "rate-limiting by
     IP" feature of the application starts to affect all users at once!'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: '应用程序必须检查这个头部，只有在没有该头部的情况下，才使用来自套接字的实际客户端 IP 地址。现在，假设丢失了 `$remote_addr` 开头的那个美元符号。突然间，你的
+    Nginx 会给所有请求添加一个非常奇怪的头部 `X-Real-IP: remote_addr`。`nginx -t` 不能检测到这个问题。如果后端应用程序有严格的
+    IP 地址解析器，可能会崩溃；或者更讽刺的是，它可能会跳过无法解析的 `remote_addr` IP 地址，默认使用实际的 Nginx 地址，并且从不将此信息报告到任何日志中。你最终会得到一个正常工作的配置，但悄悄地丢失了宝贵的信息！根据运气，这个问题可能会在生产环境中存在几个月，直到有人注意到应用程序的新“按
+    IP 限制速率”功能开始影响所有用户。'
 - en: Ah, the horrors!
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 啊，真是恐怖！
 - en: Regular expressions
+  id: totrans-142
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 正则表达式
 - en: Let us get to something less destructive. Many Nginx directives make use of
     regular expressions. You should be familiar with them. If not, we would recommend
     stopping your work as soon as possible and leaving for a bookstore. Regular expressions
     are considered by many IT practitioners to be the single most important technology
     or skill for everyday use after fast typing.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们做些不那么具破坏性的事情吧。许多Nginx指令都使用了正则表达式。你应该熟悉它们。如果没有，建议尽早停止工作，去书店买本书。许多IT从业者认为，正则表达式是继快速打字后，日常使用中最重要的技术或技能。
 - en: 'Most often, you will see regexps in `location` multiline directive. Besides
     this, they are very useful (and sometimes unavoidable) in URL rewriting and hostname
     matching. Regular expressions are a mini-language that uses several characters
@@ -776,29 +1104,39 @@
     of strings (very often infinite sets); the process of checking whether a particular
     string is contained in the set corresponding to a pattern is named matching. This
     is a simple regexp from the default `nginx.conf` file:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 最常见的是，你会在`location`多行指令中看到正则表达式。除此之外，它们在URL重写和主机名匹配中也非常有用（有时是不可避免的）。正则表达式是一种迷你语言，它使用多个字符作为元字符从字符串中构建模式。这些模式覆盖了字符串集合（通常是无限集合）；检查某个特定字符串是否包含在与模式对应的集合中的过程称为匹配。这是来自默认`nginx.conf`文件的一个简单正则表达式：
 - en: '[PRE35]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'The tilde after the `location` command word means that what follows is a regular
     expression to match against incoming URLs. `\.php$` covers an infinite set of
     all strings in the universe that have these exact four characters in the very
     end: `.php`. The backslash before the dot cancels the metavalue of the dot, which
     is "any character". The dollar sign is a metacharacter that matches the very end
     of a string.'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '`location`命令词后的波浪号意味着后面的内容是一个正则表达式，用来匹配传入的URL。`\.php$`覆盖了宇宙中所有具有这四个字符的字符串集合，这些字符出现在字符串的最后：`.php`。点前的反斜杠取消了点的元值，它表示“任何字符”。美元符号是一个元字符，它匹配字符串的末尾。'
 - en: 'How many ways are there to make a mistake in that expression? A lot. A very
     big number. Will `nginx -t` point out those errors? Most probably, no, unless
     you happen to make the whole directive somehow invalid and due to the very expressive
     nature of the mini-language, almost all character combinations are valid. Let''s
     try some:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 在那个表达式中，有多少种方法可以出错？很多，非常多。`nginx -t`能指出这些错误吗？很可能不会，除非你恰好使整个指令无效，并且由于这个迷你语言的表达力非常强，几乎所有的字符组合都是有效的。我们来试试一些：
 - en: '[PRE36]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: Did you notice? Right, no dollar, again as in the variable example shown previously.
     This is perfectly valid. It will also pass most tests because this regexp covers
     an even larger infinite set of all strings that have `.php` as a substring, not
@@ -807,51 +1145,75 @@
     and blow up. And second, matching by comparing the last 4 characters is logically
     much simpler than searching the whole buffer for the substring. This could have
     performance effects, however, small.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 你注意到了吗？对，没用美元符号，跟之前展示的变量例子一样。这是完全有效的。它也会通过大多数测试，因为这个正则表达式覆盖了一个更大的无限字符串集合，其中包含`.php`作为子字符串，而不一定是字符串的结尾。可能会出什么问题呢？嗯，首先，你可能会收到一个类似`/mirrors/www.phpworld.example.com/index.html`的URL请求，然后崩溃。其次，通过比较最后四个字符来匹配，逻辑上比在整个缓冲区中查找子字符串要简单得多。尽管很小，但这可能会对性能产生影响。
 - en: 'Let''s skip the backslash instead:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们跳过反斜杠吧：
 - en: '[PRE37]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: Evil. This will also pass the tests but again, the set of matching strings grew.
     Now the dot before the `php` is not literal. It is a metadot meaning any character.
     You have to be lucky to get something like `/download/version-for-php`, but once
     you get this, the location will match. You have a time bomb.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: Evil。这也能通过测试，但再次地，匹配的字符串集合增加了。现在，`php`前面的点不再是字面意思，它是一个元点，表示任何字符。你得非常幸运才能碰到像`/download/version-for-php`这样的东西，但一旦你碰到，它就能匹配到。这就像是一个定时炸弹。
 - en: 'Now, let''s drop the tilde:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们去掉波浪号：
 - en: '[PRE38]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: Do you like our game by the way? You should already predict what will happen
     and how to fix it, that is, if you do like it and are starting to think like an
     Nginx instance.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便问一下，你喜欢我们的游戏吗？你应该已经能预测接下来会发生什么，并知道如何修复它，前提是你喜欢这个游戏，并开始像Nginx实例一样思考。
 - en: The missing tilde will turn this location directive into its simplest form—no
     regular expressions whatsoever. The string `\.php$` is interpreted as a prefix
     to search for in all incoming URLs, together with the backslash and the dollar.
     Will this location block ever process a single request? We don't know. One important
     thing here is that `nginx -t` still does not have anything to say about this directive.
     It is still valid syntactically.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 缺失的波浪号将把这个位置指令转化为最简单的形式——完全不使用正则表达式。字符串`\.php$`被解释为要在所有传入的 URL 中搜索的前缀，包括反斜杠和美元符号。这个位置块会处理任何请求吗？我们无法确定。这里有一点很重要，那就是`nginx
+    -t`对于这个指令依然没有任何提示。它在语法上仍然是有效的。
 - en: Summary
+  id: totrans-157
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, you refreshed your knowledge of how exactly Nginx is configured.
     We showed how the language looks and what some common pitfalls are when writing
     it. Some of you learned a thing or two about the mysterious files that Nginx authors
     included in the default `conf` folder; some will never ever miss a semicolon again.
     Run `nginx -t` often, but never blindly rely on it saying everything is okay.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，你刷新了对 Nginx 配置方式的理解。我们展示了语言的样子，以及在编写时一些常见的陷阱。你们中的一些人学到了一些关于 Nginx 作者包含在默认`conf`文件夹中的神秘文件的知识；有些人再也不会错过分号了。经常运行`nginx
+    -t`，但绝不要盲目依赖它说一切正常。
 - en: The next chapter is devoted to reading and configuring logging mechanisms inside
     Nginx.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一章将专门讨论如何读取和配置 Nginx 内部的日志机制。

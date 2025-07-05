@@ -1,69 +1,100 @@
 - en: Chapter 2. Searching for Problems in Log Files
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第2章：在日志文件中查找问题
 - en: Nginx really is a breakthrough technology powering a great part of modern Web.
     And as with all great technologies, it stands on the shoulders of giants. Nginx
     would not be possible without Apache. One very important Unix tradition that Nginx
     embraces fully is thorough logging.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 确实是一项突破性的技术，支撑着现代网络的很大一部分。和所有伟大的技术一样，它站在巨人的肩膀上。没有 Apache，就没有 Nginx。Nginx
+    完全继承了一个非常重要的 Unix 传统——详尽的日志记录。
 - en: Logs are what you turn to the moment there is a problem with your Nginx instance.
     For a daemon, there are not really many ways to communicate its state to the administrator
     in a simple, reliable, and guaranteed to work way other than logs.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志是当你的 Nginx 实例出现问题时，你需要首先查看的内容。对于守护进程而言，除了日志，没有其他简单、可靠且保证有效的方式来向管理员传达其状态。
 - en: 'You will find the following topics in this chapter:'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，你将找到以下内容：
 - en: A comprehensive description of how Nginx logging is configured and what mistakes
     could be made in the configuration
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关于如何配置 Nginx 日志记录以及配置中可能出现的错误的详细描述
 - en: A special section on how to log POST request bodies
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关于如何记录 POST 请求体的特别部分
 - en: A section on how log rotation works and why there is some potential for problems
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解释日志轮换工作原理以及为什么可能存在问题的部分
 - en: A series of real-life error records from logs with analysis
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一系列来自日志的真实错误记录及其分析
 - en: Configuring Nginx logging
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置 Nginx 日志记录
 - en: There are two types of logs that Nginx may write. One could also say that there
     are infinite types because of the `log_format` directive that allows you to create
     your own types of logs.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 可能会写入两种类型的日志。也可以说，由于 `log_format` 指令允许你创建自己的日志类型，所以实际上有无限多种类型。
 - en: 'To refresh your memory about what directives are used to configure Nginx logging,
     here they are:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了帮助你回忆起配置 Nginx 日志所用的指令，下面是这些指令：
 - en: The `error_log` directive configures the logging of exceptional events that
     the developers of Nginx consider worth noting. Usually, this is all kinds of errors.
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`error_log` 指令配置记录 Nginx 开发人员认为值得注意的异常事件的日志。通常，这些是各种错误。'
 - en: 'The format of the directive is this:'
+  id: totrans-12
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 指令的格式如下：
 - en: '[PRE0]'
+  id: totrans-13
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Note
+  id: totrans-14
   prefs:
   - PREF_IND
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意事项
 - en: The first parameter is usually a path to the file with the log. Recent versions
     of Nginx starting with 1.7.1 also support logging via syslog, to a local or remote
     syslog server. There is also a rarely used misnamed special value `stderr`, which,
@@ -76,46 +107,66 @@
     where it ends. By the way, to make things more confusing, there is a way to specify
     logging to actual `stderr` during compile time. It is not very useful for daemons;
     you will not probably ever use it.
+  id: totrans-15
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 第一个参数通常是日志文件的路径。从 1.7.1 版本开始，Nginx 支持通过 syslog 进行日志记录，发送到本地或远程的 syslog 服务器。还有一个很少使用的错误命名的特殊值
+    `stderr`，顺便提一下，这并不会将日志重定向到 `stderr`（即第三个标准 `stdio` 流，或者在 shell 中表示为 `&2`），因为从守护进程中将日志记录到
+    `stderr` 并没有太大意义——守护进程化会关闭所有标准文件描述符。`stderr` 值的含义是“将日志写入在编译时配置的文件”，而这个文件依赖于你使用的包或操作系统发行版。为了确保日志的去向，通常你会指定一个实际的文件，而不是
+    `stderr`。顺便说一下，为了让事情更复杂一些，确实可以在编译时指定将日志记录到实际的 `stderr`。对于守护进程来说，这并不是很有用，你也不太可能用到它。
 - en: You often want several error logs. Remember that in [Chapter 1](ch01.html "Chapter 1. Searching
     for Problems in Nginx Configuration"), *Searching for Problems in Nginx Configuration*,
     we discussed multiline configuration directives named contexts. They provide a
     topic, that is, a narrow scope for the directives inside them. You may (and that
     is usually a very good idea) have different log files in different contexts. And
     using `stderr` prevents that because everything will get written to the same place.
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 你通常希望拥有多个错误日志。记得在[第一章](ch01.html "第1章：在 Nginx 配置中查找问题")中，我们讨论了名为上下文的多行配置指令。它们提供了一个主题，即为其中的指令设定一个狭窄的范围。你可以（而且通常这是个好主意）在不同的上下文中使用不同的日志文件。而使用
+    `stderr` 会阻止这一点，因为所有日志都会被写入同一个地方。
 - en: The `log level` parameter of the `error_log` directive is a way of specifying
     a threshold of severity of events that end up in the log. Most of the time, you
     will want to set this to `warn`, but feel free to increase up to `debug` whenever
     you have a reproducible problem that you want more information about.
+  id: totrans-17
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`error_log` 指令的 `log level` 参数用于指定事件的严重性阈值，这些事件最终会记录到日志中。大多数情况下，你会希望将其设置为 `warn`，但当你遇到可以复现的问题并希望获得更多信息时，随时可以将其提高到
+    `debug`。'
 - en: The `debug` level requires a special compile-time switch. The reason for this
     is that `debug` logging makes some performance compromises and the code for it
     should not be included in production systems, ideally. Unless Nginx is really
     your bottleneck (a rare situation), you may safely use `--with-debug` when compiling
     Nginx. See a little more about it at [http://nginx.org/en/docs/debugging_log.html](http://nginx.org/en/docs/debugging_log.html).
+  id: totrans-18
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`debug` 级别需要一个特殊的编译时开关。原因是 `debug` 日志会做出一些性能上的妥协，理想情况下，不应在生产系统中包含其代码。除非 Nginx
+    真的是你的瓶颈（这种情况比较少见），否则在编译 Nginx 时，你可以安全地使用 `--with-debug`。更多信息可以参考[http://nginx.org/en/docs/debugging_log.html](http://nginx.org/en/docs/debugging_log.html)。'
 - en: The other logging directive is `access_log`. And it includes much more functionality
     than `error_log` and also more potential for mistakes. Let's look at it more closely.
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 另一个日志指令是 `access_log`。它比 `error_log` 包含更多功能，也有更多潜在的错误风险。让我们更仔细地看看它。
 - en: 'This is how access logs are configured:'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这是如何配置访问日志的：
 - en: '[PRE1]'
+  id: totrans-21
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The idea of access log is to have a journal of all request-response pairs processed
     by Nginx. As opposed to the error log, the records in access logs have a thoroughly
     specified format, usually a chain of whitespace-delimited values that contain
@@ -124,19 +175,26 @@
     In case Nginx has something unusual to say about a request it processes, you will
     find a strictly formatted line of data in your access log and then some warnings
     or errors of mostly free text nature in your error log.
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 访问日志的核心思想是记录所有由 Nginx 处理的请求-响应对。与错误日志不同，访问日志中的记录有一个明确规定的格式，通常是一个由空格分隔的值链，包含有关当前请求-响应对或
+    Nginx 一般状态的一些信息。所有访问日志记录都遵循此格式。访问日志和错误日志是协同工作的。如果 Nginx 对它处理的请求有异常反馈，你会在访问日志中看到一行严格格式化的数据，然后在错误日志中看到一些警告或错误，通常是自由文本的形式。
 - en: The `destination` parameter takes the same values as the respective parameter
     of the `error_log` directive. You may still log to syslog or a file.
+  id: totrans-23
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`destination` 参数的取值与 `error_log` 指令的相应参数相同。你仍然可以将日志记录到 syslog 或文件中。'
 - en: Note
+  id: totrans-24
   prefs:
   - PREF_IND
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Modern Nginx also has an interesting performance feature of buffered access
     logging. You will find more information about turning buffered logging on with
     flush or gzip arguments at [http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log).
@@ -146,64 +204,94 @@
     for inspection immediately. They are held in the buffer for some time. You will
     need this only in high-load scenarios where writing logs starts to take noticeable
     time because of the disk waits.
+  id: totrans-25
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 现代 Nginx 还具有一个有趣的性能特性，即缓冲访问日志。你可以在[http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log)上找到有关启用缓冲日志并使用
+    flush 或 gzip 参数的更多信息。在启用之前，请先了解缓冲的含义。所有错误报告机制的预期特性之一是实时性，而缓冲日志正好相反，日志记录不会立即写入磁盘并且无法立即检查。它们会在缓冲区中保留一段时间。你只需要在高负载场景下使用它，因为写入日志开始因磁盘等待而变得明显缓慢时，才会需要使用此功能。
 - en: 'The `log format` parameter of the `access_log` directive is the heart of access
     logging. It expects a name of a template that models each record in the log. You
     create such templates with the `log_format` directive. There is a predefined format
     named `combined`, which is also a good example to show here:'
+  id: totrans-26
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`access_log` 指令的 `log format` 参数是访问日志的核心。它期望提供一个模板名称，该模板定义日志中每条记录的格式。你可以通过
+    `log_format` 指令创建这样的模板。这里有一个预定义的格式，名为 `combined`，它也是一个很好的示例：'
 - en: '[PRE2]'
+  id: totrans-27
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: As you can see, the `log_format` directive's second argument is a long line
     of variables with "talking" names. All characters between and around variables
     will be included in the log. Variables will be evaluated at the time of logging,
     and their values will take their places.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，`log_format` 指令的第二个参数是一个由“有意义”名称组成的长变量列表。变量之间及其周围的所有字符都会包含在日志中。变量会在日志记录时进行评估，并且它们的值会占据各自的位置。
 - en: 'Let''s look at a real example of a log record generated with this very template:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看一个使用这个模板生成的日志记录的真实示例：
 - en: '[PRE3]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'You are probably very familiar with the combined log format from previous experience
     with Nginx, Apache, or some other web server software. Still, going through the
     individual items of each combined log line with us may provide you with some nonobvious
     insights. Let''s parse the example record and learn some facts about those variables
     along the way:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能非常熟悉之前使用 Nginx、Apache 或其他 Web 服务器软件时的联合日志格式。然而，逐一了解每个联合日志行中的项目，可能会给你带来一些意想不到的见解。让我们解析这个示例记录，并在这个过程中了解一些关于这些变量的事实：
 - en: '|'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE4]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '| This is the IP address of the computer that made the request to our server.
     Never ever parse it as four decimal integers delimited by dots. Even the `[0–9.]+`
     regexp is not good enough. Can you guess the reason? Here it is:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '| 这是向我们的服务器发起请求的计算机的 IP 地址。绝对不要将其解析为由点分隔的四个十进制整数。即使是 `[0–9.]+` 的正则表达式也不够好。你能猜出原因吗？原因如下：'
 - en: '[PRE5]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: We are living in the age of IPv6 in production. Big websites see 1–7% of their
     traffic on IPv6 (data from the end of 2015). Nginx is fully ready, so make sure
     your log parsers are too. |
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们正生活在生产环境中使用 IPv6 的时代。大网站的 1–7% 流量来自 IPv6（数据来自 2015 年末）。Nginx 已完全准备好，所以确保你的日志解析器也做好了准备。
 - en: '|'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE6]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '| The first dash is legacy. When this particular log format was born long ago
     and long before Nginx, there was this interesting protocol named `ident`, which
     allowed a host to make a connection back to the client computer and ask for the
@@ -216,38 +304,60 @@
     test versions of websites from prying eyes (read: GoogleBot and other less discriminating
     crawlers). See the online documentation for how to configure HTTP auth at [http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html).
     |'
+  id: totrans-39
   prefs: []
   type: TYPE_TB
+  zh: '| 第一个破折号是遗留部分。当这个特定的日志格式在很久以前诞生时，远在 Nginx 之前，有一种名为 `ident` 的有趣协议，它允许主机向客户端计算机发起连接并请求发起特定
+    TCP 连接的用户的名字。如果你感兴趣，可以查看 RFC 1413（[https://tools.ietf.org/html/rfc1413](https://tools.ietf.org/html/rfc1413)），但我们应该说
+    `ident` 已经死掉了，现在除了 IRC 网络之外没有地方使用。Nginx 甚至没有实现它；这个字段应该始终硬编码为 `-`。下一个破折号是“远程用户”，由
+    HTTP 认证机制标识。这比 ident 略微流行一些，但差距不大。HTTP 认证相对常用的一个场景是关闭网站测试版本，以防止被窥探（比如：GoogleBot
+    和其他不加区分的爬虫）。如果你想了解如何配置 HTTP 认证，请参考在线文档：[http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)。'
 - en: '|'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE7]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '| This is the date/timestamp of the log record. Not the most convenient date/time
     format to parse, for sure. Be careful dealing with time zones. It still allows
     prefix matching, and you probably often do something along the lines of:**% fgrep
     "01/Feb/2016:12:01:" /var/log/nginx/access.log** to filter all the page hits processed
     during a particular minute.This is a more complex version that should be in your
     toolkit too:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '| 这是日志记录的日期/时间戳。肯定不是最方便解析的日期/时间格式。在处理时区时要小心。它仍然允许前缀匹配，你可能经常执行类似于：**% fgrep
+    "01/Feb/2016:12:01:" /var/log/nginx/access.log** 这样的命令来筛选在特定分钟内处理的所有页面访问。这是一个更复杂的版本，应该是你工具包中的一部分：'
 - en: '[PRE8]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'It will print the number of hits you had during each minute of the day. With
     this command, you can identify spikes that may signal a problem.Interestingly,
     the original version of this was easier:**% cat /var/log/nginx/access.log &#124;
     awk -F : ''{print $2 ":" $3}'' &#124; uniq -c** but then again, IPv6 came into
     our lives. |'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '它会打印出每天每分钟的点击次数。通过这个命令，你可以识别出可能表明存在问题的流量高峰。有趣的是，原始版本要简单一些：**% cat /var/log/nginx/access.log
+    &#124; awk -F : ''{print $2 ":" $3}'' &#124; uniq -c**，但 IPv6 进入了我们的生活。'
 - en: '|'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE9]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '| This is a string representation of the whole HTTP request. What to look for?
     You will be surprised by how often, along with `GET` and `POST`, you will see
     `HEAD` requests. It is a rarely discussed younger brother of GET, which is not
@@ -257,27 +367,44 @@
     as `SIP/2.0` or `RTSP/1.0` there; these are legitimate protocols indeed but requests
     for those on a website and not a `SIP` or `RTSP` endpoint are signs of scanning
     from malicious actors (or researchers). |'
+  id: totrans-47
   prefs: []
   type: TYPE_TB
+  zh: '| 这是整个 HTTP 请求的字符串表示形式。要注意什么？你会惊讶地发现，除了 `GET` 和 `POST`，你还会看到 `HEAD` 请求。它是一个很少被讨论的“GET
+    的小弟”，它不应该返回实际的响应体——仅返回响应的头部。你不会经常看到 `HTTP/1.0` 作为协议。现代浏览器会发出 `HTTP/1.1` 请求。这里的其他值应该引起警觉。你会看到诸如
+    `SIP/2.0` 或 `RTSP/1.0` 之类的东西；这些确实是合法的协议，但如果在网站上而不是在 `SIP` 或 `RTSP` 端点上看到这些请求，那很可能是恶意行为者（或研究人员）在扫描。
+    |'
 - en: '|'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE10]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '| This is the HTTP status code. Anything besides 2xx or 3xx here indicates
     an error. For a comprehensive, modern, and authoritative list of HTTP status codes,
     please look no further than RFC 7231 ([https://tools.ietf.org/html/rfc7231](https://tools.ietf.org/html/rfc7231))—a
     rather new and long-awaited update on the HTTP/1.1 specification released in June
     2014. |'
+  id: totrans-50
   prefs: []
   type: TYPE_TB
+  zh: '| 这是 HTTP 状态码。除了 2xx 或 3xx，任何其他状态码都表示错误。要获取 HTTP 状态码的完整、现代且权威的列表，请参考 RFC 7231
+    ([https://tools.ietf.org/html/rfc7231](https://tools.ietf.org/html/rfc7231))——这是对
+    HTTP/1.1 规范的一个相对较新且期待已久的更新，发布于 2014 年 6 月。 |'
 - en: '|'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE11]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '| This one does not need an explanation. We should add that it already accounts
     for any compression. It may also be used as a quick indicator of problems on the
     backend. After some time, you will learn to spot unusually small response sizes,
@@ -290,14 +417,22 @@
     will not go over it line by line; it is just an example anyway. The idea is to
     make two passes of the log. First, to calculate the average bytes sent for each
     URI served, and second, to actually find outsiders. |'
+  id: totrans-53
   prefs: []
   type: TYPE_TB
+  zh: '| 这个不需要解释。我们应该补充说明，它已经考虑到了任何压缩。它也可以作为后端问题的快速指示器。经过一段时间后，你会学会发现异常小的响应大小，这意味着后端出现了问题，生成了一个短的错误页面而不是正常的响应。正确的后端也会发送非
+    2xx 状态码，但并不是所有（甚至不是许多）后端都会这样做。这个小的 Perl 脚本会搜索小于该 URL 平均响应大小十分之一的响应，且小于某个硬编码的块大小阈值，通常用于下载文件的一部分：[http://kapranoff.ru/~kappa/nginx-troubleshooting/blips.pl](http://kapranoff.ru/~kappa/nginx-troubleshooting/blips.pl)。我们不会逐行讲解；它只是一个示例而已。其思路是对日志进行两次处理。第一次是计算每个
+    URI 的平均字节数，第二次是实际寻找异常值。 |'
 - en: '|'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE12]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '| These are taken directly from HTTP request headers; they are sent by the
     HTTP client, usually a browser. This makes them interesting, but also non-reliable.
     They are, basically, strings sent to your server over the network. You cannot
@@ -307,82 +442,126 @@
     links to your site and instead try to infect you with all kinds of malware du
     jour.On the bright side, we do remember the excitement of seeing the first iPhones
     in our access logs during the late summer of 2007\. That was fun. |'
+  id: totrans-56
   prefs: []
   type: TYPE_TB
+  zh: '| 这些直接来源于 HTTP 请求头部；它们是由 HTTP 客户端（通常是浏览器）发送的。这使得它们很有趣，但也不可靠。它们基本上是通过网络发送到服务器的字符串。你不能相信客户端发送的任何东西。你会经常看到一些奇怪的用户代理字符串，声称来自未来或过去。你还会看到一些指向完全虚假的网站的引荐
+    URL，这些网站上没有指向你网站的链接，反而试图通过各种当时流行的恶意软件感染你。值得一提的是，我们仍然记得在 2007 年夏末，第一次在我们的访问日志中看到
+    iPhone 的兴奋时刻，那真是太有趣了。 |'
 - en: There is a lot of information that you can add to your access logs using different
     variables that Nginx provides during processing of each request.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过使用 Nginx 在处理每个请求时提供的不同变量，向访问日志中添加大量信息。
 - en: The whole list of them is at [http://nginx.org/en/docs/varindex.html](http://nginx.org/en/docs/varindex.html).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些变量的完整列表请参见[http://nginx.org/en/docs/varindex.html](http://nginx.org/en/docs/varindex.html)。
 - en: There are also several variables that are available only during log record generation
     and are listed in the description of the `log_format` directive at [http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format](http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format).
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一些变量仅在日志记录生成期间可用，这些变量在`log_format`指令的描述中列出，详细内容请参见[http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format](http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format)。
 - en: The recommendation is to keep saving logs in the `combined` format to be able
     to use a huge number of tools that community has created over the years. In addition
     to these, you may create some extended logs with more data to help you debug problems.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 推荐继续以`combined`格式保存日志，以便使用社区多年来创建的大量工具。除了这些，你还可以创建一些扩展日志，包含更多数据，帮助你调试问题。
 - en: 'Here is a list of variables that are often useful but not included in the default
     `combined` format:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一些通常有用，但不包含在默认`combined`格式中的变量列表：
 - en: '|'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE13]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '| The ratio of compressed response size to the original or `"-"` if the response
     was not compressed. This does not seem important, but it makes `$body_bytes_sent`
     more useful. Having this variable helps you to spot clients that do not support
     gzip compression. For them, `$body_bytes_sent` will be higher than usual. |'
+  id: totrans-64
   prefs: []
   type: TYPE_TB
+  zh: '| 压缩响应大小与原始响应大小的比率，或者如果响应未压缩则为`"-"`。这看起来似乎不重要，但它使得`$body_bytes_sent`更加有用。拥有这个变量可以帮助你发现不支持gzip压缩的客户端。对于这些客户端，`$body_bytes_sent`的值会比平时高。
+    |'
 - en: '|'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE14]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '| The exact timestamp up to milliseconds. This is the same information that
     is available in human-readable form with `$time_local`, but milliseconds are important
     once you have a lot of hits each second. |'
+  id: totrans-67
   prefs: []
   type: TYPE_TB
+  zh: '| 精确的时间戳，精确到毫秒。这与`$time_local`提供的人类可读时间相同，但在每秒有大量请求时，毫秒的精度非常重要。 |'
 - en: '|'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE15]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '| The size of the HTTP request. GET requests are generally short, but once
     they get beyond a kilobyte, you should think about having too many cookies accompanying
     each request. POST requests may be of any size and if your application has to
     accept important data from users, such as files or filled forms, you will want
     to monitor the size of those requests. A technique to log the contents of POST
     requests is described later in this chapter. |'
+  id: totrans-70
   prefs: []
   type: TYPE_TB
+  zh: '| HTTP请求的大小。GET请求通常较短，但一旦超过一千字节，你就应该考虑是否每个请求携带了过多的cookie。POST请求可以是任何大小，如果你的应用需要接收用户提交的重要数据，例如文件或填写的表单，你将希望监控这些请求的大小。后面本章会介绍一种记录POST请求内容的技术。
+    |'
 - en: '|'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE16]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '| The time between the beginning of the request and the end of the response
     phases. Basically, this is your atom of performance data that includes both the
     network and processing delays. |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| 请求开始到响应结束之间的时间。基本上，这是你的性能数据原子，包括网络延迟和处理延迟。 |'
 - en: '|'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE17]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '| This is the content type of the response in the familiar form of something
     like `text/html` or `application/pdf`. It is not essential but helps when looking
     at logs of modern web applications and spotting that some JSON handler suddenly
@@ -392,14 +571,21 @@
     what else is there.MIME types that we mention here are also discussed in [Chapter
     1](ch01.html "Chapter 1. Searching for Problems in Nginx Configuration"), *Searching
     for Problems in Nginx Configuration*. |'
+  id: totrans-76
   prefs: []
   type: TYPE_TB
+  zh: '| 这是响应的内容类型，通常以`text/html`或`application/pdf`的形式呈现。它不是必需的，但在查看现代Web应用程序的日志时非常有用，可以帮助你发现某个JSON处理器突然输出了一个简单的text/html响应。它也有助于计算按数据类型划分的总流量。这里提到的MIME类型也在[第1章](ch01.html
+    "第1章：Nginx配置中的问题排查")中讨论，*Nginx配置中的问题排查*。 |'
 - en: '|'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE18]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '| The asterisk should be replaced by the name of one of your cookies. Most
     modern websites have some mechanism of stateful user sessions. Usually, there
     is a cookie named `session` or `session_id` that allows the restoration of a chain
@@ -407,14 +593,22 @@
     is used for that when analyzing standard combined format logs, but this may and
     will fail on users with the same IP or the same user hopping between IP addresses
     (both are absolutely normal situations). |'
+  id: totrans-79
   prefs: []
   type: TYPE_TB
+  zh: '| 星号应该替换为你某个 cookie 的名称。大多数现代网站都有某种机制来管理有状态的用户会话。通常，会有一个名为 `session` 或 `session_id`
+    的 cookie，用于恢复一个用户在单个会话内发出的请求链。当分析标准的组合格式日志时，会使用远程 IP 地址，但当多个用户共享同一个 IP 地址，或同一用户在不同
+    IP 地址之间跳转时，这种方法就会失败（这两种情况都是非常正常的）。 |'
 - en: '|'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE19]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '| This one contains the hostname that processed the request. It may seem redundant
     because, generally, different hosts will log in to different files. However, you
     would be surprised to know how often logs from several hosts are processed together
@@ -423,12 +617,17 @@
     freedom of not caring about filenames of the logs, and once you get tired of running
     greps against files and load everything into a database, you will remember the
     time you decided to include `$host` and thank yourself. |'
+  id: totrans-82
   prefs: []
   type: TYPE_TB
+  zh: '| 这个字段包含了处理请求的主机名。它看起来可能有些冗余，因为通常不同的主机会将日志记录到不同的文件中。然而，你会惊讶地发现，来自多个主机的日志经常被一起处理，不论是在同一个日志存储集群中，还是使用相同的日志分析软件。将主机名直接写入日志可以避免关心日志文件名的麻烦，而当你不再愿意每次都运行
+    `grep` 来查找文件并将所有内容加载到数据库中时，你会记得是你决定加入 `$host` 并感激自己。 |'
 - en: Logging POST requests
+  id: totrans-83
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 记录 POST 请求
 - en: Once you start debugging a problem with a web application that runs behind one
     of your Nginx instances by tracing user requests and application responses via
     access logs, you will see that GET/HEAD requests are logged fully while POST request
@@ -437,79 +636,124 @@
     trying to get away with `tcpdumps` only. `tcpdump` is a wonderful Swiss army knife
     of protocol tracing, but it requires active participation during the events that
     need to be traced. And tracing HTTPS with `tcpdump` is very hard.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你开始通过访问日志追踪用户请求和应用响应来调试在 Nginx 实例后运行的 Web 应用程序的问题，你会发现 GET/HEAD 请求会被完整记录，而
+    POST 请求的日志记录仅包含数据被提交的 URI，没有任何其他信息。这是许多系统管理员常见的问题，特别是在仅尝试使用 `tcpdumps` 时。`tcpdump`
+    是一个非常棒的协议跟踪瑞士军刀，但它需要在需要跟踪的事件发生时进行积极的参与。而且，用 `tcpdump` 跟踪 HTTPS 是非常困难的。
 - en: Nginx is able to log POST request bodies and many more. You should already be
     fully equipped to at least try to implement such a logging yourself.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: Nginx 能够记录 POST 请求的正文以及更多内容。你应该已经具备足够的能力，至少可以尝试自己实现这种日志记录。
 - en: Remember that we talked about custom log formats and using variables to record
     the state of requests and responses. If you search through the list of variables
     available during request processing, you will see the variable named `$request_body`.
     See [http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body).
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 记得我们讨论过自定义日志格式并使用变量记录请求和响应的状态。如果你查看请求处理过程中可用的变量列表，你会看到一个名为 `$request_body` 的变量。请参见
+    [http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body)。
 - en: 'Let''s invent a simple log format including `$request_body`:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们发明一个简单的日志格式，其中包括 `$request_body`：
 - en: '[PRE20]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'Now we enable logging with this format by adding this directive:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们通过添加以下指令来启用这种格式的日志记录：
 - en: '[PRE21]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: Remember that the `log_format` directive should be used in one of the higher
     contexts, for example, the `http` context. Multiple `access_log` directives may
     be in effect for all the requests, and because of this, we do not need to specify
     the rest of the variables in the template for the `request_body_log` format. Your
     usual preconfigured combined-formatted logs will still get written to.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 记住，`log_format` 指令应该在较高的上下文中使用，例如 `http` 上下文。可能会有多个 `access_log` 指令作用于所有请求，因此我们不需要在
+    `request_body_log` 格式的模板中指定其他变量。你通常预配置的组合格式日志仍然会被写入。
 - en: What would we see in `requests.log` for some simple GET requests to download
     a couple of static files?
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于一些简单的 GET 请求，下载几个静态文件时，我们会在 `requests.log` 中看到什么？
 - en: '[PRE22]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Make sure that you understand the result before proceeding.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保在继续之前你已经理解了结果。
 - en: Now, we need POST requests. And POST requests to static files are useless. They
     never happen in real life. Clients POST data to web applications, and for Nginx
     administrators, a web application is an upstream to which Nginx proxies the requests
     and from which it proxies back the responses.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们需要 POST 请求。而针对静态文件的 POST 请求是没用的。实际上，它们根本不会发生。客户端将数据 POST 到 Web 应用程序，对于
+    Nginx 管理员而言，Web 应用程序是一个上游，Nginx 将请求代理到该上游，并从中代理回响应。
 - en: Suppose that we build something like this. It will be a very simple Dancer application
     in Perl accepting a simple POST and responding with a piece of *dynamic HTML*.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们构建一个这样的应用程序。它将是一个非常简单的 Perl Dancer 应用，接受一个简单的 POST 请求并响应一段*动态 HTML*。
 - en: 'The source code is at [http://kapranoff.ru/~kappa/nginx-troubleshooting/simple-post.pl](http://kapranoff.ru/~kappa/nginx-troubleshooting/simple-post.pl):'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 源代码在 [http://kapranoff.ru/~kappa/nginx-troubleshooting/simple-post.pl](http://kapranoff.ru/~kappa/nginx-troubleshooting/simple-post.pl)：
 - en: '![Logging POST requests](img/B04329_02_01.jpg)'
+  id: totrans-98
   prefs: []
   type: TYPE_IMG
+  zh: '![日志记录 POST 请求](img/B04329_02_01.jpg)'
 - en: 'Now we will set up a proxy inside our Nginx instance:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将在 Nginx 实例中设置代理：
 - en: '[PRE23]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: We will point our browser to `http://localhost/simple-post`.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将浏览器指向`http://localhost/simple-post`。
 - en: 'If the Dancer app is running, you will see a simple form of one field and a
     button. Type in something, click on the button and rush to your `requests.log`:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 Dancer 应用程序正在运行，你将看到一个简单的表单，包含一个字段和一个按钮。输入内容，点击按钮，然后赶紧查看你的`requests.log`：
 - en: '[PRE24]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: The first line is the empty body of the GET request for the form, whereas the
     second contains the body of the POST that the form generated with the help of
     your browser. There are two ways an HTML form may be encoded into a POST body;
@@ -518,114 +762,160 @@
     This is a little bit out of scope of this book already. We should add that form
     encodings are quickly becoming a thing of the past because more and more POST
     bodies are constructed by the client-side JavaScript and the browsers themselves.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一行是 GET 请求的空体，用于表单，而第二行包含了通过浏览器帮助生成的 POST 体。HTML 表单可以有两种方式将数据编码为 POST 体；这一个是默认的**application/x-www-form-urlencoded**。另一种是**multipart/form-data**；它广泛用于允许文件上传的表单。这已经超出了本书的讨论范围。值得一提的是，表单编码正在迅速成为过去式，因为越来越多的
+    POST 体是由客户端 JavaScript 和浏览器本身构建的。
 - en: What is important here is that you now have a simple way to log what is coming
     your way via POST requests.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里重要的是，你现在有了一种简单的方式来记录通过 POST 请求传来的数据。
 - en: Conditional logging
+  id: totrans-106
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 条件日志记录
 - en: This example will also allow demonstration of one of the more recent Nginx logging
     features named *conditional logging*.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个示例还将展示一个较新的 Nginx 日志功能，名为*条件日志记录*。
 - en: 'The directive `access_log` has a number of optional parameters and among them
     is a parameter `if` that specifies a condition on which a record is appended to
     this particular access log. When we configured request body logging in the previous
     section, we still ended up with a log full of "-"`;` those are empty bodies of
     all the non-POST requests. Let''s fix that. First, we add a condition to our `access_log`
     directive:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令`access_log`有多个可选参数，其中之一是参数`if`，它指定了在某个条件下将记录附加到此特定访问日志。当我们在前一节配置请求体日志时，结果仍然是一个充满了“-”;这些是所有非
+    POST 请求的空体。现在让我们来修复这个问题。首先，我们向`access_log`指令添加一个条件：
 - en: '[PRE25]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: The condition that we use is a simple custom variable. We intentionally show
     this technique using syntax very similar to what is documented in the official
     documentation at [http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log).
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用的条件是一个简单的自定义变量。我们故意使用与官方文档中非常相似的语法来展示这一技术，文档地址为：[http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log)。
 - en: So the next step for us is to create this variable. There are several ways to
     create a variable in Nginx. The most straightforward is using the `set` directive
     inside an `if` context. But it is a good habit to cringe any time you see an `if`
     directive in Nginx configuration. `if` should always be the last choice. Remember
     that there is no programming inside configuration files; everything should be
     as declarative as possible.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以下一步是创建这个变量。Nginx中有几种方法可以创建变量。最直接的方法是在`if`上下文内使用`set`指令。但每当你看到Nginx配置文件中的`if`指令时，最好都要谨慎。`if`应该始终是最后的选择。记住，配置文件中并没有编程的功能，一切都应该尽可能声明式。
 - en: 'And there is a good declarative way to create a variable:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且有一种很好的声明式方法来创建变量：
 - en: '[PRE26]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: This is everything you need to do to enable conditional logging. If your Nginx
     version is modern enough, you will get only bodies of POST requests in your `requests.log`
     from now on.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是启用条件日志记录所需要做的一切。如果你的Nginx版本足够新，从现在开始你只会在`requests.log`中记录POST请求的请求体。
 - en: There is a probability that your Nginx is not modern enough (at least 1.7.0
     is required). Use `nginx -t` to test the configuration. Can you think of a way
     to work around the problem without upgrading Nginx? This is not a hypothetical
     question. Running Nginx installed from packages provided by your distribution
     is highly recommended, and they are notoriously not up to date.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能你的Nginx版本不够新（至少需要1.7.0）。使用`nginx -t`来测试配置。你能想出一种在不升级Nginx的情况下绕过这个问题的方法吗？这不是一个假设性问题。推荐使用由你的发行版提供的Nginx包进行安装，这些包通常会比较旧。
 - en: Logging big request bodies
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 记录大请求体
 - en: There is one more thing to tell you about logging request bodies. Actually,
     two things that will manifest in exactly the same way while having different reasons.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于记录请求体，还有一件事要告诉你。实际上，有两件事在具体表现上完全相同，但原因不同。
 - en: 'The variable `$request_body` is not guaranteed to have any content even in
     the case of a good POST request with data inside. The first possible reason for
     an empty `$request_body` is a situation where Nginx has decided that parsing the
     body is not needed and optimized it away. That is a documented behavior that still
     strikes in the least expected moments. The documentation says clearly:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 变量`$request_body`即使在数据有效的POST请求情况下，也不能保证一定有内容。`$request_body`为空的第一个可能原因是Nginx判断不需要解析请求体，并因此进行了优化。这是一种文档中有说明的行为，往往在最意想不到的时候发生。文档中清楚地指出：
 - en: '*"The variable''s value is made available in locations processed by the proxy_pass,
     fastcgi_pass, uwsgi_pass, and scgi_pass directives."*'
+  id: totrans-119
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*“变量的值会在由proxy_pass、fastcgi_pass、uwsgi_pass和scgi_pass指令处理的位置中提供。”*'
 - en: 'See for yourself: [http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body).'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 自行查看：[http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body)。
 - en: These are the only four cases in which Nginx populates the `$request_body` variable.
     Fortunately, POST requests to locations that do not contain any of those directives
     are very rare. POSTs are intended to accept data from clients and feed to server
     applications for which Nginx is acting as a proxy.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 这四种情况是Nginx填充`$request_body`变量的唯一方式。幸运的是，POST请求如果没有包含任何这些指令的location非常罕见。POST请求的目的是接收客户端的数据，并将其传递给Nginx作为代理的服务器应用程序。
 - en: Be careful not to harm yourself debugging empty request bodies for some uncommon
     configuration with POST requests and no proxying directives in that context.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 小心不要在调试一些不常见的POST请求配置时被空请求体所困扰，尤其是在该上下文中没有代理指令的情况下。
 - en: The other reason for empty `$request_body` is the request being too large. If
     the size of the request body exceeds the value set up by the `client_body_buffer_size`
     directive, it is not available via `$request_body` variable. Instead, the whole
     body is saved to a temporary file on the file system, and its name is written
     into the new `$request_body_file` variable.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '`$request_body`为空的另一个原因是请求太大。如果请求体的大小超过了`client_body_buffer_size`指令设置的值，那么就不能通过`$request_body`变量访问请求体。相反，整个请求体会被保存在文件系统的临时文件中，并且其文件名会被写入新的`$request_body_file`变量。'
 - en: There is also another very interesting directive named `client_body_in_file_only`
     that provides a way to always save requests to files. It may be used instead of
     the mechanism that we showed earlier altogether! You will add `$request_body_file`
     to one of your log formats and turn on `client_body_in_file_only`. After this,
     Nginx will create an ever-growing store of files containing all your request bodies.
     Do not forget to clean them up from a crontab or they will fill the filesystem.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一个非常有趣的指令叫做`client_body_in_file_only`，它提供了一种总是将请求保存到文件中的方式。它可以完全替代我们之前展示的机制！你需要将`$request_body_file`添加到你的某个日志格式中，并启用`client_body_in_file_only`。启用后，Nginx会创建一个不断增长的文件存储，包含所有你的请求体。不要忘记通过crontab清理这些文件，否则它们会填满文件系统。
 - en: Creating infrastructure around logs
+  id: totrans-125
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 创建日志周围的基础设施
 - en: Okay, let's do some arithmetic. Suppose that you have a rather popular but not
     on a world scale (yet) website with about 50,000 visits per day. This is a number
     that managers brag about during their meetups; they get it from some analytics
@@ -638,61 +928,85 @@
     underestimate the sheer size of modern web pages. It would be a safe bet to say
     that your pages include on average 100 objects (HTML documents, images, scripts,
     style sheets, and so on) amounting to the size of over a megabyte.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，来做些算术。假设你有一个相当受欢迎的网站，虽然还没有达到全球规模（但会有的），每天有大约50,000次访问。这是一个经理们在聚会中常常炫耀的数字；他们从某些分析软件中获取这个数字。对你来说，它几乎没有任何意义。因为访问到底是什么？假设你有一个电商网站，卖一些非季节性商品，例如电动工具。你的平均访问者会浏览一到两页，选择并购买某些商品时，页面浏览量会飙升到十几页。假设每次访问平均浏览三页。什么是页面？对你来说，它是一系列的HTTP响应——主文档和所有嵌入的对象。人们常常低估现代网页的庞大规模。可以大胆地说，你的网页平均包含100个对象（HTML文档、图片、脚本、样式表等），这些加起来的大小超过了一兆字节。
 - en: This will be 100 x 3 x 50,000 per day or 15,000,000 / 24 / 3600 = 174 requests
     per second (RPS) on average. Averaging RPS during the day will render a rather
     useless number unless you operate in all world's time zones and that is not very
     common for websites selling actual material stuff. There is a good enough heuristic
     to estimate peaks—multiply average by 10.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将是100 x 3 x 50,000次访问/天，或者15,000,000 / 24 / 3600 = 平均每秒174次请求（RPS）。如果你只是在白天平均RPS，这个数字几乎没有意义，除非你在全球所有时区都有运营，而对于销售实际商品的网站来说，这并不常见。估算峰值有一个不错的启发式方法——将平均值乘以10。
 - en: Now we have a number of lines in your daily access log (15 million) and a very
     rough upper limit of logging rate that you will have to deal with (a thousand
     and a half lines a second). These numbers all mean that you need tools because
     a human being is not able to consume all this information in time.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了你的日常访问日志中的行数（1500万行）和你必须处理的日志速率的一个非常粗略的上限（每秒一千五百行）。这些数字意味着你需要工具，因为一个人不可能及时消化所有这些信息。
 - en: Configuring log rotation
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 配置日志轮换
 - en: The main and simplest tool to make the amount of logging data more manageable
     is log rotation. You probably have it set up already. There is a pretty standard
     log rotator included in many Linux distributions uninventively named `logrotate`.
     Its FreeBSD counterpart is `newsyslog`.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 使日志数据量更易于管理的主要且最简单的工具就是日志轮换。你可能已经设置好了它。许多Linux发行版中都包含了一个非常标准的日志旋转工具，名为`logrotate`。它在FreeBSD中的对应工具是`newsyslog`。
 - en: Examples of Nginx log rotation configuration in `logrotate` and `newsyslog`
     are shown here.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里展示了`logrotate`和`newsyslog`中Nginx日志轮换配置的示例。
 - en: 'This is an example of `logrotate` configuration from a Linux box:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个来自Linux主机的`logrotate`配置示例：
 - en: '![Configuring log rotation](img/B04329_02_02.jpg)'
+  id: totrans-133
   prefs: []
   type: TYPE_IMG
+  zh: '![配置日志轮换](img/B04329_02_02.jpg)'
 - en: 'And this is a sample configuration of `newsyslog` from a rather modern FreeBSD
     server:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个来自相当现代的FreeBSD服务器的`newsyslog`示例配置：
 - en: '![Configuring log rotation](img/B04329_02_03.jpg)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![配置日志轮换](img/B04329_02_03.jpg)'
 - en: What they do is take care of huge logs by creating an archive of old records
     based on time and size of current files. It is not exactly rocket science, but
     there are at least several pitfalls attracting people by the numbers.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 它们的做法是通过根据当前文件的时间和大小创建旧记录的归档来处理巨大的日志文件。这并不是很复杂，但至少有几个陷阱是通过数字吸引人的。
 - en: First, do have free space monitoring. And also do have monitoring of your free
     space monitoring. It is a surprisingly popular cause of major malfunctions. Just
     as the publisher warned us that the hard drive will fail while we are writing
     this book, because they always do, we will take the liberty of warning you that
     at least once in your career, disks will become totally filled up with logs. Usually,
     this leads to some very unpleasant effects but is easily fixable.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，一定要进行磁盘空间监控，并且还要监控你的磁盘空间监控。磁盘空间不足是导致重大故障的一个令人惊讶的常见原因。正如出版社曾警告我们，在我们写这本书时，硬盘可能会出现故障，因为它们总是会出现故障，我们也冒昧地提醒你，至少在你的一生职业生涯中，磁盘会因为日志而被填满。通常，这会导致一些非常不愉快的后果，但很容易修复。
 - en: What are preventing measures? Set up a log store. It should be a couple of separate
     machines with huge and cheap (with rotating parts) mirrored disks that store your
     logs indefinitely. Their goal is to relieve your workhorses, actual web servers
@@ -702,8 +1016,12 @@
     will have your most current log still spread out on your web servers, whereas
     older data will already be archived away to the log store, but it is totally worth
     it.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，预防措施是什么？建立一个日志存储。它应该是几台配备大容量、廉价（带旋转部件）镜像磁盘的独立机器，用于无限期存储日志。它们的目标是将你的实际 web
+    服务器从存储日志归档和运行繁重的 `grep` 操作中解放出来，从而避免影响性能。而且你的旋转程序应该包括在创建日志归档后，将每个归档文件复制到日志存储库中。你的过程可能会变得更加复杂，因为你最当前的日志仍然分布在
+    web 服务器上，而较旧的数据已经归档到日志存储中，但这绝对是值得的。
 - en: Also, move to a better compression algorithm than the default gzip. In this
     particular case of logs, you may save up to 50% of space just by switching from
     gzip. logrotate supports specifying the command it will use for compression while
@@ -713,198 +1031,286 @@
     recompress gzipped files into xz thus saving space without sacrificing performance
     on the web servers. The idea is to gzip the logs on the web servers, move them
     to the log store cluster, decompress them, and compress again with xz.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，使用比默认的 gzip 更好的压缩算法。在日志的这个特定情况下，通过从 gzip 切换过来，你可能能节省多达 50% 的空间。`logrotate`支持指定用于压缩的命令，而`newsyslog`原生支持
+    bzip2 和 xz 压缩。xz 通常更好。使用 xz 的唯一缺点是对内存的高要求；请记住这一点。再次强调，独立的日志存储非常有用。它还可以配置为将已压缩的
+    gzip 文件重新压缩为 xz，从而节省空间而不牺牲 web 服务器的性能。其思路是先在 web 服务器上使用 gzip 压缩日志，然后将它们移到日志存储集群，再进行解压缩，然后使用
+    xz 重新压缩。
 - en: 'The second important part to log rotation is not losing a single record during
     the actual rotation. The optimal algorithm looks like this:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志轮换的第二个重要部分是在实际轮换过程中不丢失任何记录。最优的算法如下：
 - en: First of all, imagine that Nginx is up and running and writing log records to
     some `access.log` files.
+  id: totrans-141
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 首先，假设 Nginx 正在运行，并将日志记录写入某些`access.log`文件。
 - en: A log rotator is fired and the `access.log` is chosen for either size or age
     reason.
+  id: totrans-142
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 启动日志旋转程序，`access.log`根据大小或时间选择进行处理。
 - en: The log rotator renames the `access.log` according to the rotation scheme, for
     example, to `access.log.0`.
+  id: totrans-143
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 日志旋转程序根据轮换方案重命名`access.log`，例如，将其重命名为`access.log.0`。
 - en: The log rotator creates a new empty `access.log`.
+  id: totrans-144
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 日志旋转程序创建一个新的空`access.log`文件。
 - en: Now, Nginx does not lose any access to the older file because it has its descriptor
     and the filename does not matter after the file is open by a process. So, Nginx
     continues to write records to `access.log.0` file.
+  id: totrans-145
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，Nginx 不会丢失对旧文件的访问，因为它已经拥有文件描述符，而文件名在文件被进程打开后就不再重要。所以，Nginx 会继续向`access.log.0`文件中写入记录。
 - en: The log rotator cannot compress the old file because it is still written to,
     so it signals Nginx to release the old file descriptor and to reopen the log file
     by its name again.
+  id: totrans-146
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 日志旋转程序无法压缩旧文件，因为它仍在写入，因此它通知 Nginx 释放旧的文件描述符并通过文件名重新打开日志文件。
 - en: Nginx is happy to oblige. The new empty `access.log` gets opened and starts
     to receive new log records, whereas the old file is ready to be removed after
     compression.
+  id: totrans-147
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Nginx 很乐意配合。新的空的 `access.log` 会被打开，并开始接收新的日志记录，而旧文件则准备在压缩后被删除。
 - en: The log rotator runs the compressor that creates a new file `access.log.0.xz`
     while deleting the old log.
+  id: totrans-148
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 日志旋转工具运行压缩程序，在删除旧日志的同时创建一个新的文件 `access.log.0.xz`。
 - en: It looks surprisingly complex for a seemingly simple procedure. The reason is
     steps 4, 5, and 6, which guarantee that logs are not renamed and deleted without
     Nginx knowing.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来这项看似简单的操作实际上非常复杂。原因在于步骤 4、5 和 6，它们保证了日志不会在 Nginx 不知情的情况下被重命名或删除。
 - en: There is nothing Nginx-specific here. It just so happens that the authors thought
     about this problem and implemented the special `reopen` command in Nginx, which
     is initiated by the USR1 signal to the master process.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里没有任何 Nginx 特有的内容。恰好作者们考虑到了这个问题，并在 Nginx 中实现了特殊的 `reopen` 命令，通过向主进程发送 USR1
+    信号来启动。
 - en: If your log rotator omits the command altogether, the rotation will not work
     at all—Nginx will always write to the old log without noticing that you renamed
     it. And trying to compress a file that is currently appended to is a recipe for
     losing some lines.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的日志旋转工具完全省略了该命令，日志旋转将完全无法工作——Nginx 会一直写入旧的日志，而不会察觉你已重命名它。而试图压缩一个正在被附加内容的文件，则可能丢失一些行。
 - en: If your log rotator will restart Nginx on each rotation, then your logs will
     be okay, but you may lose some performance if you do graceful restarts (with the
     SIGHUP signal). You may even lose some requests if you do hard restarts (the old
     `apachectl restart` command-style restarts are not supported by Nginx executable
     but could be implemented with init scripts of your OS).
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的日志旋转工具在每次旋转时都会重新启动 Nginx，那么你的日志会没问题，但如果你进行优雅重启（使用 SIGHUP 信号），可能会损失一些性能。如果进行硬重启（老式的
+    `apachectl restart` 重启方式，虽然 Nginx 可执行文件不支持，但可以通过操作系统的 init 脚本来实现），你甚至可能丢失一些请求。
 - en: Working with a lot of log data
+  id: totrans-153
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 处理大量日志数据
 - en: Once your Nginx installation starts to get more than several thousands of users
     a day, you or your managers will definitely want to get more insights from those
     logs. Your job will be to provide an infrastructure for that and troubleshoot
     problems. You can also piggyback on that endeavor to end up with a great real-time
     search of all your logs much more efficient than the good old grep.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你的 Nginx 安装每天的用户量超过几千人，你或你的管理者一定会希望从这些日志中获得更多的洞察。你的工作就是为此提供基础设施并排查问题。你还可以借此机会，最终实现一个比传统的
+    `grep` 更高效的日志实时搜索系统。
 - en: The evolution of log analytics through the years is an interesting and huge
     topic mostly outside the scope of this book. Many of us remember the (in)famous
     Webalizer and AWStats packages. They are still perfectly functional, by the way,
     even if a bit rusty. It is not recommended to invest in these tools for modern
     websites though. They are not very efficient, and you will have a hard time adding
     the features that are expected these days.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志分析的发展历程是一个有趣且庞大的话题，大多超出了本书的范围。我们中的许多人记得（或许还记得）臭名昭著的 Webalizer 和 AWStats 工具包。顺便说一下，即使有些过时，它们仍然能正常工作。不过，对于现代网站来说，不建议继续投入这些工具。它们效率不高，且你很难增加当今期望的功能。
 - en: 'Some of the newer solutions that are available on the market are summarized
     below. By all means do your own research. This is really a giant topic in itself:'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 市面上一些较新的解决方案总结如下。无论如何，请进行你自己的研究。这本身是一个庞大的话题：
 - en: The logstash/ElasticSearch/kibana stack is a combination of Java-based tools,
     each of which deserves a whole book devoted to it. A working deployment allows
     you to store all your logs in a database indexed for all needed types of queries
     and reports. The kibana part of the stack provides gorgeous visualizations of
     time-based data. Logs are exactly that and fit perfectly. Maintaining an instance
     may quickly become a full-time job.
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: logstash/ElasticSearch/kibana 堆栈是由基于 Java 的工具组合而成，每个工具都值得单独撰写一本书。一个正常部署的系统可以让你将所有日志存储在一个经过索引的数据库中，方便各种查询和报告。该堆栈中的
+    kibana 部分提供了基于时间的数据的精美可视化展示。日志正是这种数据，完全契合。维护一个实例可能很快会变成一份全职工作。
 - en: Scribe is a central logging solution developed, open sourced, and then abandoned
     by Facebook. It is of historical interest only. Facebook has moved on from Scribe
     and if you still have a Scribe installation or have inherited one, you are in
     trouble. One of the easier alternatives is fluentd.
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Scribe 是一个由 Facebook 开发、开源并最终弃用的中央日志解决方案。它仅具历史意义。Facebook 已经不再使用 Scribe，如果你仍然有
+    Scribe 安装或继承了 Scribe，你就麻烦了。一个较为简单的替代方案是 Fluentd。
 - en: '**Fluentd** is a modern centralized logging system written in Ruby. It may
     be compared to the logstash part of the first stack. It has pluggable inputs and
     outputs. Once you have it configured to consume Nginx logs, it may feed the results
     to an ElasticSearch instance.'
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Fluentd** 是一个现代化的集中式日志系统，使用 Ruby 编写。它可以与第一堆栈中的 logstash 部分进行比较。它具有可插拔的输入和输出。配置好以消费
+    Nginx 日志后，它可以将结果传递给 ElasticSearch 实例。'
 - en: '**Apache Flume** is an older project in the family of Apache Hadoop stack of
     technologies. It is used to collect data into your HDFS (which is the storage
     for Hadoop). It is sometimes used for web logs too.'
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Apache Flume** 是 Apache Hadoop 技术栈中的一个较旧项目。它用于将数据收集到你的 HDFS（Hadoop 的存储系统）中。有时也用于
+    Web 日志。'
 - en: '**Splunk** is a commercial full-stack solution in order to collect, parse,
     store, and query logs. It calls itself "Google for your logs", and we will not
     comment on that. Splunk is interesting because it is also widely used to do real-time
     monitoring of incoming logs. A good example of such a task is intrusion detection.'
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Splunk** 是一个商业的全栈解决方案，用于收集、解析、存储和查询日志。它自称为“你的日志搜索引擎”，我们对此不做评论。Splunk 很有趣，因为它也广泛用于对传入的日志进行实时监控。一个典型的应用场景是入侵检测。'
 - en: Reading logs
+  id: totrans-162
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 阅读日志
 - en: The most interesting part for many readers ahead is that we will show you examples
     of different records from real Nginx log files and analyze what happened and how
     to fix it in each case. These will be rather simple situations many of which could
     be either familiar to a seasoned web system administrator or evident from the
     message.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 对许多读者来说，最有趣的部分是我们将展示来自真实 Nginx 日志文件的不同记录示例，并分析每个案例中发生了什么以及如何修复它们。这些将是相对简单的情况，其中许多对经验丰富的
+    Web 系统管理员来说可能是熟悉的，或者可以从信息中显而易见。
 - en: We still recommend following each and every example. Sometimes, people develop
     a kind of selective blindness to things they do not understand fully. It is also
     very natural to skip unknown parts and to try to deduce their meaning from what
     they are surrounded with—this is how language learning works both for children
     and adults. Alas, human languages are highly redundant and therefore are specially
     catered to nonperfect, lossy understanding. Logs are usually not.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们仍然建议你跟随每一个示例。有时候，人们会对自己不完全理解的事物产生一种选择性失明的现象。跳过不明部分并尝试从周围的内容推测其意义是很自然的——这就是语言学习对儿童和成年人来说都如此有效的原因。可惜的是，人类语言高度冗余，因此特别适合非完美的、损失性理解。而日志通常不是这样。
 - en: Let's start with a very simple and very famous 404 error – and how it looks
     from two perspectives, error log and access log.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从一个非常简单且非常著名的 404 错误开始——并从错误日志和访问日志两个角度来看它的表现。
 - en: 'The record from error log:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 错误日志中的记录：
 - en: '[PRE27]'
+  id: totrans-167
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: 'And now the record about the same event from the access log in `combined` format:'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是来自 `combined` 格式访问日志中关于同一事件的记录：
 - en: '[PRE28]'
+  id: totrans-169
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: We will break them both down now.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在将详细解析这两者。
 - en: Error log record
+  id: totrans-171
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 错误日志记录
 - en: '|'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE29]'
+  id: totrans-173
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: '| This is obviously a timestamp, but note that it does not contain any time
     zone information. It is local time as seen by the server in its configured timezone.
     This minor fact means that when you transfer this log file into another timezone
     and do not save timezone information somewhere, your software may become confused
     and apply the new local timezone. After this, comparing this timestamp with the
     timestamp from `access_log` would be wrong. |'
+  id: totrans-174
   prefs: []
   type: TYPE_TB
+  zh: '| 这显然是一个时间戳，但请注意，它没有包含任何时区信息。这是服务器在其配置的时区下看到的本地时间。这个小细节意味着，当你将此日志文件传输到另一个时区并且没有在某处保存时区信息时，软件可能会变得困惑，并应用新的本地时区。之后，将这个时间戳与来自
+    `access_log` 的时间戳进行比较就会出错。 |'
 - en: '|'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE30]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '| This is the severity level of the message. Remember that earlier in this
     chapter we discussed the format of the `error_log` directive and there was this
     second parameter, the threshold. Well, this is the field that gets compared to
@@ -913,14 +1319,21 @@
     include things from `debug` to `emerg` (short for emergency). See the `error_log`
     directive documentation at [http://nginx.org/en/docs/ngx_core_module.html#error_log](http://nginx.org/en/docs/ngx_core_module.html#error_log).
     |'
+  id: totrans-177
   prefs: []
   type: TYPE_TB
+  zh: '| 这是消息的严重性级别。记得在本章前面我们讨论过`error_log`指令的格式，其中有第二个参数，即阈值。好吧，这个字段就是用来与配置的阈值进行比较，以确定某条消息是否严重到需要打扰系统管理员处理。其他可能的值包括从`debug`到`emerg`（紧急）。查看`error_log`指令的文档：[http://nginx.org/en/docs/ngx_core_module.html#error_log](http://nginx.org/en/docs/ngx_core_module.html#error_log)。
+    |'
 - en: '|'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE31]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '| Now, this part is not understood by many people. The pair of numbers gives
     information about which path of the Nginx ensemble of processes put this record
     into the log. The number before `#` is the PID, the identifier of the process,
@@ -928,108 +1341,160 @@
     Nginx on Linux. On Windows, it may be some big number. Nginx does not use multithreading
     in its current version. There are rumors that threads will be much more prominent
     on all platforms in Nginx 2.0. |'
+  id: totrans-180
   prefs: []
   type: TYPE_TB
+  zh: '| 现在，这一部分很多人并不理解。那对数字提供了关于哪个Nginx进程路径将此记录写入日志的信息。`#`前面的数字是PID，表示进程标识符，第二个数字是线程标识符（TID）。在当前版本的Nginx
+    Linux上，TID通常是`0`。在Windows上，它可能是一个较大的数字。当前版本的Nginx不使用多线程。关于Nginx 2.0版本，已经有传言说所有平台上的线程会更加突出。
+    |'
 - en: '|'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE32]'
+  id: totrans-182
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '| This is the identifier of the connection in the context of which this error
     happened. Actually, it is an integer counter, and it allows you to group errors
     by connections. By the way, the connection number and also the TID part of the
     previous item are not recognized by many Nginx users. Take some of your colleagues
     by surprise and ask about it sometime just for fun. |'
+  id: totrans-183
   prefs: []
   type: TYPE_TB
+  zh: '| 这是在发生错误的连接上下文中的标识符。实际上，它是一个整数计数器，允许你按连接分组错误。顺便说一句，很多Nginx用户并不认识连接编号和前一项中的TID部分。你可以在某次机会给你的同事们一个惊讶，看看他们是否知道这些内容，纯粹是为了好玩。
+    |'
 - en: '|'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE33]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '| This is the actual error message formulated by Nginx accompanied by the OS-level
     `errno` number (`ENOENT` in this case) and `strerror` message in parentheses.
     |'
+  id: totrans-186
   prefs: []
   type: TYPE_TB
+  zh: '| 这是Nginx生成的实际错误消息，后面跟着操作系统级别的`errno`编号（在此案例中为`ENOENT`）和括号中的`strerror`消息。 |'
 - en: '|'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE34]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '| This is the addresses of both sides of the connection. We have Nginx running
     right here on the workstation. This is why we see the connection over the loopback.
     Nginx has chosen not to do reverse DNS resolving of the client addresses for performance
     reasons, whereas the server name is known beforehand. This is why we see the same
     address in both IP and domain name forms. |'
+  id: totrans-189
   prefs: []
   type: TYPE_TB
+  zh: '| 这是连接两端的地址。我们在工作站上运行Nginx。这就是为什么我们看到通过回环连接的原因。Nginx出于性能原因选择不对客户端地址进行反向DNS解析，而服务器名称是预先已知的。这就是为什么我们在IP和域名形式中看到相同的地址。
+    |'
 - en: '|'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '[PRE35]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: '| Now, these are the data about the actual request. First, the string representation
     of the request itself and then the host value taken from the Host: HTTP request
     header sent by the browser. |'
+  id: totrans-192
   prefs: []
   type: TYPE_TB
+  zh: '| 现在，这是关于实际请求的数据。首先是请求本身的字符串表示，然后是从浏览器发送的Host: HTTP请求头中获取的主机值。 |'
 - en: It is interesting that besides the very first items in the record everything
     is more or less free-form and not required. The timestamp is obviously always
     there as are the pid and the tid (especially if it is a constant `0`), but the
     connection is not always up and there, of course, may not be any current requests
     without the connection.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，除了记录中的第一个项目，其他的内容或多或少是自由格式的，且不是必须的。时间戳显然总是存在的，pid和tid也是（特别是当它是常量`0`时），但连接并不总是处于连接状态，当然，如果没有连接，也可能没有当前的请求。
 - en: Error logs are notoriously not very machine-readable. You should never rely
     on existence of a certain type of data in a record unless you made sure that the
     whole record is written via a known and fixed template. For example, it is fairly
     easy to parse out all the `ENOENT` messages, but creating a summary of all types
     of errors will be harder.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 错误日志因其机器可读性差而著名。除非你确保整个记录是通过已知且固定的模板写入的，否则永远不要依赖记录中存在某种类型的数据。例如，解析所有的`ENOENT`消息相对容易，但创建所有错误类型的汇总将会更困难。
 - en: 'The access log, on the contrary, is made for parsing. Let''s see the record
     again:'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，访问日志是为了便于解析而设计的。我们再来看一遍这个记录：
 - en: '[PRE36]'
+  id: totrans-196
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: We already analyzed a combined record earlier in this chapter, so we won't do
     this again. Just look at two interesting parts.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们之前已经分析过一个合并记录，因此这里不再重复。我们只看两个有趣的部分。
 - en: We mentioned the weird historical date/timestamp format but at least it contains
     timezone and is totally unambiguous. We also see the famous `404` code in the
     sixth field, and that is the only sign of error here! Otherwise, it is a perfectly
     good HTTP request that was served with a fittingly perfect HTTP response of 151
     bytes.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们提到过那个奇怪的历史日期/时间戳格式，但至少它包含了时区，并且是完全不含糊的。我们还可以看到著名的`404`代码出现在第六个字段中，这是唯一的错误标识！除此之外，这是一个完全正常的HTTP请求，并且得到了一个恰到好处的151字节的HTTP响应。
 - en: 'There will be two very popular 404 errors in your logs when you start a new
     website:'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你启动一个新的网站时，日志中会有两个非常流行的404错误：
 - en: '[PRE37]'
+  id: totrans-200
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: These are the so-called *well-known* files that HTTP clients request and use.
     You should get some `robots.txt` and some favicon for your sites at least for
     the sake of your own sanity. Refer to [http://www.robotstxt.org/](http://www.robotstxt.org/)
     and [https://en.wikipedia.org/wiki/Favicon](https://en.wikipedia.org/wiki/Favicon)
     for more information on these files.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些就是所谓的*常见*文件，HTTP客户端会请求并使用这些文件。至少为了你自己的理智，你应该为你的网站准备一些`robots.txt`文件和一些favicon。欲了解更多有关这些文件的信息，请参考[http://www.robotstxt.org/](http://www.robotstxt.org/)和[https://en.wikipedia.org/wiki/Favicon](https://en.wikipedia.org/wiki/Favicon)。
 - en: 'It is time to see some more errors:'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 是时候再看看一些错误了：
 - en: '[PRE38]'
+  id: totrans-203
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: You should read this almost effortlessly. This is an example of Nginx acting
     as a proxy, and this is certainly the most popular use for it. Being a proxy,
     this Nginx instance is trying to connect to an upstream on behalf of a client.
@@ -1038,14 +1503,21 @@
     not have leaked here but well, it has. It is a part of the mechanism Nginx uses
     to work with network connections under FreeBSD, Mac OS X, and other BSD operating
     systems.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该几乎不费力地阅读这些内容。这是Nginx作为代理的一个例子，而这无疑是它最常见的使用方式。作为代理，这个Nginx实例试图代表客户端连接到上游。遇到问题的上游在日志的最后列出，位于熟悉的主机项之前。提到的`kevent()`是所谓的*实现细节*，它不应该泄露到这里，但事实就是如此。它是Nginx在FreeBSD、Mac
+    OS X和其他BSD操作系统中用于处理网络连接的机制的一部分。
 - en: 'On a Linux box, the same record would look like this:'
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Linux系统上，同样的记录会是这样的：
 - en: '[PRE39]'
+  id: totrans-206
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'What is interesting in that record? First, no `kevent()`. Second, the `errno`
     code has changed! And indeed, our FreeBSD and Linux boxes have 61 and 111 for
     `ECONNREFUSED,` respectively. So no, you cannot rely on this code and more so
@@ -1053,24 +1525,35 @@
     may have this message: **10060: A connection attempt failed because the connected
     party did not properly respond after a period of time, or established connection
     failed because connected host has failed to respond**.'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 那个记录中有什么有趣的地方？首先，没有`kevent()`。其次，`errno`代码发生了变化！事实上，我们的FreeBSD和Linux系统分别为`ECONNREFUSED`提供了61和111的错误码。所以不，你不能依赖这个代码，更不能依赖`Connection
+    refused`这个字符串。在Windows系统中，同样的错误可能会显示这个信息：**10060：连接尝试失败，因为连接方在一段时间后没有正确响应，或者已建立的连接因为连接主机未响应而失败**。
 - en: And second, the upstream is using IPv6, which may break some scripts if they
     search for the TCP port number after the first colon.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，上游正在使用IPv6，这可能会破坏一些脚本，特别是如果它们在第一个冒号后查找TCP端口号的话。
 - en: 'We want to show you another special kind of **file not found** errors that
     are a sign of modern times:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们想向你展示另一种特殊的**文件未找到**错误，这些错误是现代时代的标志：
 - en: '[PRE40]'
+  id: totrans-210
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: These are only interesting because they come from bots that attempt to hack
     into your system. They are very persistent in trying some URLs that look like
     administration or login scripts and that never ever existed on your site.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些部分之所以有趣，是因为它们来自一些试图攻击你系统的机器人。它们非常坚持地尝试一些看起来像是管理或登录脚本的URL，而这些脚本从未在你的网站上出现过。
 - en: It is too cheap for them to just try any host they see on the Internet without
     even having a database of unsuccessful attempts. They will come from thousands
     of different IP addresses many of which will look totally innocent because those
@@ -1079,14 +1562,20 @@
     (unless of course you run some old installation of WordPress, and in this case,
     you are probably hacked already and earn money for these people by serving some
     porn ads to your users alongside your own content).
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 对他们来说，随便尝试互联网上的任何主机都太便宜了，而不管是否有一个记录失败尝试的数据库。他们会来自成千上万不同的IP地址，其中许多看起来完全无害，因为这些计算机遍布全球，都是被集中控制的感染机器。它们已经成为常态；你通常不需要采取任何对策（除非你运行的是一个旧版的WordPress安装，在这种情况下，你可能已经被黑客入侵，并且通过为这些人提供一些色情广告赚取收益）。
 - en: 'Here is an error that contains much less information:'
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个包含较少信息的错误：
 - en: '[PRE41]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'Can you guess why? Because, as we said a little bit earlier, errors happen
     all the time even when there is no request under processing. This is exactly the
     case: a client closed a connection that was left open after a successful request/response
@@ -1095,27 +1584,39 @@
     is free to close the connection at any time. Now you should understand why this
     information has `[info]` instead of `[error]`. Ideas about whether you should
     do anything about it are left as an exercise.'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 你能猜到为什么吗？因为，正如我们前面提到的，错误是时常发生的，即使没有正在处理的请求。正是这种情况：客户端关闭了一个在请求/响应成功配对后仍保持打开的连接，这样可以优化随后的请求。这种方式叫做KeepAlive。Nginx非常乐意通过一个连接服务多个请求，但客户端可以随时关闭该连接。现在你应该明白为什么这个信息显示的是`[info]`而不是`[error]`了。是否应该对此采取措施的问题留给你自己思考。
 - en: '[PRE42]'
+  id: totrans-216
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: A similar message not having any information about a request because it is actually
     an error of not being able to get the request before timeout.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 一条类似的消息没有任何关于请求的信息，因为实际上它是因为无法在超时前获取请求而发生的错误。
 - en: '[PRE43]'
+  id: totrans-218
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: It is quite an enigmatic error message that you won't be able to do anything
     about. The SSL code is complex, and there are a lot of weird SSL implementations
     out there. Something went wrong. You should take note and either try to reproduce
     or wait for more of the same.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个相当神秘的错误信息，你可能无法对其做任何处理。SSL代码非常复杂，而且有许多奇怪的SSL实现。某些地方出错了。你应该注意，并尝试重现或等待更多相同的错误。
 - en: '[PRE44]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: We trimmed this one by hand because it took almost the whole screen. There is
     a limit on the total size of the request headers. It may be changed with the `large_client_header_buffers`
     directive. See [http://nginx.org/en/docs/http/ngx_http_core_module.html#large_client_header_buffers](http://nginx.org/en/docs/http/ngx_http_core_module.html#large_client_header_buffers)
@@ -1123,106 +1624,162 @@
     the configured value, but we would recommend against it and speak to your application
     developers team instead. It looks like they have chosen the wrong tool for their
     task here. Requests of such size should use the POST method instead of GET.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们手动裁剪了这个，因为它几乎占据了整个屏幕。请求头的总大小是有限制的。这个限制可以通过`large_client_header_buffers`指令来更改。有关更多信息，请参见
+    [http://nginx.org/en/docs/http/ngx_http_core_module.html#large_client_header_buffers](http://nginx.org/en/docs/http/ngx_http_core_module.html#large_client_header_buffers)。这肯定是一个你可以通过增加配置值来修复的问题，但我们不建议这样做，应该与应用程序开发团队沟通。看起来他们为自己的任务选择了错误的工具。如此大的请求应该使用POST方法，而不是GET。
 - en: 'There is another error we wanted to show here as an example of what problems
     really big websites face sometimes:'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里还有另一个错误，我们想展示一下作为一些大型网站有时面临的挑战：
 - en: '[PRE45]'
+  id: totrans-223
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: 'You should be able to read and understand every single character of that message
     now. What exactly is **24: Too many open files**? There is a limit on the number
     of files that any single process can hold open. Usually, the limit is really big.
     Run this command to see the limit your shell has:'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: '你现在应该能够读取并理解这个信息中的每一个字符了。**24: Too many open files**到底是什么？这是对单个进程可以打开的文件数量的限制。通常，这个限制是非常大的。运行以下命令查看你当前的shell限制：'
 - en: '[PRE46]'
+  id: totrans-225
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'Once you have your Nginx serving more files than that simultaneously, this
     error will appear in the error log. Nginx has a way of increasing the limit itself,
     see [http://nginx.org/en/docs/ngx_core_module.html#worker_rlimit_nofile](http://nginx.org/en/docs/ngx_core_module.html#worker_rlimit_nofile).
     Increasing the hard limits for all processes is OS-dependent. On Linux, you will
     need to add something like `fs.file-max = 50000` to your `/etc/sysctl.conf` and
     then run the following code:'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦您的Nginx同时提供的文件超出了这个数量，这个错误就会出现在错误日志中。Nginx有办法自动增加限制，参见[http://nginx.org/en/docs/ngx_core_module.html#worker_rlimit_nofile](http://nginx.org/en/docs/ngx_core_module.html#worker_rlimit_nofile)。增加所有进程的硬限制取决于操作系统。在Linux上，您需要将类似`fs.file-max
+    = 50000`的内容添加到`/etc/sysctl.conf`中，然后运行以下代码：
 - en: '[PRE47]'
+  id: totrans-227
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: Tip
+  id: totrans-228
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: '**Downloading the example code**'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: '**下载示例代码**'
 - en: You can download the example code files for this book from your account at [http://www.packtpub.com](http://www.packtpub.com).
     If you purchased this book elsewhere, you can visit [http://www.packtpub.com/support](http://www.packtpub.com/support)
     and register to have the files e-mailed directly to you.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以从您的账户下载本书的示例代码文件，网址为[http://www.packtpub.com](http://www.packtpub.com)。如果您在其他地方购买了本书，您可以访问[http://www.packtpub.com/support](http://www.packtpub.com/support)并注册，以便将文件直接通过电子邮件发送给您。
 - en: 'You can download the code files by following these steps:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以通过以下步骤下载代码文件：
 - en: 1\. Log in or register to our website using your e-mail address and password.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 1\. 使用您的电子邮件地址和密码登录或注册我们的网站。
 - en: 2\. Hover the mouse pointer on the **SUPPORT** tab at the top.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. 将鼠标指针悬停在顶部的**支持**标签上。
 - en: 3\. Click on **Code Downloads & Errata**.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 3\. 点击**代码下载与勘误**。
 - en: 4\. Enter the name of the book in the **Search** box.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 4\. 在**搜索**框中输入书名。
 - en: 5\. Select the book for which you're looking to download the code files.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 5\. 选择您要下载代码文件的书籍。
 - en: 6\. Choose from the drop-down menu where you purchased this book from.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 6\. 从下拉菜单中选择您购买本书的地方。
 - en: 7\. Click on **Code Download**.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 7\. 点击**代码下载**。
 - en: 'Once the file is downloaded, please make sure that you unzip or extract the
     folder using the latest version of:'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 下载文件后，请确保使用以下最新版本解压或提取文件夹：
 - en: WinRAR/7-Zip for Windows
+  id: totrans-240
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: WinRAR/7-Zip for Windows
 - en: Zipeg/iZip/UnRarX for Mac
+  id: totrans-241
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Zipeg/iZip/UnRarX for Mac
 - en: 7-Zip/PeaZip for Linux
+  id: totrans-242
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 7-Zip/PeaZip for Linux
 - en: Summary
+  id: totrans-243
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this chapter, we refreshed our knowledge of how logging works in Nginx. There
     are two types of logs; one of them may be infinitely extended, whereas the other
     is hard to parse by scripts because it does not have enough structure.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们刷新了关于Nginx日志工作原理的知识。日志有两种类型；其中一种可以无限扩展，而另一种由于缺乏足够的结构，难以通过脚本解析。
 - en: We spent some time on special topics, such as log rotation and logging POST
     request bodies (with a small test stand that we created step by step in the chapter,
     no less).
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们花了一些时间讨论了特定主题，比如日志轮转和记录POST请求体（我们在本章中一步一步创建的小测试平台）。
 - en: We also analyzed several error records from some real error logs.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还分析了几条来自真实错误日志的错误记录。
 - en: The next chapter will have more actual problems analyzed and troubleshot. We
     will present several cases of actual problems that people had with read Nginx
     installations and try to debug them from the ground up.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一章将分析更多实际问题并进行故障排除。我们将展示一些人们在读取Nginx安装时遇到的实际问题，并尝试从头开始调试它们。
