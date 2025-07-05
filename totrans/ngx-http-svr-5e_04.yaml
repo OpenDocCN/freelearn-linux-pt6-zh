@@ -1,438 +1,660 @@
 - en: '4'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '4'
 - en: Exploring Module Configuration in NGINX
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索NGINX中的模块配置
 - en: The true power of NGINX lies within its modules. The entire application is built
     on a modular system, and each module can be enabled or disabled at compile time.
     Some bring up simple functionalities, such as the autoindex module, which generates
     a listing of the files in a directory. Some will transform your perception of
     a web server (such as the Rewrite module). Apart from the NGINX modules that already
     exist, developers can also create their own modules to suit their needs.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX的真正强大之处在于其模块化系统。整个应用程序建立在一个模块化系统上，每个模块都可以在编译时启用或禁用。有些模块提供简单的功能，例如自动索引模块，它生成目录中文件的列表。另一些模块则能改变你对Web服务器的认知（例如重写模块）。除了已经存在的NGINX模块外，开发者还可以根据需要创建自己的模块。
 - en: A quick overview of the third-party module system can be found at the end of
     this chapter. Please note that third-party modules are maintained by the community,
     and there is no guarantee that these modules will be compatible with your version
     of NGINX.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章末尾提供了第三方模块系统的简要概述。请注意，第三方模块由社区维护，并不能保证这些模块与你的NGINX版本兼容。
 - en: 'This chapter covers the following topics:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章涵盖以下内容：
 - en: The Rewrite module, which does more than just rewrite URIs
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 重写模块，做的不仅仅是重写URI
 - en: Additional modules enabled in the default NGINX build
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 默认NGINX构建中启用的附加模块
 - en: Optional modules that must be enabled at compile time
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 必须在编译时启用的可选模块
 - en: A quick note on third-party modules
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关于第三方模块的简要说明
 - en: Exploring the Rewrite module
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索重写模块
 - en: This module, in particular, brings much more functionality to NGINX than a simple
     set of directives. It defines a whole new level of request processing that will
     be explained throughout this section.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个模块，特别是，它为NGINX带来了远超简单指令集的功能。它定义了一种全新的请求处理方式，接下来我们将详细讲解这一过程。
 - en: Initially, the purpose of this module (as the name suggests) is to perform URL
     rewriting. This mechanism allows you to get rid of ugly URLs containing multiple
     parameters—for instance, [http://example.com/article.php?id=1234&comment=32—such](http://example.com/article.php?id=1234&comment=32-such)
     URLs being particularly uninformative and meaningless for a regular visitor.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 最初，该模块（正如其名称所示）的目的是进行URL重写。这个机制允许你摆脱包含多个参数的难看的URL——例如，[http://example.com/article.php?id=1234&comment=32—such](http://example.com/article.php?id=1234&comment=32-such)这样的URL对普通访问者来说既无意义又缺乏信息。
 - en: Instead, links to your website will contain useful information that indicates
     the nature of the page you are about to visit. The URL given in the example becomes
     [http://website.com/article-1234-32-US-economy-strengthens.html](http://website.com/article-1234-32-US-economy-strengthens.html).
     This solution is not only more interesting for your visitors but also for search
     engines. URL rewriting is a key element of **search engine** **optimization**
     (**SEO**).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，指向你网站的链接将包含有用的信息，指示你即将访问的页面的性质。示例中给出的URL变为[http://website.com/article-1234-32-US-economy-strengthens.html](http://website.com/article-1234-32-US-economy-strengthens.html)。这种解决方案不仅对访问者更具吸引力，对搜索引擎也是如此。URL重写是**搜索引擎**
+    **优化**（**SEO**）的关键元素。
 - en: 'The principle behind this mechanism is simple: it consists of rewriting the
     URI of the client request after it is received, before serving the file. Once
     rewritten, the URI is matched against `location` blocks in order to find the configuration
     that should be applied to the request. The technique is further detailed in the
     coming sections.'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一机制背后的原理很简单：它是在接收到客户端请求后，在服务文件之前重写URI。一旦重写，URI将与`location`块匹配，以便找到应应用于请求的配置。这个技巧将在接下来的章节中进一步详细介绍。
 - en: Reminder of regular expressions
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 正则表达式回顾
 - en: First and foremost, this module requires a certain understanding of regular
     expressions, also known as `rewrite` directive, which accepts a pattern followed
     by the replacement URI.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，该模块需要一定的正则表达式理解，通常称为`rewrite`指令，它接受一个模式并跟随替换的URI。
 - en: It is a vast topic; entire books are dedicated to explaining the ins and outs.
     However, the simplified approach that we are about to examine should be more than
     sufficient to make the most of the mechanism.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个庞大的话题；整个书籍都在解释它的细节。然而，我们即将探讨的简化方法应该足以充分利用这一机制。
 - en: Purpose
+  id: totrans-17
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 目的
 - en: 'The first question we must answer is: What is the purpose of regular expressions?
     To put it simply, the main purpose is to verify that a string of characters matches
     a given pattern. The pattern is written in a particular language that allows for
     defining extremely complex and accurate rules:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们必须回答的第一个问题是：正则表达式的目的是什么？简单来说，主要目的是验证一个字符串是否与给定的模式匹配。该模式是用特定的语言编写的，允许定义极其复杂和精确的规则：
 - en: '| **String** | **Pattern** | **Does** **it match?** | **Explanation** |'
+  id: totrans-19
   prefs: []
   type: TYPE_TB
+  zh: '| **字符串** | **模式** | **是否匹配？** | **解释** |'
 - en: '| --- | --- | --- | --- |'
+  id: totrans-20
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- | --- |'
 - en: '| `hello` | `^``hello$` | Yes | The string begins with the `h` character (`^h`),
     followed by `e`, `l`, `l`, and then finishes with `o` (`o$`). |'
+  id: totrans-21
   prefs: []
   type: TYPE_TB
+  zh: '| `hello` | `^``hello$` | 是 | 字符串以 `h` 字符（`^h`）开头，后接 `e`、`l`、`l`，然后以 `o` 结尾（`o$`）。
+    |'
 - en: '| `hell` | `^``hello$` | No | The string begins with the `h` character (`^h`),
     followed by `e`, `l`, `l`, but does not finish with `o`. |'
+  id: totrans-22
   prefs: []
   type: TYPE_TB
+  zh: '| `hell` | `^``hello$` | 否 | 字符串以 `h` 字符（`^h`）开头，后接 `e`、`l`、`l`，但没有以 `o` 结尾。
+    |'
 - en: '| `Hello` | `^``hello$` | Depends | If the engine performing the match is case-sensitive,
     the string doesn’t match the pattern. |'
+  id: totrans-23
   prefs: []
   type: TYPE_TB
+  zh: '| `Hello` | `^``hello$` | 视情况而定 | 如果执行匹配的引擎区分大小写，则字符串不匹配该模式。 |'
 - en: 'Table 4.1: A list of patterns with explanations'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.1：模式列表及解释
 - en: 'This concept becomes a lot more interesting when complex patterns are employed,
     such as one that validates an email address: `^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`.
     Validating a well-formed email address programmatically would require a great
     deal of code, while all of the work can be done with a single regular expression
     pattern matching.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用复杂模式时，这个概念变得更加有趣，例如一个验证电子邮件地址的模式：`^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`。程序化地验证一个格式正确的电子邮件地址需要大量代码，而所有工作都可以通过单个正则表达式模式匹配来完成。
 - en: PCRE syntax
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: PCRE 语法
 - en: The syntax that NGINX employs originates from the **Perl Compatible Regular
     Expressions** (**PCRE**) library, which (if you remember [*Chapter 2*](B21787_02.xhtml#_idTextAnchor121))
     is a prerequisite for making your own build unless you disable modules that make
     use of it. It’s the most commonly used form of regular expression, and nearly
     everything you learn here remains valid for other language variations.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 使用的语法来自 **Perl 兼容正则表达式**（**PCRE**）库，（如果你还记得 [*第二章*](B21787_02.xhtml#_idTextAnchor121)）是构建你自己的版本所必需的，除非你禁用使用它的模块。它是最常用的正则表达式形式，几乎所有在这里学到的内容在其他语言变种中也适用。
 - en: 'In its simplest form, a pattern is composed of one character—for example, `x`.
     We can match strings against this pattern. Does `example` match the `x` pattern?
     Yes, `example` contains the `x` character. It can be more than one specific character;
     the `[a-z]` pattern matches any character between `a` and `z`, or even a combination
     of letters and digits: `[a-z0-9]`. In consequence, the `hell[a-z0-9]` pattern
     validates the following strings: `hello` and `hell4`, but not `hell` or `hell!`.'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 最简单的形式是，模式由一个字符组成——例如，`x`。我们可以根据这个模式匹配字符串。`example` 是否与 `x` 模式匹配？是的，`example`
+    包含字符 `x`。它可以是多个特定字符；例如，`[a-z]` 模式匹配任意一个 `a` 到 `z` 之间的字符，甚至是字母和数字的组合：`[a-z0-9]`。因此，`hell[a-z0-9]`
+    模式会验证以下字符串：`hello` 和 `hell4`，但不包括 `hell` 或 `hell!`。
 - en: 'You probably noticed that we employed the `[` and `]` characters. These are
     called `\` (backslash):'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能注意到我们使用了 `[` 和 `]` 字符。这些被称为 `\`（反斜杠）：
 - en: '| **Metacharacter** | **Description** |'
+  id: totrans-30
   prefs: []
   type: TYPE_TB
+  zh: '| **元字符** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-31
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `^`Beginning | The entity after this character must be found at the beginning:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `^`开始 | 该字符之后的实体必须出现在开头：'
 - en: 'Example pattern: `^h`'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`^h`
 - en: 'Matching strings: `hello`, `h`, `hh` (anything beginning with *h*)'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello`、`h`、`hh`（以 *h* 开头的任何内容）
 - en: 'Non-matching strings: `character`, `ssh`'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`character`、`ssh`
 - en: '|'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `$`End | The entity before this character must be found at the end:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `$`结束 | 该字符之前的实体必须出现在结尾：'
 - en: 'Example pattern: `e$`'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`e$`
 - en: 'Matching strings: `sample`, `e`, `file` (anything ending with *e*)'
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`sample`、`e`、`file`（以 *e* 结尾的任何内容）
 - en: 'Non-matching strings: `extra`, `shell`'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`extra`、`shell`
 - en: '|'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `.` (dot)Any | Matches any character:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `.`（点）任何 | 匹配任何字符：'
 - en: 'Example pattern: `hell.`'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`hell.`
 - en: 'Matching strings: `hello`, `hellx`, `hell5`, and `hell!`'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello`、`hellx`、`hell5` 和 `hell!`
 - en: 'Non-matching strings: `hell`, `helo`'
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hell`，`helo`
 - en: '|'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `[ ]`Set | Matches any character within the specified set:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `[ ]`集合 | 匹配指定集合内的任何字符：'
 - en: 'Syntax: `[a-z]` for a range, `[abcd]` for a set, and `[a-z0-9]` for two ranges.
     Note that if you want to include the `-` character in a range, you need to insert
     it right after `[` or just before `]`.'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 语法：`[a-z]`表示一个范围，`[abcd]`表示一个集合，`[a-z0-9]`表示两个范围。注意，如果你想在范围中包含`-`字符，你需要将其插入在`[`之后或`]`之前。
 - en: 'Example pattern: `hell[a-y123-]`'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`hell[a-y123-]`
 - en: 'Matching strings: `hello`, `hell1`, `hell2`, `hell3`, and `hell-`'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello`，`hell1`，`hell2`，`hell3`，和 `hell-`
 - en: 'Non-matching strings: `hellz`, `hell4`, `heloo`, and `he-llo`'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hellz`，`hell4`，`heloo`，和 `he-llo`
 - en: '|'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `[^ ]`Negate set | Matches any character that is not within the specified
     set:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `[^ ]` 否定集合 | 匹配不在指定集合中的任何字符：'
 - en: 'Example pattern: `hell[^a-np-z0-9]`'
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`hell[^a-np-z0-9]`
 - en: 'Matching strings: `hello`, and `hell!`'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello`，和 `hell!`
 - en: 'Non-matching strings: `hella`, `hell5`'
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hella`，`hell5`
 - en: '|'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `&#124;`Alternation | Matches the entity placed either before or after `&#124;`:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `&#124;` 或选择 | 匹配 `&#124;` 前后任一位置的实体：'
 - en: 'Example pattern: `hello&#124;welcome`'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`hello&#124;welcome`
 - en: 'Matching strings: `hello`, `welcome`, `helloes`, and `awelcome`'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello`，`welcome`，`helloes`，和 `awelcome`
 - en: 'Non-matching strings: `hell`, `ellow`, `owelcom`'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hell`，`ellow`，`owelcom`
 - en: '|'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `( )`Grouping | Groups a set of entities, often to be used in conjunction
     with `&#124;`. Also **captures** the matched entities; captures are detailed further
     on:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `( )` 分组 | 将一组实体分组，通常与 `&#124;` 一起使用。也会**捕获**匹配的实体；捕获的详细信息稍后会讲解：'
 - en: 'Example pattern: `^(``hello&#124;hi) there$`'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`^(``hello&#124;hi) there$`
 - en: 'Matching strings: `hello there`, `hi there`'
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello there`，`hi there`
 - en: 'Non-matching strings: `hey there`, `ahoy there`'
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hey there`，`ahoy there`
 - en: '|'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `\`Escape | Allows you to escape special characters:Example pattern: `Hello\`Matching
     strings: `Hello.`, `Hello. How are you?`, `Hi! Hello...`Non-matching strings:
     `Hello`, `Hello!how` `are you?` |'
+  id: totrans-68
   prefs: []
   type: TYPE_TB
+  zh: '| `\` 转义 | 允许你转义特殊字符：示例模式：`Hello\` 匹配的字符串：`Hello.`，`Hello. How are you?`，`Hi!
+    Hello...` 不匹配的字符串：`Hello`，`Hello!how`，`are you?` |'
 - en: 'Table 4.2: A list of metacharacters and their roles'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 表4.2：元字符及其作用的列表
 - en: Quantifiers
+  id: totrans-70
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 量词
 - en: 'So far, you are able to express simple patterns with a limited number of characters.
     Quantifiers allow you to extend the number of accepted entities:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，你可以使用有限数量的字符来表达简单的模式。量词允许你扩展可接受的实体数量：
 - en: '| **Quantifier** | **Description** |'
+  id: totrans-72
   prefs: []
   type: TYPE_TB
+  zh: '| **量词** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-73
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `*`0 or more times | The entity preceding `*` must be found 0 or more times:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `*` 0 次或更多次 | `*` 之前的实体必须出现 0 次或更多次：'
 - en: 'Example pattern: `he*llo`'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`he*llo`
 - en: 'Matching strings: `hllo`, `hello`, `heeeello`'
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hllo`，`hello`，`heeeello`
 - en: 'Non-matching strings: `hallo`, `ello`'
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hallo`，`ello`
 - en: '|'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `+`1 or more times | The entity preceding `+` must be found 1 or more times:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `+` 至少 1 次 | 在`+`之前的实体必须出现 1 次或更多次：'
 - en: 'Example pattern: `he+llo`'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`he+llo`
 - en: 'Matching strings: `hello`, `heeeello`'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello`，`heeeello`
 - en: 'Non-matching strings: `hllo`, `helo`'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hllo`，`helo`
 - en: '|'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `?`0 or 1 times | The entity preceding `?` must be found 0 or 1 times:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `?` 0 次或 1 次 | `?` 之前的实体必须出现 0 次或 1 次：'
 - en: 'Example pattern: `he?llo`'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`he?llo`
 - en: 'Matching strings: `hello`, `hllo`'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`hello`，`hllo`
 - en: 'Non-matching strings: `heello`, `heeeello`'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`heello`，`heeeello`
 - en: '|'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `{``x}``x` times | The entity preceding `{x}` must be found `x` times:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `{x}` `x` 次 | `{x}` 之前的实体必须出现 `x` 次：'
 - en: 'Example pattern: `he{3}llo`'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`he{3}llo`
 - en: 'Matching strings: `heeello`, `oh` `heeello there!`'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`heeello`，`oh`，`heeello there!`
 - en: 'Non-matching strings: `hello`, `heello`, `heeeello`'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hello`，`heello`，`heeeello`
 - en: '|'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `{``x,}`At least `x` times | The entity preceding `{x,}` must be found at
     least `x` times:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `{x,}` 至少 `x` 次 | `{x,}` 之前的实体必须出现至少 `x` 次：'
 - en: 'Example pattern: `he{3,}llo`'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`he{3,}llo`
 - en: 'Matching strings: `heeello`, `heeeeeeello`'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`heeello`，`heeeeeeello`
 - en: 'Non-matching strings: `hllo`, `hello`, `hello`'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hllo`，`hello`，`hello`
 - en: '|'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `{``x,y}``x` to `y` times | The entity preceding `{x,y}` must be found between
     `x` and `y` times:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `{x,y}` `x` 到 `y` 次 | `{x,y}` 之前的实体必须出现次数在 `x` 和 `y` 之间：'
 - en: 'Example pattern: `he{2,4}llo`'
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 示例模式：`he{2,4}llo`
 - en: 'Matching strings: `heello`, `heeello`, `heeeello`'
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 匹配的字符串：`heello`，`heeello`，`heeeello`
 - en: 'Non-matching strings: `hello`, `heeeeello`'
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不匹配的字符串：`hello`，`heeeeello`
 - en: '|'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: 'Table 4.3: A list of quantifiers and their roles'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 表4.3：量词及其作用的列表
 - en: 'As you probably noticed, the `{` and `}` characters in the regular expressions
     conflict with the block delimiter of the NGINX configuration file syntax language.
     If you want to write a regular expression pattern that includes *curly brackets*,
     you need to place the pattern between quotes (single or double quotes):'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您可能注意到的，正则表达式中的 `{` 和 `}` 字符与 NGINX 配置文件语法语言中的块定界符发生冲突。如果您想写一个包含 *大括号* 的正则表达式模式，您需要将模式放在引号中（单引号或双引号）：
 - en: '[PRE0]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Captures
+  id: totrans-107
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 捕获
 - en: One last feature of the regular expression mechanism is the ability to capture
     sub-expressions. Whatever text is placed between parentheses (`( )`) is captured
     and can be used after the matching process. The captured characters become available
@@ -440,46 +662,74 @@
     of capture. Alternatively, you can attribute an arbitrary name to each of your
     captures (see the following example). Variables generated through the captures
     can be inserted within directive values.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 正则表达式机制的最后一个特性是能够捕获子表达式。任何放在圆括号（`( )`）中的文本都会被捕获，并且可以在匹配过程之后使用。捕获的字符将以变量的形式提供，这些变量被命名为
+    `$N`，其中 `N` 是按捕获顺序排列的数字索引。或者，您可以为每个捕获指定一个任意的名称（参见以下示例）。通过捕获生成的变量可以插入到指令值中。
 - en: 'Here are a couple of examples to illustrate the principle:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有几个示例来说明这一原理：
 - en: '| **Pattern** | **Example of a** **matching string** | **Captured** |'
+  id: totrans-110
   prefs: []
   type: TYPE_TB
+  zh: '| **模式** | **匹配字符串示例** | **捕获的内容** |'
 - en: '| --- | --- | --- |'
+  id: totrans-111
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- |'
 - en: '| `^(``hello&#124;hi) (sir&#124;mister)$` | `hello sir` | `$1 =` `hello``$2
     =` `sir` |'
+  id: totrans-112
   prefs: []
   type: TYPE_TB
+  zh: '| `^(``hello&#124;hi) (sir&#124;mister)$` | `hello sir` | `$1 =` `hello``$2
+    =` `sir` |'
 - en: '| `^(``hello (sir))$` | `hello sir` | `$1 =` `hello sir``$2 =` `sir` |'
+  id: totrans-113
   prefs: []
   type: TYPE_TB
+  zh: '| `^(``hello (sir))$` | `hello sir` | `$1 =` `hello sir``$2 =` `sir` |'
 - en: '| `^(.*)$` | `nginx rocks` | `$1 =` `nginx rocks` |'
+  id: totrans-114
   prefs: []
   type: TYPE_TB
+  zh: '| `^(.*)$` | `nginx rocks` | `$1 =` `nginx rocks` |'
 - en: '| `^(.{``1,3})([0-9]{1,4})([?!]{1,2})$` | `abc1234!?` | `$1 =` `abc``$2 =`
     `1234``$3 = !?` |'
+  id: totrans-115
   prefs: []
   type: TYPE_TB
+  zh: '| `^(.{``1,3})([0-9]{1,4})([?!]{1,2})$` | `abc1234!?` | `$1 =` `abc``$2 =`
+    `1234``$3 = !?` |'
 - en: '| Named captures are also supported through the following syntax:`?<``name>`Example:
     `^/(?<folder>[^/]+)/(?<file>.*)$` | `/``admin/doc` | `$folder =` `admin``$file
     =` `doc` |'
+  id: totrans-116
   prefs: []
   type: TYPE_TB
+  zh: '| 命名捕获也可以通过以下语法实现：`?<``name>`示例：`^/(?<folder>[^/]+)/(?<file>.*)$` | `/``admin/doc`
+    | `$folder =` `admin``$file =` `doc` |'
 - en: 'Table 4.4: A list of patterns and expressions'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.4：模式和表达式列表
 - en: 'When you use a regular expression in NGINX—for example, in the context of a
     `location` block—the buffers that you capture can be employed in later directives:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 当您在 NGINX 中使用正则表达式时——例如，在 `location` 块的上下文中——您捕获的缓冲区可以在后续的指令中使用：
 - en: '[PRE1]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'In the preceding example, the `location` block will match the request URI against
     a regular expression. A few URIs that would apply here are `/downloads/file.txt`,
     `/files/archive.zip`, or even `/files/docs/report.doc`. Two parts are captured:
@@ -488,211 +738,316 @@
     `add_header header_name header_value`; see the *HTTP headers* section) is employed
     here to append arbitrary headers to the client response, for the sole purpose
     of demonstration.'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的示例中，`location` 块会将请求的 URI 与正则表达式进行匹配。适用的几个 URI 可能是 `/downloads/file.txt`、`/files/archive.zip`，甚至是
+    `/files/docs/report.doc`。捕获了两部分：`$1` 将包含 `downloads` 或 `files`，而 `$2` 将包含 `/downloads/`
+    或 `/files/` 后的内容。请注意，这里使用了 `add_header` 指令（语法：`add_header header_name header_value`；参见
+    *HTTP 头部* 部分），将任意头部添加到客户端响应中，仅用于演示目的。
 - en: Internal requests
+  id: totrans-121
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 内部请求
 - en: 'NGINX differentiates external and internal requests. External requests originate
     directly from the client; the URI is then matched against possible `location`
     blocks:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 区分外部和内部请求。外部请求直接来自客户端；然后，URI 会与可能的 `location` 块进行匹配：
 - en: '[PRE2]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: A client request to [http://website.com/document.html](http://website.com/document.html)
     would directly fall into the preceding `location` block.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 客户端对 [http://website.com/document.html](http://website.com/document.html) 的请求会直接落入前面的
+    `location` 块。
 - en: 'Opposite to this, internal requests are triggered by NGINX via specific directives.
     Among the directives offered by the default NGINX modules, there are several directives
     capable of producing internal requests: `error_page`, `index`, `rewrite`, `try_files`,
     `add_before_body`, and `add_after_body` (from the addition module), the `include`
     **Server-Side Includes** (**SSI**) command, and more.'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 与此相反，内部请求是通过 NGINX 的特定指令触发的。在默认的 NGINX 模块提供的指令中，有几条指令能够产生内部请求：`error_page`、`index`、`rewrite`、`try_files`、`add_before_body`
+    和 `add_after_body`（来自添加模块）、`include` **服务器端包含**（**SSI**）命令等。
 - en: 'There are two different types of internal requests:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 内部请求有两种不同的类型：
 - en: '`location` block and become eligible for different settings. The most common
     case of internal redirects is when using the `rewrite` directive, which allows
     you to rewrite the request URI.'
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`location`块并成为不同设置的适用对象。内部重定向的最常见情况是使用`rewrite`指令，它允许你重写请求的URI。'
 - en: '`add_after_body` directive allows you to specify a URI that will be processed
     after the original one, the resulting content being appended to the body of the
     original request. The SSI module also makes use of sub-requests to insert content
     with the `include` SSI command.'
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`add_after_body`指令允许你指定一个URI，该URI将在原始URI之后进行处理，并将结果内容附加到原始请求的主体中。SSI模块也利用子请求通过`include`
+    SSI命令插入内容。'
 - en: error_page
+  id: totrans-129
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: error_page
 - en: 'Detailed in the module directives of the NGINX HTTP core module, `error_page`
     allows you to define the server behavior when a specific error code occurs. The
     simplest form is to affect a URI to an error code:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 在NGINX HTTP核心模块的模块指令中详细说明了，`error_page`允许你定义当发生特定错误代码时服务器的行为。最简单的形式是将URI与错误代码关联：
 - en: '[PRE3]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: When a client attempts to access a URI that triggers one of these errors (such
     as loading a document or file that does not exist on the server, resulting in
     a `404` error), NGINX is supposed to serve the page associated with the error
     code. In fact, it does not just send the client the error page; it actually initiates
     a completely new request, based on the new URI.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 当客户端尝试访问触发这些错误之一的URI（例如加载服务器上不存在的文档或文件，导致`404`错误）时，NGINX应该服务于与错误代码相关的页面。实际上，它不仅仅是向客户端发送错误页面；它会基于新的URI发起一个全新的请求。
 - en: 'Consequently, you can end up falling back on a different configuration, as
     in the following example:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，你可能会回退到不同的配置，如以下示例所示：
 - en: '[PRE4]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: When a client attempts to load a document that does not exist, they will initially
     receive a `404` error. We employed the `error_page` directive to specify that
     `404` errors should create an internal redirect to `/errors/404.html`. As a result,
     a new request is generated by NGINX, with the `/errors/404.html` URI. This URI
     falls under the location `/errors/` block, so the corresponding configuration
     applies.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 当客户端尝试加载一个不存在的文档时，最初会收到一个`404`错误。我们使用`error_page`指令指定`404`错误应该创建一个内部重定向到`/errors/404.html`。结果，NGINX生成了一个新的请求，URI为`/errors/404.html`。这个URI属于`/errors/`块，因此会应用相应的配置。
 - en: Note
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: Logs can prove to be particularly useful when working with redirects and URL
     rewrites. Be aware that information on internal redirects will show up in the
     logs only if you set the `error_log` directive to `debug`. You can also get it
     to show up at the `notice` level, under the condition that you specify `rewrite_log
     on;` wherever you need it.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志在处理重定向和URL重写时尤其有用。请注意，只有在将`error_log`指令设置为`debug`时，内部重定向的信息才会出现在日志中。你还可以通过在需要的位置指定`rewrite_log
+    on;`，使其出现在`notice`级别的日志中。
 - en: 'A raw but trimmed excerpt from the debug log summarizes the mechanism:'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自调试日志的一个原始但精简的摘录总结了这一机制：
 - en: '[PRE5]'
+  id: totrans-139
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Note that the use of the `internal` directive in the `location` block forbids
     clients from accessing the `/errors/` directory. This location can thus only be
     accessed through an internal redirect.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，`location`块中使用`internal`指令禁止客户端访问`/errors/`目录。因此，该位置只能通过内部重定向访问。
 - en: The mechanism is the same for the `index` directive (detailed further on in
     the *Index* section). If no file path is provided in the client request, NGINX
     will attempt to serve the specified index page by triggering an internal redirect.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 该机制与`index`指令相同（在*Index*部分进一步详细说明）。如果客户端请求中未提供文件路径，NGINX将通过触发内部重定向来尝试提供指定的索引页面。
 - en: Rewrite
+  id: totrans-142
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 重写
 - en: While the previous `error_page` directive is not actually part of the Rewrite
     module, detailing its functionality provides a solid introduction to the way NGINX
     handles client requests.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管之前的`error_page`指令实际上并不是重写模块的一部分，但详细介绍其功能为理解NGINX如何处理客户端请求提供了一个坚实的基础。
 - en: 'Similar to how the `error_page` directive redirects to another location, rewriting
     the URI with the `rewrite` directive generates an internal redirect:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于`error_page`指令将请求重定向到另一个位置的方式，使用`rewrite`指令重写URI时会生成一个内部重定向：
 - en: '[PRE6]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: A client query to `http://website.com/documents/file.txt` initially matches
     the second `location` block (`location /documents/`). However, the block contains
     a rewrite instruction that transforms the URI from `/documents/file.txt` to `/storage/file.txt`.
     The URI transformation reinitializes the process; the new URI is matched against
     the `location` blocks. This time, the first `location` block (`location /storage/`)
     matches the URI (`/storage/file.txt`).
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个客户端查询`http://website.com/documents/file.txt`，最初匹配第二个`location`区块（`location
+    /documents/`）。然而，区块中包含一个重写指令，将URI从`/documents/file.txt`转换为`/storage/file.txt`。URI转换重新启动了过程；新的URI再次与`location`区块进行匹配。这时，第一个`location`区块（`location
+    /storage/`）匹配URI（`/storage/file.txt`）。
 - en: 'Again, a quick peek at the debug log details the mechanism:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次查看调试日志，快速了解机制：
 - en: '[PRE7]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Infinite loops
+  id: totrans-149
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 无限循环
 - en: 'With all of the different syntaxes and directives, you could easily get confused.
     Worse, you might get NGINX confused. This happens, for instance, when your rewrite
     rules are redundant and cause internal redirects to *loop infinitely*:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 在众多语法和指令面前，你很容易感到困惑。更糟的是，你可能会让NGINX也搞混。这种情况发生在你的重写规则冗余时，导致内部重定向*无限循环*：
 - en: '[PRE8]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: You thought you were doing well, but this configuration actually triggers an
     internal redirect of `/documents/anything` to `/documents/2018//documents/anything`.
     Moreover, since the location patterns are re-evaluated after an internal redirect,
     `/documents/2018//documents/anything` becomes `/documents/2018//documents/2018//documents/anything`.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 你以为自己做得很好，但实际上这个配置会触发`/documents/anything`到`/documents/2018//documents/anything`的内部重定向。而且，由于在内部重定向后会重新评估位置模式，`/documents/2018//documents/anything`将变成`/documents/2018//documents/2018//documents/anything`。
 - en: 'Here is the corresponding excerpt from the debug log:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是来自调试日志的相应摘录：
 - en: '[PRE9]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: You are probably wondering if this goes on indefinitely; the answer is *no*.
     The amount of cycles is restricted to *10*. You are only allowed 10 internal redirects.
     For anything past this limit, NGINX will produce a `500 Internal Server` `Error`
     message.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会想，这个过程会不会无限进行下去；答案是*不*。循环次数是有限制的，最多为*10*次。你只能进行10次内部重定向。超过此限制时，NGINX会生成`500
+    Internal Server` `Error`错误信息。
 - en: It is possible to prevent infinite loops for cases such as this where you might
     want to update the internal path over time. Simply use the `break` flag on the
     rewrite, as documented later, and NGINX will not do an internal redirect.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这种情况，如果你希望随时间更新内部路径，可以通过使用`break`标志来防止无限循环，具体如后文所述，NGINX将不会执行内部重定向。
 - en: Conditional structure
+  id: totrans-157
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 条件结构
 - en: 'The Rewrite module introduces a new set of directives and blocks, among which
     is the `if` conditional structure:'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 重写模块引入了一组新的指令和区块，其中包括`if`条件结构：
 - en: '[PRE10]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: This offers the possibility to apply a configuration according to the specified
     condition. If the condition is `true`, the configuration is applied; otherwise,
     it isn’t.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 这提供了根据指定条件应用配置的可能性。如果条件为`true`，则应用配置；否则不应用。
 - en: 'The following table describes the various syntaxes accepted when forming a
     condition:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 下表描述了在形成条件时接受的各种语法：
 - en: '| **Operator** | **Description** |'
+  id: totrans-162
   prefs: []
   type: TYPE_TB
+  zh: '| **操作符** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-163
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| None | The condition is `true` if the specified variable or data is not equal
     to an empty string or a string starting with the character `0`:`if ($``string)
     {``[...]``}` |'
+  id: totrans-164
   prefs: []
   type: TYPE_TB
+  zh: '| 无 | 如果指定的变量或数据不等于空字符串或以字符`0`开头的字符串，则条件为`true`：`if ($``string) {``[...]``}`
+    |'
 - en: '| `=`, `!=` | The condition is `true` if the argument preceding the `=` symbol
     is equal to the argument following it. The following example can be read as, “*If
     the request method is equal to* `POST`*, then apply* *the configuration*”:`if
     ($request_method =` `POST) {``[...]``}`The `!=` operator does the opposite: “*If
     the request method is not equal to* `GET`*, then apply* *the configuration*”:`if
     ($request_method !=` `GET) {``[...]``}` |'
+  id: totrans-165
   prefs: []
   type: TYPE_TB
+  zh: '| `=`, `!=` | 如果`=`符号前的参数与后面的参数相等，则条件为`true`。以下示例可以理解为，“*如果请求方法等于* `POST`*，则应用*
+    *配置*”:`if ($request_method =` `POST) {``[...]``}`而`!=`操作符则执行相反操作：“*如果请求方法不等于*
+    `GET`*，则应用* *配置*”:`if ($request_method !=` `GET) {``[...]``}` |'
 - en: '| `~`, `~*`, `!~`, `!~*` | The condition is `true` if the argument preceding
     the `~` symbol matches the regular expression pattern placed after it:`if ($request_filename
     ~ "\.``txt$") {``[...]``}``~` is case-sensitive, and `~*` is case-insensitive.
@@ -700,132 +1055,195 @@
     {``[...]``}`You can insert capture buffers in the regular expression:`if ($uri
     ~ "^/search/(.*)$") {``set $``query $1;``rewrite ^` `http://google.com/search?q=$query;``}`
     |'
+  id: totrans-166
   prefs: []
   type: TYPE_TB
+  zh: '| `~`, `~*`, `!~`, `!~*` | 如果前面的参数匹配放在 `~` 符号后面的正则表达式模式，则条件为 `true`：`if ($request_filename
+    ~ "\.``txt$") {``[...]``}` `~` 区分大小写，而 `~*` 不区分大小写。使用 `!` 符号来否定匹配：`if ($request_filename
+    !~* "\.``php$") {``[...]``}` 你可以在正则表达式中插入捕获缓冲区：`if ($uri ~ "^/search/(.*)$") {``set
+    $``query $1;``rewrite ^` `http://google.com/search?q=$query;``}` |'
 - en: '| `-``f`, `!-f` | Tests the existence of the specified file:`if (-f $``request_filename)
     {``[...] # if the` `file exists``}`Use `!-f` to test the non-existence of the
     file:`if (!-f $``request_filename) {``[...] # if the file does` `not exist``}`
     |'
+  id: totrans-167
   prefs: []
   type: TYPE_TB
+  zh: '| `-``f`, `!-f` | 测试指定文件的存在性：`if (-f $``request_filename) {``[...] # 如果文件存在``}``
+    使用 `!-f` 来测试文件不存在：`if (!-f $``request_filename) {``[...] # 如果文件不存在``}` |'
 - en: '| `-``d`, `!-d` | Similar to the `-f` operator, for testing the existence of
     a directory. |'
+  id: totrans-168
   prefs: []
   type: TYPE_TB
+  zh: '| `-``d`, `!-d` | 类似于 `-f` 操作符，用于测试目录的存在性。 |'
 - en: '| `-``e`, `!-e` | Similar to the `-f` operator, for testing the existence of
     a file, directory, or symbolic link. |'
+  id: totrans-169
   prefs: []
   type: TYPE_TB
+  zh: '| `-``e`, `!-e` | 类似于 `-f` 操作符，用于测试文件、目录或符号链接的存在性。 |'
 - en: '| `-``x`, `!-x` | Similar to the `-f` operator, for testing whether a file
     exists and is executable. |'
+  id: totrans-170
   prefs: []
   type: TYPE_TB
+  zh: '| `-``x`, `!-x` | 类似于 `-f` 操作符，用于测试文件是否存在并且可执行。 |'
 - en: 'Table 4.5: A list of syntaxes for conditions'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.5：条件语法列表
 - en: As of version 1.13.8, there are no `else` or `else if`-like instructions. However,
     other directives allowing you to control the configuration flow sequencing are
     available.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 从版本 1.13.8 开始，已经没有类似 `else` 或 `else if` 的指令。然而，其他允许你控制配置流顺序的指令是可用的。
 - en: 'You might wonder: *What are the advantages of using a* `location` *block over
     an* `if` *block?* Indeed, in the following example, both seem to have the same
     effect:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会想：*使用* `location` *块相对于* `if` *块有什么优势？* 确实，在以下示例中，两者似乎有相同的效果：
 - en: '[PRE11]'
+  id: totrans-174
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: As a matter of fact, the main difference lies within the directives that can
     be employed within either block. Some can be inserted in an `if` block and some
     can’t; on the contrary, almost all directives are authorized within a `location`
     block, as you probably noticed in the directive listings so far. In general, it’s
     best to only insert directives from the Rewrite module within an `if` block, as
     other directives were not originally intended for such usage.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，主要的区别在于可以在任一块中使用的指令。一些指令可以插入 `if` 块，而一些则不行；相反，几乎所有的指令都可以在 `location` 块中使用，正如你在前面的指令列表中可能已经注意到的那样。一般来说，最好只在
+    `if` 块中插入来自重写模块的指令，因为其他指令最初并不打算用于这种用途。
 - en: Directives
+  id: totrans-176
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 指令
 - en: 'The Rewrite module provides you with a set of directives that do more than
     just rewrite a URI. The following table describes these directives, along with
     the context in which they can be employed:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 重写模块为你提供了一组指令，这些指令不仅仅用于重写 URI。下表描述了这些指令，以及它们可以使用的上下文：
 - en: '| **Directive** | **Description** |'
+  id: totrans-178
   prefs: []
   type: TYPE_TB
+  zh: '| **Directive** | **Description** |'
 - en: '| --- | --- |'
+  id: totrans-179
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `rewrite``Context: server,` `location, if` | As discussed previously, the
     `rewrite` directive allows you to rewrite the URI of the current request, thus
     resetting the treatment of the said request.Syntax: `rewrite regexp` `replacement
     [flag];`Where `regexp` is the regular expression, the URI should match in order
     for the replacement to apply. |'
+  id: totrans-180
   prefs: []
   type: TYPE_TB
+  zh: '| `rewrite``Context: server,` `location, if` | 如前所述，`rewrite` 指令允许你重写当前请求的
+    URI，从而重置该请求的处理。语法：`rewrite regexp` `replacement [flag];` 其中 `regexp` 是正则表达式，只有当
+    URI 匹配时，才会进行替换。 |'
 - en: '|  | The flag may take one of the following values:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '|  | 标志可能采用以下值之一：'
 - en: '`last`: The current rewrite rule should be the last to be applied. After its
     application, the new URI is processed by NGINX, and a `location` block is searched
     for. However, further rewrite instructions will be disregarded.'
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`last`: 当前的重写规则应是最后一个应用的规则。在其应用后，新的 URI 由 NGINX 处理，并会查找 `location` 块。然而，之后的重写指令将被忽略。'
 - en: '`break`: The current rewrite rule is applied, but NGINX does not initiate a
     new request for the modified URI (does not restart the search for matching `location`
     blocks). All further `rewrite` directives are ignored.'
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`break`：当前的重写规则会被应用，但NGINX不会为修改后的URI发起新的请求（即不会重新开始查找匹配的`location`块）。所有后续的`rewrite`指令都会被忽略。'
 - en: '`redirect`: Returns a `302 Moved Temporarily` HTTP response, with the replacement
     URI set as the value of the `location` header.'
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`redirect`：返回一个`302 临时移动`的HTTP响应，并将替换后的URI设置为`location`头的值。'
 - en: '|'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '|  |'
+  id: totrans-186
   prefs: []
   type: TYPE_TB
+  zh: '|  |'
 - en: '`permanent`: Returns a `301 Moved Permanently` HTTP response, with the replacement
     URI set as the value of the `location` header.'
+  id: totrans-187
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`permanent`：返回一个`301 永久移动`的HTTP响应，并将替换后的URI设置为`location`头的值。'
 - en: If you specify a URI beginning with `http://` as the replacement URI, NGINX
     will automatically use the `redirect` flag.
+  id: totrans-188
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你指定以`http://`开头的URI作为替换URI，NGINX会自动使用`redirect`标志。
 - en: Note that the request URI processed by the directive is a relative URI; it does
     not contain the hostname and protocol. For a request such as `http://website.com/documents/page.html`,
     the request URI is `/documents/page.html`.
+  id: totrans-189
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请注意，指令处理的请求URI是一个相对URI；它不包含主机名和协议。对于请求`http://website.com/documents/page.html`，请求URI是`/documents/page.html`。
 - en: If decoded, this URI corresponding to a request, such as `http://website.com/my%20page.html`,
     would be `/my page.html` (in the encoded URI, `%20` indicates a whitespace character).
+  id: totrans-190
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果解码，此URI对应的请求，例如`http://website.com/my%20page.html`，将变成`/my page.html`（在编码的URI中，`%20`表示一个空格字符）。
 - en: 'Does not contain arguments; for a request such as `http://website.com/page.php?id=1&p=2`,
     the URI would be `/page.php`. When rewriting the URI, you don’t need to consider
     including arguments in the replacement URI; NGINX does it for you. If you want
     NGINX to not include arguments after the rewritten URI, you must insert a `?`
     character at the end of the replacement URI: `rewrite ^/``search/(.*)$ /search.php?q=$1?`.'
+  id: totrans-191
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不包含参数；对于请求如`http://website.com/page.php?id=1&p=2`，URI将是`/page.php`。在重写URI时，你不需要考虑将参数包含在替换URI中；NGINX会为你处理。如果你希望NGINX在重写后的URI后不包含参数，必须在替换URI的末尾插入`?`字符：`rewrite
+    ^/``search/(.*)$ /search.php?q=$1?`。
 - en: Examples:`rewrite ^/``search/(.*)$ /search.php?q=$1;``rewrite ^/``search/(.*)$
     /search.php?q=$1?;``rewrite ^` `http://website.com;``rewrite ^` `http://website.com
     permanent;` |
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：`rewrite ^/``search/(.*)$ /search.php?q=$1;``rewrite ^/``search/(.*)$ /search.php?q=$1?;``rewrite
+    ^` `http://website.com;``rewrite ^` `http://website.com permanent;` |
 - en: '| `break`Context: `server`, `location`, `if` | The `break` directive is used
     to prevent further `rewrite` directives. Past this point, the URI is fixed and
     cannot be altered.Example:`if (-f $``uri) {``break; # break if the` `file exists``}``if
@@ -833,8 +1251,12 @@
     example rewrites `/search/anything`-like queries to `/search.php?q=anything`.
     However, if the requested file exists (such as `/search/index.html`), the `break`
     instruction prevents NGINX from rewriting the URI. |'
+  id: totrans-193
   prefs: []
   type: TYPE_TB
+  zh: '| `break`上下文：`server`，`location`，`if` | `break`指令用于防止进一步的`rewrite`指令。此时，URI已经固定，不能再更改。示例：`if
+    (-f $``uri) {``break; # 如果文件存在，停止重写``}``if ($uri ~ ^/``search/(.*)$) {``set $``query
+    $1;``rewrite ^ /``search.php?q=$query?;``}`这个例子将`/search/anything`类型的查询重写为`/search.php?q=anything`。但是，如果请求的文件存在（比如`/search/index.html`），`break`指令会阻止NGINX重写URI。|'
 - en: '| `return`Context: `server`, `location`, `if` | Interrupts the processing of
     the request and returns the specified HTTP status code or specified text.Syntax:
     `return code &#124;` `text;`Here, the code is one of the following status codes:
@@ -846,192 +1268,287 @@
     `location` blocks.Example:`if ($uri ~ ^/``admin/) {``return 403;``# the instruction
     below is` `NOT executed``# as Nginx already completed` `the request``rewrite ^`
     `http://website.com;``}` |'
+  id: totrans-194
   prefs: []
   type: TYPE_TB
+  zh: '| `return`上下文: `server`, `location`, `if` | 中断请求处理并返回指定的HTTP状态码或指定的文本。语法：`return
+    code &#124;` `text;` 这里，代码可以是以下状态码之一：`204`, `308`, `400`, `402`至`406`, `408`,
+    `410`, `411`, `413`, `416`，以及`500`至`504`。此外，你还可以使用NGINX特有的`444`代码，返回`HTTP 200
+    OK`状态码并不带有响应头或正文。或者，你也可以指定一个原始文本值，作为响应体返回给用户。这在测试请求URI是否落在特定的`location`块内时非常有用。示例：`if
+    ($uri ~ ^/``admin/) {``return 403;``# 以下指令` `不会执行``# 因为Nginx已经完成` `了请求``rewrite
+    ^` `http://website.com;``}` |'
 - en: '| `set`Context: `server`, `location`, `if` | Initializes or redefines a variable.
     Note that some variables cannot be redefined; for example, you are not allowed
     to alter `$uri`.Syntax: `set $``variable value;`Examples:`set $var1 "some` `text";``if
     ($var1 ~ ^(.*) (.*)$) {``set $var2 $1$2; #``concatenation``rewrite ^` `http://website.com/$var2;``}`
     |'
+  id: totrans-195
   prefs: []
   type: TYPE_TB
+  zh: '| `set`上下文: `server`, `location`, `if` | 初始化或重新定义一个变量。请注意，有些变量无法重新定义；例如，不能修改`$uri`。语法：`set
+    $``variable value;` 示例：`set $var1 "some` `text";``if ($var1 ~ ^(.*) (.*)$) {``set
+    $var2 $1$2; #``拼接``rewrite ^` `http://website.com/$var2;``}` |'
 - en: '| `uninitialized_variable_warn`Context: `http`, `server`, `location`, `if`
     | If set to `on`, NGINX will issue log messages when the configuration employs
     a variable that has not yet been initialized.Syntax: `on` or `off`Example:`uninitialized_variable_warn
     on;` |'
+  id: totrans-196
   prefs: []
   type: TYPE_TB
+  zh: '| `uninitialized_variable_warn`上下文: `http`, `server`, `location`, `if` | 如果设置为`on`，NGINX将在配置中使用尚未初始化的变量时发出日志消息。语法：`on`
+    或 `off` 示例：`uninitialized_variable_warn on;` |'
 - en: '| `rewrite_log`Context: `http`, `server`, `location`, `if` | If `rewrite_log`
     is set to `on`, NGINX will issue log messages for every operation performed by
     the rewrite engine at the `notice` error level (see the `error_log` directive).Syntax:
     `on` or `off`Default value: `off`Example:`rewrite_log off;` |'
+  id: totrans-197
   prefs: []
   type: TYPE_TB
+  zh: '| `rewrite_log`上下文: `http`, `server`, `location`, `if` | 如果`rewrite_log`设置为`on`，NGINX将在每次重写引擎执行操作时发出日志消息，日志级别为`notice`（参见`error_log`指令）。语法：`on`
+    或 `off` 默认值：`off` 示例：`rewrite_log off;` |'
 - en: 'Table 4.6: A list of directives used to rewrite URIs'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 表4.6：用于重写URI的指令列表
 - en: Common rewrite rules
+  id: totrans-199
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 常见的重写规则
 - en: Here is a set of rewrite rules that satisfy basic needs for dynamic websites
     that wish to beautify their page links, thanks to the URL rewriting mechanism.
     You will obviously need to adjust these rules according to your particular situation,
     as every website is different.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一组重写规则，满足希望通过URL重写机制美化页面链接的动态网站的基本需求。你显然需要根据你的具体情况调整这些规则，因为每个网站都是不同的。
 - en: Performing a search
+  id: totrans-201
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 执行搜索
 - en: 'This rewrite rule is intended for search queries. Search keywords are included
     in the URL:'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 该重写规则用于搜索查询。搜索关键词包含在URL中：
 - en: '`http://website.com/search/some-search-keywords`'
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/search/some-search-keywords`'
 - en: '`http://website.com/search.php?q=some-search-keywords`'
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/search.php?q=some-search-keywords`'
 - en: '`rewrite ^/``search/(.*)$ /search.php?q=$1?;`'
+  id: totrans-205
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rewrite ^/``search/(.*)$ /search.php?q=$1?;`'
 - en: User profile page
+  id: totrans-206
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 用户个人资料页面
 - en: 'Most dynamic websites that allow visitors to register offer a profile view
     page. URLs of this form can be employed, containing both the user ID and the username:'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数允许访客注册的动态网站都提供个人资料查看页面。此类URL形式可以用于包含用户ID和用户名：
 - en: '`http://website.com/user/31/James`'
+  id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/user/31/James`'
 - en: '`http://website.com/user.php?id=31&name=James`'
+  id: totrans-209
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/user.php?id=31&name=James`'
 - en: '`rewrite ^/``user/([0-9]+)/(.+)$ /user.php?id=$1&name=$2?;`'
+  id: totrans-210
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rewrite ^/``user/([0-9]+)/(.+)$ /user.php?id=$1&name=$2?;`'
 - en: Multiple parameters
+  id: totrans-211
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 多个参数
 - en: 'Some websites may use different syntaxes for the argument string—for example,
     by separating non-named arguments with slashes:'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 有些网站可能使用不同的语法来表示参数字符串——例如，通过斜杠分隔未命名的参数：
 - en: '`http://website.com/index.php/param1/param2/param3`'
+  id: totrans-213
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/index.php/param1/param2/param3`'
 - en: '`http://website.com/index.php?p1=param1&p2=param2&p3=param3`'
+  id: totrans-214
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/index.php?p1=param1&p2=param2&p3=param3`'
 - en: '`rewrite ^/``index.php/(.*)/(.*)/(.*)$ /index.php?p1=$1&p2=$2&p3=$3?;`'
+  id: totrans-215
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rewrite ^/``index.php/(.*)/(.*)/(.*)$ /index.php?p1=$1&p2=$2&p3=$3?;`'
 - en: Wikipedia-like
+  id: totrans-216
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 类似维基百科
 - en: 'Many websites have now adopted the URL style introduced by *Wikipedia*, including
     a prefix folder followed by an article name:'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在许多网站已经采用了*维基百科*引入的URL样式，包括一个前缀文件夹，后跟文章名称：
 - en: '`http:// website.com/wiki/Some_keyword`'
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http:// website.com/wiki/Some_keyword`'
 - en: '**Rewritten URI**: http://website.com/wiki/index.php?title=Some_keyword'
+  id: totrans-219
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**重写后的URI**: http://website.com/wiki/index.php?title=Some_keyword'
 - en: '`rewrite ^/``wiki/(.*)$ /wiki/index.php?title=$1?;`'
+  id: totrans-220
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rewrite ^/``wiki/(.*)$ /wiki/index.php?title=$1?;`'
 - en: News website article
+  id: totrans-221
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 新闻网站文章
 - en: 'This URL structure is often employed by news websites, as URLs contain indications
     of articles’ contents. It is formed of an article identifier, followed by a slash,
     then a list of keywords. The keywords can usually be ignored and not included
     in the rewritten URI:'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种URL结构常被新闻网站采用，因为URL中包含了文章内容的指示。它由一个文章标识符组成，后跟一个斜杠，然后是关键词列表。通常情况下，关键词可以被忽略，并不包含在重写的URI中：
 - en: '`http://website.com/33526/us-economy-strengthens`'
+  id: totrans-223
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/33526/us-economy-strengthens`'
 - en: '`http://website.com/article.php?id=33526`'
+  id: totrans-224
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/article.php?id=33526`'
 - en: '`rewrite ^/([``0-9]+)/.*$ /article.php?id=$1?;`'
+  id: totrans-225
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rewrite ^/([``0-9]+)/.*$ /article.php?id=$1?;`'
 - en: Discussion board
+  id: totrans-226
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 讨论板
 - en: 'Modern bulletin boards now use *pretty URLs*, for the most part. This example
     shows how to create a *topic view* URL with two parameters: the topic identifier
     and the starting post. Once again, keywords are ignored:'
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 现代的留言板大多使用*美观的URL*。这个例子展示了如何创建一个带有两个参数的*话题视图* URL：话题标识符和起始帖子。再次强调，关键字会被忽略：
 - en: '`http://website.com/topic-1234-50-some-keywords.html`'
+  id: totrans-228
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/topic-1234-50-some-keywords.html`'
 - en: '`http://website.com/viewtopic.php?topic=1234&start=50`'
+  id: totrans-229
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`http://website.com/viewtopic.php?topic=1234&start=50`'
 - en: '`rewrite ^/``topic-([0-9]+)-([0-9]+)-(.*)\.html$ /viewtopic.php?topic=$1&start=$2?;`'
+  id: totrans-230
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rewrite ^/``topic-([0-9]+)-([0-9]+)-(.*)\.html$ /viewtopic.php?topic=$1&start=$2?;`'
 - en: The first half of this chapter covered one of the most important NGINX modules—namely,
     the Rewrite module. There are a lot more modules that will greatly enrich the
     functionality of the web server; they are regrouped by theme in the following
     section.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的前半部分介绍了最重要的NGINX模块之一——重写模块。还有许多其他模块，可以大大丰富Web服务器的功能；它们将在以下章节中按主题重新分组。
 - en: Looking at some additional modules
+  id: totrans-232
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 查看一些额外的模块
 - en: Among the modules described in this section, some are included in the default
     NGINX build, but some are not. This implies that unless you specifically configured
     your NGINX build to include these modules (as described in [*Chapter 1*](B21787_01.xhtml#_idTextAnchor014)),
     they will not be available to you. But remember that rebuilding NGINX to include
     additional modules is a relatively quick and easy process.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节描述的模块中，有些包含在默认的NGINX构建中，但有些则不包含。这意味着，除非你特别配置了NGINX构建以包含这些模块（如[*第1章*](B21787_01.xhtml#_idTextAnchor014)所述），否则它们对你来说是不可用的。但请记住，重新构建NGINX以包含额外模块是一个相对快速且简单的过程。
 - en: Website access and logging
+  id: totrans-234
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 网站访问与日志记录
 - en: The following set of modules allows you to configure how visitors access your
     website and the way your server logs requests.
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下一组模块允许你配置访客如何访问你的网站以及服务器如何记录请求。
 - en: Index
+  id: totrans-236
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 索引
 - en: The Index module provides a simple directive named `index` that lets you define
     the page that NGINX will serve by default if no filename is specified in the client
     request (in other words, it defines the website `index` page). You may specify
@@ -1039,143 +1556,219 @@
     specified files are found, NGINX will either attempt to generate an automatic
     index of the files, if the `autoindex` directive is enabled (check the HTTP `autoindex`
     module) or return a `403 Forbidden` error page.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: Index模块提供了一个简单的指令`index`，让你定义如果客户端请求中没有指定文件名时，NGINX将默认提供的页面（换句话说，它定义了网站的`index`页面）。你可以指定多个文件名；第一个找到的文件将会被提供。如果找不到任何指定的文件，NGINX将尝试生成一个自动的文件索引（如果启用了`autoindex`指令，请检查HTTP
+    `autoindex`模块），或者返回`403 Forbidden`错误页面。
 - en: Optionally, you may insert an absolute filename (such as `/page.html`), but
     only as the last argument of the directive.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 可选地，你可以插入一个绝对文件名（例如`/page.html`），但仅能作为指令的最后一个参数。
 - en: '`index file1 [``file2...] [absolute_file];`'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: '`index file1 [``file2...] [absolute_file];`'
 - en: '`index.html`'
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: '`index.html`'
 - en: 'Here’s an example:'
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个示例：
 - en: '[PRE12]'
+  id: totrans-242
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'This directive is valid in the following contexts: `http`, `server`, and `location`.'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 此指令在以下上下文中有效：`http`、`server` 和 `location`。
 - en: Autoindex
+  id: totrans-244
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 自动索引
 - en: 'If NGINX cannot provide an index page for the requested directory, the default
     behavior is to return a `403 Forbidden HTTP` error page. With the following set
     of directives, you enable an automatic listing of the files that are present in
     the requested directory:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果NGINX无法为请求的目录提供索引页面，默认行为是返回`403 Forbidden HTTP`错误页面。通过以下指令集，您可以启用自动列出请求目录中存在的文件：
 - en: '![Figure 4.1: A screenshot showing the autoindex module listing the content
     of a directory](img/B21787_04_1.jpg)'
+  id: totrans-246
   prefs: []
   type: TYPE_IMG
+  zh: '![图 4.1：显示自动索引模块列出目录内容的截图](img/B21787_04_1.jpg)'
 - en: 'Figure 4.1: A screenshot showing the autoindex module listing the content of
     a directory'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4.1：显示自动索引模块列出目录内容的截图
 - en: 'Three columns of information appear for each file: the filename, the file date
     and time, and the file size in bytes:'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个文件会显示三列信息：文件名、文件日期和时间，以及文件大小（字节为单位）：
 - en: '| **Directive** | **Description** |'
+  id: totrans-249
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-250
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `Autoindex`Context: `http`, `server`, `location` | Enables or disables automatic
     directory listing for directories missing an `index` page.Syntax: `on` or `off`
     |'
+  id: totrans-251
   prefs: []
   type: TYPE_TB
+  zh: '| `Autoindex`上下文：`http`、`server`、`location` | 启用或禁用自动目录列表，适用于缺少`index`页面的目录。语法：`on`或`off`
+    |'
 - en: '| `autoindex_exact_size`Context: `http`, `server`, `location` | If set to `on`,
     this directive ensures that the listing displays file sizes in bytes. Otherwise,
     another unit is employed, such as KB, MB, or GB.Syntax: `on` or `off`Default value:
     `on` |'
+  id: totrans-252
   prefs: []
   type: TYPE_TB
+  zh: '| `autoindex_exact_size`上下文：`http`、`server`、`location` | 如果设置为`on`，该指令确保列表中显示文件大小（以字节为单位）。否则，将使用其他单位，如KB、MB或GB。语法：`on`或`off`
+    默认值：`on` |'
 - en: '| `autoindex_localtime`Context: `http`, `server`, `location` | By default,
     this directive is set to `off`, so the date and time of files in the listing appear
     as GMT time. Set it to `on` to make use of the local server time.Syntax: `on`
     or `off`Default value: `off` |'
+  id: totrans-253
   prefs: []
   type: TYPE_TB
+  zh: '| `autoindex_localtime`上下文：`http`、`server`、`location` | 默认情况下，该指令设置为`off`，因此文件列表中的日期和时间将以格林威治标准时间（GMT）显示。将其设置为`on`可以使用本地服务器时间。语法：`on`或`off`
+    默认值：`off` |'
 - en: '| `autoindex_format`Context: `http`, `server`, `location` | NGINX offers to
     serve the directory index in different formats: HTML, XML, JSON, or JSONP (by
     default, HTML is used).Syntax: `autoindex_format html &#124; xml &#124; json &#124;`
     `jsonp;`If you set the directive value to `jsonp`, NGINX will insert the value
     of the `callback` query argument as JSONP callback. For example, your script should
     call this URI: `/folder/?callback=MyCallbackName`. |'
+  id: totrans-254
   prefs: []
   type: TYPE_TB
+  zh: '| `autoindex_format`上下文：`http`、`server`、`location` | NGINX提供以不同格式提供目录索引：HTML、XML、JSON或JSONP（默认使用HTML）。语法：`autoindex_format
+    html &#124; xml &#124; json &#124;` `jsonp;`如果将指令值设置为`jsonp`，NGINX会将`callback`查询参数的值作为JSONP回调插入。例如，您的脚本应调用该URI：`/folder/?callback=MyCallbackName`。
+    |'
 - en: 'Table 4.7: A list of directives for the autoindex module'
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.7：自动索引模块的指令列表
 - en: Random index
+  id: totrans-256
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 随机索引
 - en: This module enables a simple directive, `random_index`, which can be used within
     a `location` block in order for NGINX to return an `index` page selected randomly
     among the files of the specified directory.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块启用了一个简单的指令`random_index`，可以在`location`块中使用，以便NGINX从指定目录中的文件中随机选择一个`index`页面返回。
 - en: Note
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块不包含在默认的NGINX构建中。
 - en: 'Syntax: `on` or `off`'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法：`on` 或 `off`
 - en: Log
+  id: totrans-261
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 日志
 - en: 'This module controls the behavior of NGINX regarding access logs. It is a key
     module for system administrators, as it allows analyzing the runtime behavior
     of web applications. It is composed of three essential directives:'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块控制NGINX有关访问日志的行为。它是系统管理员的一个关键模块，因为它可以分析Web应用程序的运行时行为。它由三个基本指令组成：
 - en: '| **Directive** | **Description** |'
+  id: totrans-263
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-264
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `access_log`Context: `http`, `server`, `location`, `if` (in location), `limit_except`
     | This parameter defines the access log file path and the format of entries in
     the access log by selecting a template name or disables access logging.Syntax:
     `access_log path [format [buffer=size]] &#124;` `off;`Some remarks concerning
     the directive syntax:'
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `access_log`上下文：`http`、`server`、`location`、`if`（在location中）、`limit_except`
+    | 此参数定义访问日志文件路径和通过选择模板名称来记录条目的格式，或者禁用访问日志记录。语法：`access_log path [format [buffer=size]]
+    &#124;` `off;`关于指令语法的一些备注：'
 - en: Use `access_log off` to disable access logging at the current level
+  id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用`access_log off`来禁用当前级别的访问日志记录
 - en: The format argument corresponds to a template declared with the `log_format`
     directive
+  id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 格式参数对应于通过`log_format`指令声明的模板
 - en: If the format argument is not specified, the default format is employed (combined)
+  id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果未指定格式参数，则使用默认格式（combined）。
 - en: You may use variables in the file path
+  id: totrans-269
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 您可以在文件路径中使用变量
 - en: '|'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `log_format`Context: `http`, `server`, `location` | Defines a template to
     be utilized by the `access_log` directive, describing contents that should be
     included in an entry of the access log.Syntax: `log_format template_name [``escape=default&#124;json]
@@ -1183,204 +1776,311 @@
     example:`log_format combined ''$remote_addr - $remote_user [$time_local] ''"$``request"
     $status``$``body_bytes_sent ''"$http_referer"``"$``http_user_agent"'';``#` `Other
     example``log_format simple ''$``remote_addr $request'';` |'
+  id: totrans-271
   prefs: []
   type: TYPE_TB
+  zh: '| `log_format`上下文：`http`，`server`，`location` | 定义供 `access_log` 指令使用的模板，描述应包含在访问日志条目中的内容。语法：`log_format
+    template_name [``escape=default&#124;json] format_string;`默认模板称为 `combined`，匹配以下示例：`log_format
+    combined ''$remote_addr - $remote_user [$time_local] ''"$``request" $status``$``body_bytes_sent
+    ''"$http_referer"``"$``http_user_agent"'';``#` `其他示例``log_format simple ''$``remote_addr
+    $request'';` |'
 - en: '| `open_log_file_cache`Context: `http`, `server`, `location` | Configures the
     cache for log file descriptors. Please refer to the `open_file_cache` directive
     of the HTTP core module for additional information.Syntax: `open_log_file_cache
     max=N [inactive=time] [min_uses=N] [valid=time] &#124;` `off;`The arguments are
     similar to the `open_file_cache` directive and other related directives, the difference
     being that this applies to access log files only. |'
+  id: totrans-272
   prefs: []
   type: TYPE_TB
+  zh: '| `open_log_file_cache`上下文：`http`，`server`，`location` | 配置日志文件描述符的缓存。有关更多信息，请参阅
+    HTTP 核心模块的 `open_file_cache` 指令。语法：`open_log_file_cache max=N [inactive=time]
+    [min_uses=N] [valid=time] &#124;` `off;`参数类似于 `open_file_cache` 指令和其他相关指令，不同之处在于它仅适用于访问日志文件。
+    |'
 - en: 'Table 4.8: A list of directives for the Log module'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.8：日志模块的指令列表
 - en: 'The Log module also enables several new variables, though they are only accessible
     when writing log entries:'
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志模块还启用了几个新变量，尽管它们只能在编写日志条目时访问：
 - en: '`$connection`: The connection number'
+  id: totrans-275
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$connection`：连接编号'
 - en: '`$pipe`: The variable is set to `p` if the request was pipelined'
+  id: totrans-276
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$pipe`：如果请求是流水线处理的，则变量设置为 `p`'
 - en: '`$time_local`: Local time (at the time of writing the log entry)'
+  id: totrans-277
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$time_local`：本地时间（写入日志条目时）'
 - en: '`$msec`: Local time (at the time of writing the log entry) to the microsecond'
+  id: totrans-278
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$msec`：本地时间（写入日志条目时）到微秒级别'
 - en: '`$request_time`: Total length of the request processing, in milliseconds'
+  id: totrans-279
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$request_time`：请求处理的总时长，以毫秒为单位'
 - en: '`$status`: Response status code'
+  id: totrans-280
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$status`：响应状态码'
 - en: '`$bytes_sent`: Total number of bytes sent to the client'
+  id: totrans-281
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$bytes_sent`：发送到客户端的总字节数'
 - en: '`$body_bytes_sent`: Number of bytes sent to the client for the response body'
+  id: totrans-282
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$body_bytes_sent`：发送到客户端的响应体字节数'
 - en: '`$apache_bytes_sent`: Similar to `$body_bytes`, which corresponds to the `%B`
     parameter of Apache’s `mod_log_config`'
+  id: totrans-283
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$apache_bytes_sent`：类似于 Apache 的 `mod_log_config` 中 `%B` 参数对应的 `$body_bytes`'
 - en: '`$request_length`: Length of the request body'
+  id: totrans-284
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$request_length`：请求体的长度'
 - en: Limits and restrictions
+  id: totrans-285
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 限制和约束
 - en: The following modules allow you to regulate access to the documents of your
     websites, require users to authenticate, match a set of rules, or simply restrict
     access to certain visitors.
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下模块允许您管理对网站文档的访问、要求用户进行身份验证、匹配一组规则或仅限制对特定访客的访问。
 - en: auth_basic module
+  id: totrans-287
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: auth_basic 模块
 - en: 'The `auth_basic` module enables the basic authentication functionality. With
     the two directives that it brings forth, you can make it so that a specific location
     of your website (or your server) is restricted to users who authenticate with
     a username and password:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_basic` 模块使基本认证功能生效。通过其引入的两个指令，您可以使网站（或服务器）的特定位置仅限于使用用户名和密码进行身份验证的用户：'
 - en: '[PRE13]'
+  id: totrans-289
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The first directive, `auth_basic`, can be set to either `off` or a text message,
     usually referred to as *authentication challenge* or *authentication realm*. This
     message is displayed by web browsers in a username/password box when a client
     attempts to access the protected resource.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个指令 `auth_basic` 可以设置为 `off` 或文本消息，通常称为 *身份验证挑战* 或 *身份验证领域*。当客户端尝试访问受保护资源时，Web
+    浏览器会显示此消息在用户名/密码框中。
 - en: 'The second one, `auth_basic_user_file`, defines the path of the password file
     relative to the directory of the configuration file. A password file is formed
     of lines respecting the `username:[{SCHEME}]password[:comment]` syntax:'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个指令 `auth_basic_user_file` 定义了密码文件相对于配置文件目录的路径。密码文件由符合 `username:[{SCHEME}]password[:comment]`
+    语法的行组成：
 - en: '`username`: A plain text username.'
+  id: totrans-292
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`username`：明文用户名。'
 - en: '`{SCHEME}`: Optionally, the password hashing method. There are currently three
     supported schemes: `{PLAIN}` for plain-text passwords, `{SHA}` for SHA-1 hashing,
     and `{SSHA}` for salted SHA-1 hashing.'
+  id: totrans-293
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`{SCHEME}`：可选的密码哈希方法。目前支持三种方案：`{PLAIN}` 代表明文密码，`{SHA}` 代表 SHA-1 哈希，`{SSHA}`
+    代表带盐的 SHA-1 哈希。'
 - en: Important note
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要提示
 - en: Please note that `PLAIN` and `SHA`, while still supported, are insecure methods.
     We recommend you use `SSHA` for salting passwords.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，虽然 `PLAIN` 和 `SHA` 仍然支持，但它们是不安全的方法。我们建议使用 `SSHA` 进行密码加盐。
 - en: '`password`: The password.'
+  id: totrans-296
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`password`：密码。'
 - en: '`comment`: A plain-text comment for your own use.'
+  id: totrans-297
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`comment`：供自己使用的纯文本注释。'
 - en: If you fail to specify a scheme, the password will need to be encrypted with
     the `crypt(3)` function—for example, with the help of the `htpasswd` command-line
     utility from Apache packages.
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果未指定方案，密码需要使用 `crypt(3)` 函数进行加密——例如，可以借助 Apache 包中的 `htpasswd` 命令行工具进行加密。
 - en: Access
+  id: totrans-299
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 访问
 - en: 'Two important directives are brought up by this module: `allow` and `deny`.
     They let you allow or deny access to a resource for a specific IP address or IP
     address range.'
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块引入了两个重要的指令：`allow` 和 `deny`。它们允许您为特定的 IP 地址或 IP 地址范围允许或拒绝对资源的访问。
 - en: 'Both directives have the same syntax: `allow IP` | `CIDR` | `unix:` | `all`,
     where `IP` is an IP address, `CIDR` is an IP address range (`unix:` represents
     all Unix domain sockets, and `all` specifies that the directive applies to all
     clients:'
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个指令具有相同的语法：`allow IP` | `CIDR` | `unix:` | `all`，其中 `IP` 是 IP 地址，`CIDR` 是 IP
+    地址范围（`unix:` 代表所有 Unix 域套接字，`all` 表示该指令适用于所有客户端）。
 - en: '[PRE14]'
+  id: totrans-302
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Important note
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要提示
 - en: 'Note that rules are processed from the top down: if your first instruction
     is `deny all`, all possible `allow` exceptions that you place afterward will have
     no effect. The opposite is also true; if you start with `allow all`, all possible
     `deny` directives that you place afterward will have no effect, as you already
     allowed all IP addresses.'
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，规则是从上到下处理的：如果您的第一个指令是 `deny all`，则之后放置的所有 `allow` 异常将无效。反之亦然；如果从 `allow
+    all` 开始，之后放置的所有 `deny` 指令也将无效，因为您已经允许了所有 IP 地址。
 - en: Limit connections
+  id: totrans-305
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 限制连接
 - en: The mechanism induced by this module is a little more complex than regular ones.
     It allows you to define the maximum amount of simultaneous connections to the
     server for a specific *zone*.
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块引入的机制比常规机制稍微复杂一些。它允许您定义特定 *区域* 中同时连接到服务器的最大数量。
 - en: 'The first step is to define the zone using the `limit_conn_zone` directive:'
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是使用 `limit_conn_zone` 指令定义区域：
 - en: The directive syntax is `limit_conn_zone $``variable zone=name:size;`
+  id: totrans-308
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 指令语法为 `limit_conn_zone $``variable zone=name:size;`
 - en: '`$variable` is the variable that will be used to differentiate one client from
     another, typically `$binary_remote_addr`, the IP address of the client in binary
     format (more efficient than ASCII)'
+  id: totrans-309
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$variable` 是用于区分不同客户端的变量，通常为 `$binary_remote_addr`，即客户端的二进制格式 IP 地址（比 ASCII
+    格式更高效）。'
 - en: '`name` is an arbitrary name given to the zone'
+  id: totrans-310
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`name` 是为区域指定的任意名称。'
 - en: '`size` is the maximum size you allocate to the table storing session states'
+  id: totrans-311
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`size` 是分配给存储会话状态表的最大大小。'
 - en: 'The following example defines zones based on the client IP addresses (incoming
     connections):'
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下示例根据客户端 IP 地址（传入连接）定义区域：
 - en: '[PRE15]'
+  id: totrans-313
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Now that you have defined a zone, you may limit connections using `limit_conn`:'
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在您已经定义了一个区域，可以使用 `limit_conn` 限制连接数：
 - en: '[PRE16]'
+  id: totrans-315
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'When applied to the previous example, it becomes the following:'
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用到之前的示例后，变成以下内容：
 - en: '[PRE17]'
+  id: totrans-317
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: As a result, requests that share the same `$binary_remote_addr` IP address are
     subject to the connection limit (one simultaneous connection). If the limit is
     reached, all additional concurrent requests will be answered with a `503 Service
@@ -1388,30 +2088,46 @@
     another code via the `limit_conn_status` directive. If you wish to log client
     requests that are affected by the limits you have set, enable the `limit_conn_log_level`
     directive and specify the log level (`info` | `notice` | `warn` | `error`).
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是，共享相同 `$binary_remote_addr` IP 地址的请求会受到连接限制（每次连接仅允许一个）。如果达到限制，所有额外的并发请求将返回
+    `503 Service Unavailable` HTTP 响应。如果希望使用其他响应码，可以通过 `limit_conn_status` 指令指定。若要记录受限客户端请求的日志，请启用
+    `limit_conn_log_level` 指令，并指定日志级别（`info` | `notice` | `warn` | `error`）。
 - en: Limit request
+  id: totrans-319
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 限制请求
 - en: In a similar fashion, the Limit request module allows you to limit the amount
     of requests for a defined zone.
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似地，Limit 请求模块允许您限制特定区域的请求数量。
 - en: 'Defining the zone is done via the `limit_req_zone` directive; its syntax differs
     from the Limit zone equivalent directive:'
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义区域是通过`limit_req_zone`指令完成的；它的语法与Limit区域的等效指令不同：
 - en: '[PRE18]'
+  id: totrans-322
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'The directive parameters are identical, except for the trailing `rate` parameter,
     expressed in `limit_req` directive:'
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 指令的参数是相同的，唯一不同的是`rate`参数，它在`limit_req`指令中表示：
 - en: '[PRE19]'
+  id: totrans-324
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'The `burst` parameter defines the maximum possible bursts of requests. When
     the amount of requests received from a client exceeds the limit defined in the
     zone, responses are delayed in a manner that respects the rate that you defined.
@@ -1419,20 +2135,30 @@
     Past this limit, NGINX returns a `503 Service Unavailable` HTTP error response.
     This response code can be overridden if you specify another code via the `limit_req_status`
     directive:'
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: '`burst`参数定义了请求的最大爆发次数。当从客户端收到的请求数量超过区域中定义的限制时，响应会根据你定义的速率进行延迟。在一定程度上，只有最多`burst`个请求会同时被接受。超过此限制后，NGINX会返回`503
+    Service Unavailable` HTTP错误响应。如果你通过`limit_req_status`指令指定了其他状态码，则可以覆盖此响应代码：'
 - en: '[PRE20]'
+  id: totrans-326
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: If you wish to log client requests that are affected by the limits you have
     set, enable the `limit_req_log_level` directive and specify the log level (`info`
     | `notice` | `warn` | `error`).
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你希望记录受你设置的限制影响的客户端请求，请启用`limit_req_log_level`指令，并指定日志级别（`info` | `notice`
+    | `warn` | `error`）。
 - en: Auth request
+  id: totrans-328
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 身份验证请求
 - en: 'The `auth_request` module was implemented in recent versions of NGINX and allows
     you to allow or deny access to a resource based on the result of a sub-request.
     NGINX calls the URI that you specify via the `auth_request` directive: if the
@@ -1441,325 +2167,488 @@
     NGINX forwards the response code to the client. Should the backend return any
     other response code, NGINX will consider it to be an error and deny access to
     the resource:'
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: '`auth_request`模块是在NGINX的最新版本中实现的，允许你根据子请求的结果来允许或拒绝对某个资源的访问。NGINX通过`auth_request`指令调用你指定的URI：如果子请求返回`2xx`响应码（例如`HTTP/200
+    OK`），则允许访问。如果子请求返回`401`或`403`状态码，则拒绝访问，NGINX将响应码转发给客户端。如果后端返回任何其他响应码，NGINX将视其为错误并拒绝访问该资源：'
 - en: '[PRE21]'
+  id: totrans-330
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'Additionally, the module offers a second directive, called `auth_request_set`,
     allowing you to set a variable after the sub-request is executed. You can insert
     variables that originate from the sub-request upstream (`$upstream_http_*`), such
     as `$upstream_http_server` or other HTTP headers, from the server response:'
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，模块还提供了第二个指令，名为`auth_request_set`，允许你在子请求执行后设置一个变量。你可以插入来自子请求上游的变量（`$upstream_http_*`），例如`$upstream_http_server`或其他HTTP头信息，这些来自服务器响应：
 - en: '[PRE22]'
+  id: totrans-332
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Content and encoding
+  id: totrans-333
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 内容和编码
 - en: The following set of modules provides functionalities that have an effect on
     the contents served to the client, either by modifying the way the response is
     encoded, by affecting the headers, or by generating a response from scratch.
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下模块集提供了对客户端服务内容的功能影响，无论是通过修改响应编码方式、影响头部信息，还是通过从头开始生成响应。
 - en: Empty GIF
+  id: totrans-335
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 空GIF
 - en: The purpose of this module is to provide a directive that serves a 1x1 transparent
     GIF image from the memory. Such files are sometimes used by web designers to tweak
     the appearance of their websites. With this directive, you get an empty GIF straight
     from the memory, instead of reading and processing an actual GIF file from the
     storage space.
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 此模块的目的是提供一个指令，从内存中提供一个1x1透明GIF图像。这种文件有时被网页设计师用来调整他们网站的外观。使用此指令，你可以直接从内存获取一个空的GIF，而无需从存储空间读取和处理实际的GIF文件。
 - en: 'To utilize this feature, simply insert the `empty_gif` directive in the location
     of your choice:'
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用此功能，只需在你选择的位置插入`empty_gif`指令：
 - en: '[PRE23]'
+  id: totrans-338
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: MP4
+  id: totrans-339
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: MP4
 - en: 'MP4 is a module that enables a simple functionality that becomes useful when
     serving MP4 video files. It parses a special argument of the request, `start`,
     which indicates the offset of the section the client wishes to download or pseudo-stream.
     The video file must thus be accessed with the following URI: `video.mp4?start=XXX`.
     This parameter is prepared automatically by mainstream video players, such as
     JW Player.'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: MP4是一个模块，它提供了一种简单的功能，尤其在服务MP4视频文件时非常有用。它解析请求的特殊参数`start`，该参数指示客户端希望下载或伪流的部分偏移量。因此，视频文件必须通过以下URI访问：`video.mp4?start=XXX`。这一参数通常由主流视频播放器（例如JW
+    Player）自动准备。
 - en: Note
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块不包含在默认的 NGINX 构建中。
 - en: 'To utilize this feature, simply insert the `.mp4` directive in the location
     of your choice:'
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用此功能，只需在你选择的位置插入 `.mp4` 指令：
 - en: '[PRE24]'
+  id: totrans-344
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Be aware that if NGINX fails to seek the requested position within the video
     file, the request will result in a `500 Internal Server Error` HTTP response.
     JW Player sometimes misinterprets this error and simply displays a `Video not
     found` error message.
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，如果 NGINX 无法在视频文件中找到请求的位置，请求将导致 `500 内部服务器错误` HTTP 响应。JW Player 有时会误解此错误，直接显示
+    `视频未找到` 错误信息。
 - en: HTTP headers
+  id: totrans-346
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: HTTP 头部
 - en: Three directives are introduced by this module that will affect the header of
     the response sent to the client.
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块引入了三个指令，这些指令会影响发送给客户端的响应头。
 - en: 'First, `add_header name value [always]` lets you add a new line in the response
     headers, respecting the following syntax: `Name: value`. The line is added only
     for responses of the following codes: `200`, `201`, `204`, `301`, `302`, or `304`.
     You may insert variables in the `value` argument. If you specify `always` at the
     end of the directive value, the header will always be added, regardless of the
     response code.'
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: '首先，`add_header name value [always]` 让你在响应头中添加一行，遵循以下语法：`Name: value`。该行仅在以下响应码的响应中添加：`200`、`201`、`204`、`301`、`302`
+    或 `304`。你可以在 `value` 参数中插入变量。如果在指令值的末尾指定 `always`，则无论响应码是什么，头部都会始终添加。'
 - en: Additionally, the `add_trailer name value [always]` directive allows you to
     add a header to the end of the response if the response code is one of `200`,
     `201`, `204`, `206`, `301`, `302`, `303`, `307`, or `308`. This directive can
     be specified multiple times to add multiple headers. The `always` flag works similarly
     to the `add_header` version.
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，`add_trailer name value [always]` 指令允许你在响应结尾处添加一个头部，如果响应码是 `200`、`201`、`204`、`206`、`301`、`302`、`303`、`307`
+    或 `308` 中的任何一个。此指令可以多次指定，以添加多个头部。`always` 标志与 `add_header` 版本的作用相似。
 - en: 'Finally, the `expires` directive allows you to control the value of the `Expires`
     and `Cache-Control` HTTP headers sent to the client, affecting requests of the
     same code, as listed earlier. It accepts a single value among the following:'
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，`expires` 指令允许你控制发送给客户端的 `Expires` 和 `Cache-Control` HTTP 头的值，影响相同响应码的请求，如前所列。它接受以下其中一个值：
 - en: '`off`: Does not modify either header.'
+  id: totrans-351
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`：不修改任何头部。'
 - en: '`expires 24h` will return an expiry date set to 24 hours from now.'
+  id: totrans-352
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`expires 24h` 将返回设置为 24 小时后的过期日期。'
 - en: '`epoch`: The expiration date of the file is set to January 1, 1970\. The `Cache-Control`
     header is set to `no-cache`.'
+  id: totrans-353
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`epoch`：文件的过期日期设置为 1970 年 1 月 1 日。`Cache-Control` 头设置为 `no-cache`。'
 - en: '`max`: The expiration date of the file is set to December 31, 2037\. The `Cache-Control`
     header is set to 10 years.'
+  id: totrans-354
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`max`：文件的过期日期设置为 2037 年 12 月 31 日。`Cache-Control` 头设置为 10 年。'
 - en: Addition
+  id: totrans-355
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 附加
 - en: The Addition module allows you to (through simple directives) add content before
     or after the body of the HTTP response.
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 附加模块允许你通过简单的指令在 HTTP 响应的正文前后添加内容。
 - en: Note
+  id: totrans-357
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块不包含在默认的 NGINX 构建中。
 - en: 'The two main directives are the following:'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要的两个指令如下：
 - en: '`add_before_body file_uri;`'
+  id: totrans-360
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`add_before_body file_uri;`'
 - en: '`add_after_body file_uri;`'
+  id: totrans-361
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`add_after_body file_uri;`'
 - en: 'As stated previously, NGINX triggers a sub-request for fetching the specified
     URI. Additionally, you can define the types of files to which content is appended
     in case your `location` block pattern is not specific enough (default: `text/html`):'
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，NGINX 会触发一个子请求来获取指定的 URI。此外，如果你的 `location` 匹配模式不够具体（默认：`text/html`），你可以定义要追加内容的文件类型：
 - en: '[PRE25]'
+  id: totrans-363
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Substitution
+  id: totrans-364
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 替换
 - en: 'Along the lines of the previous module, the Substitution module allows you
     to search and replace text directly from the response body:'
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
+  zh: 与之前的模块类似，替换模块允许你直接在响应体中搜索并替换文本：
 - en: '[PRE26]'
+  id: totrans-366
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: This module is not included in the default NGINX build.
+  id: totrans-367
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块不包含在默认的 NGINX 构建中。
 - en: 'Two additional directives provide more flexibility:'
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个附加指令提供了更多的灵活性：
 - en: '`sub_filter_once` (`on` or `off`, default `on`): Only replaces the text once,
     and stops after the first occurrence.'
+  id: totrans-369
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sub_filter_once`（`on` 或 `off`，默认值 `on`）：只会替换文本一次，并在第一次出现后停止。'
 - en: '`sub_filter_types` (default `text/html`): Affects additional MIME types that
     will be eligible for text replacement. The `*` wildcard is allowed.'
+  id: totrans-370
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sub_filter_types`（默认值 `text/html`）：影响将适用于文本替换的其他 MIME 类型。允许使用 `*` 通配符。'
 - en: Gzip filter
+  id: totrans-371
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Gzip 过滤器
 - en: 'This module allows you to compress the response body with the Gzip algorithm
     before sending it to the client. To enable Gzip compression, use the `gzip` directive
     (`on` or `off`) at the `http`, `server`, `location`, and even the `if` level (though
     that is not recommended). The following directives will help you to further configure
     the filter options:'
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块允许您在将响应体发送到客户端之前，使用Gzip算法对其进行压缩。要启用Gzip压缩，请在`http`、`server`、`location`甚至`if`级别（虽然不推荐）使用`gzip`指令（`on`或`off`）。以下指令将帮助您进一步配置过滤器选项：
 - en: '| **Directive** | **Description** |'
+  id: totrans-373
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-374
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `gzip_buffers`Context: `http`, `server`, `location` | Defines the amount
     and size of buffers to be used for storing the compressed response.Syntax: `gzip_buffers`
     `amount size;`Default: `gzip_buffers 4 4k` (or `8k`, depending on the OS) |'
+  id: totrans-375
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_buffers`上下文：`http`，`server`，`location` | 定义用于存储压缩响应的缓冲区的数量和大小。语法：`gzip_buffers`
+    `数量 大小;` 默认值：`gzip_buffers 4 4k`（或`8k`，取决于操作系统） |'
 - en: '| `gzip_comp_level`Context: `http`, `server`, `location` | Defines the compression
     level of the algorithm. The specified value ranges from `1` (low compression,
     faster for the CPU) to `9` (high compression, slower).Syntax: Numeric valueDefault:
     `1` |'
+  id: totrans-376
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_comp_level`上下文：`http`，`server`，`location` | 定义算法的压缩级别。指定的值范围从`1`（低压缩，CPU更快）到`9`（高压缩，速度较慢）。语法：数值
+    默认值：`1` |'
 - en: '| `gzip_disable`Context: `http`, `server`, `location` | Disables Gzip compression
     for requests where the `User-Agent` HTTP header matches the specified regular
     expression.Syntax: Regular expressionDefault: None |'
+  id: totrans-377
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_disable`上下文：`http`，`server`，`location` | 禁用Gzip压缩，适用于`User-Agent` HTTP头部匹配指定正则表达式的请求。语法：正则表达式
+    默认值：无 |'
 - en: '| `gzip_http_version`Context: `http`, `server`, `location` | Enables Gzip compression
     for the specified protocol version.Syntax: `1.0` or `1.1`Default: `1.1` |'
+  id: totrans-378
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_http_version`上下文：`http`，`server`，`location` | 启用指定协议版本的Gzip压缩。语法：`1.0`或`1.1`
+    默认值：`1.1` |'
 - en: '| `gzip_min_length`Context: `http`, `server`, `location` | If the response
     body length is inferior to the specified value, it is not compressed.Syntax: Numeric
     value (size)Default: `0` |'
+  id: totrans-379
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_min_length`上下文：`http`，`server`，`location` | 如果响应体长度小于指定值，则不进行压缩。语法：数值（大小）
+    默认值：`0` |'
 - en: '| `gzip_proxied`Context: `http`, `server`, `location` | Enables or disables
     Gzip compression for the body of responses received from a proxy (see reverse-proxying
     mechanisms in later chapters).The directive accepts the following parameters;
     some can be combined:'
+  id: totrans-380
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `gzip_proxied`上下文：`http`，`server`，`location` | 启用或禁用对来自代理的响应体进行Gzip压缩（参见后续章节中的反向代理机制）。此指令接受以下参数；某些参数可以组合使用：'
 - en: '`off/any`: Disables or enables compression for all requests'
+  id: totrans-381
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off/any`：禁用或启用所有请求的压缩'
 - en: '`expired`: Enables compression if the `Expires` header prevents caching'
+  id: totrans-382
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`expired`：如果`Expires`头部禁止缓存，则启用压缩'
 - en: '`no-cache/no-store/private`: Enables compression if the `Cache-Control` header
     is set to `no-cache`, `no-store`, or `private`'
+  id: totrans-383
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no-cache/no-store/private`：如果`Cache-Control`头部设置为`no-cache`、`no-store`或`private`，则启用压缩。'
 - en: '`no_last_modified`: Enables compression in case the `Last-Modified` header
     is not set'
+  id: totrans-384
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no_last_modified`：如果未设置`Last-Modified`头部，则启用压缩'
 - en: '`no_etag`: Enables compression in case the `ETag` header is not set'
+  id: totrans-385
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`no_etag`：如果未设置`ETag`头部，则启用压缩'
 - en: '`auth`: Enables compression in case an `Authorization` header is set'
+  id: totrans-386
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`auth`：如果设置了`Authorization`头部，则启用压缩'
 - en: '|'
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: '|'
 - en: '| `gzip_types`Context: `http`, `server`, `location` | Enables compression for
     types other than the default `text/html` MIME type.Syntax:`gzip_types` `mime_type1
     [mime_type2...];``gzip_types *;`Default: `text/html` (cannot be disabled) |'
+  id: totrans-388
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_types`上下文：`http`，`server`，`location` | 启用除默认`text/html` MIME类型之外的其他类型的压缩。语法：`gzip_types`
+    `mime_type1 [mime_type2...];` `gzip_types *;` 默认值：`text/html`（无法禁用） |'
 - en: '| `gzip_vary`Context: `http`, `server`, `location` | Adds the `Vary: Accept-Encoding`
     HTTP header to the response.Syntax: `on` or `off`Default: `off` |'
+  id: totrans-389
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_vary`上下文：`http`，`server`，`location` | 将`Vary: Accept-Encoding` HTTP头部添加到响应中。语法：`on`或`off`
+    默认值：`off` |'
 - en: '| `gzip_window`Context: `http`, `server`, `location` | Sets the size of the
     window buffer (`windowBits` argument) for Gzipping operations. This directive
     value is used for calls to functions from the Zlib library.Syntax: Numeric value
     (size)Default: `MAX_WBITS` constant from the Zlib library |'
+  id: totrans-390
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_window`上下文：`http`，`server`，`location` | 设置Gzipping操作的窗口缓冲区大小（`windowBits`参数）。此指令的值用于调用Zlib库中的函数。语法：数值（大小）
+    默认值：Zlib库中的`MAX_WBITS`常量 |'
 - en: '| `gzip_hash`Context: `http`, `server`, `location` | Sets the amount of memory
     that should be allocated for the internal compression state (`memLevel` argument).
     This directive value is used for calls to functions from the Zlib library.Syntax:
     Numeric value (size)Default: `MAX_MEM_LEVEL` constant from the Zlib prerequisite
     library |'
+  id: totrans-391
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_hash`上下文：`http`，`server`，`location` | 设置分配给内部压缩状态（`memLevel` 参数）的内存量。此指令的值用于调用
+    Zlib 库中的函数。语法：数值（大小）默认值：Zlib 先决库中的 `MAX_MEM_LEVEL` 常量 |'
 - en: '| `postpone_gzipping`Context: `http`, `server`, `location` | Defines a minimum
     data threshold to be reached before starting the Gzip compression.Syntax: Size
     (numeric value)Default: `0` |'
+  id: totrans-392
   prefs: []
   type: TYPE_TB
+  zh: '| `postpone_gzipping`上下文：`http`，`server`，`location` | 定义在开始 Gzip 压缩之前必须达到的最小数据阈值。语法：大小（数值）默认值：`0`
+    |'
 - en: '| `gzip_no_buffer`Context: `http`, `server`, `location` | By default, NGINX
     waits until at least one buffer (defined by `gzip_buffers`) is filled with data
     before sending a response to the client. Enabling this directive disables buffering.Syntax:
     `on` or `off`Default: `off` |'
+  id: totrans-393
   prefs: []
   type: TYPE_TB
+  zh: '| `gzip_no_buffer`上下文：`http`，`server`，`location` | 默认情况下，NGINX 等到至少有一个缓冲区（由
+    `gzip_buffers` 定义）填充了数据后，才会将响应发送给客户端。启用此指令将禁用缓冲区。语法：`on` 或 `off` 默认值：`off` |'
 - en: 'Table 4.9: A list of directives for the Gzip module'
+  id: totrans-394
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.9：Gzip 模块的指令列表
 - en: Gzip static
+  id: totrans-395
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Gzip 静态
 - en: This module adds a simple functionality to the Gzip filter mechanism. When its
     `gzip_static` directive (`on`, `off`, or `always`) is enabled, NGINX will automatically
     look for a `.gz` file corresponding to the requested document before serving it.
     This allows NGINX to send pre-compressed documents instead of compressing documents
     on the fly at each request. Specifying `always` will force NGINX to serve the
     `gzip` version regardless of whether the client accepts `gzip` encoding.
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块为 Gzip 过滤器机制添加了简单的功能。当其 `gzip_static` 指令（`on`、`off` 或 `always`）启用时，NGINX
+    会在服务请求的文件之前，自动查找对应的 `.gz` 文件。这允许 NGINX 发送预压缩的文档，而不是在每次请求时动态压缩文档。指定 `always` 将强制
+    NGINX 无论客户端是否接受 `gzip` 编码，都服务 `gzip` 版本。
 - en: Note
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-398
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块不包含在默认的 NGINX 构建中。
 - en: If a client requests `/documents/page.html`, NGINX checks for the existence
     of a `/documents/page.html.gz` file. If the `.gz` file is found, it is served
     to the client. Note that NGINX does not generate `.gz` files itself, even after
     serving the requested files.
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果客户端请求 `/documents/page.html`，NGINX 会检查是否存在 `/documents/page.html.gz` 文件。如果找到
+    `.gz` 文件，则将其提供给客户端。请注意，NGINX 并不会生成 `.gz` 文件，即使在提供请求的文件后也不会生成。
 - en: Gunzip filter
+  id: totrans-400
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Gunzip 过滤器
 - en: With the Gunzip filter module, you can decompress a Gzip-compressed response
     sent from a backend in order to serve it *raw* to the client—for example, in case
     the client browser is not able to process gzipped files (Microsoft Internet Explorer
@@ -1767,129 +2656,202 @@
     can also set the buffer amount and size with `gunzip_buffers amount size;`, where
     `amount` is the amount of buffers to allocate and `size` is the size of each allocated
     buffer.
+  id: totrans-401
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Gunzip 过滤器模块，您可以解压后端发送的 Gzip 压缩响应，并将其 *原始* 内容直接提供给客户端—例如，在客户端浏览器无法处理 Gzip
+    文件的情况下（如 Microsoft Internet Explorer 6）。只需在 `location` 块中插入 `gunzip on;` 来使用此模块。您还可以使用
+    `gunzip_buffers amount size;` 设置缓冲区的数量和大小，其中 `amount` 是要分配的缓冲区数量，`size` 是每个分配的缓冲区的大小。
 - en: Charset filter
+  id: totrans-402
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 字符集过滤器
 - en: 'With the Charset filter module, you can control the character set of the response
     body more accurately. Not only are you able to specify the value of the `charset`
     argument of the `Content-Type` HTTP header (such as `Content-Type: text/html;
     charset=utf-8`), but NGINX can also re-encode data to a specified encoding method
     automatically:'
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用字符集过滤器模块，您可以更准确地控制响应体的字符集。不仅可以指定 `Content-Type` HTTP 头中的 `charset` 参数的值（如
+    `Content-Type: text/html; charset=utf-8`），NGINX 还可以自动重新编码数据为指定的编码方法：'
 - en: '| **Directive** | **Description** |'
+  id: totrans-404
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-405
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `charset`Context: `http`, `server`, `location`, `if` | This directive adds
     the specified encoding to the `Content-Type` header of the response. If the specified
     encoding differs from the `source_charset` one, NGINX re-encodes the document.Syntax:
     `charset encoding &#124;` `off;`Default: `off`Example: `charset utf-8;` |'
+  id: totrans-406
   prefs: []
   type: TYPE_TB
+  zh: '| `charset`上下文：`http`，`server`，`location`，`if` | 此指令将指定的编码添加到响应的 `Content-Type`
+    头中。如果指定的编码与 `source_charset` 编码不同，NGINX 会重新编码文档。语法：`charset encoding &#124;` `off;`
+    默认值：`off` 示例：`charset utf-8;` |'
 - en: '| `source_charset`Context: `http`, `server`, `location`, `if` | Defines the
     initial encoding of the response; if the value specified in the `charset` directive
     differs, NGINX re-encodes the document.Syntax: `source_charset encoding;` |'
+  id: totrans-407
   prefs: []
   type: TYPE_TB
+  zh: '| `source_charset`上下文：`http`、`server`、`location`、`if` | 定义响应的初始编码；如果 `charset`
+    指令中指定的值不同，NGINX 将重新编码文档。语法：`source_charset encoding;` |'
 - en: '| `override_charset`Context: `http`, `server`, `location`, `if` | When NGINX
     receives a response from the proxy or FastCGI gateway, this directive defines
     whether or not the character encoding should be checked and potentially overridden.Syntax:
     `on` or `off`Default: `off` |'
+  id: totrans-408
   prefs: []
   type: TYPE_TB
+  zh: '| `override_charset`上下文：`http`、`server`、`location`、`if` | 当 NGINX 从代理或 FastCGI
+    网关接收到响应时，定义是否检查字符编码并可能进行覆盖。语法：`on` 或 `off` 默认值：`off` |'
 - en: '| `charset_types`Context: `http`, `server`, `location` | Defines the MIME types
     that are eligible for re-encoding.Syntax:`charset_types` `mime_type1 [mime_type2...];``charset_types
     * ;`Default: `text/html`, `text/xml`, `text/plain`, `text/vnd.wap.wml`, `application/x-javascript`,
     and `application/rss+xml` |'
+  id: totrans-409
   prefs: []
   type: TYPE_TB
+  zh: '| `charset_types`上下文：`http`、`server`、`location` | 定义符合重新编码条件的 MIME 类型。语法：`charset_types
+    mime_type1 [mime_type2...];` `charset_types *;` 默认值：`text/html`、`text/xml`、`text/plain`、`text/vnd.wap.wml`、`application/x-javascript`
+    和 `application/rss+xml` |'
 - en: '| `charset_map`Context: `http` | Lets you define character re-encoding tables.
     Each line of the table contains two hexadecimal codes to be exchanged. You will
     find re-encoding tables for the `koi8-r` character set in the default NGINX configuration
     folder (`koi-win` and `koi-utf`).Syntax: `charset_map src_encoding dest_encoding
     { ... }` |'
+  id: totrans-410
   prefs: []
   type: TYPE_TB
+  zh: '| `charset_map`上下文：`http` | 允许您定义字符重新编码表。表的每一行包含两个需要交换的十六进制代码。您可以在默认的 NGINX
+    配置文件夹中找到 `koi8-r` 字符集的重新编码表（`koi-win` 和 `koi-utf`）。语法：`charset_map src_encoding
+    dest_encoding { ... }` |'
 - en: 'Table 4.10: A list of directives for the Charset filter module'
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.10：Charset 过滤器模块的指令列表
 - en: Memcached
+  id: totrans-412
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Memcached
 - en: 'Memcached is a daemon application that can be connected via sockets. Its main
     purpose, as the name suggests, is to provide an efficient distributed key/value
     memory caching system. The NGINX Memcached module provides directives, allowing
     you to configure access to the Memcached daemon:'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: Memcached 是一个可以通过套接字连接的守护进程应用程序。顾名思义，它的主要目的是提供一个高效的分布式键/值内存缓存系统。NGINX Memcached
+    模块提供了一些指令，使您可以配置访问 Memcached 守护进程：
 - en: '| **Directive** | **Description** |'
+  id: totrans-414
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-415
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `memcached_pass`Context: `location`, `if` | Defines the hostname and port
     of the Memcached daemon.Syntax: `memcached_pass hostname:port;`Example: `memcached_pass
     localhost:11211;` |'
+  id: totrans-416
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_pass`上下文：`location`、`if` | 定义 Memcached 守护进程的主机名和端口。语法：`memcached_pass
+    hostname:port;` 示例：`memcached_pass localhost:11211;` |'
 - en: '| `memcached_bind`Context: `http`, `server`, `location` | Forces NGINX to use
     the specified local IP address for connecting to the Memcached server. This can
     come in handy if your server has multiple network cards connected to different
     networks.Syntax: `memcached_bind IP_address;`Example: `memcached_bind 192.168.1.2;`
     |'
+  id: totrans-417
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_bind`上下文：`http`、`server`、`location` | 强制 NGINX 使用指定的本地 IP 地址连接到
+    Memcached 服务器。如果您的服务器连接到多个网络的不同网卡时，这非常有用。语法：`memcached_bind IP_address;` 示例：`memcached_bind
+    192.168.1.2;` |'
 - en: '| `memcached_connect_timeout`Context: `http`, `server`, `location` | Defines
     the connection timeout in milliseconds (default: `60000`)Example: `memcached_connect_timeout
     5000;` |'
+  id: totrans-418
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_connect_timeout`上下文：`http`、`server`、`location` | 定义连接超时时间（以毫秒为单位，默认值：`60000`）。示例：`memcached_connect_timeout
+    5000;` |'
 - en: '| `memcached_send_timeout`Context: `http`, `server`, `location` | Defines the
     data writing operations timeout in milliseconds (default: `60000`)Example: `memcached_send_timeout
     5,000;` |'
+  id: totrans-419
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_send_timeout`上下文：`http`、`server`、`location` | 定义数据写入操作的超时时间（以毫秒为单位，默认值：`60000`）。示例：`memcached_send_timeout
+    5,000;` |'
 - en: '| `memcached_read_timeout`Context: `http`, `server`, `location` | Defines the
     data reading operations timeout in milliseconds (default: `60000`)Example: `memcached_read_timeout
     5,000;` |'
+  id: totrans-420
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_read_timeout`上下文：`http`、`server`、`location` | 定义数据读取操作的超时时间（以毫秒为单位，默认值：`60000`）。示例：`memcached_read_timeout
+    5,000;` |'
 - en: '| `memcached_buffer_size`Context: `http`, `server`, `location` | Defines the
     size of the read and write buffer in bytes (default: page size)Example: `memcached_buffer_size
     8k;` |'
+  id: totrans-421
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_buffer_size`上下文：`http`、`server`、`location` | 定义读写缓冲区的大小（以字节为单位，默认值：页面大小）。示例：`memcached_buffer_size
+    8k;` |'
 - en: '| `memcached_next_upstream`Context: `http`, `server`, `location` | When the
     `memcached_pass` directive is connected to an upstream block (see the Upstream
     module), this directive defines the conditions that should be matched in order
     to skip to the next upstream server.Syntax: Values selected among `error timeout`,
     `invalid_response`, `not_found`, or `off`Default: `error timeout`Example: `memcached_next_upstream
     off;` |'
+  id: totrans-422
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_next_upstream`上下文：`http`，`server`，`location` | 当`memcached_pass`指令连接到上游块时（参见Upstream模块），此指令定义应满足的条件，以便跳到下一个上游服务器。语法：从`error
+    timeout`，`invalid_response`，`not_found`或`off`中选择的值 默认值：`error timeout` 示例：`memcached_next_upstream
+    off;` |'
 - en: '| `memcached_gzip_flag`Context: `http`, `server`, `location` | Checks for the
     presence of the specified flag in the `memcached` server response. If the flag
     is present, NGINX sets the `Content-encoding` header to `gzip` to indicate that
     it will be serving gzipped content.Syntax: Numeric flagDefault: (none)Example:
     `memcached_gzip_flag 1;` |'
+  id: totrans-423
   prefs: []
   type: TYPE_TB
+  zh: '| `memcached_gzip_flag`上下文：`http`，`server`，`location` | 检查`memcached`服务器响应中是否存在指定的标志。如果该标志存在，NGINX会将`Content-encoding`头设置为`gzip`，以指示将提供压缩的内容。语法：数字标志
+    默认值：（无） 示例：`memcached_gzip_flag 1;` |'
 - en: 'Table 4.11: A list of directives for the Memcached module'
+  id: totrans-424
   prefs: []
   type: TYPE_NORMAL
+  zh: 表4.11：Memcached模块的指令列表
 - en: Additionally, you will need to define a `$memcached_key` variable that defines
     the key of the element that you are placing or fetching from the cache. You may,
     for instance, use `set $memcached_key $uri` or `set $``memcached_key $uri?$args`.
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，您需要定义一个`$memcached_key`变量，用于定义您正在放置或从缓存中获取的元素的键。例如，您可以使用`set $memcached_key
+    $uri`或`set $memcached_key $uri?$args`。
 - en: 'Note that the NGINX Memcached module is only able to retrieve data from the
     cache; it does not store the results of requests. Storing data in the cache should
     be done by a server-side script. You just need to make sure to employ the same
@@ -1898,208 +2860,319 @@
     before passing the request to a proxy, if the requested URI is not found (see
     [*Chapter 6*](B21787_06.xhtml#_idTextAnchor621), for more details about the Proxy
     module):'
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，NGINX Memcached模块只能从缓存中检索数据；它不会存储请求的结果。将数据存储到缓存中应该由服务器端脚本完成。只需要确保在服务器端脚本和NGINX配置中使用相同的键命名方案。例如，如果请求的URI未找到，我们可以决定使用`memcached`从缓存中获取数据，然后将请求传递给代理（有关代理模块的更多详细信息，请参见[*第6章*](B21787_06.xhtml#_idTextAnchor621)）：
 - en: '[PRE27]'
+  id: totrans-427
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: Image filter
+  id: totrans-428
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 图像过滤器
 - en: This module provides image processing functionalities through the **GD Graphics
     Library** (also known as **gdlib**).
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
+  zh: 此模块通过**GD图形库**（也称为**gdlib**）提供图像处理功能。
 - en: Note
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
+  zh: 此模块不包含在默认的NGINX构建中。
 - en: 'Make sure to employ the following directives on a `location` block that filters
     image files only, such as `location ~* \.(png|jpg|gif|webp)$ { ... }`:'
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保在仅过滤图片文件的`location`块中使用以下指令，例如`location ~* \.(png|jpg|gif|webp)$ { ... }`：
 - en: '| **Directive** | **Description** |'
+  id: totrans-433
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-434
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `image_filter`Context: `location` | Lets you apply a transformation on the
     image before sending it to the client. There are five options available:'
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `image_filter`上下文：`location` | 允许在将图像发送给客户端之前对其进行转换。有五个选项可用：'
 - en: '`off`: Turns off previously set `image_filter`.'
+  id: totrans-436
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`：关闭之前设置的`image_filter`。'
 - en: '`test`: Makes sure that the requested document is an image file; returns a
     `415 Unsupported Media Type` HTTP error if the test fails.'
+  id: totrans-437
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`test`：确保请求的文档是一个图片文件；如果测试失败，则返回`415 不支持的媒体类型`HTTP错误。'
 - en: '`size`: Composes a simple JSON response indicating information about the image,
     such as the size and type (for example; `{ "img": { "width":50, "height":50, "type":"png"}}`).
     If the file is invalid, a simple `{}` instance is returned.'
+  id: totrans-438
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`size`：生成一个简单的JSON响应，指示图片的相关信息，例如大小和类型（例如：`{ "img": { "width":50, "height":50,
+    "type":"png"}}`）。如果文件无效，则返回一个简单的`{}`实例。'
 - en: '`resize width height`: Resizes the image to the specified dimensions.'
+  id: totrans-439
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`resize width height`：将图片调整为指定的尺寸。'
 - en: '`crop width height`: Selects a portion of the image of the specified dimensions.'
+  id: totrans-440
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`crop width height`：选择图片中指定尺寸的部分。'
 - en: '`rotate 90` &#124; `180` &#124; `270`: Rotates the image by the specified angle
     (in degrees).'
+  id: totrans-441
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`rotate 90` &#124; `180` &#124; `270`：按指定角度（度数）旋转图片。'
 - en: 'Example: `image_filter resize` `200 100;` |'
+  id: totrans-442
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例：`image_filter resize` `200 100;` |
 - en: '| `image_filter_buffer`Context: `http`, `server`, `location` | Defines the
     maximum file size for images to be processed.Default: `image_filter_buffer 1m;`
     |'
+  id: totrans-443
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_buffer`上下文: `http`，`server`，`location` | 定义需要处理的图像的最大文件大小。默认值：`image_filter_buffer
+    1m;` |'
 - en: '| `image_filter_jpeg_quality`Context: `http`, `server`, `location` | Defines
     the quality of output JPEG images.Default: `image_filter_jpeg_quality 75;` |'
+  id: totrans-444
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_jpeg_quality`上下文: `http`，`server`，`location` | 定义输出 JPEG 图像的质量。默认值：`image_filter_jpeg_quality
+    75;` |'
 - en: '| `image_filter_webp_quality`Context: `http`, `server`, `location` | Defines
     the quality of output `webp` images.Default: `image_filter_webp_quality 80;` |'
+  id: totrans-445
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_webp_quality`上下文: `http`，`server`，`location` | 定义输出 `webp`
+    图像的质量。默认值：`image_filter_webp_quality 80;` |'
 - en: '| `image_filter_transparency`Context: `http`, `server`, `location` | By default,
     PNG and GIF images keep their existing transparency during operations you perform
     using the Image filter module. If you set this directive to `off`, all existing
     transparency will be lost, but the image quality will be improved.Syntax: `on`
     or `off`Default: `on` |'
+  id: totrans-446
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_transparency`上下文: `http`，`server`，`location` | 默认情况下，PNG 和
+    GIF 图像在使用图像过滤模块执行操作时会保持其现有的透明度。如果将此指令设置为 `off`，则所有现有的透明度将丢失，但图像质量将得到提高。语法：`on`
+    或 `off` 默认值：`on` |'
 - en: '| `image_filter_sharpen`Context: `http`, `server`, `location` | Sharpens the
     image by a specified percentage (value may exceed 100).Syntax: Numeric valueDefault:
     `0` |'
+  id: totrans-447
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_sharpen`上下文: `http`，`server`，`location` | 通过指定的百分比锐化图像（数值可以超过
+    100）。语法：数值 默认值：`0` |'
 - en: '| `image_filter_interlace`Context: `http`, `server`, `location` | Enables interlacing
     of the output image. If the output image is a JPG file, the image is generated
     in *progressive* *JPEG* format.Syntax: `on` or `off`Default: `off` |'
+  id: totrans-448
   prefs: []
   type: TYPE_TB
+  zh: '| `image_filter_interlace`上下文: `http`，`server`，`location` | 启用输出图像的隔行扫描。如果输出图像是
+    JPG 文件，则图像会以 *渐进式* *JPEG* 格式生成。语法：`on` 或 `off` 默认值：`off` |'
 - en: 'Table 4.12: A list of directives for the Image filter module'
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.12：图像过滤模块的指令列表
 - en: Note
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: When it comes to JPG images, NGINX automatically strips off metadata (such as
     **EXIF**) if it occupies more than five percent of the total space of the file.
+  id: totrans-451
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 JPG 图像，NGINX 会自动剥离元数据（例如 **EXIF**），如果元数据占文件总空间的百分比超过五。
 - en: XSLT
+  id: totrans-452
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: XSLT
 - en: 'The NGINX XSLT module allows you to apply an **Extensible Stylesheet Language
     Transformations** (**XSLT**) transform on an XML file or response received from
     a backend server (proxy, FastCGI, and so on) before serving the client:'
+  id: totrans-453
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX XSLT 模块允许你在向客户端提供服务之前，对从后端服务器（代理、FastCGI 等）接收到的 XML 文件或响应应用 **可扩展样式表语言转换（**XSLT**）**
+    转换：
 - en: '| **Directive** | **Description** |'
+  id: totrans-454
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-455
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `xml_entities`Context: `http`, `server`, `location` | Specifies the **document
     type definition** (**DTD**) file containing symbolic element definitions.Syntax:
     File pathExample: `xml_entities xml/entities.dtd;` |'
+  id: totrans-456
   prefs: []
   type: TYPE_TB
+  zh: '| `xml_entities`上下文: `http`，`server`，`location` | 指定包含符号元素定义的 **文档类型定义（**DTD**）**
+    文件。语法：文件路径 示例：`xml_entities xml/entities.dtd;` |'
 - en: '| `xslt_stylesheet`Context: `location` | Specifies the XSLT template file path
     with its parameters. Variables may be inserted in the parameters.Syntax: `xslt_stylesheet
     template [``param1] [param2...];`Example: `xslt_stylesheet` `xml/sch.xslt param=value;`
     |'
+  id: totrans-457
   prefs: []
   type: TYPE_TB
+  zh: '| `xslt_stylesheet`上下文: `location` | 指定 XSLT 模板文件路径及其参数。变量可以插入到参数中。语法：`xslt_stylesheet
+    template [``param1] [param2...];` 示例：`xslt_stylesheet` `xml/sch.xslt param=value;`
+    |'
 - en: '| `xslt_types`Context: `http`, `server`, `location` | Defines additional MIME
     types to which transforms may apply, other than `text/xml`.Syntax: MIME typeExample:`xslt_types`
     `text/xml text/plain;``xslt_types *;` |'
+  id: totrans-458
   prefs: []
   type: TYPE_TB
+  zh: '| `xslt_types`上下文: `http`，`server`，`location` | 定义应用转换的额外 MIME 类型，除了 `text/xml`。语法：MIME
+    类型 示例：`xslt_types` `text/xml text/plain;``xslt_types *;` |'
 - en: '| `xslt_paramxslt_string_param`Context: `http`, `server`, `location` | Both
     directives allow defining parameters for XSLT stylesheets. The difference lies
     in the way the specified value is interpreted: using `xslt_param`, XPath expressions
     in the value are processed; `xslt_string_param` should be used for plain character
     strings.Syntax: `xslt_param` `key value;` |'
+  id: totrans-459
   prefs: []
   type: TYPE_TB
+  zh: '| `xslt_paramxslt_string_param`上下文: `http`，`server`，`location` | 两个指令都允许为 XSLT
+    样式表定义参数。不同之处在于指定的值如何被解释：使用 `xslt_param`，值中的 XPath 表达式将被处理；`xslt_string_param`
+    应该用于普通字符字符串。语法：`xslt_param` `key value;` |'
 - en: 'Table 4.13: A list of directives for the XSLT module'
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.13：XSLT 模块的指令列表
 - en: About your visitors
+  id: totrans-461
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于您的访客
 - en: The following set of modules provides extra functionality that will help you
     find out more information about visitors, such as by parsing client request headers
     for browser name and version, assigning an identifier to requests presenting similarities,
     and so on.
+  id: totrans-462
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下一组模块提供额外的功能，帮助你了解更多关于访问者的信息，比如解析客户端请求头中的浏览器名称和版本，给相似请求分配标识符等。
 - en: Browser
+  id: totrans-463
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 浏览器
 - en: 'The Browser module parses the `User-Agent` HTTP header of the client request
     in order to establish values for variables that can be employed later in the configuration.
     The three variables produced are the following:'
+  id: totrans-464
   prefs: []
   type: TYPE_NORMAL
+  zh: 浏览器模块解析客户端请求中的`User-Agent` HTTP头，以便为稍后在配置中使用的变量设定值。产生的三个变量如下：
 - en: '`$modern_browser`: If the client browser is identified as being a modern web
     browser, the variable takes the value defined by the `modern_browser_value` directive'
+  id: totrans-465
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$modern_browser`：如果客户端浏览器被识别为现代网页浏览器，则该变量的值由`modern_browser_value`指令定义。'
 - en: '`$ancient_browser`: If the client browser is identified as being an old web
     browser, the variable takes the value defined by `ancient_browser_value`'
+  id: totrans-466
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ancient_browser`：如果客户端浏览器被识别为旧版网页浏览器，则该变量的值由`ancient_browser_value`指令定义。'
 - en: '`$msie`: This variable is set to `1` if the client is using a Microsoft Internet
     Explorer browser'
+  id: totrans-467
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$msie`：如果客户端使用Microsoft Internet Explorer浏览器，则该变量被设置为`1`。'
 - en: 'To help NGINX recognize web browsers, distinguishing the old from the modern,
     you need to insert multiple occurrences of the `ancient_browser` and `modern_browser`
     directives:'
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了帮助NGINX识别网页浏览器，并区分旧版和现代浏览器，你需要插入多个`ancient_browser`和`modern_browser`指令：
 - en: '[PRE28]'
+  id: totrans-469
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: With this example, if the `User-Agent` HTTP header contains Opera 10.0, the
     client browser is considered modern.
+  id: totrans-470
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，如果`User-Agent` HTTP头包含Opera 10.0，那么客户端浏览器被认为是现代浏览器。
 - en: Map
+  id: totrans-471
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 映射
 - en: 'Just as with the Browser module, the Map module allows you to create maps of
     values, depending on a variable:'
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
+  zh: 与浏览器模块相同，Map模块允许你根据变量创建值的映射：
 - en: '[PRE29]'
+  id: totrans-473
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'The `map` directive can only be inserted within the `http` block. Following
     this example, `$variable` may have three different values. If `$uri` was set to
     `/page.html`, the `$variable` value is now defined as `0`; if `$uri` was set to
@@ -2109,100 +3182,147 @@
     the `map` directive accepts another special keyword: `hostnames`. It allows you
     to match hostnames using wildcards such as `*.domain.com`. Finally, it’s possible
     to mark a map as `volatile`, which makes the map non-cacheable.'
+  id: totrans-474
   prefs: []
   type: TYPE_NORMAL
+  zh: '`map`指令只能插入`http`块中。按照此示例，`$variable`可能有三个不同的值。如果`$uri`被设置为`/page.html`，则`$variable`的值为`0`；如果`$uri`被设置为`/contact.html`，则`$variable`的值为`1`；如果`$uri`被设置为`/index.html`，则`$variable`的值为`2`。对于所有其他情况（`default`），`$variable`被设置为`0`。最后一条指令会相应地重写URL。除了`default`，`map`指令还接受另一个特殊关键字：`hostnames`。它允许你使用通配符（如`*.domain.com`）来匹配主机名。最后，可以将映射标记为`volatile`，这将使映射不可缓存。'
 - en: 'Two additional directives allow you to tweak the way NGINX manages the mechanism
     in memory:'
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外两个指令允许你调整NGINX管理内存机制的方式：
 - en: '`map_hash_max_size`: Sets the maximum size of the hash table holding a map'
+  id: totrans-476
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`map_hash_max_size`：设置持有映射的哈希表的最大大小。'
 - en: '`map_hash_bucket_size`: The maximum size of an entry in the map'
+  id: totrans-477
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`map_hash_bucket_size`：映射中每个条目的最大大小。'
 - en: 'Regular expressions may also be used in patterns if you prefix them with `~`
     (case-sensitive) or `~*` (case-insensitive):'
+  id: totrans-478
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在模式前加上`~`（区分大小写）或`~*`（不区分大小写），也可以使用正则表达式：
 - en: '[PRE30]'
+  id: totrans-479
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: Geo
+  id: totrans-480
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 地理
 - en: 'The purpose of this module is to provide functionality that is quite similar
     to the `map` directive, affecting a variable based on client data (in this case,
     the IP address). The syntax is slightly different, in the extent that you are
     allowed to specify IPv4 and IPv6 address ranges (in CIDR format):'
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块的目的是提供与`map`指令非常相似的功能，依据客户端数据（在此案例中为IP地址）影响变量。语法略有不同，允许你指定IPv4和IPv6地址范围（CIDR格式）：
 - en: '[PRE31]'
+  id: totrans-482
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'Note that the preceding block is being presented to you just for the sake of
     the example and does not actually detect UK and French visitors; you’ll want to
     use the GeoIP module if you wish to achieve proper geographical location detection.
     In this block, you may insert a number of directives that are specific to this
     module:'
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，前面的代码块只是为了示例展示，实际上并不会检测英国和法国的访问者；如果你想实现准确的地理位置检测，应该使用GeoIP模块。在这个代码块中，你可以插入一些特定于此模块的指令：
 - en: '`delete`: Allows you to remove the specified subnetwork from the mapping.'
+  id: totrans-484
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`delete`：允许你从映射中移除指定的子网。'
 - en: '`default`: The default value given to `$variable` in case the user’s IP address
     does not match any of the specified IP ranges.'
+  id: totrans-485
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`default`：如果用户的 IP 地址不匹配任何指定的 IP 范围，则为 `$variable` 提供的默认值。'
 - en: '`include`: Allows you to include an external file.'
+  id: totrans-486
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`include`：允许你包含一个外部文件。'
 - en: '`proxy`: Defines a subnet of trusted addresses. If the user IP address is among
     those trusted, the value of the `X-Forwarded-For` header is used as the IP address
     instead of the socket IP address.'
+  id: totrans-487
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy`：定义受信任地址的子网。如果用户的 IP 地址属于这些受信任的地址之一，则使用 `X-Forwarded-For` 头部的值作为 IP
+    地址，而不是套接字的 IP 地址。'
 - en: '`proxy_recursive`: If enabled, this will look for the value of the `X-Forwarded-For`
     header, even if the client IP address is not trusted.'
+  id: totrans-488
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`proxy_recursive`：如果启用，即使客户端 IP 地址不受信任，它也会查找 `X-Forwarded-For` 头部的值。'
 - en: '`ranges`: If you insert this directive as the first line of your `geo` block,
     it allows you to specify IP ranges instead of CIDR masks. The following syntax
     is thus permitted: `127.0.0.1-127.0.0.255 LOCAL;`.'
+  id: totrans-489
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ranges`：如果你将此指令作为 `geo` 块的第一行插入，它允许你指定 IP 范围，而不是 CIDR 子网掩码。如下语法是允许的：`127.0.0.1-127.0.0.255
+    LOCAL;`。'
 - en: GeoIP
+  id: totrans-490
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: GeoIP
 - en: Although the name suggests some similarities with the previous one, this optional
     module provides accurate geographical information about your visitors by making
     use of *MaxMind* ([https://www.maxmind.com/en/home](https://www.maxmind.com/en/home))
     GeoIP binary databases. You need to download the database files from the *MaxMind*
     website and place them in your NGINX directory.
+  id: totrans-491
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管名称与之前的模块有一些相似之处，但这个可选模块通过利用 *MaxMind* ([https://www.maxmind.com/en/home](https://www.maxmind.com/en/home))
+    的 GeoIP 二进制数据库，提供关于访问者的准确地理位置信息。你需要从 *MaxMind* 网站下载数据库文件，并将其放置在 NGINX 目录中。
 - en: Note
+  id: totrans-492
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-493
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块未包含在默认的 NGINX 构建中。
 - en: 'Then, all you have to do is specify the database path with either directive:'
+  id: totrans-494
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你只需使用任一指令指定数据库路径：
 - en: '[PRE32]'
+  id: totrans-495
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: 'The first directive enables several variables: `$geoip_country_code` (two-letter
     country code), `$geoip_country_code3` (three-letter country code), and `$geoip_country_name`
     (full country name). The second directive includes the same variables but provides
@@ -2211,125 +3331,193 @@
     `$geoip_area_code`, and `$geoip_region_name`. The third directive offers information
     about the organization or ISP that owns the specified IP address, by filling up
     the `$``geoip_org` variable.'
+  id: totrans-496
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个指令启用几个变量：`$geoip_country_code`（两字母国家代码）、`$geoip_country_code3`（三字母国家代码）和
+    `$geoip_country_name`（完整的国家名称）。第二个指令包含相同的变量，但提供更多信息：`$geoip_region`，`$geoip_city`，`$geoip_postal_code`，`$geoip_city_continent_code`，`$geoip_latitude`，`$geoip_longitude`，`$geoip_dma_code`，`$geoip_area_code`
+    和 `$geoip_region_name`。第三个指令通过填充 `$geoip_org` 变量，提供关于指定 IP 地址的组织或 ISP 的信息。
 - en: Note
+  id: totrans-497
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: If you need the variables to be encoded in UTF-8, simply add the `utf8` keyword
     at the end of the `geoip_` directives.
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你需要变量以 UTF-8 编码，只需在 `geoip_` 指令的末尾添加 `utf8` 关键字。
 - en: UserID filter
+  id: totrans-499
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 用户 ID 过滤器
 - en: 'This module assigns an identifier to clients by issuing cookies. The identifier
     can be accessed from the `$uid_got` and `$uid_set` variables further in the configuration:'
+  id: totrans-500
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个模块通过发放 cookies 来为客户端分配一个标识符。标识符可以通过配置中的 `$uid_got` 和 `$uid_set` 变量来访问：
 - en: '| **Directive** | **Description** |'
+  id: totrans-501
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-502
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `userid`Context: `http`, `server`, `location` | Enables or disables issuing
     and logging of cookies.The directive accepts four possible values:'
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
+  zh: '| `userid`上下文：`http`，`server`，`location` | 启用或禁用 cookies 的发放和记录。该指令接受四种可能的值：'
 - en: '`on`: Enables v2 cookies and logs them'
+  id: totrans-504
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`on`：启用 v2 cookies 并记录它们'
 - en: '`v1`: Enables v1 cookies and logs them'
+  id: totrans-505
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`v1`：启用 v1 cookies 并记录它们'
 - en: '`log`: Does not send cookie data but logs incoming cookies'
+  id: totrans-506
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`log`：不发送 cookie 数据，但记录传入的 cookies'
 - en: '`off`: Does not send cookie data'
+  id: totrans-507
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`off`：不发送 cookie 数据'
 - en: 'Default value: `userid off;` |'
+  id: totrans-508
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认值：`userid off;` |
 - en: '| `userid_service`Context: `http`, `server`, `location` | Defines the IP address
     of the server issuing the cookie.Syntax: `userid_service ip;`Default: IP address
     of the server |'
+  id: totrans-509
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_service`上下文：`http`，`server`，`location` | 定义发放 cookie 的服务器的 IP 地址。语法：`userid_service
+    ip;` 默认值：服务器的 IP 地址 |'
 - en: '| `userid_name`Context: `http`, `server`, `location` | Defines the name assigned
     to the cookie.Syntax: `userid_name name;`Default value: The user identifier |'
+  id: totrans-510
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_name`上下文：`http`，`server`，`location` | 定义分配给 cookie 的名称。语法：`userid_name
+    name;` 默认值：用户标识符 |'
 - en: '| `userid_domain`Context: `http`, `server`, `location` | Defines the domain
     assigned to the cookie.Syntax: `userid_domain domain;`Default value: None (the
     domain part is not sent) |'
+  id: totrans-511
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_domain`上下文：`http`，`server`，`location` | 定义分配给cookie的域名。语法：`userid_domain
+    domain;`默认值：无（域名部分不发送） |'
 - en: '| `userid_path`Context: `http`, `server`, `location` | Defines the path part
     of the cookie.Syntax: `userid_path path;`Default value: `/` |'
+  id: totrans-512
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_path`上下文：`http`，`server`，`location` | 定义cookie的路径部分。语法：`userid_path
+    path;`默认值：`/` |'
 - en: '| `userid_expires`Context: `http`, `server`, `location` | Defines the cookie
     expiration date.Syntax: `userid_expires date &#124;` `max;`Default value: No expiration
     date |'
+  id: totrans-513
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_expires`上下文：`http`，`server`，`location` | 定义cookie的过期日期。语法：`userid_expires
+    date &#124;` `max;`默认值：没有过期日期 |'
 - en: '| `userid_p3p`Context: `http`, `server`, `location` | Assigns a value to the
     **Platform for Privacy Preferences Project** (**P3P**) header sent with the cookie.Syntax:
     `userid_p3p data;`Default value: None |'
+  id: totrans-514
   prefs: []
   type: TYPE_TB
+  zh: '| `userid_p3p`上下文：`http`，`server`，`location` | 为与cookie一起发送的**隐私偏好平台项目**（**P3P**）头分配一个值。语法：`userid_p3p
+    data;`默认值：无 |'
 - en: 'Table 4.14: A list of directives for the userid cookie identifier module'
+  id: totrans-515
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.14：userid cookie标识符模块的指令列表
 - en: Referer
+  id: totrans-516
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 来源
 - en: 'A simple directive is introduced by this module: `valid_referers`. Its purpose
     is to check the `Referer` HTTP header from the client request and to possibly
     deny access based on the value. If the referrer is considered invalid, `$invalid_referer`
     is set to `1`. In the list of valid referrers, you may employ three kinds of values:'
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块引入了一个简单的指令：`valid_referers`。它的目的是检查客户端请求中的`Referer` HTTP头，并根据其值可能拒绝访问。如果来源被认为是无效的，`$invalid_referer`将被设置为`1`。在有效来源列表中，您可以使用三种类型的值：
 - en: '**None**: The absence of a referrer is considered to be a valid referrer'
+  id: totrans-518
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**无**：没有来源被认为是有效的来源'
 - en: '`XXXXX`) is also considered valid'
+  id: totrans-519
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`XXXXX`) 也被视为有效'
 - en: '**A server name**: The specified server name is considered to be a valid referrer'
+  id: totrans-520
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**服务器名称**：指定的服务器名称被认为是有效的来源'
 - en: 'Following the definition of the `$invalid_referer` variable, you may, for example,
     return an error code if the referrer was found invalid:'
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
+  zh: 在定义了`$invalid_referer`变量后，例如，如果发现来源无效，您可以返回一个错误代码：
 - en: '[PRE33]'
+  id: totrans-522
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: Be aware that spoofing the `Referer` HTTP header is a very simple process, so
     checking the referer of client requests should not be used as a security measure.
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，伪造`Referer` HTTP头是一个非常简单的过程，因此检查客户端请求的来源不应作为安全措施。
 - en: Two more directives are offered by this module, `referer_hash_bucket_size` and
     `referer_hash_max_size`, respectively allowing you to define the bucket size and
     maximum size of valid referrers’ hash tables.
+  id: totrans-524
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块还提供了两个指令，`referer_hash_bucket_size`和`referer_hash_max_size`，分别允许您定义有效来源哈希表的桶大小和最大大小。
 - en: Real IP
+  id: totrans-525
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实际IP
 - en: 'This module provides one simple feature: it replaces the client IP address
     with the one specified in the `X-Real-IP` HTTP header for clients that visit your
     website behind a proxy or for retrieving IP addresses from the proper header if
@@ -2340,268 +3528,407 @@
     IP addresses; in other words, the clients that are allowed to make use of those
     headers. This can be done thanks to the `set_real_ip_from` directive, which accepts
     both IP addresses and CIDR address ranges:'
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: 本模块提供了一个简单的功能：它将客户端IP地址替换为`X-Real-IP` HTTP头中指定的地址，适用于通过代理访问您网站的客户端，或在使用NGINX作为后端服务器时，从正确的头部获取IP地址（如果您有Apache经验，它与Apache的`mod_rpaf`效果相同）。要启用此功能，您需要插入`real_ip_header`指令，定义要使用的HTTP头：`X-Real-IP`或`X-Forwarded-For`。第二步是定义可信任的IP地址；换句话说，就是允许使用这些头的客户端。这可以通过`set_real_ip_from`指令来实现，该指令接受IP地址和CIDR地址范围：
 - en: '[PRE34]'
+  id: totrans-527
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: '| **Directive** | **Description** |'
+  id: totrans-528
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-529
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `set_real_ip_from`Context: `http`, `server`, `location` | Sets the trusted
     addresses that will trigger the real IP header replacement. Set this to the IP
     of the trusted reverse proxy (or proxies) in front of NGINX.This directive can
     be specified multiple times, and hostnames are allowed.The special value of `unix:`
     sets all Unix sockets as trusted.Syntax: `set_real_ip_from address &#124; CIDR
     &#124;` `unix:;`Default: None |'
+  id: totrans-530
   prefs: []
   type: TYPE_TB
+  zh: '| `set_real_ip_from`上下文：`http`，`server`，`location` | 设置将触发真实IP头替换的信任地址。将其设置为前置NGINX的可信反向代理的IP（或多个代理）。此指令可以多次指定，并允许使用主机名。`unix:`的特殊值将所有Unix套接字设置为受信任。语法：`set_real_ip_from
+    address | CIDR |` `unix:;` 默认值：无 |'
 - en: '| `real_ip_header`Context: `http`, `server`, `location` | Sets the header field
     that will be used as a replacement for the IP address.The `proxy_protocol` special
     value changes the IP to the one from the Proxy protocol.Syntax: `real_ip_header
     field &#124; X-Real-Ip &#124; X-Forwarded-For &#124;` `proxy_protocol;`Default:
     `X-Real-Ip` |'
+  id: totrans-531
   prefs: []
   type: TYPE_TB
+  zh: '| `real_ip_header`上下文：`http`，`server`，`location` | 设置用于替代IP地址的头字段。`proxy_protocol`特殊值将IP更改为来自Proxy协议的IP。语法：`real_ip_header
+    field | X-Real-Ip | X-Forwarded-For |` `proxy_protocol;` 默认值：`X-Real-Ip` |'
 - en: '| `real_ip_recursive`Context: `http`, `server`, `location` | If set to `on`,
     the replacement IP will be set to the last non-trusted IP in the `real_ip_header`
     field. If set to `off`, will be replaced with the last IP in the `real_ip_header`
     field, whether trusted or not.Syntax: `on` or `off`Default: `off` |'
+  id: totrans-532
   prefs: []
   type: TYPE_TB
+  zh: '| `real_ip_recursive`上下文：`http`，`server`，`location` | 如果设置为`on`，则替换后的IP将设置为`real_ip_header`字段中最后一个非信任IP。如果设置为`off`，将使用`real_ip_header`字段中的最后一个IP，无论其是否受信任。语法：`on`或`off`
+    默认值：`off` |'
 - en: 'Table 4.15: A list of directives for the real_ip module'
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
+  zh: 表4.15：real_ip模块的指令列表
 - en: Note
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-535
   prefs: []
   type: TYPE_NORMAL
+  zh: 此模块不包含在默认的NGINX构建中。
 - en: SSL and security
+  id: totrans-536
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: SSL与安全性
 - en: NGINX provides secure HTTP functionalities through the SSL module, but also
     offers an extra module, called **Secure Link**, that helps you protect your website
     and visitors in a totally different way.
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX通过SSL模块提供安全的HTTP功能，但还提供了一个额外的模块，叫做**安全链接**，它以完全不同的方式帮助您保护网站和访客。
 - en: SSL
+  id: totrans-538
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: SSL
 - en: 'The SSL module enables HTTPS support, HTTP over SSL/TLS in particular. It gives
     you the possibility to serve secure websites by providing a certificate, a certificate
     key, and other parameters, defined with the following directives:'
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
+  zh: SSL模块启用HTTPS支持，特别是SSL/TLS下的HTTP协议。它通过提供证书、证书密钥和其他参数，使您能够为网站提供安全服务，这些内容通过以下指令进行定义：
 - en: '| **Directive** | **Description** |'
+  id: totrans-540
   prefs: []
   type: TYPE_TB
+  zh: '| **指令** | **描述** |'
 - en: '| --- | --- |'
+  id: totrans-541
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- |'
 - en: '| `ssl`Context: `http`, `server` | Enables HTTPS for the specified server.
     This directive is the equivalent of `listen 443 ssl` or `listen port ssl`, more
     generally.Syntax: `on` or `off`Default: `ssl off;` |'
+  id: totrans-542
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl`上下文：`http`，`server` | 启用指定服务器的HTTPS。此指令等同于`listen 443 ssl`或`listen port
+    ssl`。语法：`on`或`off` 默认值：`ssl off;` |'
 - en: '| `ssl_certificate`Context: `http`, `server` | Sets the path of the **Privacy
     Enhanced Mail** (**PEM**) certificate. This directive can be specified multiple
     times to load certificates of different types.Syntax: File path |'
+  id: totrans-543
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate`上下文：`http`，`server` | 设置**隐私增强邮件**（**PEM**）证书的路径。此指令可以多次指定，以加载不同类型的证书。语法：文件路径
+    |'
 - en: '| `ssl_certificate_key`Context: `http`, `server` | Sets the path of the PEM
     secret key file.This directive can be specified multiple times to load certificates
     of different types.Syntax: File path |'
+  id: totrans-544
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_certificate_key`上下文：`http`，`server` | 设置PEM私钥文件的路径。此指令可以多次指定，以加载不同类型的证书。语法：文件路径
+    |'
 - en: '| `ssl_client_certificate`Context: `http`, `server` | Sets the path of the
     client PEM certificate.Syntax: File path |'
+  id: totrans-545
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_client_certificate`上下文：`http`，`server` | 设置客户端PEM证书的路径。语法：文件路径 |'
 - en: '| `ssl_crl`Context: `http`, `server` | Orders NGINX to load a **Certificate
     Revocation List** (**CRL**) file, which allows checking the revocation status
     of certificates when using TLS mutual authentication. |'
+  id: totrans-546
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_crl`上下文：`http`，`server` | 告诉NGINX加载**证书吊销列表**（**CRL**）文件，这在使用TLS双向认证时检查证书的吊销状态。
+    |'
 - en: '| `ssl_dhparam`Context: `http`, `server` | Sets the path of the **Diffie-Hellman**
     parameters file.Syntax: File path |'
+  id: totrans-547
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_dhparam`上下文：`http`，`server` | 设置**Diffie-Hellman**参数文件的路径。语法：文件路径 |'
 - en: '| `ssl_protocols`Context: `http`, `server` | Specifies the protocol that should
     be employed.Syntax: `ssl_protocols [SSLv2] [SSLv3] [TLSv1] [TLSv1.1] [``TLSv1.2]
     [TLSv1.3];`Default: `ssl_protocols TLSv1 TLSv1.1` `TLSv1.2 TLSv1.3;` |'
+  id: totrans-548
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_protocols`上下文：`http`，`server` | 指定应使用的协议。语法：`ssl_protocols [SSLv2] [SSLv3]
+    [TLSv1] [TLSv1.1] [``TLSv1.2] [TLSv1.3];` 默认值：`ssl_protocols TLSv1 TLSv1.1` `TLSv1.2
+    TLSv1.3;` |'
 - en: '| `ssl_ciphers`Context: `http`, `server` | Specifies the ciphers that should
     be employed. A list of available ciphers can be obtained by running the following
     command from the shell: `openssl ciphers`.Syntax: `ssl_ciphers cipher1[:cipher2...];`*Recommended*:
     Please visit [ssl-config.mozilla.org](http://ssl-config.mozilla.org) for the default
     ciphers to use. |'
+  id: totrans-549
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_ciphers`上下文：`http`，`server` | 指定应该使用的密码。可以通过在 shell 中运行以下命令来获取可用的密码列表：`openssl
+    ciphers`。语法：`ssl_ciphers cipher1[:cipher2...];`*推荐*：请访问 [ssl-config.mozilla.org](http://ssl-config.mozilla.org)
+    获取默认使用的密码。 |'
 - en: '| `ssl_prefer_server_ciphers`Context: `http`, `server` | Specifies whether
     server ciphers should be preferred over client ciphers.Syntax: `on` or `off`Default:
     `off` |'
+  id: totrans-550
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_prefer_server_ciphers`上下文：`http`，`server` | 指定是否优先使用服务器密码而不是客户端密码。语法：`on`
+    或 `off` 默认值：`off` |'
 - en: '| `ssl_verify_client`Context: `http`, `server` | Enables verifying certificates
     transmitted by the client and sets the result in `$ssl_client_verify`. The `optional_no_ca`
     value verifies the certificate if there is one, but does not require it to be
     signed by a trusted **certificate authority** (**CA**) certificate.Syntax: `on
     &#124; off &#124; optional &#124;` `optional_no_ca`Default: `off` |'
+  id: totrans-551
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_verify_client`上下文：`http`，`server` | 启用验证客户端传输的证书，并将结果设置在 `$ssl_client_verify`
+    中。`optional_no_ca` 值在有证书时验证证书，但不要求证书必须由受信的**证书授权机构**（**CA**）签名。语法：`on &#124; off
+    &#124; optional &#124;` `optional_no_ca`默认值：`off` |'
 - en: '| `ssl_verify_depth`Context: `http`, `server` | Specifies the verification
     depth of the client certificate chain.Syntax: Numeric valueDefault: `1` |'
+  id: totrans-552
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_verify_depth`上下文：`http`，`server` | 指定客户端证书链的验证深度。语法：数值默认值：`1` |'
 - en: '| `ssl_session_cache`Context: `http`, `server` | Configures the cache for SSL
     sessions.Syntax: `off`, `none`, `builtin:size`, or `shared:name:size`Default:
     `off` (disables SSL sessions) |'
+  id: totrans-553
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_cache`上下文：`http`，`server` | 配置 SSL 会话的缓存。语法：`off`，`none`，`builtin:size`，或
+    `shared:name:size` 默认值：`off`（禁用 SSL 会话） |'
 - en: '| `ssl_session_timeout`Context: `http`, `server` | When SSL sessions are enabled,
     this directive defines the timeout for using session data.Syntax: Time valueDefault:
     5 minutes |'
+  id: totrans-554
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_timeout`上下文：`http`，`server` | 启用 SSL 会话时，此指令定义使用会话数据的超时时间。语法：时间值默认值：5
+    分钟 |'
 - en: '| `ssl_password_phrase`Context: `http`, `server` | Specifies a file containing
     passphrases for secret keys. Each passphrase is specified on a separate line;
     they are tried one after the other when loading a certificate key.Syntax: FilenameDefault:
     (none) |'
+  id: totrans-555
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_password_phrase`上下文：`http`，`server` | 指定一个包含私钥口令的文件。每个口令在单独一行中指定；加载证书密钥时，它们将依次尝试。语法：文件名默认值：（无）
+    |'
 - en: '| `ssl_buffer_size`Context: `http`, `server` | Specifies buffer size when serving
     requests over SSL.Syntax: Size valueDefault: `16k` |'
+  id: totrans-556
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_buffer_size`上下文：`http`，`server` | 指定通过 SSL 提供请求时的缓冲区大小。语法：大小值默认值：`16k`
+    |'
 - en: '| `ssl_session_tickets`Context: `http`, `server` | Enables TLS session tickets,
     allowing for the client to reconnect faster, skipping renegotiation.Syntax: `on`
     or `off`Default: `on` |'
+  id: totrans-557
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_tickets`上下文：`http`，`server` | 启用 TLS 会话票证，允许客户端更快地重新连接，跳过重新协商。语法：`on`
+    或 `off` 默认值：`on` |'
 - en: '| `ssl_session_ticket_key`Context: `http`, `server` | Sets the path of the
     key file used to encrypt and decrypt TLS session tickets. By default, a random
     value is generated.Syntax: FilenameDefault: (none) |'
+  id: totrans-558
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_session_ticket_key`上下文：`http`，`server` | 设置用于加密和解密 TLS 会话票证的密钥文件路径。默认情况下，会生成一个随机值。语法：文件名默认值：（无）
+    |'
 - en: '| `ssl_trusted_certificate`Context: `http`, `server` | Sets the path of a trusted
     certificate file (PEM format), used to validate the authenticity of client certificates,
     as well as stapling of **Online Certificate Status Protocol** (**OCSP**) responses.
     More about SSL stapling can be found in the next section.Syntax: FilenameDefault:
     (none) |'
+  id: totrans-559
   prefs: []
   type: TYPE_TB
+  zh: '| `ssl_trusted_certificate`上下文：`http`，`server` | 设置受信任证书文件的路径（PEM 格式），用于验证客户端证书的真实性，以及
+    OCSP（**在线证书状态协议**）响应的粘贴。有关 SSL 粘贴的更多信息，请参见下一节。语法：文件名默认值：（无） |'
 - en: 'Table 4.16: A list of directives for the SSL module'
+  id: totrans-560
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 4.16：SSL 模块的指令列表
 - en: Note
+  id: totrans-561
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build.
+  id: totrans-562
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块不包含在默认的 NGINX 构建中。
 - en: 'Additionally, the following variables are made available:'
+  id: totrans-563
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，以下变量也可用：
 - en: '`$ssl_cipher`: Indicates the cipher used for the current request'
+  id: totrans-564
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_cipher`：表示当前请求使用的加密套件'
 - en: '`$ssl_ciphers`: Returns a list of client-supported ciphers'
+  id: totrans-565
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_ciphers`：返回客户端支持的加密套件列表'
 - en: '`$ssl_curves`: Returns a list of client-supported curves for Elliptic Curves/EC/ECDH'
+  id: totrans-566
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_curves`：返回客户端支持的椭圆曲线/EC/ECDH的曲线列表'
 - en: '`$ssl_client_serial`: Indicates the serial number of the client certificate'
+  id: totrans-567
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_client_serial`：表示客户端证书的序列号'
 - en: '`$ssl_client_s_dn` and `$ssl_client_i_dn`: Indicates the value of the subject
     and issuer **Distinguished Name** (**DN**) of the client certificate'
+  id: totrans-568
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_client_s_dn` 和 `$ssl_client_i_dn`：表示客户端证书的主题和颁发者**区分名称**（**DN**）的值'
 - en: '`$ssl_protocol`: Indicates the protocol at use for the current request'
+  id: totrans-569
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_protocol`：表示当前请求使用的协议'
 - en: '`$ssl_client_cert` and `$ssl_client_raw_cert`: Returns client certificate data,
     which is raw data for the second variable'
+  id: totrans-570
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_client_cert` 和 `$ssl_client_raw_cert`：返回客户端证书数据，第二个变量为原始数据'
 - en: '`$ssl_client_verify`: Set to `SUCCESS` if the client certificate was successfully
     verified'
+  id: totrans-571
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_client_verify`：如果客户端证书成功验证，则设置为`SUCCESS`'
 - en: '`$ssl_session_id`: Allows you to retrieve the ID of an SSL session'
+  id: totrans-572
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_session_id`：允许你检索SSL会话的ID'
 - en: '`$ssl_client_escaped_cert`: Returns the client certificate in PEM format'
+  id: totrans-573
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`$ssl_client_escaped_cert`：返回PEM格式的客户端证书'
 - en: Setting up an SSL certificate
+  id: totrans-574
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 设置SSL证书
 - en: 'Although the SSL module offers a lot of possibilities, in most cases, only
     a couple of directives are actually useful for setting up a secure website. This
     guide will help you configure NGINX to use an SSL certificate for your website
     (in the example, your website is identified by `secure.website.com`). Before doing
     so, ensure that you already have the following elements at your disposal:'
+  id: totrans-575
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然SSL模块提供了很多可能性，但在大多数情况下，实际上只有几个指令对设置安全网站有用。本指南将帮助你配置NGINX，以便为你的网站使用SSL证书（在本示例中，你的网站标识为`secure.website.com`）。在开始之前，确保你已经具备以下元素：
 - en: 'A `.key` file generated with the following command: `openssl genrsa -out secure.website.com.key
     2048` (other encryption levels work too)'
+  id: totrans-576
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用以下命令生成的`.key`文件：`openssl genrsa -out secure.website.com.key 2048`（其他加密级别也可以使用）
 - en: 'A `.csr` file generated with the following command: `openssl req -new -key
     secure.website.com.key -``out secure.website.com.csr`'
+  id: totrans-577
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用以下命令生成的`.csr`文件：`openssl req -new -key secure.website.com.key -out secure.website.com.csr`
 - en: Your website certificate file, as issued by the CA; for example, `secure.website.com.crt`
     (in order to obtain a certificate from the CA, you will need to provide your `.``csr`
     file)
+  id: totrans-578
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由CA颁发的网站证书文件；例如，`secure.website.com.crt`（为了从CA获取证书，你需要提供你的`.csr`文件）
 - en: The CA certificate file as issued by the CA (for example, `gd_bundle.crt`, if
     you purchased your certificate from [https://godaddy.com/](https://godaddy.com/))
+  id: totrans-579
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由CA颁发的CA证书文件（例如，如果你从[https://godaddy.com/](https://godaddy.com/)购买了证书，则是`gd_bundle.crt`）
 - en: 'The first step is to merge your website certificate and the CA certificate
     together with the following command:'
+  id: totrans-580
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是使用以下命令将你的网站证书和CA证书合并：
 - en: '[PRE35]'
+  id: totrans-581
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: 'You are then ready to configure NGINX to serve secure content:'
+  id: totrans-582
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你可以配置NGINX来提供安全内容：
 - en: '[PRE36]'
+  id: totrans-583
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: SSL stapling
+  id: totrans-584
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: SSL stapling
 - en: 'SSL stapling, also called OCSP stapling, is a technique that allows clients
     to easily connect and resume sessions to an SSL/TLS server without having to contact
     the CA, thus reducing SSL negotiation times. In normal OCSP transactions, the
@@ -2611,181 +3938,267 @@
     the CA by your server itself periodically and **stapled** to exchanges with the
     client. The OCSP record is cached by your server for a period of up to 48 hours
     in order to limit communications with the CA.'
+  id: totrans-585
   prefs: []
   type: TYPE_NORMAL
+  zh: SSL stapling，也称为OCSP stapling，是一种技术，允许客户端轻松连接并恢复与SSL/TLS服务器的会话，而无需联系CA，从而减少SSL协商时间。在正常的OCSP交易中，客户端联系CA检查服务器证书的吊销状态。在高流量网站的情况下，这可能会给CA服务器带来巨大压力。为了解决这个问题，设计了一种中介方案：stapling。OCSP记录由你的服务器定期从CA获取，并**附加**到与客户端的交换中。OCSP记录会在你的服务器上缓存最多48小时，以限制与CA的通信。
 - en: 'Enabling SSL stapling should thus speed up communications between your visitors
     and your server. Achieving this in NGINX is relatively simple—all you really need
     is to insert three directives in your `server` block and obtain a fully trusted
     certificate chain file (containing both the root and intermediate certificates)
     from your CA:'
+  id: totrans-586
   prefs: []
   type: TYPE_NORMAL
+  zh: 启用 SSL stapling 应该能加速您的访问者与服务器之间的通信。在 NGINX 中实现这一点相对简单——您只需要在 `server` 块中插入三条指令，并从您的
+    CA 获取一个完全受信任的证书链文件（包含根证书和中间证书）：
 - en: '`ssl_stapling on`: Enables SSL stapling within the `server` block'
+  id: totrans-587
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_stapling on`：在 `server` 块中启用 SSL stapling'
 - en: '`ssl_stapling_verify on`: Enables verification of OCSP responses by the server'
+  id: totrans-588
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_stapling_verify on`：启用服务器对 OCSP 响应的验证'
 - en: '`ssl_trusted_certificate filename`: Here, `filename` is the path of your full
     trusted certificate file (extension should be `.pem`)'
+  id: totrans-589
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_trusted_certificate filename`：这里的 `filename` 是您的完整信任证书文件的路径（扩展名应为 `.pem`）'
 - en: 'Two optional directives also exist, allowing you to modify the behavior of
     this module:'
+  id: totrans-590
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有两个可选指令，允许您修改该模块的行为：
 - en: '`ssl_stapling_file filename`: Here, `filename` is the path of a cached OCSP
     record, overriding the record provided by the OCSP responder specified in the
     certificate file'
+  id: totrans-591
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_stapling_file filename`：这里的 `filename` 是缓存的 OCSP 记录路径，覆盖证书文件中指定的 OCSP
+    响应者提供的记录'
 - en: '`ssl_stapling_responder url`: Here, `url` is the URL of your CA’s OCSP responder,
     overriding the URL specified in the certificate file'
+  id: totrans-592
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ssl_stapling_responder url`：这里的 `url` 是您 CA 的 OCSP 响应者的 URL，覆盖证书文件中指定的 URL'
 - en: If you are having issues connecting to the OCSP responder, make sure your NGINX
     configuration contains a valid DNS resolver using the `resolver` directive (a
     local DNS responder might help too).
+  id: totrans-593
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您在连接 OCSP 响应者时遇到问题，请确保您的 NGINX 配置中包含有效的 DNS 解析器，使用 `resolver` 指令（本地 DNS 响应者也可能有所帮助）。
 - en: Other miscellaneous and optional modules
+  id: totrans-594
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 其他杂项和可选模块
 - en: The remaining two modules (which all need to be enabled at compile time) are
     optional and provide additional advanced functionalities.
+  id: totrans-595
   prefs: []
   type: TYPE_NORMAL
+  zh: 剩余的两个模块（都需要在编译时启用）是可选的，提供额外的高级功能。
 - en: Stub status
+  id: totrans-596
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Stub 状态
 - en: 'The `stub_status` directive in a `location` block. All requests matching the
     `location` block will produce a status page:'
+  id: totrans-597
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `location` 块中的 `stub_status` 指令。所有与该 `location` 块匹配的请求将生成一个状态页面：
 - en: '[PRE37]'
+  id: totrans-598
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: Note
+  id: totrans-599
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意
 - en: This module is not included in the default NGINX build. Make sure to protect
     this page as it should not be used in production.
+  id: totrans-600
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模块未包含在默认的 NGINX 构建中。请确保保护此页面，因为它不应在生产环境中使用。
 - en: 'Here’s an example result produced by NGINX:'
+  id: totrans-601
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是由 NGINX 产生的一个示例结果：
 - en: '[PRE38]'
+  id: totrans-602
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: It’s interesting to note that there are several server monitoring solutions,
     such as *netdata*, that offer NGINX support through the Stub status page by calling
     it at regular intervals and parsing the statistics.
+  id: totrans-603
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得注意的是，有几个服务器监控解决方案，如 *netdata*，通过定期调用 Stub 状态页面并解析统计信息，提供 NGINX 支持。
 - en: Degradation
+  id: totrans-604
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 降级
 - en: 'The HTTP Degradation module configures your server to return an error page
     when your server runs low on memory. It works by defining a memory amount that
     is to be considered low, and then specifying locations for which you wish to enable
     a degradation check:'
+  id: totrans-605
   prefs: []
   type: TYPE_NORMAL
+  zh: HTTP 降级模块配置您的服务器，在内存不足时返回错误页面。它通过定义一个被视为低内存的量来工作，然后指定您希望启用降级检查的位置：
 - en: '[PRE39]'
+  id: totrans-606
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: Integrating a third-party module into your NGINX build
+  id: totrans-607
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 将第三方模块集成到您的 NGINX 构建中
 - en: The NGINX community has been growing larger over the past few years, and many
     additional modules have been written by third-party developers. These can be downloaded
     from the official wiki website at [https://www.nginx.com/resources/wiki/modules/](https://www.nginx.com/resources/wiki/modules/).
     However, we advise you to be careful when integrating these third-party modules
     as they do not come with security support or assurances from the NGINX development
     team, potentially introducing security vulnerabilities.
+  id: totrans-608
   prefs: []
   type: TYPE_NORMAL
+  zh: NGINX 社区在过去几年里不断壮大，许多额外的模块也由第三方开发者编写。这些模块可以从官方维基网站 [https://www.nginx.com/resources/wiki/modules/](https://www.nginx.com/resources/wiki/modules/)
+    下载。然而，我们建议您在集成这些第三方模块时要小心，因为它们没有来自 NGINX 开发团队的安全支持或保障，可能会引入安全漏洞。
 - en: 'The currently available modules offer a wide range of new possibilities, among
     which are the following:'
+  id: totrans-609
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前可用的模块提供了广泛的新功能，其中包括以下内容：
 - en: An *Access Key* module to protect your documents in a similar fashion to Secure
     Link, by Mykola Grechukh
+  id: totrans-610
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 *访问密钥* 模块，可以像 Secure Link 一样保护您的文档，由 Mykola Grechukh 开发
 - en: A *Fancy Indexes* module that improves the automatic directory listings generated
     by NGINX, by Adrian Perez de Castro
+  id: totrans-611
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个由 Adrian Perez de Castro 提供的 *Fancy Indexes* 模块，旨在改善 NGINX 自动生成的目录列表。
 - en: The *Headers More* module that improves flexibility with HTTP headers, by Yichun
     Zhang (`agentzh`)
+  id: totrans-612
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由 Yichun Zhang（`agentzh`）提供的 *Headers More* 模块，旨在提高 HTTP 头部的灵活性。
 - en: Many more features for various parts of the web server
+  id: totrans-613
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 许多其他功能，涵盖了 Web 服务器的各个部分。
 - en: 'To integrate a third-party module into your NGINX build, you need to follow
     these three simple steps:'
+  id: totrans-614
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将第三方模块集成到你的 NGINX 构建中，你需要遵循以下三个简单步骤：
 - en: Download the `.tar.gz` archive associated with the module you wish to download.
+  id: totrans-615
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下载与你希望下载的模块相关的 `.tar.gz` 归档文件。
 - en: 'Extract the archive with the following command:'
+  id: totrans-616
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用以下命令解压归档文件：
 - en: '[PRE40]'
+  id: totrans-617
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: 'Configure your NGINX build with the following command:'
+  id: totrans-618
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用以下命令配置你的 NGINX 构建：
 - en: '[PRE41]'
+  id: totrans-619
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: Once you have finished building and installing the application, the module is
     available just like a regular NGINX module, with its directives and variables.
+  id: totrans-620
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成构建和安装应用程序后，该模块可以像常规 NGINX 模块一样使用，带有它的指令和变量。
 - en: 'If you are interested in writing NGINX modules yourself, Evan Miller published
     an excellent walkthrough: *Emiller’s Guide to Nginx Module Development*. The complete
     guide may be consulted from his personal website at [https://www.evanmiller.org/](https://www.evanmiller.org/).'
+  id: totrans-621
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有兴趣自己编写 NGINX 模块，Evan Miller 发布了一个很棒的教程：*Emiller’s Guide to Nginx Module
+    Development*。你可以从他的个人网站 [https://www.evanmiller.org/](https://www.evanmiller.org/)
+    查阅完整指南。
 - en: Summary
+  id: totrans-622
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: Throughout this chapter, we have been discovering modules that help you improve
     or fine-tune the configuration of your web server. NGINX fiercely stands up to
     other concurrent web servers in terms of functionality, and its approach to virtual
     hosts and the way they are configured will probably convince many administrators
     to make the switch.
+  id: totrans-623
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们探索了能够帮助你改进或微调 Web 服务器配置的模块。NGINX 在功能方面与其他并发 Web 服务器激烈竞争，而且它对虚拟主机的处理方式及配置方法，可能会说服许多管理员切换到它。
 - en: Three additional modules were left out, though. Firstly, the FastCGI module
     will be approached in the next chapter, as it will allow us to configure a gateway
     to applications such as PHP or Python. Secondly, the Proxy module that lets us
     design complex setups will be described in [*Chapter 6*](B21787_06.xhtml#_idTextAnchor621).
     Finally, the Upstream module is tied to both, so it will be detailed in parallel.
+  id: totrans-624
   prefs: []
   type: TYPE_NORMAL
+  zh: 不过，有三个额外的模块被省略了。首先，FastCGI 模块将在下一章中介绍，它将帮助我们配置与 PHP 或 Python 等应用程序的网关。其次，Proxy
+    模块将允许我们设计复杂的配置，它将在[*第六章*](B21787_06.xhtml#_idTextAnchor621)中进行描述。最后，Upstream 模块与前两个模块有关，因此将并行详细介绍。
