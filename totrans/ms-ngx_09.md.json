@@ -1,1 +1,0 @@
-["```\ngeo [$address-variable] $variable-to-be-set { … }\n```", "```\nmap $source-variable $variable-to-be-set { … }\n```", "```\n    text/html  html;\n    image/gif  gif;\n    image/jpeg jpg\n```"]

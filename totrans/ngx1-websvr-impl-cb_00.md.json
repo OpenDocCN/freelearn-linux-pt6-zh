@@ -1,1 +1,0 @@
-["```\nint main()\n{\n// Open the video file\ncv::VideoCapture capture(\"../bike.avi\");\n// check if video successfully opened\nif (!capture.isOpened())\nreturn 1;\n\n```", "```\nserver 192.168.1.3;\nserver 192.168.1.5;\nfair;\n}\nserver {\n\n```", "```\n/etc/init.d/nginx restart\n\n```"]

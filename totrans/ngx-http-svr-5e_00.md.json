@@ -1,1 +1,0 @@
-["```\n[nginx] \nname=nginx repo \nbaseurl=http://nginx.org/packages/OS/OSRELEASE/$basearch/ \ngpgcheck=0 \nenabled=1\n```", "```\napt update \napt install nginx\n```"]
