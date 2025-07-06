@@ -4,4 +4,4 @@
 +   [Nginx HTTP 服务器指南第五版](docs/ngx-http-svr-5e/README.md)
 +   [Nginx 模块扩展指南](docs/ngx-mdl-ext/README.md)
 +   [Nginx 故障排除指南](docs/ngx-tbst/README.md)
-+   [Github DevOps 加速指南](docs/ngx1-websvr-impl-cb/README.md)
++   [Nginx1 Web 服务器实现秘籍](docs/ngx1-websvr-impl-cb/README.md)
