@@ -1,4 +1,4 @@
-# 第四章 安装第三方模块
+# 第四章：安装第三方模块
 
 本章将探讨第三方模块的安装。第三方模块是由世界各地的各种开发者开发的，并托管在各种开源代码库中，例如 GitHub 和 SourceForge。其中一些模块经过了充分测试，而其他模块可能还未准备好投入生产使用。这些模块不受 Nginx 开发者的官方支持，可能在不同的 Nginx 版本中存在问题。在本章中，我们将讨论一些最著名的 Nginx 模块。有关可用选项的更完整列表，您可以在 Nginx 网站上浏览，[`wiki.nginx.org/3rdPartyModules`](http://wiki.nginx.org/3rdPartyModules)。
 

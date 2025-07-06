@@ -1,4 +1,4 @@
-# 第一章 安装 NGINX 和第三方模块
+# 第一章：安装 NGINX 和第三方模块
 
 NGINX 最初被设计为一个 HTTP 服务器。它的诞生是为了解决 Daniel Kegel 在[`www.kegel.com/c10k.html`](http://www.kegel.com/c10k.html)中描述的 C10K 问题，即设计一个能够处理 10,000 个并发连接的 Web 服务器。NGINX 能够通过其基于事件的连接处理机制来实现这一点，并将使用适合操作系统的事件机制来实现这一目标。
 

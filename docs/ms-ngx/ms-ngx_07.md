@@ -1,4 +1,4 @@
-# 第七章 NGINX for the Developer
+# 第七章：NGINX for the Developer
 
 到目前为止，本书中我们已经看到如何为多种不同的场景配置 NGINX。我们尚未做的是，了解 NGINX 为应用程序开发者提供的可能性。NGINX 有多种方式可以直接集成到您的应用程序中。我们将在以下章节中探讨这些可能性：
 
