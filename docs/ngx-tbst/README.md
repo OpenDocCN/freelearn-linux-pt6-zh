@@ -1,6 +1,6 @@
-# Github DevOps 加速指南
+# Nginx 故障排除指南
 
-> 原文：[`annas-archive.org/md5/677f27c30764b3701bc2b6cf6de3a30e`](https://annas-archive.org/md5/677f27c30764b3701bc2b6cf6de3a30e)
+> 原文：[`annas-archive.org/md5/26367ea9393afd216f246db1540c2e02`](https://annas-archive.org/md5/26367ea9393afd216f246db1540c2e02)
 > 
 > 译者：[飞龙](https://github.com/wizardforcel)
 > 

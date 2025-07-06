@@ -1,6 +1,6 @@
-# Github DevOps 加速指南
+# Nginx HTTP 服务器指南第五版
 
-> 原文：[`annas-archive.org/md5/677f27c30764b3701bc2b6cf6de3a30e`](https://annas-archive.org/md5/677f27c30764b3701bc2b6cf6de3a30e)
+> 原文：[`annas-archive.org/md5/a721a5a402b1c088b926fc517839efad`](https://annas-archive.org/md5/a721a5a402b1c088b926fc517839efad)
 > 
 > 译者：[飞龙](https://github.com/wizardforcel)
 > 

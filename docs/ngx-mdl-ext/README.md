@@ -1,6 +1,6 @@
-# Github DevOps 加速指南
+# Nginx 模块扩展指南
 
-> 原文：[`annas-archive.org/md5/677f27c30764b3701bc2b6cf6de3a30e`](https://annas-archive.org/md5/677f27c30764b3701bc2b6cf6de3a30e)
+> 原文：[`annas-archive.org/md5/8263da06651a40a9371ce4e2f2c97915`](https://annas-archive.org/md5/8263da06651a40a9371ce4e2f2c97915)
 > 
 > 译者：[飞龙](https://github.com/wizardforcel)
 > 
